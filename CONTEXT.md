@@ -1,37 +1,38 @@
-# PhotonicBench Five-Objective Outer Loop Context
+# PhotonicBench PR #7 Merge And Five-Objective Outer Loop Context
 
 ## Repository State
 
 - Workspace: `C:\Users\burba\OneDrive\Documents\Photonic Acceleration`
 - Package: `photonic_bench`
-- Current branch: `codex/post-pr5-visual-a11y`
+- Current branch at cycle start: `codex/post-pr5-visual-a11y`
+- Current branch after PR #7 merge: `codex/pr7-followup-improvements`
+- Follow-up branch status: implementation and local verification complete;
+  ready for commit/push closeout.
 - Base branch: `master`
 - Remote: `https://github.com/lamb356/photonic-bench.git`
-- Current branch now contains the protected post-PR5 visual regression and
-  accessibility work, plus the follow-up macOS capture workflow, visualizer,
-  system-modeling, published-card, CLI, generated-artifact, and state closeout
-  changes for PR #7.
+- PR #7: `https://github.com/lamb356/photonic-bench/pull/7`
+- PR #7 head: `codex/post-pr5-visual-a11y`
+- PR #7 base: `master`
+- PR #7 start state: open, non-draft, mergeable, and green.
+- PR #7 merged at `12aaab1554f0584eccb4f4b673880b60720a4f73`.
+- Post-merge `master` CI run `28710804037` passed.
+- Follow-up work adds strict macOS visual baselines, visualizer triage metrics,
+  deeper hierarchy/contention ratios, five new source-backed cards, and
+  `validate-examples`.
 
-## Carry-Forward Post-PR5 Work To Protect
+## PR #7 Carry-Forward Work To Merge First
 
-From GBrain page `photonicbench-post-pr5-visual-a11y-2026-07-04` and local
-state files:
-
-- PR #5 was live-verified merged into `master` at
-  `14cf2afd75eb873852675585de89f6b04eb752a2`.
-- Post-merge `master` CI run `28706296529` concluded `success`.
-- CI visual regression screenshots changed from `if: failure()` to
-  `if: always()`.
-- Visual regression coverage expanded to desktop comparison, mobile
-  comparison, published-reference detail, external-report error diagnostics,
-  and wide transformer comparison.
-- `axe-playwright-python>=0.1.7` and accessibility tests were added.
-- Axe findings were fixed in source UI: focusable scrollable table regions,
-  visible focus rings, unique table region labels, and labeled export preview.
-- Root and `github-linux` baselines were generated.
-- macOS platform aliases normalize to `macos`, but real macOS PNGs were not
-  fabricated.
-- `CHANGELOG.md` summarizes the visualizer test and analysis upgrade.
+- Screenshot artifact upload on every visual regression run.
+- Expanded visual regression coverage for comparison, detail, external-report
+  error, and wide transformer comparison views.
+- Axe-style accessibility checks and related UI accessibility fixes.
+- Non-fabricated macOS visual baseline capture workflow.
+- New system hierarchy, transfer-overhead, loaded-bandwidth, derate, and
+  pressure diagnostics in reports, JSON, transformer aggregates, visualizer
+  views, and exports.
+- Meyer 2026, Xie 2025, and Wu 2026 source-backed surrogate cards.
+- `list-examples` CLI inventory command and JSON output.
+- Generated report and visualizer artifact updates.
 
 ## Relevant Code Surfaces
 
@@ -66,6 +67,7 @@ state files:
 
 ## Constraints
 
+- Do PR #7 merge and post-merge verification first.
 - Do not push with failing known tests or lint.
 - Do not fabricate published values or macOS screenshots.
 - Source-backed card additions must cite primary sources and label surrogate

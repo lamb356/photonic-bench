@@ -1,0 +1,75 @@
+benchmark:
+  name: Prapas 2025 TSW PITC tensor-core surrogate
+  description: Source-backed card for the Optics Express 2025 time-space-wavelength multiplexed photonic integrated tensor core using WDM SiGe EAM array chiplets. The local workload is an 8x8 dense tensor-core tile surrogate.
+workload:
+  type: matmul
+  m: 8
+  n: 8
+  k: 8
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 8
+    energy_pj_per_conversion: 0.5
+  vector_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+  weight_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+execution:
+  batch_size: 1
+  vector_reuse_factor: 1
+  weight_reuse_factor: 1
+  weight_stationary: true
+  pipeline:
+    stages: 1
+timing:
+  optical_latency_ns: 1
+  adc_latency_ns: 0
+  dac_latency_ns: 0
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 1
+provenance:
+  source_title: "Time-space-wavelength multiplexed photonic tensor core using WDM SiGe EAM array chiplets"
+  source_url: https://opg.optica.org/oe/fulltext.cfm?uri=oe-33-17-36960
+  doi: 10.1364/OE.564666
+  venue: Optics Express 33, 36960-36972 (2025)
+  claim_status: paper-reported PITC throughput, modulation, and benchmark metrics; matmul-surrogate local model
+published_calibration:
+  architecture: AWGR-enabled photonic integrated tensor core with WDM SiGe EAM array chiplets
+  reported_tops: 2.56
+  additional_metrics:
+    demonstrated_pitc_shape: 8x8
+    eam_wdm_channels: 8
+    modulation_rate_gbaud: 20
+    iris_cohen_kappa: 0.8438
+    mnist_cohen_kappa: 0.7421
+    eam_footprint_reduction_x_vs_ring_modulator: 4.0
+    eam_energy_efficiency_improvement_x_vs_mzm: 6.9
+    surrogate_mapping: m=8, k=8, n=8 is a dense local tile for the demonstrated PITC layout; it does not model AWGR routing or WDM EAM chiplet behavior.
+source_quality:
+  reported_metrics:
+    - throughput
+    - primitive_shape
+    - modulation_rate
+    - task_kappa
+    - relative_efficiency
+  local_surrogate_type: dense_8x8_tsw_pitc_surrogate
+  coverage:
+    throughput: reported
+    energy: derived
+    accuracy: reported
+    area: derived
+    precision: not_reported
+  confidence_grade: B
+  notes:
+    - Reported TOPS and benchmark kappa are direct paper metrics; energy evidence is relative to comparator modulator implementations, so local energy and timing remain generic assumptions.
+assumptions:
+  - The local card maps the reported 8x8 PITC architectural layout into one dense 8x8 GEMM tile.
+  - Reported 2.56 TOPS and task kappa stay in the published reference section.
+  - Local converter energy, system tiers, timing, and noise settings are generic PhotonicBench assumptions.

@@ -110,6 +110,8 @@ class SystemModelResult:
     system_energy_per_op_pj: float
     movement_energy_share: float
     total_hierarchy_bytes: float
+    hierarchy_equivalent_ops_per_byte: float
+    movement_energy_per_hierarchy_byte_pj: float
     sram_traffic_share: float
     intermediate_traffic_share: float
     off_chip_traffic_share: float
@@ -129,10 +131,12 @@ class SystemModelResult:
     total_transfer_overhead_fraction: float
     effective_loaded_bandwidth_bytes_per_ns: float
     contention_adjusted_loaded_bandwidth_bytes_per_ns: float
+    transfer_to_compute_time_ratio: float
     bandwidth_limited_batch_latency_ns: float
     bandwidth_pressure_ratio: float
     bandwidth_limited_equivalent_ops_per_second: float
     bandwidth_limited_tier: str
+    contention_adjusted_transfer_to_compute_time_ratio: float
     contention_adjusted_batch_latency_ns: float
     contention_pressure_ratio: float
     contention_adjusted_equivalent_ops_per_second: float
@@ -506,6 +510,14 @@ def _system_model(
             else 0.0
         ),
         total_hierarchy_bytes=total_hierarchy_bytes,
+        hierarchy_equivalent_ops_per_byte=_safe_divide(
+            equivalent_ops,
+            total_hierarchy_bytes,
+        ),
+        movement_energy_per_hierarchy_byte_pj=_safe_divide(
+            total_movement_energy_pj,
+            total_hierarchy_bytes,
+        ),
         sram_traffic_share=_safe_divide(sram.total_bytes, total_hierarchy_bytes),
         intermediate_traffic_share=_safe_divide(
             intermediate.total_bytes,
@@ -551,6 +563,10 @@ def _system_model(
         contention_adjusted_loaded_bandwidth_bytes_per_ns=(
             contention_adjusted_loaded_bandwidth
         ),
+        transfer_to_compute_time_ratio=_safe_divide(
+            effective_transfer_time_ns,
+            timing.batch_latency_ns,
+        ),
         bandwidth_limited_batch_latency_ns=bandwidth_limited_batch_latency_ns,
         bandwidth_pressure_ratio=_safe_divide(
             bandwidth_limited_batch_latency_ns,
@@ -562,6 +578,10 @@ def _system_model(
             else 0.0
         ),
         bandwidth_limited_tier=bandwidth_limited_tier,
+        contention_adjusted_transfer_to_compute_time_ratio=_safe_divide(
+            calibration_adjusted_effective_transfer_time_ns,
+            timing.batch_latency_ns,
+        ),
         contention_adjusted_batch_latency_ns=contention_adjusted_batch_latency_ns,
         contention_pressure_ratio=_safe_divide(
             contention_adjusted_batch_latency_ns,

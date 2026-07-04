@@ -220,6 +220,26 @@ MATMUL_ARTIFACT_RECIPES: tuple[MatmulArtifactRecipe, ...] = (
         "wu_2026_high_order_tensor_surrogate.yaml",
         "wu_2026_high_order_tensor_surrogate",
     ),
+    MatmulArtifactRecipe(
+        "tang_2025_waveguide_mvm_surrogate.yaml",
+        "tang_2025_waveguide_mvm_surrogate",
+    ),
+    MatmulArtifactRecipe(
+        "meng_2025_digital_analog_hop_surrogate.yaml",
+        "meng_2025_digital_analog_hop_surrogate",
+    ),
+    MatmulArtifactRecipe(
+        "prapas_2025_tsw_pitc_surrogate.yaml",
+        "prapas_2025_tsw_pitc_surrogate",
+    ),
+    MatmulArtifactRecipe(
+        "zhang_2025_pultc_logic_tensor_surrogate.yaml",
+        "zhang_2025_pultc_logic_tensor_surrogate",
+    ),
+    MatmulArtifactRecipe(
+        "sved_2026_inverse_designed_pnn_surrogate.yaml",
+        "sved_2026_inverse_designed_pnn_surrogate",
+    ),
 )
 
 TRANSFORMER_LAYER_ARTIFACT_RECIPES: tuple[TransformerLayerArtifactRecipe, ...] = (

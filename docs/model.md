@@ -174,6 +174,9 @@ system_energy_per_op_pj = total_system_energy_pj / equivalent_ops
 movement_energy_share = total_movement_energy_pj / total_system_energy_pj
 total_hierarchy_bytes =
     sram_total_bytes + intermediate_total_bytes + off_chip_total_bytes
+hierarchy_equivalent_ops_per_byte = equivalent_ops / total_hierarchy_bytes
+movement_energy_per_hierarchy_byte_pj =
+    total_movement_energy_pj / total_hierarchy_bytes
 sram_traffic_share = sram_total_bytes / total_hierarchy_bytes
 intermediate_traffic_share = intermediate_total_bytes / total_hierarchy_bytes
 off_chip_traffic_share = off_chip_total_bytes / total_hierarchy_bytes
@@ -203,6 +206,8 @@ effective_loaded_bandwidth_bytes_per_ns =
     total_hierarchy_bytes / effective_transfer_time_ns
 contention_adjusted_loaded_bandwidth_bytes_per_ns =
     total_hierarchy_bytes / calibration_adjusted_effective_transfer_time_ns
+transfer_to_compute_time_ratio =
+    effective_transfer_time_ns / batch_latency_ns
 bandwidth_limited_batch_latency_ns =
     max(batch_latency_ns, effective_transfer_time_ns)
 bandwidth_pressure_ratio =
@@ -211,6 +216,8 @@ bandwidth_limited_equivalent_ops_per_second =
     equivalent_ops / (bandwidth_limited_batch_latency_ns * 1e-9)
 contention_adjusted_batch_latency_ns =
     max(batch_latency_ns, calibration_adjusted_effective_transfer_time_ns)
+contention_adjusted_transfer_to_compute_time_ratio =
+    calibration_adjusted_effective_transfer_time_ns / batch_latency_ns
 contention_pressure_ratio =
     contention_adjusted_batch_latency_ns / batch_latency_ns
 contention_adjusted_equivalent_ops_per_second =
@@ -223,9 +230,10 @@ paper-published measurements. They intentionally remain separate from
 `local_model.energy.total_pj`, which is the photonic compute/conversion estimate
 used by older cards and calibration flows.
 
-The hierarchy traffic and loaded-bandwidth fields are diagnostic summaries over
-the explicit tiers already declared in the config. They do not add a cache
-policy, memory scheduler, or packetized NoC model; they make locality,
+The hierarchy traffic, hierarchy-intensity, movement-per-byte, transfer/compute
+ratio, and loaded-bandwidth fields are diagnostic summaries over the explicit
+tiers already declared in the config. They do not add a cache policy, memory
+scheduler, or packetized NoC model; they make locality, movement cost,
 contention derate, calibration guardband, and memory pressure visible for
 cross-card comparisons.
 

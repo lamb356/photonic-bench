@@ -56,6 +56,8 @@ class ArtifactSummary:
     movement_energy_pj: float | None
     movement_energy_share: float | None
     total_hierarchy_bytes: float | None
+    hierarchy_equivalent_ops_per_byte: float | None
+    movement_energy_per_hierarchy_byte_pj: float | None
     off_chip_traffic_share: float | None
     bandwidth_limited_latency_ns: float | None
     bandwidth_pressure_ratio: float | None
@@ -69,6 +71,8 @@ class ArtifactSummary:
     contention_bandwidth_derate_factor: float | None
     total_transfer_overhead_fraction: float | None
     contention_adjusted_loaded_bandwidth_bytes_per_ns: float | None
+    transfer_to_compute_time_ratio: float | None
+    contention_adjusted_transfer_to_compute_time_ratio: float | None
     system_profile: str | None
     system_profile_overrides: tuple[str, ...]
     memory_timing_mode: str | None
@@ -528,6 +532,20 @@ def _load_matmul_artifact(
             "total_hierarchy_bytes",
             source=source_path,
         ),
+        hierarchy_equivalent_ops_per_byte=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "hierarchy_equivalent_ops_per_byte",
+            source=source_path,
+        ),
+        movement_energy_per_hierarchy_byte_pj=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "movement_energy_per_hierarchy_byte_pj",
+            source=source_path,
+        ),
         off_chip_traffic_share=_optional_number(
             payload,
             "local_model",
@@ -620,6 +638,20 @@ def _load_matmul_artifact(
             "local_model",
             "system",
             "contention_adjusted_loaded_bandwidth_bytes_per_ns",
+            source=source_path,
+        ),
+        transfer_to_compute_time_ratio=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "transfer_to_compute_time_ratio",
+            source=source_path,
+        ),
+        contention_adjusted_transfer_to_compute_time_ratio=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "contention_adjusted_transfer_to_compute_time_ratio",
             source=source_path,
         ),
         system_profile=_optional_str(
@@ -780,6 +812,20 @@ def _load_transformer_layer_artifact(
             "total_hierarchy_bytes",
             source=source_path,
         ),
+        hierarchy_equivalent_ops_per_byte=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "hierarchy_equivalent_ops_per_byte",
+            source=source_path,
+        ),
+        movement_energy_per_hierarchy_byte_pj=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "movement_energy_per_hierarchy_byte_pj",
+            source=source_path,
+        ),
         off_chip_traffic_share=_optional_number(
             payload,
             "local_model",
@@ -872,6 +918,20 @@ def _load_transformer_layer_artifact(
             "local_model",
             "system",
             "contention_adjusted_loaded_bandwidth_bytes_per_ns",
+            source=source_path,
+        ),
+        transfer_to_compute_time_ratio=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "transfer_to_compute_time_ratio",
+            source=source_path,
+        ),
+        contention_adjusted_transfer_to_compute_time_ratio=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "contention_adjusted_transfer_to_compute_time_ratio",
             source=source_path,
         ),
         system_profile=_optional_str(
@@ -1032,6 +1092,20 @@ def _load_transformer_model_artifact(
             "total_hierarchy_bytes",
             source=source_path,
         ),
+        hierarchy_equivalent_ops_per_byte=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "hierarchy_equivalent_ops_per_byte",
+            source=source_path,
+        ),
+        movement_energy_per_hierarchy_byte_pj=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "movement_energy_per_hierarchy_byte_pj",
+            source=source_path,
+        ),
         off_chip_traffic_share=_optional_number(
             payload,
             "local_model",
@@ -1124,6 +1198,20 @@ def _load_transformer_model_artifact(
             "local_model",
             "system",
             "contention_adjusted_loaded_bandwidth_bytes_per_ns",
+            source=source_path,
+        ),
+        transfer_to_compute_time_ratio=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "transfer_to_compute_time_ratio",
+            source=source_path,
+        ),
+        contention_adjusted_transfer_to_compute_time_ratio=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "contention_adjusted_transfer_to_compute_time_ratio",
             source=source_path,
         ),
         system_profile=_optional_str(

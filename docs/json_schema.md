@@ -113,6 +113,11 @@ nominal transfer time, and contention-adjusted transfer time.
 `local_model.system.total_system_energy_pj`. The legacy
 `local_model.energy.total_pj` remains the local photonic compute/conversion
 estimate and is not overwritten by movement energy.
+`local_model.system.hierarchy_equivalent_ops_per_byte` divides equivalent ops
+by cumulative SRAM/intermediate/off-chip traffic, while
+`local_model.system.movement_energy_per_hierarchy_byte_pj` divides local
+movement energy by that same hierarchy traffic. These are local hierarchy
+diagnostics, not measured cache or NoC counters.
 
 Bandwidth-limited fields are local estimates. For per-card reports,
 `local_model.system.effective_transfer_time_ns` is either the slowest tier
@@ -121,11 +126,16 @@ transfer time (`overlapped`) or the sum of tier transfer times (`serialized`).
 existing batch latency and that effective transfer time, and
 `local_model.system.bandwidth_limited_equivalent_ops_per_second` divides the
 card's equivalent ops by that bandwidth-limited latency.
+`local_model.system.transfer_to_compute_time_ratio` preserves the raw effective
+transfer-time divided by compute-only batch latency, even when the existing
+batch latency remains the limiting path.
 
 Contention-adjusted timing uses the same overlapped/serialized timing mode after
 reducing each tier's effective bandwidth by the local contention assumptions.
 `local_model.system.calibration_adjusted_effective_transfer_time_ns` then
 applies the calibration/control overhead guardband.
+`local_model.system.contention_adjusted_transfer_to_compute_time_ratio` divides
+that guardbanded transfer time by compute-only batch latency.
 `local_model.system.contention_adjusted_batch_latency_ns` is the maximum of the
 card's batch latency and that guardbanded transfer time, and
 `local_model.system.contention_adjusted_equivalent_ops_per_second` divides
@@ -403,8 +413,12 @@ transformer_model:
 | `local_model.system.system_energy_per_mac_pj` | pJ/MAC |
 | `local_model.system.system_energy_per_op_pj` | pJ/equivalent op |
 | `local_model.system.movement_energy_share` | unitless fraction |
+| `local_model.system.hierarchy_equivalent_ops_per_byte` | equivalent ops/hierarchy byte |
+| `local_model.system.movement_energy_per_hierarchy_byte_pj` | pJ/hierarchy byte |
+| `local_model.system.transfer_to_compute_time_ratio` | transfer time / compute batch latency |
 | `local_model.system.bandwidth_limited_batch_latency_ns` | ns |
 | `local_model.system.bandwidth_limited_equivalent_ops_per_second` | equivalent ops/second |
+| `local_model.system.contention_adjusted_transfer_to_compute_time_ratio` | adjusted transfer time / compute batch latency |
 | `local_model.system.contention_adjusted_batch_latency_ns` | ns |
 | `local_model.system.contention_adjusted_equivalent_ops_per_second` | equivalent ops/second |
 | `local_model.system.bandwidth_limited_serial_batch_latency_ns` | ns |
@@ -550,7 +564,9 @@ artifact summaries, the pinned reference, active analysis focus, active score
 profile, score weights, filter state, rail grouping, the shareable
 `url_state`, visible artifact IDs, same-schema recommendation cards with
 `score_explanation` drilldowns, grouped best-metric analysis, provenance status,
-and modeling-boundary notes.
+and modeling-boundary notes. Selected artifact summaries also carry the local
+hierarchy-intensity, movement-per-hierarchy-byte, transfer/compute, and
+contention-adjusted transfer/compute fields when those metrics are available.
 
 | Field | Meaning |
 | --- | --- |
@@ -558,6 +574,10 @@ and modeling-boundary notes.
 | `analysis_focus.score_profile` | Built-in profile identity such as `balanced`, `efficiency`, `throughput`, `contention`, or `provenance`, or `custom` when the weights no longer match a built-in profile. |
 | `filters` | Search/schema/boundary/source-quality/sort/grouping state. |
 | `url_state` | Shareable browser URL that restores the comparison context. |
+| `artifacts[].hierarchy_equivalent_ops_per_byte` | Local hierarchy equivalent ops per modeled hierarchy byte, or `null` for legacy/external artifacts that omit it. |
+| `artifacts[].movement_energy_per_hierarchy_byte_pj` | Local movement energy per hierarchy byte, or `null`. |
+| `artifacts[].transfer_to_compute_time_ratio` | Local effective transfer time divided by compute batch latency, or `null`. |
+| `artifacts[].contention_adjusted_transfer_to_compute_time_ratio` | Local contention-adjusted transfer time divided by compute batch latency, or `null`. |
 | `recommendations[].score_explanation` | Raw metric values, normalized scores, weights, contributions, and final weighted score. |
 | `grouped_metrics[].decision_scorecard` | Same-schema scorecard entries using the same score-explanation model. |
 

@@ -109,6 +109,8 @@ simulator.
 | System energy per equivalent op | {_pj(system.system_energy_per_op_pj)} |
 | Movement energy share | {movement_percent:.2f}% |
 | Total hierarchy traffic | {_bytes(system.total_hierarchy_bytes)} |
+| Hierarchy equivalent ops per byte | {system.hierarchy_equivalent_ops_per_byte:.6g} |
+| Movement energy per hierarchy byte | {_pj(system.movement_energy_per_hierarchy_byte_pj)} |
 | SRAM traffic share | {system.sram_traffic_share * 100:.2f}% |
 | Intermediate/cache traffic share | {system.intermediate_traffic_share * 100:.2f}% |
 | Off-chip traffic share | {system.off_chip_traffic_share * 100:.2f}% |
@@ -123,12 +125,14 @@ simulator.
 | Total transfer overhead | {system.total_transfer_overhead_fraction * 100:.2f}% |
 | Effective loaded hierarchy bandwidth | {_bytes_per_ns(system.effective_loaded_bandwidth_bytes_per_ns)} |
 | Contention-adjusted loaded hierarchy bandwidth | {_bytes_per_ns(system.contention_adjusted_loaded_bandwidth_bytes_per_ns)} |
+| Transfer-to-compute time ratio | {system.transfer_to_compute_time_ratio:.6g} |
 | Bandwidth-limited tier | {system.bandwidth_limited_tier} |
 | Bandwidth-limited batch latency | {_ns(system.bandwidth_limited_batch_latency_ns)} |
 | Bandwidth pressure ratio | {system.bandwidth_pressure_ratio:.6g} |
 | Bandwidth-limited equivalent ops/s | {system.bandwidth_limited_equivalent_ops_per_second:.3f} |
 | Contention-limited tier | {system.contention_limited_tier} |
 | Contention-adjusted batch latency | {_ns(system.contention_adjusted_batch_latency_ns)} |
+| Contention-adjusted transfer-to-compute time ratio | {system.contention_adjusted_transfer_to_compute_time_ratio:.6g} |
 | Contention pressure ratio | {system.contention_pressure_ratio:.6g} |
 | Contention-adjusted equivalent ops/s | {system.contention_adjusted_equivalent_ops_per_second:.3f} |
 

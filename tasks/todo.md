@@ -381,6 +381,64 @@
       post-push CI, macOS artifact verification, durable note, and git status
       are reported in the final response.
 
+## Active Goal: Merge PR #7 And Continue PhotonicBench Improvements
+
+- [x] Task 0: Roll state files forward and create the prioritized checklist.
+      Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
+      `RUBRIC.md`, and `tasks/todo.md`; exposed GBrain; queried GBrain for
+      PR #7 / post-PR5 context; searched local memory; read GitHub, commit,
+      frontend-design, and review guidance; confirmed PR #7 is open,
+      non-draft, mergeable, and green.
+- [x] Task 1: Merge PR #7 into `master`, verify post-merge `master` CI is
+      green, update local `master`, run full tests and `verify-artifacts`,
+      and perform post-merge artifact verification.
+      PR #7 merged at `12aaab1`; post-merge run `28710804037` passed; local
+      `pytest` passed with 128 tests; `verify-artifacts` passed with 238
+      generated files; local and remote PR branches were deleted; real macOS
+      screenshots from run `28710804037` were promoted and the macOS CI job was
+      tightened to strict visual regression.
+- [x] Task 2: Further improve the web visualizer for interaction, dashboard
+      experience, analytical features, and daily usability while preserving
+      modeling-boundary labels.
+      Added the Review Queue plus hierarchy intensity, movement pJ per
+      hierarchy byte, transfer/compute ratio, and contention-adjusted
+      transfer/compute ratio in visualizer detail, comparison, scoring, and
+      exports.
+- [x] Task 3: Deepen system modeling around contention calibration, realistic
+      memory hierarchy behavior, and related metrics; expose changes in
+      reports, JSON, transformer aggregates, and the visualizer.
+      Added hierarchy equivalent ops per byte, movement energy per hierarchy
+      byte, transfer/compute time ratio, and contention-adjusted
+      transfer/compute time ratio across reports, JSON, transformer
+      aggregates, comparison exports, schemas, docs, tests, and generated
+      artifacts.
+- [x] Task 4: Add at least 3-5 more high-quality, source-backed published
+      photonic accelerator cards with quality metadata and clear surrogate
+      labeling.
+      Added Tang 2025 waveguide MVM, Meng 2025 HOP, Prapas 2025 TSW PITC,
+      Zhang 2025 PULTC, and Sved 2026 inverse-designed PNN surrogate cards
+      with generated reports and visualizer payloads.
+- [x] Task 5: Improve CLI and workflow usability, especially validation
+      feedback and full transformer-model analysis workflows.
+      Added `photonic-bench validate-examples` with text and JSON validation
+      summaries, tests, and README documentation.
+- [x] Task 6: Update documentation, regenerate checked artifacts, and run
+      focused plus full verification.
+      Regenerated 258 checked artifacts. Full Ruff, full pytest, build, JS
+      syntax checks, artifact freshness, visual regression, browser smoke,
+      accessibility, and diff hygiene passed.
+- [x] Task 7: Run mandatory Hostile Senior Reviewer critique focused on
+      usability, modeling clarity, source boundaries, code quality, CI artifact
+      usability, and visual regression portability; fix important findings.
+      Fixed stale changelog wording that still described PR #7 as newly opened
+      and macOS CI as capture-only after the merge and strict-baseline
+      promotion.
+- [x] Task 8: Close final state files, update durable notes, verify final
+      git/CI/artifact status, and report remaining risks.
+      State files are closed here and durable GBrain note
+      `photonicbench-pr7-merge-followup-2026-07-04` is written; final commit,
+      push, PR/CI, and git status are reported in the final response.
+
 ## Explicitly Not Active In This Goal
 
 - [ ] Hosted backend web service.

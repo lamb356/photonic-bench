@@ -267,6 +267,8 @@
         "system_energy_per_op_pj",
         "movement_energy_share",
         "total_hierarchy_bytes",
+        "hierarchy_equivalent_ops_per_byte",
+        "movement_energy_per_hierarchy_byte_pj",
         "sram_traffic_share",
         "intermediate_traffic_share",
         "off_chip_traffic_share",
@@ -276,7 +278,9 @@
         "total_transfer_overhead_fraction",
         "effective_loaded_bandwidth_bytes_per_ns",
         "contention_adjusted_loaded_bandwidth_bytes_per_ns",
+        "transfer_to_compute_time_ratio",
         "bandwidth_pressure_ratio",
+        "contention_adjusted_transfer_to_compute_time_ratio",
         "contention_pressure_ratio",
         "bandwidth_limited_serial_effective_macs_per_second",
         "bandwidth_limited_serial_effective_equivalent_ops_per_second",
@@ -327,6 +331,11 @@
         "system_energy_per_op_pj": {"type": "number", "minimum": 0},
         "movement_energy_share": {"type": "number", "minimum": 0, "maximum": 1},
         "total_hierarchy_bytes": {"type": "number", "minimum": 0},
+        "hierarchy_equivalent_ops_per_byte": {"type": "number", "minimum": 0},
+        "movement_energy_per_hierarchy_byte_pj": {
+          "type": "number",
+          "minimum": 0
+        },
         "sram_traffic_share": {"type": "number", "minimum": 0, "maximum": 1},
         "intermediate_traffic_share": {
           "type": "number",
@@ -353,7 +362,12 @@
           "type": "number",
           "minimum": 0
         },
+        "transfer_to_compute_time_ratio": {"type": "number", "minimum": 0},
         "bandwidth_pressure_ratio": {"type": "number", "minimum": 0},
+        "contention_adjusted_transfer_to_compute_time_ratio": {
+          "type": "number",
+          "minimum": 0
+        },
         "contention_pressure_ratio": {"type": "number", "minimum": 0},
         "bandwidth_limited_serial_effective_macs_per_second": {
           "type": "number",

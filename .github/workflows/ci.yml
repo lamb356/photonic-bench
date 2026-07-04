@@ -56,7 +56,7 @@ jobs:
         run: python -m photonic_bench.cli verify-artifacts
 
   macos-visual-baselines:
-    name: macOS visual baseline capture
+    name: macOS visual regression
     runs-on: macos-latest
 
     steps:
@@ -77,9 +77,8 @@ jobs:
       - name: Install Playwright browser
         run: python -m playwright install chromium
 
-      - name: Capture macOS visual baselines
+      - name: Run macOS visual regression
         env:
-          UPDATE_VISUAL_BASELINES: "1"
           VISUAL_REGRESSION_BASELINE_PLATFORM: macos
           VISUAL_REGRESSION_OUTPUT_DIR: test-results/visual-regression-macos
         run: python -m pytest tests/test_visualizer_visual_regression.py -q

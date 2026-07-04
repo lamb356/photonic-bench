@@ -254,6 +254,9 @@ def test_static_app_contains_comparison_and_boundary_labels() -> None:
     assert "System energy per op" in app_js
     assert "Movement share" in app_js
     assert "Contention Insight" in app_js
+    assert "Review Queue" in app_js
+    assert "Hierarchy equivalent ops/byte" in app_js
+    assert "Transfer/compute time ratio" in app_js
     assert "Contention-adjusted latency" in app_js
     assert "Contention-adjusted throughput" in app_js
     assert "Loaded hierarchy bandwidth" in app_js

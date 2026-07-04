@@ -78,6 +78,8 @@ simulator.
 | System energy per equivalent op | 5.425 pJ |
 | Movement energy share | 95.76% |
 | Total hierarchy traffic | 2400804 bytes |
+| Hierarchy equivalent ops per byte | 0.65578 |
+| Movement energy per hierarchy byte | 3.407 pJ |
 | SRAM traffic share | 33.33% |
 | Intermediate/cache traffic share | 33.33% |
 | Off-chip traffic share | 33.33% |
@@ -92,12 +94,14 @@ simulator.
 | Total transfer overhead | 0.00% |
 | Effective loaded hierarchy bandwidth | 48.000 bytes/ns |
 | Contention-adjusted loaded hierarchy bandwidth | 48.000 bytes/ns |
+| Transfer-to-compute time ratio | 1852.47 |
 | Bandwidth-limited tier | off_chip |
 | Bandwidth-limited batch latency | 50016.750 ns |
 | Bandwidth pressure ratio | 1852.47 |
 | Bandwidth-limited equivalent ops/s | 31477455052.557 |
 | Contention-limited tier | off_chip |
 | Contention-adjusted batch latency | 50016.750 ns |
+| Contention-adjusted transfer-to-compute time ratio | 1852.47 |
 | Contention pressure ratio | 1852.47 |
 | Contention-adjusted equivalent ops/s | 31477455052.557 |
 

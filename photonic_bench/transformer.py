@@ -74,6 +74,8 @@ _SYSTEM_TIER_SUM_FIELDS = (
 _SYSTEM_TIER_NAMES = ("sram", "intermediate", "off_chip")
 _SYSTEM_DERIVED_FIELDS = (
     "total_hierarchy_bytes",
+    "hierarchy_equivalent_ops_per_byte",
+    "movement_energy_per_hierarchy_byte_pj",
     "sram_traffic_share",
     "intermediate_traffic_share",
     "off_chip_traffic_share",
@@ -83,7 +85,9 @@ _SYSTEM_DERIVED_FIELDS = (
     "total_transfer_overhead_fraction",
     "effective_loaded_bandwidth_bytes_per_ns",
     "contention_adjusted_loaded_bandwidth_bytes_per_ns",
+    "transfer_to_compute_time_ratio",
     "bandwidth_pressure_ratio",
+    "contention_adjusted_transfer_to_compute_time_ratio",
     "contention_pressure_ratio",
 )
 
@@ -489,6 +493,8 @@ def transformer_layer_report_to_dict(
     system_derived = _aggregate_system_derived_metrics(
         tiers=aggregate_tiers,
         contention=system_config_to_dict(config.system)["contention"],
+        total_equivalent_ops=total_equivalent_ops,
+        total_movement_energy_pj=total_movement_energy_pj,
         serial_transfer_time_ns=serial_transfer_time_ns,
         contention_only_transfer_time_ns=contention_only_transfer_time_ns,
         contention_adjusted_serial_transfer_time_ns=(
@@ -785,6 +791,8 @@ def transformer_model_report_to_dict(
     system_derived = _aggregate_system_derived_metrics(
         tiers=aggregate_tiers,
         contention=system_config_to_dict(config.system)["contention"],
+        total_equivalent_ops=total_equivalent_ops,
+        total_movement_energy_pj=total_movement_energy_pj,
         serial_transfer_time_ns=serial_transfer_time_ns,
         contention_only_transfer_time_ns=(
             contention_adjusted_serial_transfer_time_ns - aggregate_guardband_time_ns
@@ -2003,6 +2011,8 @@ def _aggregate_system_derived_metrics(
     *,
     tiers: dict[str, dict[str, Any]],
     contention: dict[str, Any],
+    total_equivalent_ops: int,
+    total_movement_energy_pj: float,
     serial_transfer_time_ns: float,
     contention_only_transfer_time_ns: float,
     contention_adjusted_serial_transfer_time_ns: float,
@@ -2016,6 +2026,14 @@ def _aggregate_system_derived_metrics(
     )
     return {
         "total_hierarchy_bytes": total_hierarchy_bytes,
+        "hierarchy_equivalent_ops_per_byte": _safe_divide(
+            total_equivalent_ops,
+            total_hierarchy_bytes,
+        ),
+        "movement_energy_per_hierarchy_byte_pj": _safe_divide(
+            total_movement_energy_pj,
+            total_hierarchy_bytes,
+        ),
         "sram_traffic_share": _safe_divide(
             float(tiers["sram"]["total_bytes"]),
             total_hierarchy_bytes,
@@ -2049,8 +2067,16 @@ def _aggregate_system_derived_metrics(
             total_hierarchy_bytes,
             contention_adjusted_serial_transfer_time_ns,
         ),
+        "transfer_to_compute_time_ratio": _safe_divide(
+            serial_transfer_time_ns,
+            serial_batch_latency_ns,
+        ),
         "bandwidth_pressure_ratio": _safe_divide(
             bandwidth_limited_serial_batch_latency_ns,
+            serial_batch_latency_ns,
+        ),
+        "contention_adjusted_transfer_to_compute_time_ratio": _safe_divide(
+            contention_adjusted_serial_transfer_time_ns,
             serial_batch_latency_ns,
         ),
         "contention_pressure_ratio": _safe_divide(

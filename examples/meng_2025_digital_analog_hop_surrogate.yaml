@@ -1,0 +1,75 @@
+benchmark:
+  name: Meng 2025 digital-analog HOP MVM surrogate
+  description: Source-backed card for the Nature Communications 2025 digital-analog hybrid optical processor. The local workload is a 3x3 convolution-kernel MVM surrogate for the cascaded-MRM HOP demonstration only.
+workload:
+  type: matmul
+  m: 1
+  n: 1
+  k: 9
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 8
+    energy_pj_per_conversion: 0.5
+  vector_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+  weight_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+execution:
+  batch_size: 1
+  vector_reuse_factor: 1
+  weight_reuse_factor: 1
+  weight_stationary: true
+  pipeline:
+    stages: 1
+timing:
+  optical_latency_ns: 1
+  adc_latency_ns: 0
+  dac_latency_ns: 0
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 1
+provenance:
+  source_title: "Digital-analog hybrid matrix multiplication processor for optical neural networks"
+  source_url: https://www.nature.com/articles/s41467-025-62586-0
+  doi: 10.1038/s41467-025-62586-0
+  venue: Nature Communications 16, 7465 (2025)
+  claim_status: paper-reported HOP architecture, sample energy, and data-rate metrics; matmul-surrogate local model
+published_calibration:
+  architecture: Digital-analog hybrid optical processor using cascaded microring modulators
+  additional_metrics:
+    hop_energy_per_sample_pj: 3.88
+    analog_scheme_energy_per_sample_pj: 34.88
+    packaged_cascaded_mrms: 20
+    hdip_data_rate_gbps_per_mrm: 7.5
+    hwdr_data_rate_mbps_per_input: 400
+    yolo_data_rate_mbps_per_input: 300
+    hdip_input_word_bits: 16
+    task_kernel_shape: 3x3
+    surrogate_mapping: m=1, k=9, n=1 encodes one 3x3 convolution-kernel MVM; it does not reproduce the HOP digital equalization or DSP chain.
+source_quality:
+  reported_metrics:
+    - architecture
+    - energy_per_sample
+    - modulator_count
+    - data_rate
+    - precision
+  local_surrogate_type: single_kernel_hop_mvm_surrogate
+  coverage:
+    throughput: reported
+    energy: reported
+    accuracy: not_applicable
+    area: derived
+    precision: reported
+  confidence_grade: B
+  notes:
+    - HOP sample-energy and data-rate values are preserved as paper metadata and are not converted into local pJ/op calibration targets.
+assumptions:
+  - The local card uses a single 3x3-kernel MVM surrogate for the HOP convolution demonstrations.
+  - The paper's digital-analog encoding, DSP/equalization, and task-level postprocessing remain outside the local component model.
+  - Local converter energy, system tiers, timing, and noise settings are generic PhotonicBench assumptions.

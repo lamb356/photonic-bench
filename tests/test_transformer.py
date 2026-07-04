@@ -262,6 +262,12 @@ def test_transformer_layer_report_to_dict_aggregates_decomposed_json_cards() -> 
             for card in cards
         )
     )
+    assert system["hierarchy_equivalent_ops_per_byte"] == pytest.approx(
+        payload["workload"]["equivalent_ops"] / system["total_hierarchy_bytes"]
+    )
+    assert system["movement_energy_per_hierarchy_byte_pj"] == pytest.approx(
+        system["total_movement_energy_pj"] / system["total_hierarchy_bytes"]
+    )
     assert (
         system["sram_traffic_share"]
         + system["intermediate_traffic_share"]
@@ -281,8 +287,16 @@ def test_transformer_layer_report_to_dict_aggregates_decomposed_json_cards() -> 
         system["bandwidth_limited_serial_batch_latency_ns"]
         / payload["local_model"]["timing"]["serial_batch_latency_ns"]
     )
+    assert system["transfer_to_compute_time_ratio"] == pytest.approx(
+        system["serial_transfer_time_ns"]
+        / payload["local_model"]["timing"]["serial_batch_latency_ns"]
+    )
     assert system["contention_pressure_ratio"] == pytest.approx(
         system["contention_adjusted_serial_batch_latency_ns"]
+        / payload["local_model"]["timing"]["serial_batch_latency_ns"]
+    )
+    assert system["contention_adjusted_transfer_to_compute_time_ratio"] == pytest.approx(
+        system["contention_adjusted_serial_transfer_time_ns"]
         / payload["local_model"]["timing"]["serial_batch_latency_ns"]
     )
     assert payload["local_model"]["timing"]["timing_model"] == (
@@ -343,6 +357,12 @@ def test_transformer_model_report_to_dict_weights_layer_counts() -> None:
     assert system["total_hierarchy_bytes"] == pytest.approx(
         3 * layer_payload["local_model"]["system"]["total_hierarchy_bytes"]
     )
+    assert system["hierarchy_equivalent_ops_per_byte"] == pytest.approx(
+        payload["workload"]["equivalent_ops"] / system["total_hierarchy_bytes"]
+    )
+    assert system["movement_energy_per_hierarchy_byte_pj"] == pytest.approx(
+        system["total_movement_energy_pj"] / system["total_hierarchy_bytes"]
+    )
     assert (
         system["sram_traffic_share"]
         + system["intermediate_traffic_share"]
@@ -362,8 +382,16 @@ def test_transformer_model_report_to_dict_weights_layer_counts() -> None:
         system["bandwidth_limited_serial_batch_latency_ns"]
         / payload["local_model"]["timing"]["serial_batch_latency_ns"]
     )
+    assert system["transfer_to_compute_time_ratio"] == pytest.approx(
+        system["serial_transfer_time_ns"]
+        / payload["local_model"]["timing"]["serial_batch_latency_ns"]
+    )
     assert system["contention_pressure_ratio"] == pytest.approx(
         system["contention_adjusted_serial_batch_latency_ns"]
+        / payload["local_model"]["timing"]["serial_batch_latency_ns"]
+    )
+    assert system["contention_adjusted_transfer_to_compute_time_ratio"] == pytest.approx(
+        system["contention_adjusted_serial_transfer_time_ns"]
         / payload["local_model"]["timing"]["serial_batch_latency_ns"]
     )
     assert payload["layers"][0]["name"] == "encoder_block"

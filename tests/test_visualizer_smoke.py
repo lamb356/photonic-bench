@@ -209,6 +209,7 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
             page.get_by_role("heading", name="Artifact Comparison").wait_for()
             page.get_by_role("heading", name="Comparison Recommendations").wait_for()
             page.get_by_role("heading", name="Comparison Brief").wait_for()
+            page.get_by_role("heading", name="Review Queue").wait_for()
             page.get_by_role("heading", name="Decision Scorecard").wait_for()
             page.get_by_role("heading", name="Pareto Trade-Offs").wait_for()
             page.get_by_role("button", name="Apply Provenance score profile").click()
@@ -242,6 +243,12 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
             assert export_json["analysis_focus"]["score_weights"]
             assert export_json["filters"]["grouping"] == "schema"
             assert export_json["recommendations"]
+            assert "hierarchy_equivalent_ops_per_byte" in export_json["artifacts"][0]
+            assert "transfer_to_compute_time_ratio" in export_json["artifacts"][0]
+            assert (
+                "contention_adjusted_transfer_to_compute_time_ratio"
+                in export_json["artifacts"][0]
+            )
             assert export_json["recommendations"][0]["score_explanation"][
                 "components"
             ]

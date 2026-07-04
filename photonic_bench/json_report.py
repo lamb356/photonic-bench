@@ -162,6 +162,12 @@ def _local_model(result: BenchmarkResult) -> dict[str, Any]:
             "system_energy_per_op_pj": result.system.system_energy_per_op_pj,
             "movement_energy_share": result.system.movement_energy_share,
             "total_hierarchy_bytes": result.system.total_hierarchy_bytes,
+            "hierarchy_equivalent_ops_per_byte": (
+                result.system.hierarchy_equivalent_ops_per_byte
+            ),
+            "movement_energy_per_hierarchy_byte_pj": (
+                result.system.movement_energy_per_hierarchy_byte_pj
+            ),
             "sram_traffic_share": result.system.sram_traffic_share,
             "intermediate_traffic_share": result.system.intermediate_traffic_share,
             "off_chip_traffic_share": result.system.off_chip_traffic_share,
@@ -198,6 +204,9 @@ def _local_model(result: BenchmarkResult) -> dict[str, Any]:
             "contention_adjusted_loaded_bandwidth_bytes_per_ns": (
                 result.system.contention_adjusted_loaded_bandwidth_bytes_per_ns
             ),
+            "transfer_to_compute_time_ratio": (
+                result.system.transfer_to_compute_time_ratio
+            ),
             "bandwidth_limited_batch_latency_ns": (
                 result.system.bandwidth_limited_batch_latency_ns
             ),
@@ -208,6 +217,9 @@ def _local_model(result: BenchmarkResult) -> dict[str, Any]:
             "bandwidth_limited_tier": result.system.bandwidth_limited_tier,
             "contention_adjusted_batch_latency_ns": (
                 result.system.contention_adjusted_batch_latency_ns
+            ),
+            "contention_adjusted_transfer_to_compute_time_ratio": (
+                result.system.contention_adjusted_transfer_to_compute_time_ratio
             ),
             "contention_pressure_ratio": result.system.contention_pressure_ratio,
             "contention_adjusted_equivalent_ops_per_second": (

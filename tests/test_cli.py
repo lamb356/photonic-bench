@@ -397,6 +397,54 @@ def test_cli_list_examples_can_emit_json() -> None:
     assert examples["bert_base_12layer_model.yaml"]["kind"] == "transformer-model"
 
 
+def test_cli_validate_examples_passes_checked_examples() -> None:
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "photonic_bench.cli",
+            "validate-examples",
+            "--json",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    payload = json.loads(completed.stdout)
+    assert payload["checked"] >= 1
+    assert payload["errors"] == 0
+    assert payload["failed"] == []
+
+
+def test_cli_validate_examples_returns_failure_for_bad_example(tmp_path: Path) -> None:
+    broken = tmp_path / "broken.yaml"
+    broken.write_text("benchmark: [\n", encoding="utf-8")
+
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "photonic_bench.cli",
+            "validate-examples",
+            "--examples-dir",
+            str(tmp_path),
+            "--json",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 1
+    payload = json.loads(completed.stdout)
+    assert payload["checked"] == 1
+    assert payload["errors"] == 1
+    assert Path(payload["failed"][0]["path"]).name == "broken.yaml"
+    assert "contains invalid YAML" in payload["failed"][0]["error"]
+
+
 def test_cli_inspect_config_summarizes_matmul_config() -> None:
     completed = subprocess.run(
         [

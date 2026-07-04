@@ -1,27 +1,26 @@
 # PhotonicBench Goal
 
 Date started: 2026-07-04
-Implementation status: implemented locally; final PR CI verification runs after
-the closeout commit is pushed.
+Implementation status: complete pending commit/push closeout for branch
+`codex/pr7-followup-improvements`.
 
 ## Objective
 
-Complete the next autonomous PhotonicBench outer loop after the
-`codex/post-pr5-visual-a11y` work:
+Complete the next autonomous PhotonicBench outer loop:
 
-1. Commit the current `codex/post-pr5-visual-a11y` work, push it, and open a
-   pull request to `master`.
-2. Further improve the web visualizer for interaction polish, dashboard
-   experience, analytical value, and daily usability.
-3. Deepen the system modeling around contention calibration, realistic memory
+1. Merge PR #7 into `master`, verify post-merge `master` CI is green, and
+   perform post-merge artifact verification.
+2. Further improve the web visualizer for interaction, dashboard experience,
+   analytical features, and daily usability.
+3. Deepen system modeling around contention calibration, more realistic memory
    hierarchy behavior, and related metrics.
-4. Add 3-5 high-quality, source-backed published photonic accelerator cards.
-5. Improve CLI and workflow usability, especially validation feedback and full
-   transformer-model workflows.
+4. Add more high-quality, source-backed published photonic accelerator cards.
+5. Improve CLI and overall workflow usability.
 
 ## Priority Order
 
-1. Protect the existing work with a clean commit, push, and pull request.
+1. Merge PR #7 after verifying green PR CI, then verify `master` locally and
+   in GitHub Actions.
 2. Improve the visualizer where it provides high daily analytical value.
 3. Deepen system modeling with explicit assumptions and report/visualizer
    exposure.
@@ -43,8 +42,8 @@ Complete the next autonomous PhotonicBench outer loop after the
 
 ## Stop Condition
 
-The loop is complete when meaningful implementation has landed across all five
-objectives, all checklist items are marked DONE with proof, generated artifacts
-are fresh, focused and full verification pass or blockers are recorded, the
-pull request path is established, and the hostile review pass is complete with
-major issues addressed.
+The loop is complete when PR #7 has been merged, post-merge `master` CI and
+local artifact verification are green, meaningful implementation has landed
+across the visualizer, system model, published-card set, and CLI/workflow
+surfaces, all checklist items are marked DONE with proof, generated artifacts
+are fresh, and the hostile review pass is complete with major issues fixed.

@@ -353,7 +353,7 @@ The Xu 2021 example uses the Nature paper "11 TOPS photonic convolutional accele
 
 Because that source is a vector convolution accelerator, PhotonicBench labels the local workload as a dense matmul surrogate (`m=1`, `k=250000`, `n=10`). The card carries the paper numbers as published references, not as local model results.
 
-This repository also includes seventeen additional source-backed published-card
+This repository also includes twenty-two additional source-backed published-card
 surrogates:
 
 - Feldmann et al., "Parallel convolutional processing using an integrated
@@ -443,6 +443,31 @@ surrogates:
   `10.1364/OPTICA.579208`. The card records third- and fourth-order
   frequency-domain tensor-processing architecture claims while using a 16x16
   dense GEMM surrogate.
+- Tang et al., "Waveguide-multiplexed photonic matrix-vector multiplication
+  processor using multiport photodetectors", Optica 12, 812-820 (2025), DOI:
+  `10.1364/OPTICA.552023`. The card records the 4x4 MVM primitive, 16-port
+  Ge photodetector bandwidth, scaling projection, and task accuracy while
+  using the demonstrated primitive as a local MVM surrogate.
+- Meng et al., "Digital-analog hybrid matrix multiplication processor for
+  optical neural networks", Nature Communications 16, 7465 (2025), DOI:
+  `10.1038/s41467-025-62586-0`. The card records HOP per-sample energy,
+  cascaded-MRM count, task data rates, and precision metadata while using a
+  3x3-kernel MVM surrogate.
+- Prapas et al., "Time-space-wavelength multiplexed photonic tensor core using
+  WDM SiGe EAM array chiplets", Optics Express 33, 36960-36972 (2025), DOI:
+  `10.1364/OE.564666`. The card records the 8x8 PITC layout, 20 Gbaud WDM EAM
+  operation, 2.56 TOPS MNIST demonstration, and benchmark kappa scores while
+  using an 8x8 dense tile surrogate.
+- Zhang et al., "Photonic logic tensor computing beyond Tbit/s per core",
+  Optica 12, 1252-1260 (2025), DOI: `10.1364/OPTICA.557867`. The card records
+  wavelength, spatial, line-rate, and modulation-bandwidth metadata for the
+  PULTC logic tensor core while using a low-confidence dense bookkeeping
+  surrogate.
+- Sved et al., "Inverse-designed nanophotonic neural network accelerators for
+  ultra-compact optical computing", Nature Communications 17, 1059 (2026),
+  DOI: `10.1038/s41467-026-68648-1`. The card records computational density,
+  footprint, and MNIST/MedNIST accuracy evidence while using a compact
+  classifier-head surrogate.
 
 ## Current Boundary
 
@@ -646,6 +671,10 @@ shared-client count, largest calibration/control overhead, highest pressure
 ratio, and best loaded hierarchy bandwidth among the selected artifacts. It
 keeps the boundary label explicit: these metrics are local shared-link,
 hierarchy, and guardband assumptions, not paper-reported hardware claims.
+The adjacent Review Queue highlights the selected artifacts most worth manual
+inspection for high contention transfer/compute ratio, high movement energy per
+hierarchy byte, low hierarchy intensity, or low source-confidence metadata. It
+is a local triage aid only, not a failure label or hardware ranking.
 
 Comparison results are exportable from the browser. `Download JSON` writes a
 `photonic-bench-comparison-export-v1` object with selected artifact summaries,
@@ -657,8 +686,10 @@ provenance status, and modeling-boundary notes. Its formal schema is checked in 
 `Copy Markdown` produce a human-readable table suitable for reviews or notes.
 `Download CSV` writes a spreadsheet-friendly selected-artifact table with
 focus, score weights, energy, timing, throughput, movement, loaded hierarchy
-bandwidth, off-chip traffic share, pressure ratios, provenance, source-quality,
-system-profile, and boundary tag columns plus comparison-level boundary notes.
+bandwidth, hierarchy intensity, movement energy per hierarchy byte,
+transfer/compute ratios, off-chip traffic share, pressure ratios, provenance,
+source-quality, system-profile, and boundary tag columns plus comparison-level
+boundary notes.
 
 The visualizer accessibility pass keeps controls keyboard-reachable, adds
 specific ARIA labels to comparison and pin controls, exposes mode button
@@ -716,11 +747,10 @@ renderer-specific baseline exists, for example under
 `VISUAL_REGRESSION_BASELINE_PLATFORM` names it. `darwin`, `mac`, and
 `macos-latest` normalize to a `macos` baseline folder, but macOS PNG baselines
 should only be checked in after capture on a real macOS runner. CI now includes
-a `macOS visual baseline capture` job on `macos-latest`; it runs the visual
-regression suite with `UPDATE_VISUAL_BASELINES=1` and uploads
-`macos-visual-regression-screenshots` for review. CI writes Linux visual
-screenshots to `test-results/visual-regression/` and uploads them as a visual
-regression artifact on every run, including passing pull request runs. To
+a strict `macOS visual regression` job on `macos-latest` that compares against
+reviewed checked baselines in `tests/visual_baselines/macos/`. CI writes Linux
+visual screenshots to `test-results/visual-regression/` and uploads them as a
+visual regression artifact on every run, including passing pull request runs. To
 intentionally refresh baselines after a reviewed UI change, run:
 
 ```powershell
@@ -759,6 +789,17 @@ python -m photonic_bench.cli list-examples --json
 The table and JSON output include config path, detected kind, benchmark name,
 workload summary, system profile, published-reference presence, source-quality
 grade, and local surrogate type.
+
+Use `validate-examples` when you want a fast repository health check before
+regenerating reports:
+
+```powershell
+python -m photonic_bench.cli validate-examples
+python -m photonic_bench.cli validate-examples --json
+```
+
+It loads every checked YAML example, reports path-aware validation failures,
+and exits non-zero when any example is invalid.
 
 ## Artifact Freshness
 

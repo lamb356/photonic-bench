@@ -1,0 +1,73 @@
+benchmark:
+  name: Sved 2026 inverse-designed PNN surrogate
+  description: Source-backed card for the Nature Communications 2026 inverse-designed nanophotonic neural network accelerator. The local workload is a compact 16-feature classifier tile surrogate only.
+workload:
+  type: matmul
+  m: 1
+  n: 10
+  k: 16
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 8
+    energy_pj_per_conversion: 0.5
+  vector_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+  weight_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+execution:
+  batch_size: 1
+  vector_reuse_factor: 1
+  weight_reuse_factor: 1
+  weight_stationary: true
+  pipeline:
+    stages: 1
+timing:
+  optical_latency_ns: 1
+  adc_latency_ns: 0
+  dac_latency_ns: 0
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 1
+provenance:
+  source_title: "Inverse-designed nanophotonic neural network accelerators for ultra-compact optical computing"
+  source_url: https://www.nature.com/articles/s41467-026-68648-1
+  doi: 10.1038/s41467-026-68648-1
+  venue: Nature Communications 17, 1059 (2026)
+  claim_status: paper-reported inverse-designed PNN density, footprint, and accuracy metrics; matmul-surrogate local model
+published_calibration:
+  architecture: Inverse-designed nanophotonic neural network accelerator on SOI
+  additional_metrics:
+    computational_density_parameters_per_mm2: 400000000
+    mnist_accuracy_percent: 89
+    mednist_accuracy_percent: 90
+    mnist_footprint_um2: 400
+    mednist_footprint_um2: 600
+    example_patch_input_dimension: 16
+    single_wavelength_operation: true
+    surrogate_mapping: m=1, k=16, n=10 is a compact classifier-head surrogate; it does not reproduce inverse-designed scattering fields.
+source_quality:
+  reported_metrics:
+    - computational_density
+    - footprint
+    - task_accuracy
+    - architecture
+  local_surrogate_type: compact_inverse_designed_pnn_classifier_surrogate
+  coverage:
+    throughput: not_reported
+    energy: not_reported
+    accuracy: reported
+    area: reported
+    precision: not_reported
+  confidence_grade: C
+  notes:
+    - The source is an accelerator paper with strong density and accuracy evidence, but the local dense tile is not a field-propagation or inverse-design model.
+assumptions:
+  - The local card uses a 16-feature by 10-class classifier surrogate to keep the accelerator visible in PhotonicBench comparisons.
+  - Published density, footprint, and accuracy are preserved as reference metadata only.
+  - Local converter energy, system tiers, timing, and noise settings are generic PhotonicBench assumptions.

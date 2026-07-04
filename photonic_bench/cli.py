@@ -67,6 +67,8 @@ def main(argv: list[str] | None = None) -> int:
             return _inspect_config(args.config, args.kind, args.json)
         if args.command == "list-examples":
             return _list_examples(args.examples_dir, args.json)
+        if args.command == "validate-examples":
+            return _validate_examples(args.examples_dir, args.json)
         if args.command == "system-profiles":
             return _system_profiles(args.json)
         if args.command == "verify-artifacts":
@@ -243,6 +245,21 @@ def _build_parser() -> argparse.ArgumentParser:
         "--json",
         action="store_true",
         help="Emit machine-readable example inventory data",
+    )
+    validate_examples = subparsers.add_parser(
+        "validate-examples",
+        help="Validate all example YAML configs and summarize failures",
+    )
+    validate_examples.add_argument(
+        "--examples-dir",
+        type=Path,
+        default=Path("examples"),
+        help="Directory containing example YAML configs",
+    )
+    validate_examples.add_argument(
+        "--json",
+        action="store_true",
+        help="Emit machine-readable validation summary",
     )
     inspect = subparsers.add_parser(
         "inspect-config",
@@ -507,25 +524,7 @@ def _inspect_config(config_path: Path, kind: str, json_output: bool) -> int:
 
 
 def _list_examples(examples_dir: Path, json_output: bool) -> int:
-    if not examples_dir.exists():
-        raise ValueError(f"{examples_dir} does not exist")
-    if not examples_dir.is_dir():
-        raise ValueError(f"{examples_dir} must be a directory")
-
-    rows = []
-    for path in sorted(examples_dir.glob("*.yaml")):
-        try:
-            inspection = _load_config_for_inspection(path, "auto")
-        except ValueError as exc:
-            rows.append(
-                {
-                    "path": str(path),
-                    "status": "error",
-                    "error": str(exc),
-                }
-            )
-            continue
-        rows.append({"status": "ok", **inspection})
+    rows = _example_inventory(examples_dir)
 
     if json_output:
         print(json.dumps({"examples": rows}, indent=2))
@@ -559,6 +558,65 @@ def _list_examples(examples_dir: Path, json_output: bool) -> int:
             "ok |"
         )
     return 0
+
+
+def _validate_examples(examples_dir: Path, json_output: bool) -> int:
+    rows = _example_inventory(examples_dir)
+    errors = [row for row in rows if row["status"] != "ok"]
+    summary = {
+        "examples_dir": str(examples_dir),
+        "checked": len(rows),
+        "ok": len(rows) - len(errors),
+        "errors": len(errors),
+        "failed": [
+            {
+                "path": row["path"],
+                "error": row["error"],
+            }
+            for row in errors
+        ],
+    }
+    if json_output:
+        print(json.dumps(summary, indent=2))
+        return 1 if errors else 0
+
+    print("# PhotonicBench Example Validation")
+    print()
+    print(f"Checked: {summary['checked']}")
+    print(f"OK: {summary['ok']}")
+    print(f"Errors: {summary['errors']}")
+    if errors:
+        print()
+        print("Failures:")
+        for row in errors:
+            print(f"- {row['path']}: {row['error']}")
+        return 1
+    print()
+    print("All example configs validated successfully.")
+    return 0
+
+
+def _example_inventory(examples_dir: Path) -> list[dict[str, object]]:
+    if not examples_dir.exists():
+        raise ValueError(f"{examples_dir} does not exist")
+    if not examples_dir.is_dir():
+        raise ValueError(f"{examples_dir} must be a directory")
+
+    rows = []
+    for path in sorted(examples_dir.glob("*.yaml")):
+        try:
+            inspection = _load_config_for_inspection(path, "auto")
+        except ValueError as exc:
+            rows.append(
+                {
+                    "path": str(path),
+                    "status": "error",
+                    "error": str(exc),
+                }
+            )
+            continue
+        rows.append({"status": "ok", **inspection})
+    return rows
 
 
 def _load_config_for_inspection(config_path: Path, kind: str) -> dict[str, object]:

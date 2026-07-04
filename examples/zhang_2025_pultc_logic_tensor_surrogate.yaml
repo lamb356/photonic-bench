@@ -1,0 +1,72 @@
+benchmark:
+  name: Zhang 2025 PULTC logic tensor surrogate
+  description: Source-backed card for the Optica 2025 photonic universal logic tensor core. The local workload is a compact dense tensor bookkeeping surrogate only, not a Boolean-logic or microring-nonlinearity model.
+workload:
+  type: matmul
+  m: 4
+  n: 10
+  k: 4
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 8
+    energy_pj_per_conversion: 0.5
+  vector_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+  weight_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+execution:
+  batch_size: 1
+  vector_reuse_factor: 1
+  weight_reuse_factor: 1
+  weight_stationary: true
+  pipeline:
+    stages: 1
+timing:
+  optical_latency_ns: 1
+  adc_latency_ns: 0
+  dac_latency_ns: 0
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 1
+provenance:
+  source_title: "Photonic logic tensor computing beyond Tbit/s per core"
+  source_url: https://opg.optica.org/optica/fulltext.cfm?uri=optica-12-8-1252
+  doi: 10.1364/OPTICA.557867
+  venue: Optica 12, 1252-1260 (2025)
+  claim_status: paper-reported PULTC wavelength/spatial logic tensor metrics; matmul-surrogate local model
+published_calibration:
+  architecture: Photonic universal logic tensor core with microring nonlinear mapping and MZI mesh linear transform
+  additional_metrics:
+    wavelength_channels: 10
+    spatial_channels: 4
+    line_rate_gbps_per_channel: 50
+    measured_mrm_eo_bandwidth_ghz: 53.73
+    reported_logic_capacity_note: beyond Tbit/s per core in the published title; supporting preprint reports beyond TOPS per core and optimized 40 TOPS.
+    supporting_preprint_url: https://arxiv.org/abs/2504.20331
+    surrogate_mapping: m=4, k=4, n=10 is a compact bookkeeping surrogate for four spatial channels and ten wavelengths; it is not a Boolean logic tensor simulator.
+source_quality:
+  reported_metrics:
+    - line_rate
+    - wavelength_channels
+    - spatial_channels
+    - modulation_bandwidth
+  local_surrogate_type: logic_tensor_dense_bookkeeping_surrogate
+  coverage:
+    throughput: reported
+    energy: not_reported
+    accuracy: not_applicable
+    area: not_reported
+    precision: not_applicable
+  confidence_grade: C
+  notes:
+    - This is a logic tensor processor, so the local dense matmul shape is only a comparison placeholder and must not be read as an exact operation mapping.
+assumptions:
+  - The local card preserves the paper's wavelength, spatial, and line-rate metadata without converting logic capacity into local matrix-multiply throughput.
+  - The dense tile is intentionally a low-confidence bookkeeping surrogate for visual comparison only.
+  - Local converter energy, system tiers, timing, and noise settings are generic PhotonicBench assumptions.
