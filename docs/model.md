@@ -160,6 +160,8 @@ tier_effective_bandwidth_bytes_per_ns =
     tier.bandwidth_bytes_per_ns * arbitration_efficiency / shared_bandwidth_clients
 tier_contention_adjusted_transfer_time_ns =
     tier_total_bytes / tier_effective_bandwidth_bytes_per_ns
+tier_calibration_adjusted_transfer_time_ns =
+    tier_contention_adjusted_transfer_time_ns * (1 + calibration_overhead_fraction)
 ```
 
 The per-card system summary is:
@@ -180,6 +182,20 @@ movement_energy_per_hierarchy_byte_pj =
 sram_traffic_share = sram_total_bytes / total_hierarchy_bytes
 intermediate_traffic_share = intermediate_total_bytes / total_hierarchy_bytes
 off_chip_traffic_share = off_chip_total_bytes / total_hierarchy_bytes
+dominant_traffic_tier =
+    tier with largest tier_total_bytes / total_hierarchy_bytes
+dominant_movement_energy_tier =
+    tier with largest tier_total_energy_pj / total_movement_energy_pj
+nominal_memory_bottleneck_tier =
+    tier with largest tier_transfer_time_ns
+contention_memory_bottleneck_tier =
+    tier with largest tier_calibration_adjusted_transfer_time_ns
+max_tier_nominal_transfer_pressure_ratio =
+    max(tier_transfer_time_ns / batch_latency_ns)
+max_tier_contention_adjusted_transfer_pressure_ratio =
+    max(tier_calibration_adjusted_transfer_time_ns / batch_latency_ns)
+max_tier_movement_energy_share =
+    max(tier_total_energy_pj / total_movement_energy_pj)
 max_transfer_time_ns =
     max(sram_transfer_time_ns, intermediate_transfer_time_ns, off_chip_transfer_time_ns)
 serial_transfer_time_ns =
@@ -230,12 +246,12 @@ paper-published measurements. They intentionally remain separate from
 `local_model.energy.total_pj`, which is the photonic compute/conversion estimate
 used by older cards and calibration flows.
 
-The hierarchy traffic, hierarchy-intensity, movement-per-byte, transfer/compute
-ratio, and loaded-bandwidth fields are diagnostic summaries over the explicit
-tiers already declared in the config. They do not add a cache policy, memory
-scheduler, or packetized NoC model; they make locality, movement cost,
-contention derate, calibration guardband, and memory pressure visible for
-cross-card comparisons.
+The hierarchy traffic, hierarchy-intensity, movement-per-byte, tier-share,
+tier-pressure, transfer/compute ratio, and loaded-bandwidth fields are
+diagnostic summaries over the explicit tiers already declared in the config.
+They do not add a cache policy, memory scheduler, or packetized NoC model; they
+make locality, movement cost, bottleneck tier, contention derate, calibration
+guardband, and memory pressure visible for cross-card comparisons.
 
 ## Noise Estimate
 

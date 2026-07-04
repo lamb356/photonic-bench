@@ -70,6 +70,7 @@ _SYSTEM_TIER_SUM_FIELDS = (
     "total_energy_pj",
     "transfer_time_ns",
     "contention_adjusted_transfer_time_ns",
+    "calibration_adjusted_transfer_time_ns",
 )
 _SYSTEM_TIER_NAMES = ("sram", "intermediate", "off_chip")
 _SYSTEM_DERIVED_FIELDS = (
@@ -89,6 +90,13 @@ _SYSTEM_DERIVED_FIELDS = (
     "bandwidth_pressure_ratio",
     "contention_adjusted_transfer_to_compute_time_ratio",
     "contention_pressure_ratio",
+    "dominant_traffic_tier",
+    "dominant_movement_energy_tier",
+    "nominal_memory_bottleneck_tier",
+    "contention_memory_bottleneck_tier",
+    "max_tier_nominal_transfer_pressure_ratio",
+    "max_tier_contention_adjusted_transfer_pressure_ratio",
+    "max_tier_movement_energy_share",
 )
 
 
@@ -2019,10 +2027,40 @@ def _aggregate_system_derived_metrics(
     serial_batch_latency_ns: float,
     bandwidth_limited_serial_batch_latency_ns: float,
     contention_adjusted_serial_batch_latency_ns: float,
-) -> dict[str, float]:
+) -> dict[str, Any]:
     total_hierarchy_bytes = sum(float(tier["total_bytes"]) for tier in tiers.values())
     calibration_guardband_time_ns = (
         contention_adjusted_serial_transfer_time_ns - contention_only_transfer_time_ns
+    )
+    _annotate_aggregate_system_tiers(
+        tiers,
+        total_hierarchy_bytes=total_hierarchy_bytes,
+        total_movement_energy_pj=total_movement_energy_pj,
+        serial_transfer_time_ns=serial_transfer_time_ns,
+        contention_adjusted_serial_transfer_time_ns=(
+            contention_adjusted_serial_transfer_time_ns
+        ),
+        serial_batch_latency_ns=serial_batch_latency_ns,
+    )
+    dominant_traffic_tier = max(
+        tiers.values(),
+        key=lambda tier: float(tier.get("traffic_share") or 0.0),
+    )
+    dominant_movement_energy_tier = max(
+        tiers.values(),
+        key=lambda tier: float(tier.get("movement_energy_share") or 0.0),
+    )
+    nominal_memory_bottleneck_tier = max(
+        tiers.values(),
+        key=lambda tier: float(tier.get("transfer_time_ns") or 0.0),
+    )
+    contention_memory_bottleneck_tier = max(
+        tiers.values(),
+        key=lambda tier: float(
+            tier.get("calibration_adjusted_transfer_time_ns")
+            or tier.get("contention_adjusted_transfer_time_ns")
+            or 0.0
+        ),
     )
     return {
         "total_hierarchy_bytes": total_hierarchy_bytes,
@@ -2083,7 +2121,72 @@ def _aggregate_system_derived_metrics(
             contention_adjusted_serial_batch_latency_ns,
             serial_batch_latency_ns,
         ),
+        "dominant_traffic_tier": str(dominant_traffic_tier.get("name") or "tier"),
+        "dominant_movement_energy_tier": str(
+            dominant_movement_energy_tier.get("name") or "tier"
+        ),
+        "nominal_memory_bottleneck_tier": str(
+            nominal_memory_bottleneck_tier.get("name") or "tier"
+        ),
+        "contention_memory_bottleneck_tier": str(
+            contention_memory_bottleneck_tier.get("name") or "tier"
+        ),
+        "max_tier_nominal_transfer_pressure_ratio": max(
+            float(tier.get("nominal_transfer_pressure_ratio") or 0.0)
+            for tier in tiers.values()
+        ),
+        "max_tier_contention_adjusted_transfer_pressure_ratio": max(
+            float(tier.get("contention_adjusted_transfer_pressure_ratio") or 0.0)
+            for tier in tiers.values()
+        ),
+        "max_tier_movement_energy_share": float(
+            dominant_movement_energy_tier.get("movement_energy_share") or 0.0
+        ),
     }
+
+
+def _annotate_aggregate_system_tiers(
+    tiers: dict[str, dict[str, Any]],
+    *,
+    total_hierarchy_bytes: float,
+    total_movement_energy_pj: float,
+    serial_transfer_time_ns: float,
+    contention_adjusted_serial_transfer_time_ns: float,
+    serial_batch_latency_ns: float,
+) -> None:
+    for tier in tiers.values():
+        calibration_adjusted_transfer_time_ns = float(
+            tier.get("calibration_adjusted_transfer_time_ns")
+            or tier.get("contention_adjusted_transfer_time_ns")
+            or 0.0
+        )
+        tier["calibration_adjusted_transfer_time_ns"] = (
+            calibration_adjusted_transfer_time_ns
+        )
+        tier["traffic_share"] = _safe_divide(
+            float(tier.get("total_bytes") or 0.0),
+            total_hierarchy_bytes,
+        )
+        tier["movement_energy_share"] = _safe_divide(
+            float(tier.get("total_energy_pj") or 0.0),
+            total_movement_energy_pj,
+        )
+        tier["nominal_transfer_share"] = _safe_divide(
+            float(tier.get("transfer_time_ns") or 0.0),
+            serial_transfer_time_ns,
+        )
+        tier["contention_adjusted_transfer_share"] = _safe_divide(
+            calibration_adjusted_transfer_time_ns,
+            contention_adjusted_serial_transfer_time_ns,
+        )
+        tier["nominal_transfer_pressure_ratio"] = _safe_divide(
+            float(tier.get("transfer_time_ns") or 0.0),
+            serial_batch_latency_ns,
+        )
+        tier["contention_adjusted_transfer_pressure_ratio"] = _safe_divide(
+            calibration_adjusted_transfer_time_ns,
+            serial_batch_latency_ns,
+        )
 
 
 def _safe_divide(numerator: float, denominator: float) -> float:
@@ -2122,6 +2225,11 @@ def _tier_movement(
         ),
         "transfer_time_ns": total_bytes / tier.bandwidth_bytes_per_ns,
         "contention_adjusted_transfer_time_ns": total_bytes / effective_bandwidth,
+        "calibration_adjusted_transfer_time_ns": (
+            total_bytes
+            / effective_bandwidth
+            * (1.0 + contention.calibration_overhead_fraction)
+        ),
     }
 
 

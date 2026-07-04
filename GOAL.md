@@ -1,32 +1,28 @@
 # PhotonicBench Goal
 
 Date started: 2026-07-04
-Implementation status: complete; follow-up PR #8 is open, mergeable, and green
-on branch `codex/pr7-followup-improvements`.
+Implementation status: active. The first priority is to publish the already
+verified `codex/pr8-followup-improvements` work, then continue with one more
+meaningful visualizer and system-modeling improvement pass.
 
 ## Objective
 
 Complete the next autonomous PhotonicBench outer loop:
 
-1. Merge PR #7 into `master`, verify post-merge `master` CI is green, and
-   perform post-merge artifact verification.
+1. Commit the current work on `codex/pr8-followup-improvements`, push it to
+   GitHub, and open a pull request to `master`.
 2. Further improve the web visualizer for interaction, dashboard experience,
    analytical features, and daily usability.
-3. Deepen system modeling around contention calibration, more realistic memory
+3. Deepen system modeling around contention calibration, realistic memory
    hierarchy behavior, and related metrics.
-4. Add more high-quality, source-backed published photonic accelerator cards.
-5. Improve CLI and overall workflow usability.
 
 ## Priority Order
 
-1. Merge PR #7 after verifying green PR CI, then verify `master` locally and
-   in GitHub Actions.
-2. Improve the visualizer where it provides high daily analytical value.
-3. Deepen system modeling with explicit assumptions and report/visualizer
-   exposure.
-4. Add more published cards with clear source quality metadata and surrogate
-   labels.
-5. Improve CLI and workflow usability.
+1. Protect the current verified branch by committing, pushing, and opening a
+   PR early.
+2. Improve the visualizer where it adds practical daily analytical value.
+3. Deepen the local system model with explicit, auditable assumptions and
+   report/visualizer exposure.
 
 ## Rules
 
@@ -35,6 +31,7 @@ Complete the next autonomous PhotonicBench outer loop:
 - Keep `tasks/todo.md` aligned with the active goal.
 - Before marking any checklist item DONE, verify the change and update
   documentation where relevant.
+- Do not push if known lint or tests are failing.
 - Keep source-backed published values separate from local model estimates.
 - Preserve modeling-boundary labels in reports, JSON, and the visualizer.
 - Run the mandatory Hostile Senior Reviewer critique after substantial
@@ -42,8 +39,8 @@ Complete the next autonomous PhotonicBench outer loop:
 
 ## Stop Condition
 
-The loop is complete when PR #7 has been merged, post-merge `master` CI and
-local artifact verification are green, meaningful implementation has landed
-across the visualizer, system model, published-card set, and CLI/workflow
-surfaces, all checklist items are marked DONE with proof, generated artifacts
-are fresh, and the hostile review pass is complete with major issues fixed.
+The loop is complete when the current branch is committed, pushed, and opened
+as a PR to `master`; a second meaningful pass lands across visualizer and
+system-modeling surfaces; generated artifacts and documentation are fresh; all
+checklist items are DONE with proof; and the hostile review pass is complete
+with major findings addressed.

@@ -88,11 +88,11 @@ photonic core/converter model. SRAM, intermediate, and off-chip traffic are
 cumulative tier movements, not published measurements and not a cache
 simulator.
 
-| Tier | Read bytes | Write bytes | Movement energy | Transfer time | Contention-adjusted transfer | Effective bandwidth |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| SRAM | {_bytes(system.sram.read_bytes)} | {_bytes(system.sram.write_bytes)} | {_pj(system.sram.total_energy_pj)} | {_ns(system.sram.transfer_time_ns)} | {_ns(system.sram.contention_adjusted_transfer_time_ns)} | {_bytes_per_ns(system.sram.effective_bandwidth_bytes_per_ns)} |
-| Intermediate/cache | {_bytes(system.intermediate.read_bytes)} | {_bytes(system.intermediate.write_bytes)} | {_pj(system.intermediate.total_energy_pj)} | {_ns(system.intermediate.transfer_time_ns)} | {_ns(system.intermediate.contention_adjusted_transfer_time_ns)} | {_bytes_per_ns(system.intermediate.effective_bandwidth_bytes_per_ns)} |
-| Off-chip/DRAM | {_bytes(system.off_chip.read_bytes)} | {_bytes(system.off_chip.write_bytes)} | {_pj(system.off_chip.total_energy_pj)} | {_ns(system.off_chip.transfer_time_ns)} | {_ns(system.off_chip.contention_adjusted_transfer_time_ns)} | {_bytes_per_ns(system.off_chip.effective_bandwidth_bytes_per_ns)} |
+| Tier | Read bytes | Write bytes | Movement energy | Traffic share | Movement share | Transfer time | Guardbanded transfer | Tier pressure | Effective bandwidth |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| SRAM | {_bytes(system.sram.read_bytes)} | {_bytes(system.sram.write_bytes)} | {_pj(system.sram.total_energy_pj)} | {system.sram.traffic_share * 100:.2f}% | {system.sram.movement_energy_share * 100:.2f}% | {_ns(system.sram.transfer_time_ns)} | {_ns(system.sram.calibration_adjusted_transfer_time_ns)} | {system.sram.contention_adjusted_transfer_pressure_ratio:.6g} | {_bytes_per_ns(system.sram.effective_bandwidth_bytes_per_ns)} |
+| Intermediate/cache | {_bytes(system.intermediate.read_bytes)} | {_bytes(system.intermediate.write_bytes)} | {_pj(system.intermediate.total_energy_pj)} | {system.intermediate.traffic_share * 100:.2f}% | {system.intermediate.movement_energy_share * 100:.2f}% | {_ns(system.intermediate.transfer_time_ns)} | {_ns(system.intermediate.calibration_adjusted_transfer_time_ns)} | {system.intermediate.contention_adjusted_transfer_pressure_ratio:.6g} | {_bytes_per_ns(system.intermediate.effective_bandwidth_bytes_per_ns)} |
+| Off-chip/DRAM | {_bytes(system.off_chip.read_bytes)} | {_bytes(system.off_chip.write_bytes)} | {_pj(system.off_chip.total_energy_pj)} | {system.off_chip.traffic_share * 100:.2f}% | {system.off_chip.movement_energy_share * 100:.2f}% | {_ns(system.off_chip.transfer_time_ns)} | {_ns(system.off_chip.calibration_adjusted_transfer_time_ns)} | {system.off_chip.contention_adjusted_transfer_pressure_ratio:.6g} | {_bytes_per_ns(system.off_chip.effective_bandwidth_bytes_per_ns)} |
 
 | Metric | Value |
 | --- | ---: |
@@ -114,6 +114,13 @@ simulator.
 | SRAM traffic share | {system.sram_traffic_share * 100:.2f}% |
 | Intermediate/cache traffic share | {system.intermediate_traffic_share * 100:.2f}% |
 | Off-chip traffic share | {system.off_chip_traffic_share * 100:.2f}% |
+| Dominant traffic tier | {system.dominant_traffic_tier} |
+| Dominant movement-energy tier | {system.dominant_movement_energy_tier} |
+| Nominal memory bottleneck tier | {system.nominal_memory_bottleneck_tier} |
+| Contention memory bottleneck tier | {system.contention_memory_bottleneck_tier} |
+| Max tier nominal pressure ratio | {system.max_tier_nominal_transfer_pressure_ratio:.6g} |
+| Max tier contention pressure ratio | {system.max_tier_contention_adjusted_transfer_pressure_ratio:.6g} |
+| Max tier movement-energy share | {system.max_tier_movement_energy_share * 100:.2f}% |
 | Max transfer time | {_ns(system.max_transfer_time_ns)} |
 | Serialized transfer time | {_ns(system.serial_transfer_time_ns)} |
 | Effective transfer time | {_ns(system.effective_transfer_time_ns)} |

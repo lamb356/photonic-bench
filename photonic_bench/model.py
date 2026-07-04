@@ -95,6 +95,13 @@ class SystemTierResult:
     contention_adjusted_transfer_time_ns: float
     read_fraction: float
     write_fraction: float
+    calibration_adjusted_transfer_time_ns: float = 0.0
+    traffic_share: float = 0.0
+    movement_energy_share: float = 0.0
+    nominal_transfer_share: float = 0.0
+    contention_adjusted_transfer_share: float = 0.0
+    nominal_transfer_pressure_ratio: float = 0.0
+    contention_adjusted_transfer_pressure_ratio: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -141,6 +148,13 @@ class SystemModelResult:
     contention_pressure_ratio: float
     contention_adjusted_equivalent_ops_per_second: float
     contention_limited_tier: str
+    dominant_traffic_tier: str
+    dominant_movement_energy_tier: str
+    nominal_memory_bottleneck_tier: str
+    contention_memory_bottleneck_tier: str
+    max_tier_nominal_transfer_pressure_ratio: float
+    max_tier_contention_adjusted_transfer_pressure_ratio: float
+    max_tier_movement_energy_share: float
 
 
 @dataclass(frozen=True)
@@ -464,10 +478,31 @@ def _system_model(
         timing.batch_latency_ns,
         calibration_adjusted_effective_transfer_time_ns,
     )
+    calibration_factor = 1.0 + config.system.contention.calibration_overhead_fraction
+    sram, intermediate, off_chip = tuple(
+        _annotate_system_tier(
+            tier,
+            total_hierarchy_bytes=total_hierarchy_bytes,
+            total_movement_energy_pj=total_movement_energy_pj,
+            effective_transfer_time_ns=effective_transfer_time_ns,
+            calibration_adjusted_effective_transfer_time_ns=(
+                calibration_adjusted_effective_transfer_time_ns
+            ),
+            batch_latency_ns=timing.batch_latency_ns,
+            calibration_factor=calibration_factor,
+        )
+        for tier in tiers
+    )
+    tiers = (sram, intermediate, off_chip)
     slowest_tier = max(tiers, key=lambda tier: tier.transfer_time_ns)
     contention_slowest_tier = max(
         tiers,
-        key=lambda tier: tier.contention_adjusted_transfer_time_ns,
+        key=lambda tier: tier.calibration_adjusted_transfer_time_ns,
+    )
+    dominant_traffic_tier = max(tiers, key=lambda tier: tier.traffic_share)
+    dominant_movement_energy_tier = max(
+        tiers,
+        key=lambda tier: tier.movement_energy_share,
     )
     if timing.batch_latency_ns >= effective_transfer_time_ns:
         bandwidth_limited_tier = "compute"
@@ -593,6 +628,57 @@ def _system_model(
             else 0.0
         ),
         contention_limited_tier=contention_limited_tier,
+        dominant_traffic_tier=dominant_traffic_tier.name,
+        dominant_movement_energy_tier=dominant_movement_energy_tier.name,
+        nominal_memory_bottleneck_tier=slowest_tier.name,
+        contention_memory_bottleneck_tier=contention_slowest_tier.name,
+        max_tier_nominal_transfer_pressure_ratio=max(
+            tier.nominal_transfer_pressure_ratio for tier in tiers
+        ),
+        max_tier_contention_adjusted_transfer_pressure_ratio=max(
+            tier.contention_adjusted_transfer_pressure_ratio for tier in tiers
+        ),
+        max_tier_movement_energy_share=dominant_movement_energy_tier.movement_energy_share,
+    )
+
+
+def _annotate_system_tier(
+    tier: SystemTierResult,
+    *,
+    total_hierarchy_bytes: float,
+    total_movement_energy_pj: float,
+    effective_transfer_time_ns: float,
+    calibration_adjusted_effective_transfer_time_ns: float,
+    batch_latency_ns: float,
+    calibration_factor: float,
+) -> SystemTierResult:
+    calibration_adjusted_transfer_time_ns = (
+        tier.contention_adjusted_transfer_time_ns * calibration_factor
+    )
+    return replace(
+        tier,
+        calibration_adjusted_transfer_time_ns=calibration_adjusted_transfer_time_ns,
+        traffic_share=_safe_divide(tier.total_bytes, total_hierarchy_bytes),
+        movement_energy_share=_safe_divide(
+            tier.total_energy_pj,
+            total_movement_energy_pj,
+        ),
+        nominal_transfer_share=_safe_divide(
+            tier.transfer_time_ns,
+            effective_transfer_time_ns,
+        ),
+        contention_adjusted_transfer_share=_safe_divide(
+            calibration_adjusted_transfer_time_ns,
+            calibration_adjusted_effective_transfer_time_ns,
+        ),
+        nominal_transfer_pressure_ratio=_safe_divide(
+            tier.transfer_time_ns,
+            batch_latency_ns,
+        ),
+        contention_adjusted_transfer_pressure_ratio=_safe_divide(
+            calibration_adjusted_transfer_time_ns,
+            batch_latency_ns,
+        ),
     )
 
 

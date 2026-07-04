@@ -306,6 +306,27 @@
         "movement_energy_per_hierarchy_byte_pj": {
           "$ref": "#/$defs/nullableNumber"
         },
+        "dominant_traffic_tier": {
+          "type": ["string", "null"]
+        },
+        "dominant_movement_energy_tier": {
+          "type": ["string", "null"]
+        },
+        "nominal_memory_bottleneck_tier": {
+          "type": ["string", "null"]
+        },
+        "contention_memory_bottleneck_tier": {
+          "type": ["string", "null"]
+        },
+        "max_tier_nominal_transfer_pressure_ratio": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "max_tier_contention_adjusted_transfer_pressure_ratio": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "max_tier_movement_energy_share": {
+          "$ref": "#/$defs/nullableNumber"
+        },
         "transfer_to_compute_time_ratio": {
           "$ref": "#/$defs/nullableNumber"
         },

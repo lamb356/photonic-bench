@@ -1,68 +1,57 @@
-# PhotonicBench PR #7 Merge And Five-Objective Outer Loop Rubric
+# PhotonicBench Outer Loop Rubric
 
-Use this rubric for completion decisions and the mandatory Hostile Senior
-Reviewer critique.
+## Required Outcome
 
-## PR #7 Merge And Master Verification
+This goal is successful only if all three objectives are completed with proof:
 
-- PR #7 is verified open, non-draft, mergeable, and green before merge.
-- PR #7 is merged into `master`.
-- Local `master` is updated and contains the merge.
-- Post-merge `master` GitHub Actions completes successfully.
-- Local full tests and `python -m photonic_bench.cli verify-artifacts` pass on
-  `master`.
-- Branch cleanup is performed when safe or explicitly recorded as skipped.
-- macOS visual baseline artifacts are promoted only if they come from reviewed
-  real macOS screenshots.
+1. The current `codex/pr8-followup-improvements` work is committed, pushed, and
+   opened as a PR to `master`.
+2. The web visualizer receives another meaningful improvement to interaction,
+   dashboard clarity, analytical features, or daily usability.
+3. The system model receives another meaningful improvement to contention
+   calibration, realistic memory hierarchy behavior, or related metrics.
 
-## Visualizer Quality
+## Quality Bar
 
-- Improvements make daily comparison work faster, clearer, or more analytical.
-- UI remains dense, operational, keyboard reachable, and boundary-labeled.
-- Mixed-schema and local-vs-published semantics remain explicit.
-- Export/share/preset behavior remains reproducible.
-- Browser smoke, accessibility, or visual regression coverage is updated when
-  behavior changes.
+- Changes are implementation-backed, not planning-only.
+- JSON contracts remain strict and documented.
+- Generated Markdown/JSON reports and `reports/visualizer/**` are regenerated
+  whenever model or visualizer outputs change.
+- Published paper values and local model estimates stay visibly separate.
+- New modeling assumptions are explicit, auditable, and labeled as local model
+  estimates.
+- Browser-facing labels preserve the `published_reference` versus
+  `local_model` boundary.
+- Visualizer changes are ergonomic for repeated analysis, not decorative.
+- Tests are focused where behavior changed, and full verification runs before
+  closeout.
 
-## System Modeling Quality
+## Verification Expectations
 
-- New behavior improves realism for memory hierarchy, contention, calibration,
-  or effective bandwidth under load.
-- Assumptions are explicit in config, Markdown, JSON, and visualizer surfaces.
-- Published values remain separate from local estimates.
-- New metrics are tested and are not presented as measured hardware data unless
-  source-backed.
+- Before the initial publish:
+  - `python -m ruff check`
+  - relevant tests for the current dirty work
+  - `python -m photonic_bench.cli verify-artifacts`
+- Before final closeout:
+  - `python -m ruff check`
+  - `python -m pytest -q`
+  - `python -m build`
+  - `python -m photonic_bench.cli verify-artifacts`
+  - `node --check photonic_bench\visualizer_assets\app.js`
+  - `node --check reports\visualizer\assets\app.js`
+  - browser smoke/accessibility/visual-regression tests
+  - `git diff --check`
 
-## Published Card Quality
+## Hostile Senior Reviewer Focus
 
-- Adds at least 3-5 high-quality cards based on primary sources.
-- Cards include citation metadata, source-quality grading, and surrogate type.
-- Local workloads are clearly labeled as surrogates when not exactly the paper
-  workload.
-- Reports, JSON, comparisons, and visualizer artifacts are regenerated.
+The critique pass must look for:
 
-## CLI And Workflow Quality
+- UI controls that are hard to discover, hard to compare, or misleading.
+- Modeling numbers that look source-backed when they are local estimates.
+- Schema/docs drift.
+- Generated artifacts that are stale or not reproducible.
+- Visual regression or browser tests that miss the new workflow.
+- Over-coupled JavaScript or Python surfaces that make the next metric fragile.
+- PR/CI usability problems for reviewers.
 
-- CLI improvements reduce daily friction for common tasks.
-- Validation errors are path-aware and actionable.
-- Transformer-model workflows become clearer or easier to inspect.
-- Tests and documentation cover new commands, flags, or error behavior.
-
-## Verification Quality
-
-- Focused tests pass for every touched surface.
-- Full `python -m ruff check` and `python -m pytest -q` pass before closeout.
-- `python -m build` passes.
-- `python -m photonic_bench.cli verify-artifacts` passes.
-- `node --check photonic_bench\visualizer_assets\app.js` passes after JS
-  changes.
-- Visual regression and accessibility checks pass.
-- `git diff --check` passes, allowing only Git line-ending normalization
-  warnings.
-
-## Review Readiness
-
-- State files and `tasks/todo.md` are current.
-- Hostile Senior Reviewer critique is recorded in `PROGRESS.md`.
-- Important critique findings are fixed before completion.
-- Remaining risks are concrete and not hidden.
+Important findings must be fixed before final DONE.

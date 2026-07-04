@@ -1,44 +1,46 @@
-# PhotonicBench PR #7 Merge And Five-Objective Outer Loop Context
+# PhotonicBench PR Publication, Visualizer, And System Modeling Context
 
 ## Repository State
 
 - Workspace: `C:\Users\burba\OneDrive\Documents\Photonic Acceleration`
 - Package: `photonic_bench`
-- Current branch at cycle start: `codex/post-pr5-visual-a11y`
-- Current branch after PR #7 merge: `codex/pr7-followup-improvements`
-- Follow-up branch status: implementation committed, pushed, opened as PR #8,
-  and verified green in GitHub Actions.
+- Current branch: `codex/pr8-followup-improvements`
 - Base branch: `master`
 - Remote: `https://github.com/lamb356/photonic-bench.git`
-- PR #7: `https://github.com/lamb356/photonic-bench/pull/7`
-- PR #7 head: `codex/post-pr5-visual-a11y`
-- PR #7 base: `master`
-- PR #7 start state: open, non-draft, mergeable, and green.
-- PR #7 merged at `12aaab1554f0584eccb4f4b673880b60720a4f73`.
-- Post-merge `master` CI run `28710804037` passed.
-- Follow-up work adds strict macOS visual baselines, visualizer triage metrics,
-  deeper hierarchy/contention ratios, five new source-backed cards, and
-  `validate-examples`.
-- Follow-up PR #8: `https://github.com/lamb356/photonic-bench/pull/8`
-- PR #8 head commit before state-only closeout:
-  `fd70f5d0f9172bfbb2d1145b28d7aec6bc06cb09`.
-- PR #8 CI run `28711667848` passed:
-  - `Ruff, package, and pytest`;
-  - `macOS visual regression`.
+- GitHub CLI auth: account `lamb356`; token has `repo` and `workflow` scopes.
+- Existing branch state before this cycle:
+  - Large verified dirty worktree on `codex/pr8-followup-improvements`.
+  - Work was previously verified locally but deliberately left unpublished.
+  - GBrain note:
+    `photonicbench-pr8-merge-bottleneck-stack-2026-07-04`.
 
-## PR #7 Carry-Forward Work To Merge First
+## Current Unpublished Work To Protect First
 
-- Screenshot artifact upload on every visual regression run.
-- Expanded visual regression coverage for comparison, detail, external-report
-  error, and wide transformer comparison views.
-- Axe-style accessibility checks and related UI accessibility fixes.
-- Non-fabricated macOS visual baseline capture workflow.
-- New system hierarchy, transfer-overhead, loaded-bandwidth, derate, and
-  pressure diagnostics in reports, JSON, transformer aggregates, visualizer
-  views, and exports.
-- Meyer 2026, Xie 2025, and Wu 2026 source-backed surrogate cards.
-- `list-examples` CLI inventory command and JSON output.
-- Generated report and visualizer artifact updates.
+- Visualizer:
+  - Bottleneck Stack comparison panel.
+  - Worst tier pressure and largest tier movement-share diagnostics.
+  - Exposure in comparison matrix, Review Queue, scoring profiles, JSON export,
+    Markdown export, CSV export, and browser smoke coverage.
+  - Local-model boundary language preserved.
+- System model:
+  - Per-tier `calibration_adjusted_transfer_time_ns`.
+  - Tier traffic share, movement-energy share, and transfer share.
+  - Nominal and contention-adjusted pressure ratios.
+  - Top-level dominant traffic tier, dominant movement-energy tier,
+    nominal/contention memory bottleneck tiers, max tier pressure ratios, and
+    max tier movement-energy share.
+  - Exposure through matmul JSON/Markdown, comparison Markdown, transformer
+    layer/model aggregate JSON, strict schemas, docs, tests, generated reports,
+    and visualizer payloads.
+- Prior verification recorded in GBrain:
+  - `python -m ruff check`.
+  - `python -m pytest -q` with 130 tests.
+  - `python -m build`.
+  - `python -m photonic_bench.cli verify-artifacts` with 258 fresh generated
+    files.
+  - Source and generated visualizer JS syntax checks.
+  - Browser smoke/accessibility/visual-regression tests with 7 tests.
+  - `git diff --check` with only line-ending normalization warnings.
 
 ## Relevant Code Surfaces
 
@@ -58,25 +60,33 @@
 - CLI/artifacts:
   - `photonic_bench/cli.py`
   - `photonic_bench/artifacts.py`
+- Docs and schemas:
+  - `README.md`
+  - `CHANGELOG.md`
+  - `docs/*.schema.json`
+  - `docs/json_schema.md`
+  - `docs/model.md`
 - Examples and reports:
   - `examples/*.yaml`
   - `reports/*.json`
   - `reports/*.md`
+  - `reports/visualizer/**`
 - Tests:
   - `tests/test_visualizer*.py`
   - `tests/test_model.py`
   - `tests/test_report.py`
   - `tests/test_json_report.py`
-  - `tests/test_config.py`
+  - `tests/test_transformer.py`
   - `tests/test_cli.py`
   - `tests/test_artifacts.py`
 
 ## Constraints
 
-- Do PR #7 merge and post-merge verification first.
-- Do not push with failing known tests or lint.
-- Do not fabricate published values or macOS screenshots.
-- Source-backed card additions must cite primary sources and label surrogate
-  local workloads clearly.
+- Commit, push, and open the PR relatively early.
+- Do not push with known failing lint or tests.
+- Do not fabricate published values, measured hardware data, or macOS
+  screenshots.
 - Keep local estimates and paper-reported values visibly separate.
-- Generated artifacts must be refreshed after source/model/example changes.
+- Generated artifacts must be refreshed after source/model/visualizer changes.
+- The visualizer remains directly openable from disk via static JS payload
+  wrappers.

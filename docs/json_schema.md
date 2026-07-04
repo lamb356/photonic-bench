@@ -118,6 +118,17 @@ by cumulative SRAM/intermediate/off-chip traffic, while
 `local_model.system.movement_energy_per_hierarchy_byte_pj` divides local
 movement energy by that same hierarchy traffic. These are local hierarchy
 diagnostics, not measured cache or NoC counters.
+Each `local_model.system.tiers.*` entry also reports `traffic_share`,
+`movement_energy_share`, `calibration_adjusted_transfer_time_ns`,
+`nominal_transfer_share`, `contention_adjusted_transfer_share`,
+`nominal_transfer_pressure_ratio`, and
+`contention_adjusted_transfer_pressure_ratio`. The top-level system block
+summarizes those tier fields with `dominant_traffic_tier`,
+`dominant_movement_energy_tier`, `nominal_memory_bottleneck_tier`,
+`contention_memory_bottleneck_tier`,
+`max_tier_nominal_transfer_pressure_ratio`,
+`max_tier_contention_adjusted_transfer_pressure_ratio`, and
+`max_tier_movement_energy_share`.
 
 Bandwidth-limited fields are local estimates. For per-card reports,
 `local_model.system.effective_transfer_time_ns` is either the slowest tier
@@ -567,6 +578,8 @@ profile, score weights, filter state, rail grouping, the shareable
 and modeling-boundary notes. Selected artifact summaries also carry the local
 hierarchy-intensity, movement-per-hierarchy-byte, transfer/compute, and
 contention-adjusted transfer/compute fields when those metrics are available.
+Newer exports also carry dominant traffic/movement tiers, memory bottleneck
+tier, worst tier pressure, and largest tier movement share when present.
 
 | Field | Meaning |
 | --- | --- |
@@ -576,6 +589,11 @@ contention-adjusted transfer/compute fields when those metrics are available.
 | `url_state` | Shareable browser URL that restores the comparison context. |
 | `artifacts[].hierarchy_equivalent_ops_per_byte` | Local hierarchy equivalent ops per modeled hierarchy byte, or `null` for legacy/external artifacts that omit it. |
 | `artifacts[].movement_energy_per_hierarchy_byte_pj` | Local movement energy per hierarchy byte, or `null`. |
+| `artifacts[].dominant_traffic_tier` | Tier with the largest modeled hierarchy-byte share, or `null`. |
+| `artifacts[].dominant_movement_energy_tier` | Tier with the largest modeled movement-energy share, or `null`. |
+| `artifacts[].contention_memory_bottleneck_tier` | Memory tier with the largest guardbanded transfer time, or `null`. |
+| `artifacts[].max_tier_contention_adjusted_transfer_pressure_ratio` | Largest guardbanded tier transfer divided by compute batch latency, or `null`. |
+| `artifacts[].max_tier_movement_energy_share` | Largest single-tier movement-energy share, or `null`. |
 | `artifacts[].transfer_to_compute_time_ratio` | Local effective transfer time divided by compute batch latency, or `null`. |
 | `artifacts[].contention_adjusted_transfer_to_compute_time_ratio` | Local contention-adjusted transfer time divided by compute batch latency, or `null`. |
 | `recommendations[].score_explanation` | Raw metric values, normalized scores, weights, contributions, and final weighted score. |

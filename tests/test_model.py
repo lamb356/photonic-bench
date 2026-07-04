@@ -96,6 +96,22 @@ def test_evaluate_matmul_energy_accounting() -> None:
     assert result.system.movement_energy_per_hierarchy_byte_pj == pytest.approx(
         572.32 / 168
     )
+    assert result.system.sram.traffic_share == pytest.approx(1 / 3)
+    assert result.system.off_chip.movement_energy_share == pytest.approx(560 / 572.32)
+    assert result.system.off_chip.calibration_adjusted_transfer_time_ns == pytest.approx(
+        56 / 16
+    )
+    assert (
+        result.system.off_chip.contention_adjusted_transfer_pressure_ratio
+        == pytest.approx((56 / 16) / 5)
+    )
+    assert result.system.dominant_movement_energy_tier == "off_chip"
+    assert result.system.nominal_memory_bottleneck_tier == "off_chip"
+    assert result.system.contention_memory_bottleneck_tier == "off_chip"
+    assert result.system.max_tier_contention_adjusted_transfer_pressure_ratio == (
+        pytest.approx((56 / 16) / 5)
+    )
+    assert result.system.max_tier_movement_energy_share == pytest.approx(560 / 572.32)
     assert result.system.max_transfer_time_ns == pytest.approx(56 / 16)
     assert result.system.serial_transfer_time_ns == pytest.approx(
         (56 / 1024) + (56 / 256) + (56 / 16)
@@ -147,11 +163,18 @@ def test_evaluate_applies_shared_bandwidth_contention_and_calibration_guardband(
     assert result.system.calibration_adjusted_effective_transfer_time_ns == pytest.approx(
         (56 / 4) * 1.25
     )
+    assert result.system.off_chip.calibration_adjusted_transfer_time_ns == pytest.approx(
+        (56 / 4) * 1.25
+    )
     assert result.system.contention_adjusted_batch_latency_ns == pytest.approx(17.5)
     assert result.system.contention_adjusted_transfer_to_compute_time_ratio == (
         pytest.approx(17.5 / 5)
     )
     assert result.system.contention_limited_tier == "off_chip"
+    assert result.system.contention_memory_bottleneck_tier == "off_chip"
+    assert result.system.max_tier_contention_adjusted_transfer_pressure_ratio == (
+        pytest.approx(17.5 / 5)
+    )
     assert result.system.contention_adjusted_equivalent_ops_per_second == pytest.approx(
         128 / (17.5e-9)
     )

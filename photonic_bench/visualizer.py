@@ -59,6 +59,13 @@ class ArtifactSummary:
     hierarchy_equivalent_ops_per_byte: float | None
     movement_energy_per_hierarchy_byte_pj: float | None
     off_chip_traffic_share: float | None
+    dominant_traffic_tier: str | None
+    dominant_movement_energy_tier: str | None
+    nominal_memory_bottleneck_tier: str | None
+    contention_memory_bottleneck_tier: str | None
+    max_tier_nominal_transfer_pressure_ratio: float | None
+    max_tier_contention_adjusted_transfer_pressure_ratio: float | None
+    max_tier_movement_energy_share: float | None
     bandwidth_limited_latency_ns: float | None
     bandwidth_pressure_ratio: float | None
     bandwidth_limited_throughput_equivalent_ops_per_second: float | None
@@ -546,6 +553,47 @@ def _load_matmul_artifact(
             "movement_energy_per_hierarchy_byte_pj",
             source=source_path,
         ),
+        dominant_traffic_tier=_optional_system_str(
+            payload,
+            "dominant_traffic_tier",
+            source_path,
+        ),
+        dominant_movement_energy_tier=_optional_system_str(
+            payload,
+            "dominant_movement_energy_tier",
+            source_path,
+        ),
+        nominal_memory_bottleneck_tier=_optional_system_str(
+            payload,
+            "nominal_memory_bottleneck_tier",
+            source_path,
+        ),
+        contention_memory_bottleneck_tier=_optional_system_str(
+            payload,
+            "contention_memory_bottleneck_tier",
+            source_path,
+        ),
+        max_tier_nominal_transfer_pressure_ratio=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "max_tier_nominal_transfer_pressure_ratio",
+            source=source_path,
+        ),
+        max_tier_contention_adjusted_transfer_pressure_ratio=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "max_tier_contention_adjusted_transfer_pressure_ratio",
+            source=source_path,
+        ),
+        max_tier_movement_energy_share=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "max_tier_movement_energy_share",
+            source=source_path,
+        ),
         off_chip_traffic_share=_optional_number(
             payload,
             "local_model",
@@ -826,6 +874,47 @@ def _load_transformer_layer_artifact(
             "movement_energy_per_hierarchy_byte_pj",
             source=source_path,
         ),
+        dominant_traffic_tier=_optional_system_str(
+            payload,
+            "dominant_traffic_tier",
+            source_path,
+        ),
+        dominant_movement_energy_tier=_optional_system_str(
+            payload,
+            "dominant_movement_energy_tier",
+            source_path,
+        ),
+        nominal_memory_bottleneck_tier=_optional_system_str(
+            payload,
+            "nominal_memory_bottleneck_tier",
+            source_path,
+        ),
+        contention_memory_bottleneck_tier=_optional_system_str(
+            payload,
+            "contention_memory_bottleneck_tier",
+            source_path,
+        ),
+        max_tier_nominal_transfer_pressure_ratio=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "max_tier_nominal_transfer_pressure_ratio",
+            source=source_path,
+        ),
+        max_tier_contention_adjusted_transfer_pressure_ratio=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "max_tier_contention_adjusted_transfer_pressure_ratio",
+            source=source_path,
+        ),
+        max_tier_movement_energy_share=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "max_tier_movement_energy_share",
+            source=source_path,
+        ),
         off_chip_traffic_share=_optional_number(
             payload,
             "local_model",
@@ -1104,6 +1193,47 @@ def _load_transformer_model_artifact(
             "local_model",
             "system",
             "movement_energy_per_hierarchy_byte_pj",
+            source=source_path,
+        ),
+        dominant_traffic_tier=_optional_system_str(
+            payload,
+            "dominant_traffic_tier",
+            source_path,
+        ),
+        dominant_movement_energy_tier=_optional_system_str(
+            payload,
+            "dominant_movement_energy_tier",
+            source_path,
+        ),
+        nominal_memory_bottleneck_tier=_optional_system_str(
+            payload,
+            "nominal_memory_bottleneck_tier",
+            source_path,
+        ),
+        contention_memory_bottleneck_tier=_optional_system_str(
+            payload,
+            "contention_memory_bottleneck_tier",
+            source_path,
+        ),
+        max_tier_nominal_transfer_pressure_ratio=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "max_tier_nominal_transfer_pressure_ratio",
+            source=source_path,
+        ),
+        max_tier_contention_adjusted_transfer_pressure_ratio=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "max_tier_contention_adjusted_transfer_pressure_ratio",
+            source=source_path,
+        ),
+        max_tier_movement_energy_share=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "max_tier_movement_energy_share",
             source=source_path,
         ),
         off_chip_traffic_share=_optional_number(
@@ -1554,6 +1684,19 @@ def _optional_str(
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f"{source}: {field} must be a non-empty string when provided")
     return value
+
+
+def _optional_system_str(
+    payload: dict[str, Any],
+    key: str,
+    source: str,
+) -> str | None:
+    return _optional_str(
+        _dict_or_empty(_get_optional(payload, "local_model", "system")),
+        key,
+        source=source,
+        field=f"local_model.system.{key}",
+    )
 
 
 def _required_value(
