@@ -111,6 +111,14 @@
   - Ambiguous "loaded hierarchy bandwidth" labels/key were corrected to
     explicitly distinguish guardbanded loaded bandwidth from contention-only
     loaded bandwidth.
+- Publication path:
+  - Direct push to protected `master` was rejected with GH006 because required
+    status check `Ruff, package, and pytest` is expected.
+  - Follow-up work is published through PR #10:
+    `https://github.com/lamb356/photonic-bench/pull/10`
+    from `codex/pr9-merge-energy-stack`.
+  - PR #10 CI, merge, branch cleanup, and final synced `master` status are
+    reported in the final response after this state update.
 
 ## Relevant Code Surfaces
 

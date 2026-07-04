@@ -198,5 +198,10 @@ choose the next implementation slice.
 - Implementation commit:
   `8be7316725fd0ef2fd00e54e96d7bb9e7ef473a7`
   (`Add system energy stack diagnostics`).
-- The final state commit and post-push GitHub Actions run are created after
-  this state update and reported in the final response.
+- Direct push to protected `master` was rejected with GH006 because required
+  status check `Ruff, package, and pytest` is expected on protected branch
+  updates.
+- Follow-up PR #10 was opened from `codex/pr9-merge-energy-stack`:
+  `https://github.com/lamb356/photonic-bench/pull/10`.
+- PR #10 CI, merge, branch cleanup, and final synced `master` status are
+  reported in the final response after this state update.

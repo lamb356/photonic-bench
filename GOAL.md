@@ -53,5 +53,7 @@ implemented, documented, regenerated, and tested; all checklist items are DONE
 with proof; and the hostile review pass is complete with major findings
 addressed.
 
-Closeout note: the final state commit and post-push GitHub Actions run are
-created after this file is updated and are reported in the final response.
+Closeout note: direct push to protected `master` was rejected as expected, so
+the follow-up commits are published through PR #10
+(`codex/pr9-merge-energy-stack`). PR #10 CI, merge, branch cleanup, and final
+synced `master` status are reported in the final response.

@@ -14,8 +14,11 @@
 - Mandatory Hostile Senior Reviewer critique completed. The material finding
   was the ambiguous guardbanded loaded-bandwidth label/export key; it was fixed
   and re-verified.
-- Final closeout commit and post-push CI are created after this file is updated
-  and are reported in the final response.
+- Direct push to protected `master` was rejected as expected because required
+  checks must run on protected branch updates.
+- Follow-up work is published through PR #10 from
+  `codex/pr9-merge-energy-stack`; PR #10 CI, merge, branch cleanup, and final
+  synced `master` status are reported in the final response.
 
 ## Required Outcome
 

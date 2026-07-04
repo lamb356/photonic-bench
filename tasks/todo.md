@@ -585,9 +585,11 @@
       the old JSON alias.
 - [x] Task 6: Close final state files, update durable notes, verify final
       git/CI/artifact status, and report remaining risks.
-      Implementation commit `8be7316` is created. The final closeout commit,
-      durable GBrain note, post-push CI, and clean synced git status are
-      reported in the final response.
+      Implementation commit `8be7316` is created. Direct push to protected
+      `master` was rejected as expected, so follow-up PR #10 was opened from
+      `codex/pr9-merge-energy-stack`. PR #10 CI/merge, durable GBrain note,
+      branch cleanup, and clean synced git status are reported in the final
+      response.
 
 ## Explicitly Not Active In This Goal
 
