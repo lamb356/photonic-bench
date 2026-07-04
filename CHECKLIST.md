@@ -60,6 +60,10 @@ Status key:
       target.
     - Continuation re-check after final local commits still shows no remote and
       no upstream for `master`.
+    - Third consecutive audit confirmed `.git/config` contains no remote
+      stanza, `gh repo view` fails with `no git remotes found`, and the
+      authenticated GitHub account has no unambiguous PhotonicBench/Photonic
+      Acceleration repository to use as a push target.
 
 ## Task 3: Further Visualizer Comparison Polish
 
@@ -216,3 +220,6 @@ Status key:
     - Final local worktree was inspected and clean after that commit.
     - Continuation re-check confirmed `master` still has no configured remote
       or upstream, so final push remains blocked by repository configuration.
+    - Additional state-only blocker commits exist after the implementation
+      commit to keep the ledgers honest; they also cannot be pushed until a
+      remote/upstream is configured.

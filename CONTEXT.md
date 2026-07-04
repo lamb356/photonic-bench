@@ -13,11 +13,18 @@
   - no `git remote` is configured;
   - `master` has no upstream;
   - push is blocked until a remote URL/upstream is configured.
+- Remote discovery:
+  - `.git/config` contains only `[core]` settings and no remote stanza;
+  - `gh repo view` reports `no git remotes found`;
+  - authenticated GitHub account `lamb356` is available, but a read-only repo
+    search did not find an unambiguous PhotonicBench/Photonic Acceleration
+    target.
 - Continuation re-audit:
   - worktree was clean at `ee90e77`;
   - no remote or upstream was configured;
   - state ledgers were updated afterward to record the remaining push blocker.
 - Recent commits:
+  - `85db200 Record remote push blocker`
   - `ee90e77 Polish visualizer comparisons and draft benchmark proposal`
   - `416f1f8 Add visualizer comparison smoke and server mode`
   - `c5d9816 Evolve visualizer static workbench`
