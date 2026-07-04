@@ -675,20 +675,30 @@ generated sidecar presets remain read-only.
 The comparison dashboard also includes a contention insight panel that
 highlights the best adjusted throughput, lowest adjusted latency, largest
 shared-client count, largest calibration/control overhead, highest pressure
-ratio, best loaded hierarchy bandwidth, highest compute-window bandwidth
-utilization, and lowest bandwidth headroom among the selected artifacts. It
-keeps the boundary label explicit: these metrics are local shared-link,
-hierarchy, and guardband assumptions, not paper-reported hardware claims.
+ratio, best contention-only loaded hierarchy bandwidth, best guardbanded loaded
+hierarchy bandwidth, highest compute-window bandwidth utilization, and lowest
+bandwidth headroom among the selected artifacts. It keeps the boundary label
+explicit: these metrics are local shared-link, hierarchy, and guardband
+assumptions, not paper-reported hardware claims.
+The Energy Stack panel ranks selected artifacts by movement-to-compute energy,
+dominant total-system energy component, compute/conversion share, movement
+share, and largest single-tier share of total local system energy. These are
+local decomposition diagnostics, not published energy-breakdown claims.
 The Bottleneck Stack ranks selected artifacts by worst tier-local pressure,
 dominant movement-energy tier, dominant traffic tier, bandwidth saturation tier,
 bandwidth utilization, and bandwidth headroom so hierarchy problems are visible
 before opening individual payloads.
+The Comparison Review Checklist converts the current selection into
+review-ready checks for pinned baseline availability, schema compatibility,
+published-reference and source-quality coverage, provenance coverage, system
+metric coverage, energy-split coverage, bandwidth phase-split coverage,
+transformer boundary presence, and external/legacy payloads.
 The adjacent Review Queue highlights the selected artifacts most worth manual
-inspection for high contention transfer/compute ratio, high movement energy per
-hierarchy byte, worst tier-local pressure, high compute-window bandwidth
-utilization, low bandwidth headroom, low hierarchy intensity, or low
-source-confidence metadata. It is a local triage aid only, not a failure label or
-hardware ranking.
+inspection for high contention transfer/compute ratio, high movement-to-compute
+energy, high movement energy per hierarchy byte, worst tier-local pressure,
+high compute-window bandwidth utilization, low bandwidth headroom, low
+hierarchy intensity, or low source-confidence metadata. It is a local triage aid
+only, not a failure label or hardware ranking.
 
 Comparison results are exportable from the browser. `Download JSON` writes a
 `photonic-bench-comparison-export-v1` object with selected artifact summaries,
@@ -700,9 +710,10 @@ provenance status, and modeling-boundary notes. Its formal schema is checked in 
 `Copy Markdown` produce a human-readable table suitable for reviews or notes.
 `Download CSV` writes a spreadsheet-friendly selected-artifact table with
 focus, score weights, energy, timing, throughput, movement, loaded hierarchy
-bandwidth, hierarchy intensity, movement energy per hierarchy byte,
-dominant traffic/movement tiers, memory bottleneck tier, worst tier pressure,
-largest tier movement share, transfer/compute ratios, off-chip traffic share,
+bandwidth split into contention-only and guardbanded phases, hierarchy
+intensity, movement energy per hierarchy byte, dominant traffic/movement/system
+energy tiers, memory bottleneck tier, worst tier pressure, largest tier movement
+and system-energy shares, transfer/compute ratios, off-chip traffic share,
 pressure ratios, bandwidth saturation tier, bandwidth utilization, bandwidth
 headroom, provenance, source-quality, system-profile, and boundary tag columns
 plus comparison-level boundary notes.

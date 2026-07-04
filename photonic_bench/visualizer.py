@@ -53,19 +53,23 @@ class ArtifactSummary:
     operational_intensity_ops_per_byte: float | None
     system_total_energy_pj: float | None
     system_energy_per_op_pj: float | None
+    local_compute_and_conversion_energy_share: float | None
     movement_energy_pj: float | None
     movement_energy_share: float | None
+    movement_to_compute_energy_ratio: float | None
     total_hierarchy_bytes: float | None
     hierarchy_equivalent_ops_per_byte: float | None
     movement_energy_per_hierarchy_byte_pj: float | None
     off_chip_traffic_share: float | None
     dominant_traffic_tier: str | None
+    dominant_system_energy_component: str | None
     dominant_movement_energy_tier: str | None
     nominal_memory_bottleneck_tier: str | None
     contention_memory_bottleneck_tier: str | None
     max_tier_nominal_transfer_pressure_ratio: float | None
     max_tier_contention_adjusted_transfer_pressure_ratio: float | None
     max_tier_movement_energy_share: float | None
+    max_tier_system_energy_share: float | None
     contention_bandwidth_saturation_tier: str | None
     max_tier_contention_bandwidth_utilization: float | None
     min_tier_contention_bandwidth_headroom_ratio: float | None
@@ -80,6 +84,7 @@ class ArtifactSummary:
     calibration_overhead_fraction: float | None
     contention_bandwidth_derate_factor: float | None
     total_transfer_overhead_fraction: float | None
+    contention_only_loaded_bandwidth_bytes_per_ns: float | None
     contention_adjusted_loaded_bandwidth_bytes_per_ns: float | None
     transfer_to_compute_time_ratio: float | None
     contention_adjusted_transfer_to_compute_time_ratio: float | None
@@ -521,6 +526,13 @@ def _load_matmul_artifact(
             "system_energy_per_op_pj",
             source=source_path,
         ),
+        local_compute_and_conversion_energy_share=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "local_compute_and_conversion_energy_share",
+            source=source_path,
+        ),
         movement_energy_pj=_optional_number(
             payload,
             "local_model",
@@ -533,6 +545,13 @@ def _load_matmul_artifact(
             "local_model",
             "system",
             "movement_energy_share",
+            source=source_path,
+        ),
+        movement_to_compute_energy_ratio=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "movement_to_compute_energy_ratio",
             source=source_path,
         ),
         total_hierarchy_bytes=_optional_number(
@@ -559,6 +578,11 @@ def _load_matmul_artifact(
         dominant_traffic_tier=_optional_system_str(
             payload,
             "dominant_traffic_tier",
+            source_path,
+        ),
+        dominant_system_energy_component=_optional_system_str(
+            payload,
+            "dominant_system_energy_component",
             source_path,
         ),
         dominant_movement_energy_tier=_optional_system_str(
@@ -595,6 +619,13 @@ def _load_matmul_artifact(
             "local_model",
             "system",
             "max_tier_movement_energy_share",
+            source=source_path,
+        ),
+        max_tier_system_energy_share=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "max_tier_system_energy_share",
             source=source_path,
         ),
         contention_bandwidth_saturation_tier=_optional_system_str(
@@ -701,6 +732,13 @@ def _load_matmul_artifact(
             "local_model",
             "system",
             "total_transfer_overhead_fraction",
+            source=source_path,
+        ),
+        contention_only_loaded_bandwidth_bytes_per_ns=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "contention_only_loaded_bandwidth_bytes_per_ns",
             source=source_path,
         ),
         contention_adjusted_loaded_bandwidth_bytes_per_ns=_optional_number(
@@ -861,6 +899,13 @@ def _load_transformer_layer_artifact(
             "system_energy_per_op_pj",
             source=source_path,
         ),
+        local_compute_and_conversion_energy_share=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "local_compute_and_conversion_energy_share",
+            source=source_path,
+        ),
         movement_energy_pj=_optional_number(
             payload,
             "local_model",
@@ -873,6 +918,13 @@ def _load_transformer_layer_artifact(
             "local_model",
             "system",
             "movement_energy_share",
+            source=source_path,
+        ),
+        movement_to_compute_energy_ratio=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "movement_to_compute_energy_ratio",
             source=source_path,
         ),
         total_hierarchy_bytes=_optional_number(
@@ -899,6 +951,11 @@ def _load_transformer_layer_artifact(
         dominant_traffic_tier=_optional_system_str(
             payload,
             "dominant_traffic_tier",
+            source_path,
+        ),
+        dominant_system_energy_component=_optional_system_str(
+            payload,
+            "dominant_system_energy_component",
             source_path,
         ),
         dominant_movement_energy_tier=_optional_system_str(
@@ -935,6 +992,13 @@ def _load_transformer_layer_artifact(
             "local_model",
             "system",
             "max_tier_movement_energy_share",
+            source=source_path,
+        ),
+        max_tier_system_energy_share=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "max_tier_system_energy_share",
             source=source_path,
         ),
         contention_bandwidth_saturation_tier=_optional_system_str(
@@ -1041,6 +1105,13 @@ def _load_transformer_layer_artifact(
             "local_model",
             "system",
             "total_transfer_overhead_fraction",
+            source=source_path,
+        ),
+        contention_only_loaded_bandwidth_bytes_per_ns=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "contention_only_loaded_bandwidth_bytes_per_ns",
             source=source_path,
         ),
         contention_adjusted_loaded_bandwidth_bytes_per_ns=_optional_number(
@@ -1201,6 +1272,13 @@ def _load_transformer_model_artifact(
             "system_energy_per_op_pj",
             source=source_path,
         ),
+        local_compute_and_conversion_energy_share=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "local_compute_and_conversion_energy_share",
+            source=source_path,
+        ),
         movement_energy_pj=_optional_number(
             payload,
             "local_model",
@@ -1213,6 +1291,13 @@ def _load_transformer_model_artifact(
             "local_model",
             "system",
             "movement_energy_share",
+            source=source_path,
+        ),
+        movement_to_compute_energy_ratio=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "movement_to_compute_energy_ratio",
             source=source_path,
         ),
         total_hierarchy_bytes=_optional_number(
@@ -1239,6 +1324,11 @@ def _load_transformer_model_artifact(
         dominant_traffic_tier=_optional_system_str(
             payload,
             "dominant_traffic_tier",
+            source_path,
+        ),
+        dominant_system_energy_component=_optional_system_str(
+            payload,
+            "dominant_system_energy_component",
             source_path,
         ),
         dominant_movement_energy_tier=_optional_system_str(
@@ -1275,6 +1365,13 @@ def _load_transformer_model_artifact(
             "local_model",
             "system",
             "max_tier_movement_energy_share",
+            source=source_path,
+        ),
+        max_tier_system_energy_share=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "max_tier_system_energy_share",
             source=source_path,
         ),
         contention_bandwidth_saturation_tier=_optional_system_str(
@@ -1381,6 +1478,13 @@ def _load_transformer_model_artifact(
             "local_model",
             "system",
             "total_transfer_overhead_fraction",
+            source=source_path,
+        ),
+        contention_only_loaded_bandwidth_bytes_per_ns=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "contention_only_loaded_bandwidth_bytes_per_ns",
             source=source_path,
         ),
         contention_adjusted_loaded_bandwidth_bytes_per_ns=_optional_number(

@@ -43,14 +43,19 @@ def test_discover_visualizer_data_loads_root_and_nested_reports() -> None:
     assert layer.operational_intensity_ops_per_byte is not None
     assert layer.system_total_energy_pj is not None
     assert layer.system_energy_per_op_pj is not None
+    assert layer.local_compute_and_conversion_energy_share is not None
     assert layer.movement_energy_pj is not None
     assert layer.movement_energy_share is not None
+    assert layer.movement_to_compute_energy_ratio is not None
+    assert layer.dominant_system_energy_component == "off_chip"
     assert layer.dominant_movement_energy_tier == "off_chip"
     assert layer.contention_memory_bottleneck_tier == "off_chip"
     assert layer.max_tier_contention_adjusted_transfer_pressure_ratio is not None
+    assert layer.max_tier_system_energy_share is not None
     assert layer.contention_bandwidth_saturation_tier == "off_chip"
     assert layer.max_tier_contention_bandwidth_utilization is not None
     assert layer.min_tier_contention_bandwidth_headroom_ratio is not None
+    assert layer.contention_only_loaded_bandwidth_bytes_per_ns is not None
     assert layer.bandwidth_limited_latency_ns is not None
     assert layer.bandwidth_limited_throughput_equivalent_ops_per_second is not None
     assert layer.system_profile == "default"
@@ -64,10 +69,13 @@ def test_discover_visualizer_data_loads_root_and_nested_reports() -> None:
     assert "serial timing" in model.boundary_tags
     assert model.system_energy_per_op_pj is not None
     assert model.system_profile == "default"
+    assert model.local_compute_and_conversion_energy_share is not None
+    assert model.dominant_system_energy_component == "off_chip"
     assert model.dominant_movement_energy_tier == "off_chip"
     assert model.contention_memory_bottleneck_tier == "off_chip"
     assert model.contention_bandwidth_saturation_tier == "off_chip"
     assert model.max_tier_contention_bandwidth_utilization is not None
+    assert model.contention_only_loaded_bandwidth_bytes_per_ns is not None
     profile = summaries["profile_sensitivity_64x64_hbm.json"]
     assert profile.kind == "matmul_card"
     assert profile.system_profile == "hbm"
@@ -271,12 +279,17 @@ def test_static_app_contains_comparison_and_boundary_labels() -> None:
     assert "Movement share" in app_js
     assert "Contention Insight" in app_js
     assert "Bottleneck Stack" in app_js
+    assert "Energy Stack" in app_js
+    assert "Comparison Review Checklist" in app_js
     assert "Review Queue" in app_js
     assert "Hierarchy equivalent ops/byte" in app_js
     assert "Transfer/compute time ratio" in app_js
     assert "Contention-adjusted latency" in app_js
     assert "Contention-adjusted throughput" in app_js
-    assert "Loaded hierarchy bandwidth" in app_js
+    assert "Guardbanded loaded bandwidth" in app_js
+    assert "Contention-only loaded bandwidth" in app_js
+    assert "Dominant system energy" in app_js
+    assert "Largest tier system share" in app_js
     assert "Off-chip traffic share" in app_js
     assert "Contention pressure ratio" in app_js
     assert "Worst tier pressure" in app_js
@@ -288,6 +301,9 @@ def test_static_app_contains_comparison_and_boundary_labels() -> None:
     assert "Dominant movement tier" in app_js
     assert "max_tier_contention_adjusted_transfer_pressure_ratio" in app_js
     assert "contention_adjusted_loaded_bandwidth_bytes_per_ns" in app_js
+    assert "guardbanded_loaded_hierarchy_bandwidth_bytes_per_ns" in app_js
+    assert "contention_only_loaded_bandwidth_bytes_per_ns" in app_js
+    assert "review_checklist" in app_js
     assert "total_transfer_overhead_fraction" in app_js
     assert "contention-throughput" in app_js
     assert "Pareto Trade-Offs" in app_js

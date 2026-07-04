@@ -460,7 +460,9 @@
         "total_system_energy_pj",
         "system_energy_per_mac_pj",
         "system_energy_per_op_pj",
+        "local_compute_and_conversion_energy_share",
         "movement_energy_share",
+        "movement_to_compute_energy_ratio",
         "total_hierarchy_bytes",
         "hierarchy_equivalent_ops_per_byte",
         "movement_energy_per_hierarchy_byte_pj",
@@ -468,12 +470,14 @@
         "intermediate_traffic_share",
         "off_chip_traffic_share",
         "dominant_traffic_tier",
+        "dominant_system_energy_component",
         "dominant_movement_energy_tier",
         "nominal_memory_bottleneck_tier",
         "contention_memory_bottleneck_tier",
         "max_tier_nominal_transfer_pressure_ratio",
         "max_tier_contention_adjusted_transfer_pressure_ratio",
         "max_tier_movement_energy_share",
+        "max_tier_system_energy_share",
         "contention_bandwidth_saturation_tier",
         "max_tier_contention_bandwidth_utilization",
         "min_tier_contention_bandwidth_headroom_ratio",
@@ -489,6 +493,7 @@
         "contention_transfer_overhead_fraction",
         "total_transfer_overhead_fraction",
         "effective_loaded_bandwidth_bytes_per_ns",
+        "contention_only_loaded_bandwidth_bytes_per_ns",
         "contention_adjusted_loaded_bandwidth_bytes_per_ns",
         "transfer_to_compute_time_ratio",
         "bandwidth_limited_batch_latency_ns",
@@ -526,7 +531,13 @@
         "total_system_energy_pj": {"type": "number", "minimum": 0},
         "system_energy_per_mac_pj": {"type": "number", "minimum": 0},
         "system_energy_per_op_pj": {"type": "number", "minimum": 0},
+        "local_compute_and_conversion_energy_share": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
         "movement_energy_share": {"type": "number", "minimum": 0, "maximum": 1},
+        "movement_to_compute_energy_ratio": {"type": "number", "minimum": 0},
         "total_hierarchy_bytes": {"type": "number", "minimum": 0},
         "hierarchy_equivalent_ops_per_byte": {"type": "number", "minimum": 0},
         "movement_energy_per_hierarchy_byte_pj": {
@@ -545,6 +556,7 @@
           "maximum": 1
         },
         "dominant_traffic_tier": {"type": "string"},
+        "dominant_system_energy_component": {"type": "string"},
         "dominant_movement_energy_tier": {"type": "string"},
         "nominal_memory_bottleneck_tier": {"type": "string"},
         "contention_memory_bottleneck_tier": {"type": "string"},
@@ -557,6 +569,11 @@
           "minimum": 0
         },
         "max_tier_movement_energy_share": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "max_tier_system_energy_share": {
           "type": "number",
           "minimum": 0,
           "maximum": 1
@@ -597,6 +614,10 @@
         "contention_transfer_overhead_fraction": {"type": "number", "minimum": 0},
         "total_transfer_overhead_fraction": {"type": "number", "minimum": 0},
         "effective_loaded_bandwidth_bytes_per_ns": {
+          "type": "number",
+          "minimum": 0
+        },
+        "contention_only_loaded_bandwidth_bytes_per_ns": {
           "type": "number",
           "minimum": 0
         },
@@ -648,6 +669,7 @@
         "calibration_adjusted_transfer_time_ns",
         "traffic_share",
         "movement_energy_share",
+        "system_energy_share",
         "nominal_transfer_share",
         "contention_adjusted_transfer_share",
         "nominal_transfer_pressure_ratio",
@@ -684,6 +706,7 @@
         },
         "traffic_share": {"type": "number", "minimum": 0, "maximum": 1},
         "movement_energy_share": {"type": "number", "minimum": 0, "maximum": 1},
+        "system_energy_share": {"type": "number", "minimum": 0, "maximum": 1},
         "nominal_transfer_share": {"type": "number", "minimum": 0},
         "contention_adjusted_transfer_share": {"type": "number", "minimum": 0},
         "nominal_transfer_pressure_ratio": {"type": "number", "minimum": 0},

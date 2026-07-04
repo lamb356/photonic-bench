@@ -488,7 +488,7 @@
       follow-up work is verified locally but not committed/pushed/opened as a
       PR because publication was not requested in this goal.
 
-## Active Goal: Commit PR #8 Follow-Up, Then Improve Visualizer And System Modeling
+## Completed Goal: Commit PR #8 Follow-Up, Then Improve Visualizer And System Modeling
 
 - [x] Task 0: Roll state files forward and create the prioritized checklist.
       Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
@@ -538,6 +538,58 @@
       `photonicbench-pr9-bandwidth-headroom-followup-2026-07-04` is written,
       all local gates are green, and final push/PR head verification is
       reported in the final response after this closeout state commit.
+
+## Completed Goal: Merge PR #9, Then Improve Visualizer And System Modeling
+
+- [x] Task 0: Roll state files forward and create the prioritized checklist.
+      Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
+      `RUBRIC.md`, and `tasks/todo.md`; exposed GBrain; queried GBrain for
+      PR9 context; searched local memory; read GitHub, frontend-design, review,
+      and commit guidance; confirmed PR #9 is open, non-draft, mergeable, and
+      green at head `b75d4e409aa6594c6941aa1a97e34fb470e91c24`.
+- [x] Task 1: Merge PR #9 into `master`, verify post-merge GitHub Actions is
+      green, update local `master`, run full tests and `verify-artifacts`, and
+      delete `codex/pr8-followup-improvements` locally and remotely.
+      PR #9 merged at `0f9ba2a`; post-merge master CI run `28714312225`
+      passed; local `pytest` passed with 130 tests; `verify-artifacts` passed
+      with 258 generated files; no local or remote
+      `codex/pr8-followup-improvements` branch remains after pruning.
+- [x] Task 2: Further improve the web visualizer for interaction, dashboard
+      experience, analytical features, and daily usability while preserving
+      modeling-boundary labels.
+      Added Energy Stack and Comparison Review Checklist panels, checklist
+      JSON/Markdown export, and guardbanded versus contention-only loaded
+      bandwidth clarity in detail, comparison, insight, score, Markdown, CSV,
+      and JSON export surfaces.
+- [x] Task 3: Deepen system modeling around contention calibration, realistic
+      memory hierarchy behavior, and related metrics; expose changes in
+      reports, JSON, transformer aggregates, and the visualizer.
+      Added per-tier system-energy share plus top-level compute/conversion
+      energy share, movement-to-compute energy ratio, dominant system-energy
+      component, max tier system-energy share, and contention-only loaded
+      hierarchy bandwidth across reports, JSON, transformer aggregates,
+      schemas, docs, tests, and generated artifacts.
+- [x] Task 4: Update documentation, regenerate checked artifacts, and run
+      focused plus full verification.
+      Updated README, changelog, model/schema docs, report schemas, comparison
+      export schema, tests, and regenerated 258 checked artifacts. Final local
+      gates passed: Ruff, full pytest, package build, artifact freshness,
+      source/generated JS syntax checks, browser smoke/accessibility/visual
+      regression, and diff hygiene.
+- [x] Task 5: Run mandatory Hostile Senior Reviewer critique focused on
+      usability, modeling clarity, source boundaries, code quality, CI artifact
+      usability, and visual regression portability; fix significant findings.
+      Fixed the material critique finding by replacing ambiguous guardbanded
+      loaded-bandwidth labels and adding
+      `guardbanded_loaded_hierarchy_bandwidth_bytes_per_ns` while preserving
+      the old JSON alias.
+- [x] Task 6: Close final state files, update durable notes, verify final
+      git/CI/artifact status, and report remaining risks.
+      Implementation commit `8be7316` is created. Direct push to protected
+      `master` was rejected as expected, so follow-up PR #10 was opened from
+      `codex/pr9-merge-energy-stack`. PR #10 CI/merge, durable GBrain note,
+      branch cleanup, and clean synced git status are reported in the final
+      response.
 
 ## Explicitly Not Active In This Goal
 

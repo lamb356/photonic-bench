@@ -106,11 +106,11 @@ photonic core/converter model. SRAM, intermediate, and off-chip traffic are
 cumulative tier movements, not published measurements and not a cache
 simulator.
 
-| Tier | Read bytes | Write bytes | Movement energy | Traffic share | Movement share | Transfer time | Guardbanded transfer | Tier pressure | Effective bandwidth | Required bandwidth | Utilization | Headroom |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| SRAM | 800 bytes | 400 bytes | 24.000 pJ | 33.33% | 0.20% | 1.172 ns | 1.172 ns | 1.17188 | 1024.000 bytes/ns | 1200.000 bytes/ns | 1.17188 | -176.000 bytes/ns |
-| Intermediate/cache | 800 bytes | 400 bytes | 240.000 pJ | 33.33% | 1.96% | 4.688 ns | 4.688 ns | 4.6875 | 256.000 bytes/ns | 1200.000 bytes/ns | 4.6875 | -944.000 bytes/ns |
-| Off-chip/DRAM | 800 bytes | 400 bytes | 12000.000 pJ | 33.33% | 97.85% | 75.000 ns | 75.000 ns | 75 | 16.000 bytes/ns | 1200.000 bytes/ns | 75 | -1184.000 bytes/ns |
+| Tier | Read bytes | Write bytes | Movement energy | Traffic share | Movement share | System share | Transfer time | Guardbanded transfer | Tier pressure | Effective bandwidth | Required bandwidth | Utilization | Headroom |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| SRAM | 800 bytes | 400 bytes | 24.000 pJ | 33.33% | 0.20% | 0.19% | 1.172 ns | 1.172 ns | 1.17188 | 1024.000 bytes/ns | 1200.000 bytes/ns | 1.17188 | -176.000 bytes/ns |
+| Intermediate/cache | 800 bytes | 400 bytes | 240.000 pJ | 33.33% | 1.96% | 1.90% | 4.688 ns | 4.688 ns | 4.6875 | 256.000 bytes/ns | 1200.000 bytes/ns | 4.6875 | -944.000 bytes/ns |
+| Off-chip/DRAM | 800 bytes | 400 bytes | 12000.000 pJ | 33.33% | 97.85% | 94.91% | 75.000 ns | 75.000 ns | 75 | 16.000 bytes/ns | 1200.000 bytes/ns | 75 | -1184.000 bytes/ns |
 
 | Metric | Value |
 | --- | ---: |
@@ -125,7 +125,9 @@ simulator.
 | Total system energy | 12644.000 pJ |
 | System energy per MAC | 1.581 pJ |
 | System energy per equivalent op | 0.790 pJ |
+| Local compute/conversion energy share | 3.01% |
 | Movement energy share | 96.99% |
+| Movement-to-compute energy ratio | 32.2737 |
 | Total hierarchy traffic | 3600 bytes |
 | Hierarchy equivalent ops per byte | 4.44444 |
 | Movement energy per hierarchy byte | 3.407 pJ |
@@ -133,12 +135,14 @@ simulator.
 | Intermediate/cache traffic share | 33.33% |
 | Off-chip traffic share | 33.33% |
 | Dominant traffic tier | sram |
+| Dominant system energy component | off_chip |
 | Dominant movement-energy tier | off_chip |
 | Nominal memory bottleneck tier | off_chip |
 | Contention memory bottleneck tier | off_chip |
 | Max tier nominal pressure ratio | 75 |
 | Max tier contention pressure ratio | 75 |
 | Max tier movement-energy share | 97.85% |
+| Max tier system energy share | 94.91% |
 | Contention bandwidth saturation tier | off_chip |
 | Max tier contention bandwidth utilization | 75 |
 | Min tier contention bandwidth headroom ratio | 0.0133333 |
@@ -152,6 +156,7 @@ simulator.
 | Contention transfer overhead | 0.00% |
 | Total transfer overhead | 0.00% |
 | Effective loaded hierarchy bandwidth | 48.000 bytes/ns |
+| Contention-only loaded hierarchy bandwidth | 48.000 bytes/ns |
 | Contention-adjusted loaded hierarchy bandwidth | 48.000 bytes/ns |
 | Transfer-to-compute time ratio | 75 |
 | Bandwidth-limited tier | off_chip |

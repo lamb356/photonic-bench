@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-07-04 - PR9 Merge, Energy Stack, And Bandwidth Phase Split
+
+- Merged PR #9 into `master`, verified post-merge master CI, ran local pytest
+  and artifact freshness verification, and pruned the merged feature branch.
+- Added local system-energy decomposition diagnostics: compute/conversion
+  energy share, movement-to-compute energy ratio, per-tier system-energy share,
+  dominant system energy component, and max tier system-energy share.
+- Split loaded hierarchy bandwidth into nominal, contention-only, and
+  guardbanded contention-adjusted phases while preserving the existing
+  guardbanded field semantics.
+- Added the web visualizer Energy Stack and Comparison Review Checklist panels,
+  plus JSON/Markdown/CSV export coverage for the new metrics and checklist.
+
 ## 2026-07-04 - Post-PR Visualizer, Modeling, Cards, And Workflow Upgrade
 
 - Merged PR #7 into `master`, verified the post-merge master CI run, promoted

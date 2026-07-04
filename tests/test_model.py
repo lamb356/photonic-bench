@@ -88,8 +88,14 @@ def test_evaluate_matmul_energy_accounting() -> None:
     assert result.system.system_energy_per_op_pj == pytest.approx(
         (21.248 + 572.32) / 128
     )
+    assert result.system.local_compute_and_conversion_energy_share == pytest.approx(
+        21.248 / (21.248 + 572.32)
+    )
     assert result.system.movement_energy_share == pytest.approx(
         572.32 / (21.248 + 572.32)
+    )
+    assert result.system.movement_to_compute_energy_ratio == pytest.approx(
+        572.32 / 21.248
     )
     assert result.system.total_hierarchy_bytes == pytest.approx(168)
     assert result.system.hierarchy_equivalent_ops_per_byte == pytest.approx(128 / 168)
@@ -98,6 +104,9 @@ def test_evaluate_matmul_energy_accounting() -> None:
     )
     assert result.system.sram.traffic_share == pytest.approx(1 / 3)
     assert result.system.off_chip.movement_energy_share == pytest.approx(560 / 572.32)
+    assert result.system.off_chip.system_energy_share == pytest.approx(
+        560 / (21.248 + 572.32)
+    )
     assert result.system.off_chip.calibration_adjusted_transfer_time_ns == pytest.approx(
         56 / 16
     )
@@ -120,12 +129,16 @@ def test_evaluate_matmul_energy_accounting() -> None:
         == pytest.approx((56 / 16) / 5)
     )
     assert result.system.dominant_movement_energy_tier == "off_chip"
+    assert result.system.dominant_system_energy_component == "off_chip"
     assert result.system.nominal_memory_bottleneck_tier == "off_chip"
     assert result.system.contention_memory_bottleneck_tier == "off_chip"
     assert result.system.max_tier_contention_adjusted_transfer_pressure_ratio == (
         pytest.approx((56 / 16) / 5)
     )
     assert result.system.max_tier_movement_energy_share == pytest.approx(560 / 572.32)
+    assert result.system.max_tier_system_energy_share == pytest.approx(
+        560 / (21.248 + 572.32)
+    )
     assert result.system.contention_bandwidth_saturation_tier == "off_chip"
     assert result.system.max_tier_contention_bandwidth_utilization == pytest.approx(
         (56 / 5) / 16
@@ -147,6 +160,9 @@ def test_evaluate_matmul_energy_accounting() -> None:
     )
     assert result.system.contention_adjusted_effective_transfer_time_ns == pytest.approx(
         56 / 16
+    )
+    assert result.system.contention_only_loaded_bandwidth_bytes_per_ns == pytest.approx(
+        168 / (56 / 16)
     )
     assert result.system.calibration_adjusted_effective_transfer_time_ns == pytest.approx(
         56 / 16
@@ -196,6 +212,9 @@ def test_evaluate_applies_shared_bandwidth_contention_and_calibration_guardband(
     )
     assert result.system.off_chip.contention_bandwidth_headroom_ratio == pytest.approx(
         4 / (56 / 5)
+    )
+    assert result.system.contention_only_loaded_bandwidth_bytes_per_ns == pytest.approx(
+        168 / (56 / 4)
     )
     assert result.system.contention_adjusted_batch_latency_ns == pytest.approx(17.5)
     assert result.system.contention_adjusted_transfer_to_compute_time_ratio == (

@@ -160,7 +160,13 @@ def _local_model(result: BenchmarkResult) -> dict[str, Any]:
             "total_system_energy_pj": result.system.total_system_energy_pj,
             "system_energy_per_mac_pj": result.system.system_energy_per_mac_pj,
             "system_energy_per_op_pj": result.system.system_energy_per_op_pj,
+            "local_compute_and_conversion_energy_share": (
+                result.system.local_compute_and_conversion_energy_share
+            ),
             "movement_energy_share": result.system.movement_energy_share,
+            "movement_to_compute_energy_ratio": (
+                result.system.movement_to_compute_energy_ratio
+            ),
             "total_hierarchy_bytes": result.system.total_hierarchy_bytes,
             "hierarchy_equivalent_ops_per_byte": (
                 result.system.hierarchy_equivalent_ops_per_byte
@@ -172,6 +178,9 @@ def _local_model(result: BenchmarkResult) -> dict[str, Any]:
             "intermediate_traffic_share": result.system.intermediate_traffic_share,
             "off_chip_traffic_share": result.system.off_chip_traffic_share,
             "dominant_traffic_tier": result.system.dominant_traffic_tier,
+            "dominant_system_energy_component": (
+                result.system.dominant_system_energy_component
+            ),
             "dominant_movement_energy_tier": (
                 result.system.dominant_movement_energy_tier
             ),
@@ -189,6 +198,9 @@ def _local_model(result: BenchmarkResult) -> dict[str, Any]:
             ),
             "max_tier_movement_energy_share": (
                 result.system.max_tier_movement_energy_share
+            ),
+            "max_tier_system_energy_share": (
+                result.system.max_tier_system_energy_share
             ),
             "contention_bandwidth_saturation_tier": (
                 result.system.contention_bandwidth_saturation_tier
@@ -228,6 +240,9 @@ def _local_model(result: BenchmarkResult) -> dict[str, Any]:
             ),
             "effective_loaded_bandwidth_bytes_per_ns": (
                 result.system.effective_loaded_bandwidth_bytes_per_ns
+            ),
+            "contention_only_loaded_bandwidth_bytes_per_ns": (
+                result.system.contention_only_loaded_bandwidth_bytes_per_ns
             ),
             "contention_adjusted_loaded_bandwidth_bytes_per_ns": (
                 result.system.contention_adjusted_loaded_bandwidth_bytes_per_ns
@@ -322,6 +337,7 @@ def _system_tier_result(tier) -> dict[str, float | str]:
         ),
         "traffic_share": tier.traffic_share,
         "movement_energy_share": tier.movement_energy_share,
+        "system_energy_share": tier.system_energy_share,
         "nominal_transfer_share": tier.nominal_transfer_share,
         "contention_adjusted_transfer_share": tier.contention_adjusted_transfer_share,
         "nominal_transfer_pressure_ratio": tier.nominal_transfer_pressure_ratio,

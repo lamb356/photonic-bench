@@ -1,11 +1,32 @@
 # PhotonicBench Outer Loop Rubric
 
+## Closeout Status
+
+- Required outcomes are complete through implementation commit
+  `8be7316725fd0ef2fd00e54e96d7bb9e7ef473a7`.
+- PR #9 merged into `master` at
+  `0f9ba2acc893ffbe5c5fbfd163481e4f69052328`; post-merge master CI run
+  `28714312225` passed.
+- Follow-up visualizer/modeling work passed the required local gates:
+  Ruff, full pytest, package build, artifact freshness, source/generated JS
+  syntax checks, browser smoke/accessibility/visual regression, and diff
+  hygiene.
+- Mandatory Hostile Senior Reviewer critique completed. The material finding
+  was the ambiguous guardbanded loaded-bandwidth label/export key; it was fixed
+  and re-verified.
+- Direct push to protected `master` was rejected as expected because required
+  checks must run on protected branch updates.
+- Follow-up work is published through PR #10 from
+  `codex/pr9-merge-energy-stack`; PR #10 CI, merge, branch cleanup, and final
+  synced `master` status are reported in the final response.
+
 ## Required Outcome
 
 This goal is successful only if all three objectives are completed with proof:
 
-1. The current `codex/pr8-followup-improvements` work is committed, pushed, and
-   opened as a PR to `master`.
+1. PR #9 is merged into `master`, post-merge GitHub Actions is green, local
+   `master` passes post-merge full tests and `verify-artifacts`, and
+   `codex/pr8-followup-improvements` is cleaned up locally/remotely.
 2. The web visualizer receives another meaningful improvement to interaction,
    dashboard clarity, analytical features, or daily usability.
 3. The system model receives another meaningful improvement to contention
@@ -14,6 +35,7 @@ This goal is successful only if all three objectives are completed with proof:
 ## Quality Bar
 
 - Changes are implementation-backed, not planning-only.
+- Merge and branch cleanup happen before new feature work.
 - JSON contracts remain strict and documented.
 - Generated Markdown/JSON reports and `reports/visualizer/**` are regenerated
   whenever model or visualizer outputs change.
@@ -28,10 +50,13 @@ This goal is successful only if all three objectives are completed with proof:
 
 ## Verification Expectations
 
-- Before the initial publish:
-  - `python -m ruff check`
-  - relevant tests for the current dirty work
-  - `python -m photonic_bench.cli verify-artifacts`
+- Before merging PR #9:
+  - PR state is open, non-draft, mergeable, and all required checks are green.
+- After merging PR #9:
+  - post-merge GitHub Actions on `master` is green;
+  - local `master` is clean and current;
+  - `python -m pytest -q` passes;
+  - `python -m photonic_bench.cli verify-artifacts` passes.
 - Before final closeout:
   - `python -m ruff check`
   - `python -m pytest -q`

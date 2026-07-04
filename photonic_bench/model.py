@@ -98,6 +98,7 @@ class SystemTierResult:
     calibration_adjusted_transfer_time_ns: float = 0.0
     traffic_share: float = 0.0
     movement_energy_share: float = 0.0
+    system_energy_share: float = 0.0
     nominal_transfer_share: float = 0.0
     contention_adjusted_transfer_share: float = 0.0
     nominal_transfer_pressure_ratio: float = 0.0
@@ -119,7 +120,9 @@ class SystemModelResult:
     total_system_energy_pj: float
     system_energy_per_mac_pj: float
     system_energy_per_op_pj: float
+    local_compute_and_conversion_energy_share: float
     movement_energy_share: float
+    movement_to_compute_energy_ratio: float
     total_hierarchy_bytes: float
     hierarchy_equivalent_ops_per_byte: float
     movement_energy_per_hierarchy_byte_pj: float
@@ -141,6 +144,7 @@ class SystemModelResult:
     contention_transfer_overhead_fraction: float
     total_transfer_overhead_fraction: float
     effective_loaded_bandwidth_bytes_per_ns: float
+    contention_only_loaded_bandwidth_bytes_per_ns: float
     contention_adjusted_loaded_bandwidth_bytes_per_ns: float
     transfer_to_compute_time_ratio: float
     bandwidth_limited_batch_latency_ns: float
@@ -153,12 +157,14 @@ class SystemModelResult:
     contention_adjusted_equivalent_ops_per_second: float
     contention_limited_tier: str
     dominant_traffic_tier: str
+    dominant_system_energy_component: str
     dominant_movement_energy_tier: str
     nominal_memory_bottleneck_tier: str
     contention_memory_bottleneck_tier: str
     max_tier_nominal_transfer_pressure_ratio: float
     max_tier_contention_adjusted_transfer_pressure_ratio: float
     max_tier_movement_energy_share: float
+    max_tier_system_energy_share: float
     contention_bandwidth_saturation_tier: str
     max_tier_contention_bandwidth_utilization: float
     min_tier_contention_bandwidth_headroom_ratio: float
@@ -491,6 +497,7 @@ def _system_model(
             tier,
             total_hierarchy_bytes=total_hierarchy_bytes,
             total_movement_energy_pj=total_movement_energy_pj,
+            total_system_energy_pj=total_system_energy_pj,
             effective_transfer_time_ns=effective_transfer_time_ns,
             calibration_adjusted_effective_transfer_time_ns=(
                 calibration_adjusted_effective_transfer_time_ns
@@ -510,6 +517,10 @@ def _system_model(
     dominant_movement_energy_tier = max(
         tiers,
         key=lambda tier: tier.movement_energy_share,
+    )
+    dominant_system_energy_tier = max(
+        tiers,
+        key=lambda tier: tier.system_energy_share,
     )
     bandwidth_saturation_tier = max(
         tiers,
@@ -537,6 +548,10 @@ def _system_model(
         total_hierarchy_bytes,
         effective_transfer_time_ns,
     )
+    contention_only_loaded_bandwidth = _safe_divide(
+        total_hierarchy_bytes,
+        contention_adjusted_effective_transfer_time_ns,
+    )
     contention_adjusted_loaded_bandwidth = _safe_divide(
         total_hierarchy_bytes,
         calibration_adjusted_effective_transfer_time_ns,
@@ -551,10 +566,18 @@ def _system_model(
         total_system_energy_pj=total_system_energy_pj,
         system_energy_per_mac_pj=total_system_energy_pj / macs,
         system_energy_per_op_pj=total_system_energy_pj / equivalent_ops,
+        local_compute_and_conversion_energy_share=_safe_divide(
+            energy.total_pj,
+            total_system_energy_pj,
+        ),
         movement_energy_share=(
             total_movement_energy_pj / total_system_energy_pj
             if total_system_energy_pj
             else 0.0
+        ),
+        movement_to_compute_energy_ratio=_safe_divide(
+            total_movement_energy_pj,
+            energy.total_pj,
         ),
         total_hierarchy_bytes=total_hierarchy_bytes,
         hierarchy_equivalent_ops_per_byte=_safe_divide(
@@ -607,6 +630,9 @@ def _system_model(
             effective_transfer_time_ns,
         ),
         effective_loaded_bandwidth_bytes_per_ns=effective_loaded_bandwidth,
+        contention_only_loaded_bandwidth_bytes_per_ns=(
+            contention_only_loaded_bandwidth
+        ),
         contention_adjusted_loaded_bandwidth_bytes_per_ns=(
             contention_adjusted_loaded_bandwidth
         ),
@@ -641,6 +667,11 @@ def _system_model(
         ),
         contention_limited_tier=contention_limited_tier,
         dominant_traffic_tier=dominant_traffic_tier.name,
+        dominant_system_energy_component=(
+            "local_compute_and_conversion"
+            if energy.total_pj >= dominant_system_energy_tier.total_energy_pj
+            else dominant_system_energy_tier.name
+        ),
         dominant_movement_energy_tier=dominant_movement_energy_tier.name,
         nominal_memory_bottleneck_tier=slowest_tier.name,
         contention_memory_bottleneck_tier=contention_slowest_tier.name,
@@ -651,6 +682,7 @@ def _system_model(
             tier.contention_adjusted_transfer_pressure_ratio for tier in tiers
         ),
         max_tier_movement_energy_share=dominant_movement_energy_tier.movement_energy_share,
+        max_tier_system_energy_share=dominant_system_energy_tier.system_energy_share,
         contention_bandwidth_saturation_tier=bandwidth_saturation_tier.name,
         max_tier_contention_bandwidth_utilization=(
             bandwidth_saturation_tier.contention_bandwidth_utilization
@@ -668,6 +700,7 @@ def _annotate_system_tier(
     *,
     total_hierarchy_bytes: float,
     total_movement_energy_pj: float,
+    total_system_energy_pj: float,
     effective_transfer_time_ns: float,
     calibration_adjusted_effective_transfer_time_ns: float,
     batch_latency_ns: float,
@@ -687,6 +720,10 @@ def _annotate_system_tier(
         movement_energy_share=_safe_divide(
             tier.total_energy_pj,
             total_movement_energy_pj,
+        ),
+        system_energy_share=_safe_divide(
+            tier.total_energy_pj,
+            total_system_energy_pj,
         ),
         nominal_transfer_share=_safe_divide(
             tier.transfer_time_ns,
