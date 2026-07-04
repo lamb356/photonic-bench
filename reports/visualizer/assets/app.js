@@ -64,6 +64,7 @@
     "photonic-bench-transformer-layer-report-v1";
   const TRANSFORMER_MODEL_SCHEMA_VERSION =
     "photonic-bench-transformer-model-report-v1";
+  let tableSequence = 0;
 
   if (!state.data) {
     document.getElementById("detail").innerHTML =
@@ -241,6 +242,13 @@
       return `${formatNumber(number / 1e3)} KB`;
     }
     return `${formatNumber(number)} bytes`;
+  }
+
+  function formatBytesPerNs(value) {
+    if (value === null || value === undefined || Number.isNaN(Number(value))) {
+      return "n/a";
+    }
+    return `${formatNumber(value)} bytes/ns`;
   }
 
   function formatOpsPerByte(value) {
@@ -1994,8 +2002,9 @@
   }
 
   function simpleTable(headers, rows, className = "") {
+    const tableLabel = `Scrollable data table ${++tableSequence}`;
     return `
-      <div class="table-wrap">
+      <div class="table-wrap" tabindex="0" role="region" aria-label="${escapeHtml(tableLabel)}">
         <table class="${className}">
           <thead><tr>${headers
             .map(
@@ -2058,9 +2067,9 @@
           escapeHtml(formatNs(tier.transfer_time_ns)),
           escapeHtml(formatNs(tier.contention_adjusted_transfer_time_ns)),
           escapeHtml(
-            `${formatNumber(
+            formatBytesPerNs(
               tier.effective_bandwidth_bytes_per_ns ?? tier.bandwidth_bytes_per_ns
-            )} bytes/ns`
+            )
           ),
         ];
       });
@@ -2080,9 +2089,15 @@
       ["Total system energy", formatPj(system.total_system_energy_pj)],
       ["System energy/op", formatPj(system.system_energy_per_op_pj)],
       ["Movement share", formatPercent(system.movement_energy_share)],
+      ["Total hierarchy traffic", formatBytes(system.total_hierarchy_bytes)],
+      ["Off-chip traffic share", formatPercent(system.off_chip_traffic_share)],
       ["Max transfer time", formatNs(system.max_transfer_time_ns ?? system.serial_transfer_time_ns)],
       ["Serialized transfer time", formatNs(system.serial_transfer_time_ns)],
       ["Effective transfer time", formatNs(system.effective_transfer_time_ns ?? system.serial_transfer_time_ns)],
+      [
+        "Contention bandwidth derate",
+        formatNumber(system.contention_bandwidth_derate_factor),
+      ],
       [
         "Contention-adjusted transfer",
         formatNs(
@@ -2097,7 +2112,19 @@
             system.contention_adjusted_serial_transfer_time_ns
         ),
       ],
+      [
+        "Total transfer overhead",
+        formatPercent(system.total_transfer_overhead_fraction),
+      ],
+      [
+        "Loaded hierarchy bandwidth",
+        formatBytesPerNs(
+          system.contention_adjusted_loaded_bandwidth_bytes_per_ns ??
+            system.effective_loaded_bandwidth_bytes_per_ns
+        ),
+      ],
       [timingLabel, formatNs(system.bandwidth_limited_batch_latency_ns ?? system.bandwidth_limited_serial_batch_latency_ns)],
+      ["Bandwidth pressure ratio", formatNumber(system.bandwidth_pressure_ratio)],
       [
         "Bandwidth-limited throughput",
         formatThroughput(
@@ -2112,6 +2139,7 @@
             system.contention_adjusted_serial_batch_latency_ns
         ),
       ],
+      ["Contention pressure ratio", formatNumber(system.contention_pressure_ratio)],
       [
         "Contention-adjusted throughput",
         formatThroughput(
@@ -2704,8 +2732,21 @@
         (summary) => formatNs(summary.effective_transfer_time_ns),
       ],
       [
+        "Loaded hierarchy bandwidth",
+        (summary) =>
+          formatBytesPerNs(summary.contention_adjusted_loaded_bandwidth_bytes_per_ns),
+      ],
+      [
+        "Off-chip traffic share",
+        (summary) => formatPercent(summary.off_chip_traffic_share),
+      ],
+      [
         "Shared bandwidth clients",
         (summary) => formatNumber(summary.shared_bandwidth_clients),
+      ],
+      [
+        "Contention bandwidth derate",
+        (summary) => formatNumber(summary.contention_bandwidth_derate_factor),
       ],
       [
         "Arbitration efficiency",
@@ -2715,6 +2756,10 @@
         "Calibration/control overhead",
         (summary) => formatPercent(summary.calibration_overhead_fraction),
       ],
+      [
+        "Total transfer overhead",
+        (summary) => formatPercent(summary.total_transfer_overhead_fraction),
+      ],
       ["Movement energy", (summary) => formatPj(summary.movement_energy_pj)],
       ["Movement share", (summary) => formatPercent(summary.movement_energy_share)],
       ["Latency label", (summary) => summary.latency_label],
@@ -2723,12 +2768,20 @@
         formatThroughput(summary.throughput_equivalent_ops_per_second)],
       ["Bandwidth-limited latency", (summary) =>
         formatNs(summary.bandwidth_limited_latency_ns)],
+      [
+        "Bandwidth pressure ratio",
+        (summary) => formatNumber(summary.bandwidth_pressure_ratio),
+      ],
       ["Bandwidth-limited throughput", (summary) =>
         formatThroughput(
           summary.bandwidth_limited_throughput_equivalent_ops_per_second
         )],
       ["Contention-adjusted latency", (summary) =>
         formatNs(summary.contention_adjusted_latency_ns)],
+      [
+        "Contention pressure ratio",
+        (summary) => formatNumber(summary.contention_pressure_ratio),
+      ],
       ["Contention-adjusted throughput", (summary) =>
         formatThroughput(
           summary.contention_adjusted_throughput_equivalent_ops_per_second
@@ -2824,6 +2877,24 @@
         label: "Contention-adjusted latency",
         get: (summary) => summary.contention_adjusted_latency_ns,
         format: formatNs,
+        direction: "lower",
+      },
+      {
+        label: "Contention pressure ratio",
+        get: (summary) => summary.contention_pressure_ratio,
+        format: formatNumber,
+        direction: "lower",
+      },
+      {
+        label: "Loaded hierarchy bandwidth",
+        get: (summary) => summary.contention_adjusted_loaded_bandwidth_bytes_per_ns,
+        format: formatBytesPerNs,
+        direction: "higher",
+      },
+      {
+        label: "Off-chip traffic share",
+        get: (summary) => summary.off_chip_traffic_share,
+        format: formatPercent,
         direction: "lower",
       },
       {
@@ -3980,6 +4051,17 @@
         Number(right.summary.calibration_overhead_fraction || 0) -
         Number(left.summary.calibration_overhead_fraction || 0)
     )[0];
+    const highestPressure = [...withAdjusted].sort(
+      (left, right) =>
+        Number(right.summary.contention_pressure_ratio || 0) -
+        Number(left.summary.contention_pressure_ratio || 0)
+    )[0];
+    const bestLoadedBandwidth = bestArtifactForSpec(withAdjusted, {
+      label: "Loaded hierarchy bandwidth",
+      get: (summary) => summary.contention_adjusted_loaded_bandwidth_bytes_per_ns,
+      format: formatBytesPerNs,
+      direction: "higher",
+    });
     return `
       <section class="panel">
         <h3>Contention Insight</h3>
@@ -4015,8 +4097,25 @@
               ? formatPercent(highestGuardband.summary.calibration_overhead_fraction)
               : ""
           )}
+          ${metric(
+            "Highest pressure ratio",
+            highestPressure ? highestPressure.summary.benchmark_name : "n/a",
+            highestPressure
+              ? formatNumber(highestPressure.summary.contention_pressure_ratio)
+              : ""
+          )}
+          ${metric(
+            "Best loaded bandwidth",
+            bestLoadedBandwidth ? bestLoadedBandwidth.summary.benchmark_name : "n/a",
+            bestLoadedBandwidth
+              ? formatBytesPerNs(
+                  bestLoadedBandwidth.summary
+                    .contention_adjusted_loaded_bandwidth_bytes_per_ns
+                )
+              : ""
+          )}
         </div>
-        <div class="notes"><p>Contention metrics are local shared-link assumptions: nominal tier bandwidth is reduced by client count and arbitration efficiency, then calibration/control guardband is applied to transfer timing.</p></div>
+        <div class="notes"><p>Contention metrics are local shared-link assumptions: nominal tier bandwidth is reduced by client count and arbitration efficiency, calibration/control guardband is applied to transfer timing, and pressure ratios compare the adjusted local system latency against the compute-only batch latency.</p></div>
       </section>
     `;
   }
@@ -4185,6 +4284,13 @@
         system_profile_overrides: artifact.summary.system_profile_overrides || [],
         memory_timing_mode: artifact.summary.memory_timing_mode,
         effective_transfer_time_ns: artifact.summary.effective_transfer_time_ns,
+        loaded_hierarchy_bandwidth_bytes_per_ns:
+          artifact.summary.contention_adjusted_loaded_bandwidth_bytes_per_ns,
+        off_chip_traffic_share: artifact.summary.off_chip_traffic_share,
+        contention_bandwidth_derate_factor:
+          artifact.summary.contention_bandwidth_derate_factor,
+        total_transfer_overhead_fraction:
+          artifact.summary.total_transfer_overhead_fraction,
         shared_bandwidth_clients: artifact.summary.shared_bandwidth_clients,
         bandwidth_arbitration_efficiency:
           artifact.summary.bandwidth_arbitration_efficiency,
@@ -4197,10 +4303,12 @@
         throughput_equivalent_ops_per_second:
           artifact.summary.throughput_equivalent_ops_per_second,
         bandwidth_limited_latency_ns: artifact.summary.bandwidth_limited_latency_ns,
+        bandwidth_pressure_ratio: artifact.summary.bandwidth_pressure_ratio,
         bandwidth_limited_throughput_equivalent_ops_per_second:
           artifact.summary.bandwidth_limited_throughput_equivalent_ops_per_second,
         contention_adjusted_latency_ns:
           artifact.summary.contention_adjusted_latency_ns,
+        contention_pressure_ratio: artifact.summary.contention_pressure_ratio,
         contention_adjusted_throughput_equivalent_ops_per_second:
           artifact.summary
             .contention_adjusted_throughput_equivalent_ops_per_second,
@@ -4267,6 +4375,10 @@
           formatProfileOverrides(summary.system_profile_overrides),
           summary.memory_timing_mode || "n/a",
           formatNs(summary.effective_transfer_time_ns),
+          formatBytesPerNs(summary.contention_adjusted_loaded_bandwidth_bytes_per_ns),
+          formatPercent(summary.off_chip_traffic_share),
+          formatNumber(summary.contention_bandwidth_derate_factor),
+          formatPercent(summary.total_transfer_overhead_fraction),
           formatNumber(summary.shared_bandwidth_clients),
           formatPercent(summary.bandwidth_arbitration_efficiency),
           formatPercent(summary.calibration_overhead_fraction),
@@ -4275,7 +4387,9 @@
           formatThroughput(
             summary.bandwidth_limited_throughput_equivalent_ops_per_second
           ),
+          formatNumber(summary.bandwidth_pressure_ratio),
           formatNs(summary.contention_adjusted_latency_ns),
+          formatNumber(summary.contention_pressure_ratio),
           formatThroughput(
             summary.contention_adjusted_throughput_equivalent_ops_per_second
           ),
@@ -4314,8 +4428,8 @@ Score profile: ${activeScoreProfileSummary(focus).label}
 
 Score weights: ${weightSummary || "n/a"}
 
-| Benchmark | Kind | Source | Local pJ/op | System pJ/op | System profile | Profile overrides | Memory timing | Effective transfer | Shared clients | Arbitration eff. | Calibration overhead | Latency | Throughput | BW-limited throughput | Contention latency | Contention throughput | Interface traffic | Eq ops/byte | Movement share | Published reference | Source grade | Surrogate type | Provenance |
-| --- | --- | --- | ---: | ---: | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- |
+| Benchmark | Kind | Source | Local pJ/op | System pJ/op | System profile | Profile overrides | Memory timing | Effective transfer | Loaded BW | Off-chip share | Derate | Transfer overhead | Shared clients | Arbitration eff. | Calibration overhead | Latency | Throughput | BW-limited throughput | BW pressure | Contention latency | Contention pressure | Contention throughput | Interface traffic | Eq ops/byte | Movement share | Published reference | Source grade | Surrogate type | Provenance |
+| --- | --- | --- | ---: | ---: | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- |
 ${rows}
 
 ## Recommendations
@@ -4339,10 +4453,16 @@ ${notes}
       "source",
       "local_pj_per_op",
       "system_pj_per_op",
+      "loaded_hierarchy_bandwidth_bytes_per_ns",
+      "off_chip_traffic_share",
+      "contention_bandwidth_derate_factor",
+      "total_transfer_overhead_fraction",
       "latency_ns",
       "throughput_equivalent_ops_per_second",
       "bandwidth_limited_throughput_equivalent_ops_per_second",
+      "bandwidth_pressure_ratio",
       "contention_adjusted_latency_ns",
+      "contention_pressure_ratio",
       "contention_adjusted_throughput_equivalent_ops_per_second",
       "interface_traffic_bytes",
       "operational_intensity_ops_per_byte",
@@ -4370,10 +4490,16 @@ ${notes}
         summary.source_path,
         summary.energy_per_op_pj,
         summary.system_energy_per_op_pj,
+        summary.contention_adjusted_loaded_bandwidth_bytes_per_ns,
+        summary.off_chip_traffic_share,
+        summary.contention_bandwidth_derate_factor,
+        summary.total_transfer_overhead_fraction,
         summary.latency_ns,
         summary.throughput_equivalent_ops_per_second,
         summary.bandwidth_limited_throughput_equivalent_ops_per_second,
+        summary.bandwidth_pressure_ratio,
         summary.contention_adjusted_latency_ns,
+        summary.contention_pressure_ratio,
         summary.contention_adjusted_throughput_equivalent_ops_per_second,
         summary.memory_traffic_bytes,
         summary.operational_intensity_ops_per_byte,
@@ -4547,7 +4673,7 @@ ${notes}
       </section>
       <section class="panel">
         <h3>Export Preview</h3>
-        <textarea id="export-preview" class="export-preview" readonly>${escapeHtml(exportMarkdown)}</textarea>
+        <textarea id="export-preview" class="export-preview" aria-label="Markdown export preview" readonly>${escapeHtml(exportMarkdown)}</textarea>
       </section>
     `;
 

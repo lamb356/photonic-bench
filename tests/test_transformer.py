@@ -255,6 +255,36 @@ def test_transformer_layer_report_to_dict_aggregates_decomposed_json_cards() -> 
             for card in cards
         )
     )
+    system = payload["local_model"]["system"]
+    assert system["total_hierarchy_bytes"] == pytest.approx(
+        sum(
+            card.payload["local_model"]["system"]["total_hierarchy_bytes"]
+            for card in cards
+        )
+    )
+    assert (
+        system["sram_traffic_share"]
+        + system["intermediate_traffic_share"]
+        + system["off_chip_traffic_share"]
+    ) == pytest.approx(1.0)
+    assert system["contention_bandwidth_derate_factor"] == pytest.approx(1.0)
+    assert system["effective_loaded_bandwidth_bytes_per_ns"] == pytest.approx(
+        system["total_hierarchy_bytes"] / system["serial_transfer_time_ns"]
+    )
+    assert system[
+        "contention_adjusted_loaded_bandwidth_bytes_per_ns"
+    ] == pytest.approx(
+        system["total_hierarchy_bytes"]
+        / system["contention_adjusted_serial_transfer_time_ns"]
+    )
+    assert system["bandwidth_pressure_ratio"] == pytest.approx(
+        system["bandwidth_limited_serial_batch_latency_ns"]
+        / payload["local_model"]["timing"]["serial_batch_latency_ns"]
+    )
+    assert system["contention_pressure_ratio"] == pytest.approx(
+        system["contention_adjusted_serial_batch_latency_ns"]
+        / payload["local_model"]["timing"]["serial_batch_latency_ns"]
+    )
     assert payload["local_model"]["timing"]["timing_model"] == (
         "serial_sum_of_decomposed_batch_latencies"
     )
@@ -308,6 +338,33 @@ def test_transformer_model_report_to_dict_weights_layer_counts() -> None:
         * layer_payload["local_model"]["system"][
             "bandwidth_limited_serial_batch_latency_ns"
         ]
+    )
+    system = payload["local_model"]["system"]
+    assert system["total_hierarchy_bytes"] == pytest.approx(
+        3 * layer_payload["local_model"]["system"]["total_hierarchy_bytes"]
+    )
+    assert (
+        system["sram_traffic_share"]
+        + system["intermediate_traffic_share"]
+        + system["off_chip_traffic_share"]
+    ) == pytest.approx(1.0)
+    assert system["contention_bandwidth_derate_factor"] == pytest.approx(1.0)
+    assert system["effective_loaded_bandwidth_bytes_per_ns"] == pytest.approx(
+        system["total_hierarchy_bytes"] / system["serial_transfer_time_ns"]
+    )
+    assert system[
+        "contention_adjusted_loaded_bandwidth_bytes_per_ns"
+    ] == pytest.approx(
+        system["total_hierarchy_bytes"]
+        / system["contention_adjusted_serial_transfer_time_ns"]
+    )
+    assert system["bandwidth_pressure_ratio"] == pytest.approx(
+        system["bandwidth_limited_serial_batch_latency_ns"]
+        / payload["local_model"]["timing"]["serial_batch_latency_ns"]
+    )
+    assert system["contention_pressure_ratio"] == pytest.approx(
+        system["contention_adjusted_serial_batch_latency_ns"]
+        / payload["local_model"]["timing"]["serial_batch_latency_ns"]
     )
     assert payload["layers"][0]["name"] == "encoder_block"
     assert payload["layers"][0]["count"] == 3

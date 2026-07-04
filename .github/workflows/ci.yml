@@ -45,7 +45,7 @@ jobs:
         run: python -m pytest
 
       - name: Upload visual regression screenshots
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: visual-regression-screenshots
@@ -54,3 +54,42 @@ jobs:
 
       - name: Verify generated artifacts are fresh
         run: python -m photonic_bench.cli verify-artifacts
+
+  macos-visual-baselines:
+    name: macOS visual baseline capture
+    runs-on: macos-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Install Playwright browser
+        run: python -m playwright install chromium
+
+      - name: Capture macOS visual baselines
+        env:
+          UPDATE_VISUAL_BASELINES: "1"
+          VISUAL_REGRESSION_BASELINE_PLATFORM: macos
+          VISUAL_REGRESSION_OUTPUT_DIR: test-results/visual-regression-macos
+        run: python -m pytest tests/test_visualizer_visual_regression.py -q
+
+      - name: Upload macOS visual regression screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-visual-regression-screenshots
+          path: |
+            test-results/visual-regression-macos/*.png
+            tests/visual_baselines/macos/*.png
+          if-no-files-found: ignore

@@ -256,6 +256,11 @@ def test_static_app_contains_comparison_and_boundary_labels() -> None:
     assert "Contention Insight" in app_js
     assert "Contention-adjusted latency" in app_js
     assert "Contention-adjusted throughput" in app_js
+    assert "Loaded hierarchy bandwidth" in app_js
+    assert "Off-chip traffic share" in app_js
+    assert "Contention pressure ratio" in app_js
+    assert "contention_adjusted_loaded_bandwidth_bytes_per_ns" in app_js
+    assert "total_transfer_overhead_fraction" in app_js
     assert "contention-throughput" in app_js
     assert "Pareto Trade-Offs" in app_js
     assert "Energy/op vs throughput" in app_js

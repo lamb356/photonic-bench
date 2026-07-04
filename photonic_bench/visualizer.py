@@ -55,13 +55,20 @@ class ArtifactSummary:
     system_energy_per_op_pj: float | None
     movement_energy_pj: float | None
     movement_energy_share: float | None
+    total_hierarchy_bytes: float | None
+    off_chip_traffic_share: float | None
     bandwidth_limited_latency_ns: float | None
+    bandwidth_pressure_ratio: float | None
     bandwidth_limited_throughput_equivalent_ops_per_second: float | None
     contention_adjusted_latency_ns: float | None
+    contention_pressure_ratio: float | None
     contention_adjusted_throughput_equivalent_ops_per_second: float | None
     shared_bandwidth_clients: float | None
     bandwidth_arbitration_efficiency: float | None
     calibration_overhead_fraction: float | None
+    contention_bandwidth_derate_factor: float | None
+    total_transfer_overhead_fraction: float | None
+    contention_adjusted_loaded_bandwidth_bytes_per_ns: float | None
     system_profile: str | None
     system_profile_overrides: tuple[str, ...]
     memory_timing_mode: str | None
@@ -514,11 +521,32 @@ def _load_matmul_artifact(
             "movement_energy_share",
             source=source_path,
         ),
+        total_hierarchy_bytes=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "total_hierarchy_bytes",
+            source=source_path,
+        ),
+        off_chip_traffic_share=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "off_chip_traffic_share",
+            source=source_path,
+        ),
         bandwidth_limited_latency_ns=_optional_number(
             payload,
             "local_model",
             "system",
             "bandwidth_limited_batch_latency_ns",
+            source=source_path,
+        ),
+        bandwidth_pressure_ratio=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "bandwidth_pressure_ratio",
             source=source_path,
         ),
         bandwidth_limited_throughput_equivalent_ops_per_second=_optional_number(
@@ -533,6 +561,13 @@ def _load_matmul_artifact(
             "local_model",
             "system",
             "contention_adjusted_batch_latency_ns",
+            source=source_path,
+        ),
+        contention_pressure_ratio=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "contention_pressure_ratio",
             source=source_path,
         ),
         contention_adjusted_throughput_equivalent_ops_per_second=_optional_number(
@@ -564,6 +599,27 @@ def _load_matmul_artifact(
             "system",
             "contention",
             "calibration_overhead_fraction",
+            source=source_path,
+        ),
+        contention_bandwidth_derate_factor=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "contention_bandwidth_derate_factor",
+            source=source_path,
+        ),
+        total_transfer_overhead_fraction=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "total_transfer_overhead_fraction",
+            source=source_path,
+        ),
+        contention_adjusted_loaded_bandwidth_bytes_per_ns=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "contention_adjusted_loaded_bandwidth_bytes_per_ns",
             source=source_path,
         ),
         system_profile=_optional_str(
@@ -717,11 +773,32 @@ def _load_transformer_layer_artifact(
             "movement_energy_share",
             source=source_path,
         ),
+        total_hierarchy_bytes=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "total_hierarchy_bytes",
+            source=source_path,
+        ),
+        off_chip_traffic_share=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "off_chip_traffic_share",
+            source=source_path,
+        ),
         bandwidth_limited_latency_ns=_optional_number(
             payload,
             "local_model",
             "system",
             "bandwidth_limited_serial_batch_latency_ns",
+            source=source_path,
+        ),
+        bandwidth_pressure_ratio=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "bandwidth_pressure_ratio",
             source=source_path,
         ),
         bandwidth_limited_throughput_equivalent_ops_per_second=_optional_number(
@@ -736,6 +813,13 @@ def _load_transformer_layer_artifact(
             "local_model",
             "system",
             "contention_adjusted_serial_batch_latency_ns",
+            source=source_path,
+        ),
+        contention_pressure_ratio=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "contention_pressure_ratio",
             source=source_path,
         ),
         contention_adjusted_throughput_equivalent_ops_per_second=_optional_number(
@@ -767,6 +851,27 @@ def _load_transformer_layer_artifact(
             "system",
             "contention",
             "calibration_overhead_fraction",
+            source=source_path,
+        ),
+        contention_bandwidth_derate_factor=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "contention_bandwidth_derate_factor",
+            source=source_path,
+        ),
+        total_transfer_overhead_fraction=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "total_transfer_overhead_fraction",
+            source=source_path,
+        ),
+        contention_adjusted_loaded_bandwidth_bytes_per_ns=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "contention_adjusted_loaded_bandwidth_bytes_per_ns",
             source=source_path,
         ),
         system_profile=_optional_str(
@@ -920,11 +1025,32 @@ def _load_transformer_model_artifact(
             "movement_energy_share",
             source=source_path,
         ),
+        total_hierarchy_bytes=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "total_hierarchy_bytes",
+            source=source_path,
+        ),
+        off_chip_traffic_share=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "off_chip_traffic_share",
+            source=source_path,
+        ),
         bandwidth_limited_latency_ns=_optional_number(
             payload,
             "local_model",
             "system",
             "bandwidth_limited_serial_batch_latency_ns",
+            source=source_path,
+        ),
+        bandwidth_pressure_ratio=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "bandwidth_pressure_ratio",
             source=source_path,
         ),
         bandwidth_limited_throughput_equivalent_ops_per_second=_optional_number(
@@ -939,6 +1065,13 @@ def _load_transformer_model_artifact(
             "local_model",
             "system",
             "contention_adjusted_serial_batch_latency_ns",
+            source=source_path,
+        ),
+        contention_pressure_ratio=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "contention_pressure_ratio",
             source=source_path,
         ),
         contention_adjusted_throughput_equivalent_ops_per_second=_optional_number(
@@ -970,6 +1103,27 @@ def _load_transformer_model_artifact(
             "system",
             "contention",
             "calibration_overhead_fraction",
+            source=source_path,
+        ),
+        contention_bandwidth_derate_factor=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "contention_bandwidth_derate_factor",
+            source=source_path,
+        ),
+        total_transfer_overhead_fraction=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "total_transfer_overhead_fraction",
+            source=source_path,
+        ),
+        contention_adjusted_loaded_bandwidth_bytes_per_ns=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "contention_adjusted_loaded_bandwidth_bytes_per_ns",
             source=source_path,
         ),
         system_profile=_optional_str(

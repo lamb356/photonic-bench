@@ -208,6 +208,18 @@ MATMUL_ARTIFACT_RECIPES: tuple[MatmulArtifactRecipe, ...] = (
         "dong_2023_continuous_time_tensor_core_surrogate.yaml",
         "dong_2023_continuous_time_tensor_core_surrogate",
     ),
+    MatmulArtifactRecipe(
+        "meyer_2026_reconfigurable_ptp_surrogate.yaml",
+        "meyer_2026_reconfigurable_ptp_surrogate",
+    ),
+    MatmulArtifactRecipe(
+        "xie_2025_complex_mvm_surrogate.yaml",
+        "xie_2025_complex_mvm_surrogate",
+    ),
+    MatmulArtifactRecipe(
+        "wu_2026_high_order_tensor_surrogate.yaml",
+        "wu_2026_high_order_tensor_surrogate",
+    ),
 )
 
 TRANSFORMER_LAYER_ARTIFACT_RECIPES: tuple[TransformerLayerArtifactRecipe, ...] = (

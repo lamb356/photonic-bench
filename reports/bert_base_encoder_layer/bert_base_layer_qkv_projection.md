@@ -77,16 +77,28 @@ simulator.
 | System energy per MAC | 0.104 pJ |
 | System energy per equivalent op | 0.052 pJ |
 | Movement energy share | 94.00% |
+| Total hierarchy traffic | 6488064 bytes |
+| SRAM traffic share | 33.33% |
+| Intermediate/cache traffic share | 33.33% |
+| Off-chip traffic share | 33.33% |
 | Max transfer time | 135168.000 ns |
 | Serialized transfer time | 145728.000 ns |
 | Effective transfer time | 135168.000 ns |
+| Contention bandwidth derate | 1 |
 | Contention-adjusted effective transfer | 135168.000 ns |
 | Calibration-adjusted effective transfer | 135168.000 ns |
+| Calibration guardband time | 0.000 ns |
+| Contention transfer overhead | 0.00% |
+| Total transfer overhead | 0.00% |
+| Effective loaded hierarchy bandwidth | 48.000 bytes/ns |
+| Contention-adjusted loaded hierarchy bandwidth | 48.000 bytes/ns |
 | Bandwidth-limited tier | off_chip |
 | Bandwidth-limited batch latency | 135168.000 ns |
+| Bandwidth pressure ratio | 27033.6 |
 | Bandwidth-limited equivalent ops/s | 3351272727272.727 |
 | Contention-limited tier | off_chip |
 | Contention-adjusted batch latency | 135168.000 ns |
+| Contention pressure ratio | 27033.6 |
 | Contention-adjusted equivalent ops/s | 3351272727272.727 |
 
 ## Energy

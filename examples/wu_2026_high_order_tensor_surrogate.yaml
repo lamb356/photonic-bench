@@ -1,0 +1,69 @@
+benchmark:
+  name: Wu 2026 high-order integrated tensor processor surrogate
+  description: Source-backed card for the Optica 2026 scalable high-order integrated photonic tensor processor. The paper uses frequency-domain modulation to decouple tensor dimensionality from physical device count; this config uses a 16x16 dense local GEMM tile for PhotonicBench comparison only.
+workload:
+  type: matmul
+  m: 16
+  n: 16
+  k: 16
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 8
+    energy_pj_per_conversion: 0.5
+  vector_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+  weight_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+execution:
+  batch_size: 1
+  vector_reuse_factor: 1
+  weight_reuse_factor: 1
+  weight_stationary: true
+  pipeline:
+    stages: 1
+timing:
+  optical_latency_ns: 1
+  adc_latency_ns: 0
+  dac_latency_ns: 0
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 1
+provenance:
+  source_title: Scalable high-order integrated photonic tensor processor via frequency-domain modulation
+  source_url: https://doi.org/10.1364/OPTICA.579208
+  doi: 10.1364/OPTICA.579208
+  venue: Optica 13, 998-1006 (2026)
+  claim_status: paper-reported high-order tensor processor architecture; dense-GEMM-surrogate local model
+published_calibration:
+  architecture: High-order integrated photonic tensor processor using frequency-domain modulation
+  additional_metrics:
+    demonstrated_tensor_orders: third-order and fourth-order tensor multiplication
+    frequency_domain_modulation: true
+    decouples_computational_dimensionality_from_physical_device_count: true
+    physical_core: two-dimensional cascaded MZI and photodetector array
+    surrogate_mapping: m=16, k=16, n=16 is a dense local GEMM tile used to place the high-order tensor architecture in PhotonicBench comparisons; it is not a frequency-domain high-order tensor reproduction.
+source_quality:
+  reported_metrics:
+    - architecture
+    - tensor_order
+    - scalability
+  local_surrogate_type: dense_high_order_tensor_surrogate
+  coverage:
+    throughput: not_reported
+    energy: not_reported
+    accuracy: derived
+    area: not_reported
+    precision: not_reported
+  confidence_grade: C
+  notes:
+    - The source is a primary Optica paper with high-order tensor-processor evidence, but this card stores architecture/scaling claims rather than absolute TOPS or TOPS/W.
+assumptions:
+  - Source high-order tensor and frequency-domain modulation claims remain under published_calibration.additional_metrics.
+  - Local dense GEMM shape, generic device energy, memory hierarchy, and latency are PhotonicBench assumptions for dashboard comparison only.
+  - The card does not model microwave frequency bins, high-order tensor indexing, MZI calibration, or detector-array scheduling.

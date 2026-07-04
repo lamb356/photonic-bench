@@ -1,0 +1,72 @@
+benchmark:
+  name: Xie 2025 complex coherent MVM surrogate
+  description: Source-backed card for the Science Advances 2025 scalable coherent photonic processor. The paper demonstrates a 16-channel complex-valued matrix-vector multiplication processor at 1.28 TOPS; this config uses a 1x16 by 16x16 dense local MVM surrogate only.
+workload:
+  type: matmul
+  m: 1
+  n: 16
+  k: 16
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 8
+    energy_pj_per_conversion: 0.5
+  vector_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+  weight_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+execution:
+  batch_size: 1
+  vector_reuse_factor: 1
+  weight_reuse_factor: 1
+  weight_stationary: false
+  pipeline:
+    stages: 1
+timing:
+  optical_latency_ns: 1
+  adc_latency_ns: 0
+  dac_latency_ns: 0
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 1
+provenance:
+  source_title: Complex-valued matrix-vector multiplication using a scalable coherent photonic processor
+  source_url: https://www.science.org/doi/10.1126/sciadv.ads7475
+  doi: 10.1126/sciadv.ads7475
+  venue: Science Advances 11, eads7475 (2025)
+  claim_status: paper-reported complex-valued MVM throughput and demonstrations; MVM-surrogate local model
+published_calibration:
+  architecture: 16-channel programmable on-chip coherent photonic matrix-vector multiplication processor
+  reported_tops: 1.28
+  additional_metrics:
+    programmable_channels: 16
+    complex_valued_processing: true
+    demonstrated_functions: arbitrary matrix transformation, parallel image processing, handwritten digital recognition
+    uses_low_phase_error_mzi_mesh: true
+    uses_ultralow_loss_waveguide_delay_lines: true
+    surrogate_mapping: m=1, k=16, n=16 is a dense real-valued local MVM tile for a complex-valued 16-channel coherent processor; it does not reproduce phase encoding or coherent detection.
+source_quality:
+  reported_metrics:
+    - throughput
+    - architecture
+    - complex_valued_operation
+    - application_demonstrations
+  local_surrogate_type: dense_complex_coherent_mvm_surrogate
+  coverage:
+    throughput: reported
+    energy: not_reported
+    accuracy: reported
+    area: not_reported
+    precision: reported
+  confidence_grade: B
+  notes:
+    - The source reports a scalar 1.28 TOPS throughput and complex-valued programmable operation, but this card does not encode an energy-efficiency target.
+assumptions:
+  - Source-reported throughput and demonstration claims remain paper-derived metadata.
+  - Local dense real-valued matmul, converter energy, system tiers, and latency are PhotonicBench assumptions for comparison only.
+  - The card does not model complex amplitudes, phase shifter calibration, coherent receiver behavior, delay-line loss, or arbitrary-function programming.

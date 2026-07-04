@@ -72,6 +72,20 @@ _SYSTEM_TIER_SUM_FIELDS = (
     "contention_adjusted_transfer_time_ns",
 )
 _SYSTEM_TIER_NAMES = ("sram", "intermediate", "off_chip")
+_SYSTEM_DERIVED_FIELDS = (
+    "total_hierarchy_bytes",
+    "sram_traffic_share",
+    "intermediate_traffic_share",
+    "off_chip_traffic_share",
+    "contention_bandwidth_derate_factor",
+    "calibration_guardband_time_ns",
+    "contention_transfer_overhead_fraction",
+    "total_transfer_overhead_fraction",
+    "effective_loaded_bandwidth_bytes_per_ns",
+    "contention_adjusted_loaded_bandwidth_bytes_per_ns",
+    "bandwidth_pressure_ratio",
+    "contention_pressure_ratio",
+)
 
 
 @dataclass(frozen=True)
@@ -457,6 +471,37 @@ def transformer_layer_report_to_dict(
         audits,
         "contention_adjusted_batch_latency_ns",
     )
+    serial_transfer_time_ns = _sum_local_system(
+        audits,
+        "effective_transfer_time_ns",
+    )
+    contention_only_transfer_time_ns = _sum_local_system(
+        audits,
+        "contention_adjusted_effective_transfer_time_ns",
+    )
+    contention_adjusted_serial_transfer_time_ns = _sum_local_system(
+        audits,
+        "calibration_adjusted_effective_transfer_time_ns",
+    )
+    aggregate_tiers = {
+        tier: _aggregate_system_tier(audits, tier) for tier in _SYSTEM_TIER_NAMES
+    }
+    system_derived = _aggregate_system_derived_metrics(
+        tiers=aggregate_tiers,
+        contention=system_config_to_dict(config.system)["contention"],
+        serial_transfer_time_ns=serial_transfer_time_ns,
+        contention_only_transfer_time_ns=contention_only_transfer_time_ns,
+        contention_adjusted_serial_transfer_time_ns=(
+            contention_adjusted_serial_transfer_time_ns
+        ),
+        serial_batch_latency_ns=serial_batch_latency_ns,
+        bandwidth_limited_serial_batch_latency_ns=(
+            bandwidth_limited_serial_batch_latency_ns
+        ),
+        contention_adjusted_serial_batch_latency_ns=(
+            contention_adjusted_serial_batch_latency_ns
+        ),
+    )
 
     return {
         "schema_version": TRANSFORMER_LAYER_REPORT_SCHEMA_VERSION,
@@ -509,21 +554,14 @@ def transformer_layer_report_to_dict(
                 "memory_timing_mode": config.system.memory_timing_mode,
                 "contention": system_config_to_dict(config.system)["contention"],
                 **{field: _sum_local_system(audits, field) for field in _SYSTEM_SUM_FIELDS},
-                "tiers": {
-                    tier: _aggregate_system_tier(audits, tier)
-                    for tier in _SYSTEM_TIER_NAMES
-                },
-                "serial_transfer_time_ns": _sum_local_system(
-                    audits,
-                    "effective_transfer_time_ns",
-                ),
+                "tiers": aggregate_tiers,
+                "serial_transfer_time_ns": serial_transfer_time_ns,
                 "max_per_matmul_transfer_time_ns": _max_local_system(
                     audits,
                     "effective_transfer_time_ns",
                 ),
-                "contention_adjusted_serial_transfer_time_ns": _sum_local_system(
-                    audits,
-                    "calibration_adjusted_effective_transfer_time_ns",
+                "contention_adjusted_serial_transfer_time_ns": (
+                    contention_adjusted_serial_transfer_time_ns
                 ),
                 "max_per_matmul_contention_adjusted_transfer_time_ns": (
                     _max_local_system(
@@ -546,6 +584,7 @@ def transformer_layer_report_to_dict(
                     if total_system_energy_pj
                     else 0.0
                 ),
+                **system_derived,
                 "bandwidth_limited_serial_effective_macs_per_second": _per_second(
                     total_macs,
                     bandwidth_limited_serial_batch_latency_ns,
@@ -709,6 +748,58 @@ def transformer_model_report_to_dict(
         "system",
         "contention_adjusted_serial_batch_latency_ns",
     ) + extra["system"]["contention_adjusted_serial_batch_latency_ns"]
+    serial_transfer_time_ns = (
+        _weighted_layer_number(
+            audited_layers,
+            "local_model",
+            "system",
+            "serial_transfer_time_ns",
+        )
+        + extra["system"]["serial_transfer_time_ns"]
+    )
+    contention_adjusted_serial_transfer_time_ns = (
+        _weighted_layer_number(
+            audited_layers,
+            "local_model",
+            "system",
+            "contention_adjusted_serial_transfer_time_ns",
+        )
+        + extra["system"]["contention_adjusted_serial_transfer_time_ns"]
+    )
+    aggregate_tiers = {
+        tier: _add_system_tiers(
+            _weighted_model_system_tier(audited_layers, tier),
+            extra["system"]["tiers"][tier],
+        )
+        for tier in _SYSTEM_TIER_NAMES
+    }
+    aggregate_guardband_time_ns = (
+        _weighted_layer_number(
+            audited_layers,
+            "local_model",
+            "system",
+            "calibration_guardband_time_ns",
+        )
+        + extra["system"]["calibration_guardband_time_ns"]
+    )
+    system_derived = _aggregate_system_derived_metrics(
+        tiers=aggregate_tiers,
+        contention=system_config_to_dict(config.system)["contention"],
+        serial_transfer_time_ns=serial_transfer_time_ns,
+        contention_only_transfer_time_ns=(
+            contention_adjusted_serial_transfer_time_ns - aggregate_guardband_time_ns
+        ),
+        contention_adjusted_serial_transfer_time_ns=(
+            contention_adjusted_serial_transfer_time_ns
+        ),
+        serial_batch_latency_ns=serial_batch_latency_ns,
+        bandwidth_limited_serial_batch_latency_ns=(
+            bandwidth_limited_serial_batch_latency_ns
+        ),
+        contention_adjusted_serial_batch_latency_ns=(
+            contention_adjusted_serial_batch_latency_ns
+        ),
+    )
     overlap_timing = _model_overlap_timing(
         config,
         serial_batch_latency_ns=serial_batch_latency_ns,
@@ -805,22 +896,8 @@ def transformer_model_report_to_dict(
                     )
                     for field in _SYSTEM_SUM_FIELDS
                 },
-                "tiers": {
-                    tier: _add_system_tiers(
-                        _weighted_model_system_tier(audited_layers, tier),
-                        extra["system"]["tiers"][tier],
-                    )
-                    for tier in _SYSTEM_TIER_NAMES
-                },
-                "serial_transfer_time_ns": (
-                    _weighted_layer_number(
-                        audited_layers,
-                        "local_model",
-                        "system",
-                        "serial_transfer_time_ns",
-                    )
-                    + extra["system"]["serial_transfer_time_ns"]
-                ),
+                "tiers": aggregate_tiers,
+                "serial_transfer_time_ns": serial_transfer_time_ns,
                 "max_per_layer_transfer_time_ns": _max_layer_number(
                     audited_layers,
                     "local_model",
@@ -828,13 +905,7 @@ def transformer_model_report_to_dict(
                     "serial_transfer_time_ns",
                 ),
                 "contention_adjusted_serial_transfer_time_ns": (
-                    _weighted_layer_number(
-                        audited_layers,
-                        "local_model",
-                        "system",
-                        "contention_adjusted_serial_transfer_time_ns",
-                    )
-                    + extra["system"]["contention_adjusted_serial_transfer_time_ns"]
+                    contention_adjusted_serial_transfer_time_ns
                 ),
                 "max_per_layer_contention_adjusted_transfer_time_ns": (
                     _max_layer_number(
@@ -859,6 +930,7 @@ def transformer_model_report_to_dict(
                     if total_system_energy_pj
                     else 0.0
                 ),
+                **system_derived,
                 "bandwidth_limited_serial_effective_macs_per_second": _per_second(
                     total_macs,
                     bandwidth_limited_serial_batch_latency_ns,
@@ -1553,6 +1625,10 @@ def _model_extra_accounting(
         or output_system.get("contention_adjusted_effective_transfer_time_ns")
         or output_transfer_time
     )
+    output_calibration_guardband = float(
+        output_system.get("calibration_guardband_time_ns") or 0.0
+    )
+    tensor_calibration_guardband = tensor_system["calibration_guardband_time_ns"]
 
     return {
         "workload": {
@@ -1580,6 +1656,9 @@ def _model_extra_accounting(
             "serial_transfer_time_ns": output_transfer_time + tensor_transfer_time_ns,
             "contention_adjusted_serial_transfer_time_ns": (
                 output_adjusted_transfer_time + tensor_adjusted_transfer_time_ns
+            ),
+            "calibration_guardband_time_ns": (
+                output_calibration_guardband + tensor_calibration_guardband
             ),
             "bandwidth_limited_serial_batch_latency_ns": (
                 output_bandwidth_latency + tensor_transfer_time_ns
@@ -1898,6 +1977,10 @@ def _tensor_memory_system(
         contention_adjusted_effective_transfer_time
         * (1.0 + config.system.contention.calibration_overhead_fraction)
     )
+    calibration_guardband_time = (
+        calibration_adjusted_effective_transfer_time
+        - contention_adjusted_effective_transfer_time
+    )
     return {
         "tiers": tiers,
         "total_movement_energy_pj": total_movement,
@@ -1912,7 +1995,77 @@ def _tensor_memory_system(
         "calibration_adjusted_effective_transfer_time_ns": (
             calibration_adjusted_effective_transfer_time
         ),
+        "calibration_guardband_time_ns": calibration_guardband_time,
     }
+
+
+def _aggregate_system_derived_metrics(
+    *,
+    tiers: dict[str, dict[str, Any]],
+    contention: dict[str, Any],
+    serial_transfer_time_ns: float,
+    contention_only_transfer_time_ns: float,
+    contention_adjusted_serial_transfer_time_ns: float,
+    serial_batch_latency_ns: float,
+    bandwidth_limited_serial_batch_latency_ns: float,
+    contention_adjusted_serial_batch_latency_ns: float,
+) -> dict[str, float]:
+    total_hierarchy_bytes = sum(float(tier["total_bytes"]) for tier in tiers.values())
+    calibration_guardband_time_ns = (
+        contention_adjusted_serial_transfer_time_ns - contention_only_transfer_time_ns
+    )
+    return {
+        "total_hierarchy_bytes": total_hierarchy_bytes,
+        "sram_traffic_share": _safe_divide(
+            float(tiers["sram"]["total_bytes"]),
+            total_hierarchy_bytes,
+        ),
+        "intermediate_traffic_share": _safe_divide(
+            float(tiers["intermediate"]["total_bytes"]),
+            total_hierarchy_bytes,
+        ),
+        "off_chip_traffic_share": _safe_divide(
+            float(tiers["off_chip"]["total_bytes"]),
+            total_hierarchy_bytes,
+        ),
+        "contention_bandwidth_derate_factor": _safe_divide(
+            float(contention["arbitration_efficiency"]),
+            float(contention["shared_bandwidth_clients"]),
+        ),
+        "calibration_guardband_time_ns": calibration_guardband_time_ns,
+        "contention_transfer_overhead_fraction": _safe_ratio_overhead(
+            contention_only_transfer_time_ns,
+            serial_transfer_time_ns,
+        ),
+        "total_transfer_overhead_fraction": _safe_ratio_overhead(
+            contention_adjusted_serial_transfer_time_ns,
+            serial_transfer_time_ns,
+        ),
+        "effective_loaded_bandwidth_bytes_per_ns": _safe_divide(
+            total_hierarchy_bytes,
+            serial_transfer_time_ns,
+        ),
+        "contention_adjusted_loaded_bandwidth_bytes_per_ns": _safe_divide(
+            total_hierarchy_bytes,
+            contention_adjusted_serial_transfer_time_ns,
+        ),
+        "bandwidth_pressure_ratio": _safe_divide(
+            bandwidth_limited_serial_batch_latency_ns,
+            serial_batch_latency_ns,
+        ),
+        "contention_pressure_ratio": _safe_divide(
+            contention_adjusted_serial_batch_latency_ns,
+            serial_batch_latency_ns,
+        ),
+    }
+
+
+def _safe_divide(numerator: float, denominator: float) -> float:
+    return numerator / denominator if denominator else 0.0
+
+
+def _safe_ratio_overhead(adjusted: float, baseline: float) -> float:
+    return max(adjusted / baseline - 1.0, 0.0) if baseline else 0.0
 
 
 def _tier_movement(

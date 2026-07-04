@@ -108,16 +108,28 @@ simulator.
 | System energy per MAC | {_pj(system.system_energy_per_mac_pj)} |
 | System energy per equivalent op | {_pj(system.system_energy_per_op_pj)} |
 | Movement energy share | {movement_percent:.2f}% |
+| Total hierarchy traffic | {_bytes(system.total_hierarchy_bytes)} |
+| SRAM traffic share | {system.sram_traffic_share * 100:.2f}% |
+| Intermediate/cache traffic share | {system.intermediate_traffic_share * 100:.2f}% |
+| Off-chip traffic share | {system.off_chip_traffic_share * 100:.2f}% |
 | Max transfer time | {_ns(system.max_transfer_time_ns)} |
 | Serialized transfer time | {_ns(system.serial_transfer_time_ns)} |
 | Effective transfer time | {_ns(system.effective_transfer_time_ns)} |
+| Contention bandwidth derate | {system.contention_bandwidth_derate_factor:.6g} |
 | Contention-adjusted effective transfer | {_ns(system.contention_adjusted_effective_transfer_time_ns)} |
 | Calibration-adjusted effective transfer | {_ns(system.calibration_adjusted_effective_transfer_time_ns)} |
+| Calibration guardband time | {_ns(system.calibration_guardband_time_ns)} |
+| Contention transfer overhead | {system.contention_transfer_overhead_fraction * 100:.2f}% |
+| Total transfer overhead | {system.total_transfer_overhead_fraction * 100:.2f}% |
+| Effective loaded hierarchy bandwidth | {_bytes_per_ns(system.effective_loaded_bandwidth_bytes_per_ns)} |
+| Contention-adjusted loaded hierarchy bandwidth | {_bytes_per_ns(system.contention_adjusted_loaded_bandwidth_bytes_per_ns)} |
 | Bandwidth-limited tier | {system.bandwidth_limited_tier} |
 | Bandwidth-limited batch latency | {_ns(system.bandwidth_limited_batch_latency_ns)} |
+| Bandwidth pressure ratio | {system.bandwidth_pressure_ratio:.6g} |
 | Bandwidth-limited equivalent ops/s | {system.bandwidth_limited_equivalent_ops_per_second:.3f} |
 | Contention-limited tier | {system.contention_limited_tier} |
 | Contention-adjusted batch latency | {_ns(system.contention_adjusted_batch_latency_ns)} |
+| Contention pressure ratio | {system.contention_pressure_ratio:.6g} |
 | Contention-adjusted equivalent ops/s | {system.contention_adjusted_equivalent_ops_per_second:.3f} |
 
 ## Energy

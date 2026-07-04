@@ -1,0 +1,81 @@
+benchmark:
+  name: Meyer 2026 reconfigurable photonic tensor processor surrogate
+  description: Source-backed card for the Nature Communications 2026 rack-integrated photonic tensor processor. The paper demonstrates a 9-input, 3-output all-optical crossbar with PyTorch-facing inference; this config uses one 1x9 by 9x3 local MVM surrogate for PhotonicBench comparison only.
+workload:
+  type: matmul
+  m: 1
+  n: 3
+  k: 9
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 8
+    energy_pj_per_conversion: 0.5
+  vector_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+  weight_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+execution:
+  batch_size: 1
+  vector_reuse_factor: 1
+  weight_reuse_factor: 1
+  weight_stationary: true
+  pipeline:
+    stages: 1
+timing:
+  optical_latency_ns: 1
+  adc_latency_ns: 0
+  dac_latency_ns: 0
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 1
+provenance:
+  source_title: Deep neural network inference on an integrated, reconfigurable photonic tensor processor
+  source_url: https://www.nature.com/articles/s41467-026-71599-2
+  doi: 10.1038/s41467-026-71599-2
+  venue: Nature Communications 17, 3396 (2026)
+  claim_status: paper-reported integrated photonic tensor processor metrics; MVM-surrogate local model
+published_calibration:
+  architecture: Rack-integrated 9-input, 3-output incoherent photonic tensor processor
+  reported_tops: 0.054
+  energy_efficiency_including_lasers_tops_per_watt: 0.022
+  additional_metrics:
+    reported_gmac_per_second: 27
+    projected_continuous_streaming_power_w: 2.5
+    effective_symbol_rate_ghz: 1
+    input_dac_rate_gsps: 4
+    output_adc_rate_gsps: 2
+    weight_reprogramming_ms: 62
+    mvm_error_single_shot_percent: 19.4
+    mvm_error_four_average_percent: 10.9
+    mnist_accuracy_precision_percent: 98.1
+    cifar10_accuracy_percent: 72.0
+    optical_workload_mnist_percent: 97.5
+    optical_workload_cifar10_percent: 99.0
+    surrogate_mapping: m=1, k=9, n=3 mirrors one reported 9-input by 3-output MVM primitive; it is not an end-to-end CNN, RFSoC, calibration, or tiling reproduction.
+source_quality:
+  reported_metrics:
+    - throughput
+    - energy_efficiency
+    - accuracy
+    - system_integration
+    - error
+  local_surrogate_type: primitive_ptp_mvm_surrogate
+  coverage:
+    throughput: reported
+    energy: reported
+    accuracy: reported
+    area: not_reported
+    precision: reported
+  confidence_grade: A
+  notes:
+    - The paper reports system-level throughput, projected efficiency, classification accuracy, MVM error, and integration details; the local PhotonicBench workload only mirrors the crossbar primitive shape.
+assumptions:
+  - Source throughput, efficiency, MVM error, and accuracy values remain under published_calibration and published_reference.
+  - Local optical MAC energy, converter energy, one-nanosecond latency, and system-tier movement are generic PhotonicBench assumptions.
+  - Weight-stationary mode approximates fixed programmed weights during streamed input vectors and does not model RFSoC scheduling, calibration, analog averaging, CNN tiling, or off-board electronics.

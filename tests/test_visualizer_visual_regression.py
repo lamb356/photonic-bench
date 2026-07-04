@@ -23,15 +23,105 @@ PERCEPTUAL_RMS_DELTA = 24.0
 PERCEPTUAL_CHANGED_RATIO = 0.22
 
 
+def setup_published_reference_comparison(page, tmp_path: Path) -> None:
+    page.locator("#preset-select").select_option(
+        label="Published reference surrogate cards (generated)"
+    )
+    page.locator("#load-preset").click()
+    page.get_by_role("heading", name="Artifact Comparison").wait_for()
+    page.locator("#analysis-focus").select_option("provenance")
+    page.get_by_role("button", name="Apply Provenance score profile").click()
+    page.get_by_text("Provenance profile active").first.wait_for()
+    page.get_by_text("Explain score").first.click()
+
+
+def setup_detail_view(page, tmp_path: Path) -> None:
+    page.locator('button[data-id="nature_pace_64x64.json"]').click()
+    page.get_by_role("heading", name="Published Reference").wait_for()
+    page.get_by_role("heading", name="Source Quality").wait_for()
+    page.get_by_role("heading", name="Assumptions").wait_for()
+
+
+def setup_external_report_error(page, tmp_path: Path) -> None:
+    external_report = tmp_path / "external_missing_workload_type.json"
+    external_report.write_text(
+        """
+{
+  "schema_version": "photonic-bench-report-v1",
+  "benchmark": {
+    "name": "invalid external report",
+    "description": "missing workload type for visual regression"
+  },
+  "workload": {
+    "shape": {"m": 1, "k": 1, "n": 1},
+    "macs": 1,
+    "equivalent_ops": 2,
+    "output_elements": 1
+  },
+  "local_model": {
+    "energy": {"total_pj": 1.0, "energy_per_op_pj": 0.5},
+    "timing": {
+      "batch_latency_ns": 1.0,
+      "steady_state_equivalent_ops_per_second": 2.0
+    }
+  },
+  "assumptions": []
+}
+""".strip(),
+        encoding="utf-8",
+    )
+    page.locator("#external-report-file").set_input_files(str(external_report))
+    page.get_by_text(
+        "Rejected external_missing_workload_type.json: Missing required field: workload.type."
+    ).wait_for()
+    page.locator(".external-diagnostic.error").first.wait_for()
+
+
+def setup_wide_transformer_comparison(page, tmp_path: Path) -> None:
+    page.locator("#search").fill("BERT-base")
+    page.get_by_text("BERT-base style").first.wait_for()
+    page.get_by_role("button", name="Compare visible").click()
+    page.get_by_role("heading", name="Artifact Comparison").wait_for()
+    page.get_by_text("Mixed-schema comparison").first.wait_for()
+    page.get_by_text(
+        "Transformer layer/model aggregate latency remains serial timing"
+    ).first.wait_for()
+    page.get_by_text("BERT-base style 12-layer encoder model").first.wait_for()
+    page.get_by_text("Delta vs pinned").first.scroll_into_view_if_needed()
+
+
 @pytest.mark.parametrize(
-    ("name", "viewport"),
+    ("name", "viewport", "setup"),
     [
-        ("desktop-comparison", {"width": 1440, "height": 950}),
-        ("mobile-comparison", {"width": 390, "height": 900}),
+        (
+            "desktop-comparison",
+            {"width": 1440, "height": 950},
+            setup_published_reference_comparison,
+        ),
+        (
+            "mobile-comparison",
+            {"width": 390, "height": 900},
+            setup_published_reference_comparison,
+        ),
+        (
+            "detail-published-reference",
+            {"width": 1440, "height": 950},
+            setup_detail_view,
+        ),
+        (
+            "external-report-error",
+            {"width": 1440, "height": 950},
+            setup_external_report_error,
+        ),
+        (
+            "wide-transformer-comparison",
+            {"width": 1680, "height": 1000},
+            setup_wide_transformer_comparison,
+        ),
     ],
 )
-def test_visualizer_comparison_screenshot_regression(
-    tmp_path: Path, name: str, viewport: dict[str, int]
+def test_visualizer_screenshot_regression(
+    tmp_path: Path, name: str, viewport: dict[str, int], setup
 ) -> None:
     output_path = tmp_path / "visualizer" / "index.html"
     write_visualizer(Path("reports"), output_path)
@@ -48,15 +138,7 @@ def test_visualizer_comparison_screenshot_regression(
             )
             page.emulate_media(reduced_motion="reduce")
             page.goto(output_path.resolve().as_uri())
-            page.locator("#preset-select").select_option(
-                label="Published reference surrogate cards (generated)"
-            )
-            page.locator("#load-preset").click()
-            page.get_by_role("heading", name="Artifact Comparison").wait_for()
-            page.locator("#analysis-focus").select_option("provenance")
-            page.get_by_role("button", name="Apply Provenance score profile").click()
-            page.get_by_text("Provenance profile active").first.wait_for()
-            page.get_by_text("Explain score").first.click()
+            setup(page, tmp_path)
             page.screenshot(
                 path=actual_path,
                 full_page=False,
@@ -85,13 +167,28 @@ def actual_screenshot_path(tmp_path: Path, name: str) -> Path:
 
 
 def baseline_path_for(name: str) -> Path:
-    platform_key = os.environ.get(
-        "VISUAL_REGRESSION_BASELINE_PLATFORM", platform.system().lower()
+    platform_key = normalized_baseline_platform(
+        os.environ.get(
+            "VISUAL_REGRESSION_BASELINE_PLATFORM", platform.system().lower()
+        )
     )
+    if platform_key in {"root", "default", "."}:
+        return BASELINE_ROOT / f"{name}.png"
     platform_path = BASELINE_ROOT / platform_key / f"{name}.png"
     if UPDATE_BASELINES or platform_path.exists():
         return platform_path
     return BASELINE_ROOT / f"{name}.png"
+
+
+def normalized_baseline_platform(platform_key: str) -> str:
+    normalized = platform_key.strip().lower()
+    aliases = {
+        "darwin": "macos",
+        "mac": "macos",
+        "macos-latest": "macos",
+        "ubuntu-latest": "github-linux",
+    }
+    return aliases.get(normalized, normalized)
 
 
 def assert_screenshot_matches(actual_path: Path, baseline_path: Path) -> None:

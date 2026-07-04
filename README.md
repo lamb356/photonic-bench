@@ -125,8 +125,10 @@ paper-reported hardware measurements.
 Reports expose `local_model.system` with SRAM/intermediate/off-chip read bytes,
 write bytes, movement energy, transfer time, total movement energy, total system
 energy, system energy per MAC/op, movement-energy share, selected profile
-metadata, memory timing mode, bandwidth-limited throughput, and
-contention-adjusted latency/throughput. `overlapped`
+metadata, memory timing mode, bandwidth-limited throughput,
+contention-adjusted latency/throughput, hierarchy traffic shares, loaded
+hierarchy bandwidth under contention, bandwidth derate, guardband overhead, and
+bandwidth/contention pressure ratios. `overlapped`
 timing uses the slowest tier transfer; `serialized` timing sums the tier
 transfer times for a conservative contention-style bound. These are local
 PhotonicBench estimates and remain separate from paper-reported values and from
@@ -351,7 +353,7 @@ The Xu 2021 example uses the Nature paper "11 TOPS photonic convolutional accele
 
 Because that source is a vector convolution accelerator, PhotonicBench labels the local workload as a dense matmul surrogate (`m=1`, `k=250000`, `n=10`). The card carries the paper numbers as published references, not as local model results.
 
-This repository also includes fourteen additional source-backed published-card
+This repository also includes seventeen additional source-backed published-card
 surrogates:
 
 - Feldmann et al., "Parallel convolutional processing using an integrated
@@ -425,6 +427,22 @@ surrogates:
   `10.1038/s41566-023-01313-x`. The card records the spatial/wavelength/RF
   tensor-core framing, parallelism of 100, RF/WDM dimensions, ECG workload, and
   reported accuracy while using a 3x3-by-3x100 dense local surrogate.
+- Meyer et al., "Deep neural network inference on an integrated,
+  reconfigurable photonic tensor processor", Nature Communications 17, 3396
+  (2026), DOI: `10.1038/s41467-026-71599-2`. The card records the 9-input,
+  3-output rack-integrated PTP primitive, 27 GMAC/s, 0.022 TOPS/W projected
+  efficiency, MVM error, and MNIST/CIFAR-10 accuracy while using a primitive
+  local MVM surrogate.
+- Xie et al., "Complex-valued matrix-vector multiplication using a scalable
+  coherent photonic processor", Science Advances 11, eads7475 (2025), DOI:
+  `10.1126/sciadv.ads7475`. The card records the 16-channel complex coherent
+  MVM processor and 1.28 TOPS throughput while using a dense real-valued local
+  MVM surrogate.
+- Wu et al., "Scalable high-order integrated photonic tensor processor via
+  frequency-domain modulation", Optica 13, 998-1006 (2026), DOI:
+  `10.1364/OPTICA.579208`. The card records third- and fourth-order
+  frequency-domain tensor-processing architecture claims while using a 16x16
+  dense GEMM surrogate.
 
 ## Current Boundary
 
@@ -622,11 +640,12 @@ load. Browser-local presets can also be exported as
 `photonic-bench-comparison-presets-v1` JSON and imported back with validation;
 generated sidecar presets remain read-only.
 
-The comparison dashboard also includes a contention insight panel that highlights
-the best adjusted throughput, lowest adjusted latency, largest shared-client
-count, and largest calibration/control overhead among the selected artifacts.
-It keeps the boundary label explicit: these metrics are local shared-link and
-guardband assumptions, not paper-reported hardware claims.
+The comparison dashboard also includes a contention insight panel that
+highlights the best adjusted throughput, lowest adjusted latency, largest
+shared-client count, largest calibration/control overhead, highest pressure
+ratio, and best loaded hierarchy bandwidth among the selected artifacts. It
+keeps the boundary label explicit: these metrics are local shared-link,
+hierarchy, and guardband assumptions, not paper-reported hardware claims.
 
 Comparison results are exportable from the browser. `Download JSON` writes a
 `photonic-bench-comparison-export-v1` object with selected artifact summaries,
@@ -637,9 +656,9 @@ provenance status, and modeling-boundary notes. Its formal schema is checked in 
 `docs/photonic-bench-comparison-export-v1.schema.json`. `Download Markdown` and
 `Copy Markdown` produce a human-readable table suitable for reviews or notes.
 `Download CSV` writes a spreadsheet-friendly selected-artifact table with
-focus, score weights, energy, timing, throughput, movement, provenance,
-source-quality, system-profile, and boundary tag columns plus comparison-level
-boundary notes.
+focus, score weights, energy, timing, throughput, movement, loaded hierarchy
+bandwidth, off-chip traffic share, pressure ratios, provenance, source-quality,
+system-profile, and boundary tag columns plus comparison-level boundary notes.
 
 The visualizer accessibility pass keeps controls keyboard-reachable, adds
 specific ARIA labels to comparison and pin controls, exposes mode button
@@ -674,6 +693,7 @@ python -m pip install -e ".[dev]"
 python -m playwright install chromium
 python -m pytest tests/test_visualizer_smoke.py
 python -m pytest tests/test_visualizer_visual_regression.py
+python -m pytest tests/test_visualizer_accessibility.py
 ```
 
 The smoke test launches Chromium with Playwright, opens a generated visualizer,
@@ -681,22 +701,37 @@ loads generated and browser-local presets, verifies URL-state restoration,
 custom score weights, score explanations, selection-drawer controls, comparison
 analytics, JSON/Markdown/CSV exports, representative transformer and
 per-matmul detail flows, comparison pinning, reduced-motion behavior, and
-delta/ratio labels while failing on page or console errors. The visual
-regression test captures desktop and mobile comparison screenshots against
-checked baselines. It uses exact pixel matching when the renderer is identical
-and a perceptual fallback so CI font rasterization differences do not mask real
-layout regressions. When a renderer-specific baseline exists, for example under
+delta/ratio labels while failing on page or console errors. The accessibility
+test uses axe-core through `axe-playwright-python` against representative
+detail and comparison states; any automatically detectable axe violation fails
+the test with affected targets listed in the assertion message.
+
+The visual regression test captures desktop and mobile comparison screenshots,
+a published-reference detail view, external-report rejection diagnostics, and a
+wide BERT transformer comparison against checked baselines. It uses exact pixel
+matching when the renderer is identical and a perceptual fallback so CI font
+rasterization differences do not mask real layout regressions. When a
+renderer-specific baseline exists, for example under
 `tests/visual_baselines/github-linux/`, that baseline is preferred when
-`VISUAL_REGRESSION_BASELINE_PLATFORM` names it. CI writes actual screenshots to
-`test-results/visual-regression/` and uploads them as a failure artifact when
-the comparison fails. To
+`VISUAL_REGRESSION_BASELINE_PLATFORM` names it. `darwin`, `mac`, and
+`macos-latest` normalize to a `macos` baseline folder, but macOS PNG baselines
+should only be checked in after capture on a real macOS runner. CI now includes
+a `macOS visual baseline capture` job on `macos-latest`; it runs the visual
+regression suite with `UPDATE_VISUAL_BASELINES=1` and uploads
+`macos-visual-regression-screenshots` for review. CI writes Linux visual
+screenshots to `test-results/visual-regression/` and uploads them as a visual
+regression artifact on every run, including passing pull request runs. To
 intentionally refresh baselines after a reviewed UI change, run:
 
 ```powershell
 $env:UPDATE_VISUAL_BASELINES='1'
+$env:VISUAL_REGRESSION_BASELINE_PLATFORM='root'
 python -m pytest tests/test_visualizer_visual_regression.py
 Remove-Item Env:\UPDATE_VISUAL_BASELINES
+Remove-Item Env:\VISUAL_REGRESSION_BASELINE_PLATFORM
 ```
+
+Recent visualizer changes are summarized in `CHANGELOG.md`.
 
 ## Config Inspection
 
@@ -712,6 +747,18 @@ python -m photonic_bench.cli inspect-config examples/bert_base_12layer_model.yam
 `transformer-layer`, and `transformer-model` configs from their top-level YAML
 sections. The command is read-only and is meant for catching complex
 transformer/system-profile mistakes before a longer artifact generation run.
+
+Use `list-examples` when you want a repository-level inventory before choosing
+what to run or compare:
+
+```powershell
+python -m photonic_bench.cli list-examples
+python -m photonic_bench.cli list-examples --json
+```
+
+The table and JSON output include config path, detected kind, benchmark name,
+workload summary, system profile, published-reference presence, source-quality
+grade, and local surrogate type.
 
 ## Artifact Freshness
 
