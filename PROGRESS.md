@@ -305,7 +305,8 @@ Pre-Landing Review: 2 issues (0 critical, 2 informational)
 
 ### Next Steps
 
-- Commit, push, and verify the replacement GitHub Actions check on PR #5.
+- Superseded by Cycle 6 after the first replacement check showed mobile
+  Ubuntu still needed a GitHub-rendered baseline.
 
 ## 2026-07-04 Cycle 6: GitHub Linux Visual Baselines For CI
 
@@ -376,4 +377,16 @@ Pre-Landing Review: 2 issues (0 critical, 2 informational)
 
 ### Next Steps
 
-- Commit, push, and verify the GitHub Actions replacement check on PR #5.
+- Pushed the GitHub-rendered baseline fix and verified the replacement GitHub
+  Actions check on PR #5.
+
+### GitHub Actions Verification
+
+- Pushed commit `58f749d`:
+  `Use GitHub-rendered visual regression baselines`.
+- PR #5 head `58f749d189008c97417fb5e0cf4da1d6ada2850a` was open, ready for
+  review, and mergeable.
+- `gh pr checks 5 --watch` passed:
+  `Ruff, package, and pytest` passed in `1m0s`.
+- GitHub Actions run:
+  `https://github.com/lamb356/photonic-bench/actions/runs/28705573288/job/85130549762`.

@@ -106,6 +106,8 @@ Senior Reviewer critique.
 - Final gates passed: focused visualizer tests, browser smoke, visual
   regression, JavaScript syntax, Ruff, full pytest, artifact freshness, and
   `git diff --check`.
+- PR #5 GitHub Actions passed after the visual regression baselines were
+  refreshed from the GitHub runner.
 - Remaining risk: screenshot baselines are intentionally tied to Playwright
   Chromium layout. The comparator prefers platform-specific checked baselines
   when present and tolerates smaller cross-platform font rasterization

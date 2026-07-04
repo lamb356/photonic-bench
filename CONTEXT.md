@@ -91,3 +91,5 @@
   comparator now prefers renderer-specific checked baselines, uses exact
   matching when possible, and keeps perceptual screenshot metrics as a
   cross-platform fallback.
+- PR #5 GitHub Actions passed after checking in GitHub-rendered visual
+  baselines.
