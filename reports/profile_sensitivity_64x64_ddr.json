@@ -58,6 +58,57 @@
         "contention_preset": "ddr_controller",
         "contention_preset_description": "DDR/controller-style sharing: multiple clients and controller turnaround reduce usable bandwidth and add a larger guardband.",
         "overlap_model": "serialized_tier_path",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Generic DDR-class off-chip tier matching the conservative PhotonicBench baseline movement defaults.",
+          "sources": [
+            {
+              "title": "JEDEC DDR5 SDRAM standard catalog",
+              "url": "https://www.jedec.org/standards-documents/docs/jesd79-5",
+              "reference_id": "JEDEC JESD79-5",
+              "evidence_type": "memory-standard context",
+              "supports": [
+                "DDR-class off-chip tier",
+                "controller/shared DRAM scenario"
+              ]
+            },
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "The 16 bytes/ns off-chip bandwidth and 10 pJ/byte energy are local default parameters.",
+            "Controller turnaround is represented by the local contention preset."
+          ],
+          "reviewer_note": "Use this scenario to expose cards that become movement-bound when off-chip traffic is DDR-like."
+        },
+        "contention_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "DDR/controller-style sharing with local multi-client derate and larger control guardband.",
+          "sources": [
+            {
+              "title": "JEDEC DDR5 SDRAM standard catalog",
+              "url": "https://www.jedec.org/standards-documents/docs/jesd79-5",
+              "reference_id": "JEDEC JESD79-5",
+              "evidence_type": "memory-standard context",
+              "supports": [
+                "DDR-class off-chip tier",
+                "controller/shared DRAM scenario"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "Four modeled clients, 0.75 arbitration efficiency, and 0.08 guardband are local controller-stress assumptions."
+          ],
+          "reviewer_note": "Use when off-chip traffic should be penalized for controller and turnaround pressure."
+        },
         "assumptions": {
           "shared_bandwidth_clients": 4.0,
           "arbitration_efficiency": 0.75,
@@ -154,6 +205,57 @@
         "contention_preset": "ddr_controller",
         "contention_preset_description": "DDR/controller-style sharing: multiple clients and controller turnaround reduce usable bandwidth and add a larger guardband.",
         "overlap_model": "serialized_tier_path",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Generic DDR-class off-chip tier matching the conservative PhotonicBench baseline movement defaults.",
+          "sources": [
+            {
+              "title": "JEDEC DDR5 SDRAM standard catalog",
+              "url": "https://www.jedec.org/standards-documents/docs/jesd79-5",
+              "reference_id": "JEDEC JESD79-5",
+              "evidence_type": "memory-standard context",
+              "supports": [
+                "DDR-class off-chip tier",
+                "controller/shared DRAM scenario"
+              ]
+            },
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "The 16 bytes/ns off-chip bandwidth and 10 pJ/byte energy are local default parameters.",
+            "Controller turnaround is represented by the local contention preset."
+          ],
+          "reviewer_note": "Use this scenario to expose cards that become movement-bound when off-chip traffic is DDR-like."
+        },
+        "contention_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "DDR/controller-style sharing with local multi-client derate and larger control guardband.",
+          "sources": [
+            {
+              "title": "JEDEC DDR5 SDRAM standard catalog",
+              "url": "https://www.jedec.org/standards-documents/docs/jesd79-5",
+              "reference_id": "JEDEC JESD79-5",
+              "evidence_type": "memory-standard context",
+              "supports": [
+                "DDR-class off-chip tier",
+                "controller/shared DRAM scenario"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "Four modeled clients, 0.75 arbitration efficiency, and 0.08 guardband are local controller-stress assumptions."
+          ],
+          "reviewer_note": "Use when off-chip traffic should be penalized for controller and turnaround pressure."
+        },
         "assumptions": {
           "shared_bandwidth_clients": 4.0,
           "arbitration_efficiency": 0.75,

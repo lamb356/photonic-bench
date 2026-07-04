@@ -6,6 +6,7 @@ Same 64x64 photonic matmul workload as the starter card, using the pcie_attached
 
 
 
+
 ## Workload
 
 | Metric | Value |
@@ -139,6 +140,17 @@ not a published hardware energy breakdown.
 | Contention-adjusted transfer-to-compute time ratio | 812.329 |
 | Contention pressure ratio | 812.329 |
 | Contention-adjusted equivalent ops/s | 129082609199.398 |
+
+### Scenario Provenance Packs
+
+These packs justify the selected local memory hierarchy and contention preset
+without implying measured end-to-end hardware behavior.
+
+| Pack | Status | Calibration scope | Sources | Local assumptions | Reviewer note |
+| --- | --- | --- | --- | --- | --- |
+| Memory scenario | source-context-plus-local-parameters | Serialized host/PCIe-attached path for cards whose data movement leaves the local accelerator package. | PCI-SIG PCI Express 6.0 specification overview (PCIe 6.0 specification overview); Lightning: A reconfigurable photonic-electronic SmartNIC for fast and energy-efficient inference (10.1145/3603269.3604821) | Host-link bandwidth and 50 pJ/byte movement are conservative local parameters.; The serialized timing mode is a local review guardrail for host-attached designs. | The pack makes host-link exposure visible without claiming a full PCIe protocol simulation. |
+| Contention preset | source-context-plus-local-parameters | Serialized host-link contention with a local round-robin sharing and protocol guardband model. | PCI-SIG PCI Express 6.0 specification overview (PCIe 6.0 specification overview); Lightning: A reconfigurable photonic-electronic SmartNIC for fast and energy-efficient inference (10.1145/3603269.3604821) | Two modeled clients, 0.85 arbitration efficiency, and 0.05 guardband are local host-link review parameters. | Use to catch host-attached designs whose ranking depends on assuming free host movement. |
+
 
 ## Energy
 

@@ -4,6 +4,11 @@ This checklist is for pull requests that change reports, schemas, examples,
 modeling assumptions, visualizer assets, visual baselines, or generated
 artifacts.
 
+Use `.github/pull_request_template.md` as the PR-level checklist. It mirrors the
+local gates below and asks reviewers to confirm artifact freshness, visual
+regression screenshot inspection, decision-packet replay, schema compatibility,
+and source-boundary separation.
+
 ## Local Freshness Gate
 
 Run this before reviewing generated diffs:
@@ -118,3 +123,22 @@ dedicated `profile_sensitivity_*` card. Confirm that the rows compare the
 matched workload across memory scenarios and contention presets, and that the
 dashboard remains labeled as local-model sensitivity rather than a measured
 hardware sweep.
+
+For scenario provenance review, open a per-card detail view and inspect the
+Scenario Provenance Packs inside the Multi-Tier System Model. Each named memory
+scenario and contention preset should show source context or explicit local
+assumptions, calibration scope, and a reviewer note. Treat pJ/byte, bandwidth,
+arbitration, and guardband values as local PhotonicBench inputs unless a card
+states otherwise.
+
+For published-card source review, inspect the Source Audit panel. Quoted paper
+metrics, direct conversion math, local surrogate assumptions, and confidence
+flags must remain visibly separated from `local_model` estimates.
+
+## Schema Review
+
+All checked JSON schemas include `x-schema-version-policy`. Same-id schema
+updates are acceptable only for optional additive fields, optional `$defs`, docs,
+or examples. Required-field additions, removals, renames, unit/type/nullability
+changes, and changes to the `published_reference` versus `local_model` boundary
+require a new `schema_version` string and a new schema file.

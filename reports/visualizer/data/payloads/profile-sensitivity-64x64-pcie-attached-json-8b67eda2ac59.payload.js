@@ -59,6 +59,67 @@ window.PhotonicBenchPayloadRegistry["profile_sensitivity_64x64_pcie_attached.jso
         "contention_preset": "pcie_round_robin",
         "contention_preset_description": "Host/PCIe-attached path: two clients share a serialized host link with round-robin arbitration and explicit protocol guardband.",
         "overlap_model": "serialized_host_link",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Serialized host/PCIe-attached path for cards whose data movement leaves the local accelerator package.",
+          "sources": [
+            {
+              "title": "PCI-SIG PCI Express 6.0 specification overview",
+              "url": "https://pcisig.com/pci-express-6.0-specification",
+              "reference_id": "PCIe 6.0 specification overview",
+              "evidence_type": "host-link/interconnect context",
+              "supports": [
+                "serialized host-link scenario",
+                "PCIe-attached movement path"
+              ]
+            },
+            {
+              "title": "Lightning: A reconfigurable photonic-electronic SmartNIC for fast and energy-efficient inference",
+              "url": "https://dl.acm.org/doi/10.1145/3603269.3604821",
+              "reference_id": "10.1145/3603269.3604821",
+              "evidence_type": "host/network-attached photonic system context",
+              "supports": [
+                "serialized host-attached movement",
+                "packet-to-photonic datapath"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "Host-link bandwidth and 50 pJ/byte movement are conservative local parameters.",
+            "The serialized timing mode is a local review guardrail for host-attached designs."
+          ],
+          "reviewer_note": "The pack makes host-link exposure visible without claiming a full PCIe protocol simulation."
+        },
+        "contention_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Serialized host-link contention with a local round-robin sharing and protocol guardband model.",
+          "sources": [
+            {
+              "title": "PCI-SIG PCI Express 6.0 specification overview",
+              "url": "https://pcisig.com/pci-express-6.0-specification",
+              "reference_id": "PCIe 6.0 specification overview",
+              "evidence_type": "host-link/interconnect context",
+              "supports": [
+                "serialized host-link scenario",
+                "PCIe-attached movement path"
+              ]
+            },
+            {
+              "title": "Lightning: A reconfigurable photonic-electronic SmartNIC for fast and energy-efficient inference",
+              "url": "https://dl.acm.org/doi/10.1145/3603269.3604821",
+              "reference_id": "10.1145/3603269.3604821",
+              "evidence_type": "host/network-attached photonic system context",
+              "supports": [
+                "serialized host-attached movement",
+                "packet-to-photonic datapath"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "Two modeled clients, 0.85 arbitration efficiency, and 0.05 guardband are local host-link review parameters."
+          ],
+          "reviewer_note": "Use to catch host-attached designs whose ranking depends on assuming free host movement."
+        },
         "assumptions": {
           "shared_bandwidth_clients": 2.0,
           "arbitration_efficiency": 0.85,
@@ -155,6 +216,67 @@ window.PhotonicBenchPayloadRegistry["profile_sensitivity_64x64_pcie_attached.jso
         "contention_preset": "pcie_round_robin",
         "contention_preset_description": "Host/PCIe-attached path: two clients share a serialized host link with round-robin arbitration and explicit protocol guardband.",
         "overlap_model": "serialized_host_link",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Serialized host/PCIe-attached path for cards whose data movement leaves the local accelerator package.",
+          "sources": [
+            {
+              "title": "PCI-SIG PCI Express 6.0 specification overview",
+              "url": "https://pcisig.com/pci-express-6.0-specification",
+              "reference_id": "PCIe 6.0 specification overview",
+              "evidence_type": "host-link/interconnect context",
+              "supports": [
+                "serialized host-link scenario",
+                "PCIe-attached movement path"
+              ]
+            },
+            {
+              "title": "Lightning: A reconfigurable photonic-electronic SmartNIC for fast and energy-efficient inference",
+              "url": "https://dl.acm.org/doi/10.1145/3603269.3604821",
+              "reference_id": "10.1145/3603269.3604821",
+              "evidence_type": "host/network-attached photonic system context",
+              "supports": [
+                "serialized host-attached movement",
+                "packet-to-photonic datapath"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "Host-link bandwidth and 50 pJ/byte movement are conservative local parameters.",
+            "The serialized timing mode is a local review guardrail for host-attached designs."
+          ],
+          "reviewer_note": "The pack makes host-link exposure visible without claiming a full PCIe protocol simulation."
+        },
+        "contention_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Serialized host-link contention with a local round-robin sharing and protocol guardband model.",
+          "sources": [
+            {
+              "title": "PCI-SIG PCI Express 6.0 specification overview",
+              "url": "https://pcisig.com/pci-express-6.0-specification",
+              "reference_id": "PCIe 6.0 specification overview",
+              "evidence_type": "host-link/interconnect context",
+              "supports": [
+                "serialized host-link scenario",
+                "PCIe-attached movement path"
+              ]
+            },
+            {
+              "title": "Lightning: A reconfigurable photonic-electronic SmartNIC for fast and energy-efficient inference",
+              "url": "https://dl.acm.org/doi/10.1145/3603269.3604821",
+              "reference_id": "10.1145/3603269.3604821",
+              "evidence_type": "host/network-attached photonic system context",
+              "supports": [
+                "serialized host-attached movement",
+                "packet-to-photonic datapath"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "Two modeled clients, 0.85 arbitration efficiency, and 0.05 guardband are local host-link review parameters."
+          ],
+          "reviewer_note": "Use to catch host-attached designs whose ranking depends on assuming free host movement."
+        },
         "assumptions": {
           "shared_bandwidth_clients": 2.0,
           "arbitration_efficiency": 0.85,

@@ -59,6 +59,57 @@ window.PhotonicBenchPayloadRegistry["profile_sensitivity_64x64_hbm.json"] = {
         "contention_preset": "shared_hbm_stack",
         "contention_preset_description": "HBM-like shared stack: several clients share the loaded tier bandwidth with modest arbitration loss and a small control guardband.",
         "overlap_model": "overlapped_compute_window",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "HBM-like off-chip tier with lower movement energy and higher bandwidth than the DDR/default tier.",
+          "sources": [
+            {
+              "title": "JEDEC JESD238 High Bandwidth Memory HBM3 standard notice",
+              "url": "https://www.businesswire.com/news/home/20220127005320/en/JEDEC-Publishes-HBM3-Update-to-High-Bandwidth-Memory-HBM-Standard",
+              "reference_id": "JEDEC JESD238",
+              "evidence_type": "memory-standard context",
+              "supports": [
+                "HBM-class off-chip tier",
+                "shared high-bandwidth stack scenario"
+              ]
+            },
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "The 512 bytes/ns off-chip bandwidth is a PhotonicBench local scenario parameter.",
+            "The 3 pJ/byte read/write energy is a local comparison value, not a JEDEC-published energy number."
+          ],
+          "reviewer_note": "The source anchors the HBM-class hierarchy choice; numeric model inputs remain local assumptions."
+        },
+        "contention_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "HBM-style shared stack with local two-client bandwidth division, arbitration loss, and small guardband.",
+          "sources": [
+            {
+              "title": "JEDEC JESD238 High Bandwidth Memory HBM3 standard notice",
+              "url": "https://www.businesswire.com/news/home/20220127005320/en/JEDEC-Publishes-HBM3-Update-to-High-Bandwidth-Memory-HBM-Standard",
+              "reference_id": "JEDEC JESD238",
+              "evidence_type": "memory-standard context",
+              "supports": [
+                "HBM-class off-chip tier",
+                "shared high-bandwidth stack scenario"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "Two modeled clients, 0.92 arbitration efficiency, and 0.02 guardband are PhotonicBench local contention parameters."
+          ],
+          "reviewer_note": "Use to test whether HBM sharing changes the ranking."
+        },
         "assumptions": {
           "shared_bandwidth_clients": 2.0,
           "arbitration_efficiency": 0.92,
@@ -155,6 +206,57 @@ window.PhotonicBenchPayloadRegistry["profile_sensitivity_64x64_hbm.json"] = {
         "contention_preset": "shared_hbm_stack",
         "contention_preset_description": "HBM-like shared stack: several clients share the loaded tier bandwidth with modest arbitration loss and a small control guardband.",
         "overlap_model": "overlapped_compute_window",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "HBM-like off-chip tier with lower movement energy and higher bandwidth than the DDR/default tier.",
+          "sources": [
+            {
+              "title": "JEDEC JESD238 High Bandwidth Memory HBM3 standard notice",
+              "url": "https://www.businesswire.com/news/home/20220127005320/en/JEDEC-Publishes-HBM3-Update-to-High-Bandwidth-Memory-HBM-Standard",
+              "reference_id": "JEDEC JESD238",
+              "evidence_type": "memory-standard context",
+              "supports": [
+                "HBM-class off-chip tier",
+                "shared high-bandwidth stack scenario"
+              ]
+            },
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "The 512 bytes/ns off-chip bandwidth is a PhotonicBench local scenario parameter.",
+            "The 3 pJ/byte read/write energy is a local comparison value, not a JEDEC-published energy number."
+          ],
+          "reviewer_note": "The source anchors the HBM-class hierarchy choice; numeric model inputs remain local assumptions."
+        },
+        "contention_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "HBM-style shared stack with local two-client bandwidth division, arbitration loss, and small guardband.",
+          "sources": [
+            {
+              "title": "JEDEC JESD238 High Bandwidth Memory HBM3 standard notice",
+              "url": "https://www.businesswire.com/news/home/20220127005320/en/JEDEC-Publishes-HBM3-Update-to-High-Bandwidth-Memory-HBM-Standard",
+              "reference_id": "JEDEC JESD238",
+              "evidence_type": "memory-standard context",
+              "supports": [
+                "HBM-class off-chip tier",
+                "shared high-bandwidth stack scenario"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "Two modeled clients, 0.92 arbitration efficiency, and 0.02 guardband are PhotonicBench local contention parameters."
+          ],
+          "reviewer_note": "Use to test whether HBM sharing changes the ranking."
+        },
         "assumptions": {
           "shared_bandwidth_clients": 2.0,
           "arbitration_efficiency": 0.92,

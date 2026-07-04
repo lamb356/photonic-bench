@@ -51,6 +51,48 @@ Source-quality notes:
 - Computing-density and task accuracy are source-backed, but no scalar TOPS or TOPS/W value is encoded.
 
 
+## Source Audit
+
+These rows keep quoted source metrics, direct conversion math, local assumptions,
+and confidence flags separate. They do not turn local surrogate estimates into
+paper measurements.
+
+| Metric | Quoted value | Source location | Note |
+| --- | --- | --- | --- |
+| Architecture | Microring-resonator optical tensor processing unit with lightwave/microwave multidomain multiplexing | published_calibration.architecture | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Computing density tops per mm2 | 34.04 | published_calibration.additional_metrics.computing_density_tops_per_mm2 | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Mnist accuracy percent | 96.41 | published_calibration.additional_metrics.mnist_accuracy_percent | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Theoretical mnist accuracy percent | 96.79 | published_calibration.additional_metrics.theoretical_mnist_accuracy_percent | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Multiplexing domains | time-wavelength-microwave-frequency | published_calibration.additional_metrics.multiplexing_domains | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Optical core | single microring resonator | published_calibration.additional_metrics.optical_core | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Surrogate mapping | m=16, k=16, n=16 is a dense local surrogate for an MRR OTPU tensor-convolution result; not an exact multidomain convolution schedule. | published_calibration.additional_metrics.surrogate_mapping | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+
+| Derived metric | Formula | Inputs | Result | Note |
+| --- | --- | --- | ---: | --- |
+
+
+Local assumptions:
+
+- Local surrogate type: dense_mrr_tensor_convolution_surrogate.
+- Computing-density and task accuracy are source-backed, but no scalar TOPS or TOPS/W value is encoded.
+- Source reports 34.04 TOPS/mm2 computing density and 96.41 percent MNIST accuracy; this card keeps those values as published references.
+- No scalar total TOPS or TOPS/W value is encoded because the cited paper metric is computing density rather than absolute throughput or energy efficiency.
+- Local timing, converter energy, system tiers, and dense workload shape are PhotonicBench assumptions for cross-card comparison.
+
+Confidence flags:
+
+- claim_status=paper-reported computing-density/accuracy claims; matmul-surrogate local model
+- source_doi=10.1038/s41377-024-01706-9
+- source_quality_grade=C
+- coverage.accuracy=reported
+- coverage.area=reported
+- coverage.energy=not_reported
+- coverage.precision=not_reported
+- coverage.throughput=derived
+
+Boundary note: Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs.
+
+
 
 ## Workload
 
@@ -185,6 +227,17 @@ not a published hardware energy breakdown.
 | Contention-adjusted transfer-to-compute time ratio | 48 |
 | Contention pressure ratio | 48 |
 | Contention-adjusted equivalent ops/s | 170666666666.667 |
+
+### Scenario Provenance Packs
+
+These packs justify the selected local memory hierarchy and contention preset
+without implying measured end-to-end hardware behavior.
+
+| Pack | Status | Calibration scope | Sources | Local assumptions | Reviewer note |
+| --- | --- | --- | --- | --- | --- |
+| Memory scenario | source-context-plus-local-parameters | Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions. | Computing's energy problem (and what we can do about it) (10.1109/ISSCC.2014.6757323) | SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.; The scenario is a conservative baseline for sensitivity comparisons. | Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior. |
+| Contention preset | local-baseline | Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband. | explicit local assumption | shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions. | Use as the no-contention reference point. |
+
 
 ## Energy
 

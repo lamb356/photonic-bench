@@ -54,6 +54,51 @@ Source-quality notes:
 - HOP sample-energy and data-rate values are preserved as paper metadata and are not converted into local pJ/op calibration targets.
 
 
+## Source Audit
+
+These rows keep quoted source metrics, direct conversion math, local assumptions,
+and confidence flags separate. They do not turn local surrogate estimates into
+paper measurements.
+
+| Metric | Quoted value | Source location | Note |
+| --- | --- | --- | --- |
+| Architecture | Digital-analog hybrid optical processor using cascaded microring modulators | published_calibration.architecture | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Hop energy per sample pj | 3.88 | published_calibration.additional_metrics.hop_energy_per_sample_pj | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Analog scheme energy per sample pj | 34.88 | published_calibration.additional_metrics.analog_scheme_energy_per_sample_pj | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Packaged cascaded mrms | 20 | published_calibration.additional_metrics.packaged_cascaded_mrms | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Hdip data rate gbps per mrm | 7.5 | published_calibration.additional_metrics.hdip_data_rate_gbps_per_mrm | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Hwdr data rate mbps per input | 400 | published_calibration.additional_metrics.hwdr_data_rate_mbps_per_input | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Yolo data rate mbps per input | 300 | published_calibration.additional_metrics.yolo_data_rate_mbps_per_input | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Hdip input word bits | 16 | published_calibration.additional_metrics.hdip_input_word_bits | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Task kernel shape | 3x3 | published_calibration.additional_metrics.task_kernel_shape | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Surrogate mapping | m=1, k=9, n=1 encodes one 3x3 convolution-kernel MVM; it does not reproduce the HOP digital equalization or DSP chain. | published_calibration.additional_metrics.surrogate_mapping | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+
+| Derived metric | Formula | Inputs | Result | Note |
+| --- | --- | --- | ---: | --- |
+
+
+Local assumptions:
+
+- Local surrogate type: single_kernel_hop_mvm_surrogate.
+- HOP sample-energy and data-rate values are preserved as paper metadata and are not converted into local pJ/op calibration targets.
+- The local card uses a single 3x3-kernel MVM surrogate for the HOP convolution demonstrations.
+- The paper's digital-analog encoding, DSP/equalization, and task-level postprocessing remain outside the local component model.
+- Local converter energy, system tiers, timing, and noise settings are generic PhotonicBench assumptions.
+
+Confidence flags:
+
+- claim_status=paper-reported HOP architecture, sample energy, and data-rate metrics; matmul-surrogate local model
+- source_doi=10.1038/s41467-025-62586-0
+- source_quality_grade=B
+- coverage.accuracy=not_applicable
+- coverage.area=derived
+- coverage.energy=reported
+- coverage.precision=reported
+- coverage.throughput=reported
+
+Boundary note: Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs.
+
+
 
 ## Workload
 
@@ -188,6 +233,17 @@ not a published hardware energy breakdown.
 | Contention-adjusted transfer-to-compute time ratio | 1.1875 |
 | Contention pressure ratio | 1.1875 |
 | Contention-adjusted equivalent ops/s | 15157894736.842 |
+
+### Scenario Provenance Packs
+
+These packs justify the selected local memory hierarchy and contention preset
+without implying measured end-to-end hardware behavior.
+
+| Pack | Status | Calibration scope | Sources | Local assumptions | Reviewer note |
+| --- | --- | --- | --- | --- | --- |
+| Memory scenario | source-context-plus-local-parameters | Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions. | Computing's energy problem (and what we can do about it) (10.1109/ISSCC.2014.6757323) | SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.; The scenario is a conservative baseline for sensitivity comparisons. | Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior. |
+| Contention preset | local-baseline | Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband. | explicit local assumption | shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions. | Use as the no-contention reference point. |
+
 
 ## Energy
 

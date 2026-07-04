@@ -51,6 +51,48 @@ Source-quality notes:
 - The paper-reported relative reductions and hybrid optical-network behavior are kept as published references; local absolute energy, timing, and hierarchy metrics are PhotonicBench estimates.
 
 
+## Source Audit
+
+These rows keep quoted source metrics, direct conversion math, local assumptions,
+and confidence flags separate. They do not turn local surrogate estimates into
+paper measurements.
+
+| Metric | Quoted value | Source location | Note |
+| --- | --- | --- | --- |
+| Architecture | ChipAI silicon-photonic chiplet accelerator with hybrid optical network | published_calibration.architecture | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Inference time reduction percent up to | 82 | published_calibration.additional_metrics.inference_time_reduction_percent_up_to | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Energy reduction percent up to | 79 | published_calibration.additional_metrics.energy_reduction_percent_up_to | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Hybrid optical network | True | published_calibration.additional_metrics.hybrid_optical_network | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Inter chiplet data sharing | True | published_calibration.additional_metrics.inter_chiplet_data_sharing | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Intra chiplet data sharing | True | published_calibration.additional_metrics.intra_chiplet_data_sharing | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Surrogate mapping | m=128, k=128, n=128 with batch/reuse settings stresses off-chip/chiplet movement; it is not a reproduction of the ChipAI simulator. | published_calibration.additional_metrics.surrogate_mapping | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+
+| Derived metric | Formula | Inputs | Result | Note |
+| --- | --- | --- | ---: | --- |
+
+
+Local assumptions:
+
+- Local surrogate type: photonic_chiplet_dense_movement_surrogate.
+- The paper-reported relative reductions and hybrid optical-network behavior are kept as published references; local absolute energy, timing, and hierarchy metrics are PhotonicBench estimates.
+- The dense local workload intentionally stresses chiplet/off-chip movement and reuse rather than matching a specific DNN layer from the ChipAI paper.
+- The optical_interconnect scenario is used as a local calibrated movement assumption for the chiplet interconnect sensitivity.
+- Published relative latency and energy reductions remain under published_calibration and are not converted into absolute local model claims.
+
+Confidence flags:
+
+- claim_status=paper-reported relative inference-time and energy reductions; dense chiplet/off-chip surrogate
+- source_doi=10.1016/j.sysarc.2024.103308
+- source_quality_grade=B
+- coverage.accuracy=not_applicable
+- coverage.area=not_reported
+- coverage.energy=reported
+- coverage.precision=not_reported
+- coverage.throughput=reported
+
+Boundary note: Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs.
+
+
 
 ## Workload
 
@@ -185,6 +227,17 @@ not a published hardware energy breakdown.
 | Contention-adjusted transfer-to-compute time ratio | 34.9239 |
 | Contention pressure ratio | 34.9239 |
 | Contention-adjusted equivalent ops/s | 120098340491752.266 |
+
+### Scenario Provenance Packs
+
+These packs justify the selected local memory hierarchy and contention preset
+without implying measured end-to-end hardware behavior.
+
+| Pack | Status | Calibration scope | Sources | Local assumptions | Reviewer note |
+| --- | --- | --- | --- | --- | --- |
+| Memory scenario | source-context-plus-local-parameters | WDM/broadcast-like optical movement scenario with high-bandwidth intermediate/off-chip paths. | Neuromorphic photonic networks using silicon photonic weight banks (10.1038/s41598-017-07754-z); Lightening-Transformer: A dynamically-operated optically-interconnected photonic Transformer accelerator (10.48550/arXiv.2305.19533) | Optical interconnect tier pJ/byte, bandwidth, and traffic fractions are PhotonicBench local sweep parameters.; Broadcast overlap is represented by a local contention model, not measured link-level scheduling. | Use this scenario for cards whose claim depends on optical movement, broadcast, or chiplet/interconnect behavior. |
+| Contention preset | source-context-plus-local-parameters | Optical broadcast contention model with reduced loaded-client penalty and explicit control guardband. | Neuromorphic photonic networks using silicon photonic weight banks (10.1038/s41598-017-07754-z); Lightening-Transformer: A dynamically-operated optically-interconnected photonic Transformer accelerator (10.48550/arXiv.2305.19533) | 1.5 modeled clients, 0.92 arbitration efficiency, and 0.02 guardband are local WDM/broadcast sensitivity parameters. | Use to compare whether optical broadcast movement changes the decision without presenting it as measured hardware contention. |
+
 
 ## Energy
 

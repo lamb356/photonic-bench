@@ -6,6 +6,7 @@ Same 64x64 photonic matmul workload as the starter card, using the on_package_sr
 
 
 
+
 ## Workload
 
 | Metric | Value |
@@ -139,6 +140,17 @@ not a published hardware energy breakdown.
 | Contention-adjusted transfer-to-compute time ratio | 0.6 |
 | Contention pressure ratio | 1 |
 | Contention-adjusted equivalent ops/s | 104857600000000.000 |
+
+### Scenario Provenance Packs
+
+These packs justify the selected local memory hierarchy and contention preset
+without implying measured end-to-end hardware behavior.
+
+| Pack | Status | Calibration scope | Sources | Local assumptions | Reviewer note |
+| --- | --- | --- | --- | --- | --- |
+| Memory scenario | source-context-plus-local-parameters | High-bandwidth local memory sensitivity case with no modeled off-package movement. | Computing's energy problem (and what we can do about it) (10.1109/ISSCC.2014.6757323) | All intermediate and off-chip read/write fractions are set to zero.; On-package SRAM bandwidth and pJ/byte are local sweep parameters. | This pack tests the upside of keeping converter-interface traffic near the photonic core. |
+| Contention preset | local-baseline | Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband. | explicit local assumption | shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions. | Use as the no-contention reference point. |
+
 
 ## Energy
 

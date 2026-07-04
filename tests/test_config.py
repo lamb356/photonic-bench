@@ -1,6 +1,13 @@
 from pathlib import Path
 
-from photonic_bench.config import load_config, system_memory_scenario_to_dict
+from photonic_bench.config import (
+    SYSTEM_CONTENTION_PRESETS,
+    SYSTEM_CONTENTION_PROVENANCE_PACKS,
+    SYSTEM_PROFILES,
+    SYSTEM_SCENARIO_PROVENANCE_PACKS,
+    load_config,
+    system_memory_scenario_to_dict,
+)
 
 
 def test_load_config_requires_expected_sections(tmp_path: Path) -> None:
@@ -222,6 +229,23 @@ source_quality:
   confidence_grade: A
   notes:
     - Direct source-backed calibration.
+source_audit:
+  quoted_metrics:
+    - metric: Reported throughput
+      quoted_value: "8.19 TOPS"
+      source_location: Paper Table 1
+      note: Direct source quote.
+  local_assumptions:
+    - Local model uses generic converter assumptions.
+  conversion_math:
+    - derived_metric: energy_per_op_pj
+      formula: 1 / TOPS_per_W
+      inputs:
+        tops_per_watt: 2.38
+      result: "0.420"
+      note: Direct unit conversion.
+  confidence_flags:
+    - exact_shape_match
 """.strip(),
         encoding="utf-8",
     )
@@ -235,6 +259,11 @@ source_quality:
     )
     assert config.source_quality.coverage["precision"] == "reported"
     assert config.source_quality.confidence_grade == "A"
+    assert config.source_audit is not None
+    assert config.source_audit.quoted_metrics[0].metric == "Reported throughput"
+    assert config.source_audit.quoted_metrics[0].quoted_value == "8.19 TOPS"
+    assert config.source_audit.conversion_math[0].inputs["tops_per_watt"] == 2.38
+    assert config.source_audit.confidence_flags == ("exact_shape_match",)
 
 
 def test_load_config_rejects_invalid_source_quality_grade(tmp_path: Path) -> None:
@@ -932,3 +961,26 @@ noise:
     assert "system.memory_timing_mode" in message
     assert "overlapped" in message
     assert "serialized" in message
+
+
+def test_named_system_profiles_and_contention_presets_have_provenance_packs() -> None:
+    assert set(SYSTEM_SCENARIO_PROVENANCE_PACKS) == set(SYSTEM_PROFILES)
+    assert set(SYSTEM_CONTENTION_PROVENANCE_PACKS) == set(SYSTEM_CONTENTION_PRESETS)
+
+    for profile_name, profile in SYSTEM_PROFILES.items():
+        scenario = system_memory_scenario_to_dict(profile.to_system_config())
+
+        scenario_pack = scenario["scenario_provenance"]
+        assert scenario_pack["status"]
+        assert scenario_pack["calibration_scope"]
+        assert scenario_pack["local_assumptions"] or scenario_pack["sources"]
+        assert scenario_pack["reviewer_note"]
+
+        contention_pack = scenario["contention_provenance"]
+        assert contention_pack["status"]
+        assert contention_pack["calibration_scope"]
+        assert (
+            contention_pack["local_assumptions"]
+            or contention_pack["sources"]
+            or profile_name == "default"
+        )

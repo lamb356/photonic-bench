@@ -419,6 +419,9 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
 
             page.locator('button[data-id="nature_pace_64x64.json"]').click()
             page.get_by_role("heading", name="Published Reference").wait_for()
+            page.get_by_role("heading", name="Scenario Provenance Packs").wait_for()
+            page.get_by_role("heading", name="Source Audit").wait_for()
+            page.get_by_text("Quoted metrics are source-reported values").wait_for()
 
             page.locator('input[data-compare-id="nature_pace_64x64.json"]').check()
             page.locator('button[data-pin-id="nature_pace_64x64.json"]').click()

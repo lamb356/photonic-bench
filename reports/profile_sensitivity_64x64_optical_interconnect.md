@@ -6,6 +6,7 @@ Same 64x64 photonic matmul workload as the starter card, using the optical_inter
 
 
 
+
 ## Workload
 
 | Metric | Value |
@@ -139,6 +140,17 @@ not a published hardware energy breakdown.
 | Contention-adjusted transfer-to-compute time ratio | 2.99348 |
 | Contention pressure ratio | 2.99348 |
 | Contention-adjusted equivalent ops/s | 35028682643427.734 |
+
+### Scenario Provenance Packs
+
+These packs justify the selected local memory hierarchy and contention preset
+without implying measured end-to-end hardware behavior.
+
+| Pack | Status | Calibration scope | Sources | Local assumptions | Reviewer note |
+| --- | --- | --- | --- | --- | --- |
+| Memory scenario | source-context-plus-local-parameters | WDM/broadcast-like optical movement scenario with high-bandwidth intermediate/off-chip paths. | Neuromorphic photonic networks using silicon photonic weight banks (10.1038/s41598-017-07754-z); Lightening-Transformer: A dynamically-operated optically-interconnected photonic Transformer accelerator (10.48550/arXiv.2305.19533) | Optical interconnect tier pJ/byte, bandwidth, and traffic fractions are PhotonicBench local sweep parameters.; Broadcast overlap is represented by a local contention model, not measured link-level scheduling. | Use this scenario for cards whose claim depends on optical movement, broadcast, or chiplet/interconnect behavior. |
+| Contention preset | source-context-plus-local-parameters | Optical broadcast contention model with reduced loaded-client penalty and explicit control guardband. | Neuromorphic photonic networks using silicon photonic weight banks (10.1038/s41598-017-07754-z); Lightening-Transformer: A dynamically-operated optically-interconnected photonic Transformer accelerator (10.48550/arXiv.2305.19533) | 1.5 modeled clients, 0.92 arbitration efficiency, and 0.02 guardband are local WDM/broadcast sensitivity parameters. | Use to compare whether optical broadcast movement changes the decision without presenting it as measured hardware contention. |
+
 
 ## Energy
 

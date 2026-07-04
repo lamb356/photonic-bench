@@ -59,6 +59,36 @@ window.PhotonicBenchPayloadRegistry["lin_2024_tfln_120gops_tensor_core_surrogate
         "contention_preset": "single_client",
         "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
         "overlap_model": "profile_timing_mode",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+          "sources": [
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+            "The scenario is a conservative baseline for sensitivity comparisons."
+          ],
+          "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+        },
+        "contention_provenance": {
+          "status": "local-baseline",
+          "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+          "sources": [],
+          "local_assumptions": [
+            "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+          ],
+          "reviewer_note": "Use as the no-contention reference point."
+        },
         "assumptions": {
           "shared_bandwidth_clients": 1.0,
           "arbitration_efficiency": 1.0,
@@ -155,6 +185,36 @@ window.PhotonicBenchPayloadRegistry["lin_2024_tfln_120gops_tensor_core_surrogate
         "contention_preset": "single_client",
         "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
         "overlap_model": "profile_timing_mode",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+          "sources": [
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+            "The scenario is a conservative baseline for sensitivity comparisons."
+          ],
+          "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+        },
+        "contention_provenance": {
+          "status": "local-baseline",
+          "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+          "sources": [],
+          "local_assumptions": [
+            "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+          ],
+          "reviewer_note": "Use as the no-contention reference point."
+        },
         "assumptions": {
           "shared_bandwidth_clients": 1.0,
           "arbitration_efficiency": 1.0,
@@ -431,6 +491,77 @@ window.PhotonicBenchPayloadRegistry["lin_2024_tfln_120gops_tensor_core_surrogate
         "Source-backed speed and fan-in evidence are present, but energy and task-quality coverage are not encoded in this card."
       ],
       "note": "Source quality grades summarize evidence coverage for the published reference card. They do not upgrade local surrogate estimates into paper measurements."
+    },
+    "source_audit": {
+      "quoted_metrics": [
+        {
+          "metric": "Architecture",
+          "quoted_value": "Thin-film lithium niobate integrated photonic tensor core",
+          "source_location": "published_calibration.architecture",
+          "note": "Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics."
+        },
+        {
+          "metric": "Reported throughput",
+          "quoted_value": "0.12",
+          "source_location": "published_calibration.reported_tops",
+          "note": "Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics."
+        },
+        {
+          "metric": "Reported gops",
+          "quoted_value": "120",
+          "source_location": "published_calibration.additional_metrics.reported_gops",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Weight update speed ghz",
+          "quoted_value": "60",
+          "source_location": "published_calibration.additional_metrics.weight_update_speed_ghz",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Fan in dimension",
+          "quoted_value": "131072",
+          "source_location": "published_calibration.additional_metrics.fan_in_dimension",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Image pixels",
+          "quoted_value": "12544",
+          "source_location": "published_calibration.additional_metrics.image_pixels",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Physical components note",
+          "quoted_value": "two TFLN modulators, III-V laser, and charge-integration photoreceiver",
+          "source_location": "published_calibration.additional_metrics.physical_components_note",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Surrogate mapping",
+          "quoted_value": "m=16, k=16, n=16 is a dense local surrogate for the large fan-in TFLN tensor core; not an exact time-domain integration schedule.",
+          "source_location": "published_calibration.additional_metrics.surrogate_mapping",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        }
+      ],
+      "local_assumptions": [
+        "Local surrogate type: dense_tfln_fan_in_surrogate.",
+        "Source-backed speed and fan-in evidence are present, but energy and task-quality coverage are not encoded in this card.",
+        "Source reports 120 GOPS computational speed and 60 GHz weight update speed; this card stores those values as published references.",
+        "Local workload and component energy values are PhotonicBench assumptions selected for comparable dense-card analysis.",
+        "Weight-stationary mode approximates reusing the surrogate right operand and does not model the paper's charge-integration schedule."
+      ],
+      "conversion_math": [],
+      "confidence_flags": [
+        "claim_status=paper-reported speed/training claims; matmul-surrogate local model",
+        "source_doi=10.1038/s41467-024-53261-x",
+        "source_quality_grade=C",
+        "coverage.accuracy=not_reported",
+        "coverage.area=not_reported",
+        "coverage.energy=not_reported",
+        "coverage.precision=not_reported",
+        "coverage.throughput=reported"
+      ],
+      "separation_note": "Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs."
     },
     "separation_note": "Published values are paper-reported references or direct unit conversions, not local component-model estimates."
   },

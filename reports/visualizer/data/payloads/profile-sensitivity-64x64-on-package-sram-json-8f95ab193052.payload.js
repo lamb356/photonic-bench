@@ -59,6 +59,36 @@ window.PhotonicBenchPayloadRegistry["profile_sensitivity_64x64_on_package_sram.j
         "contention_preset": "single_client",
         "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
         "overlap_model": "profile_timing_mode",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "High-bandwidth local memory sensitivity case with no modeled off-package movement.",
+          "sources": [
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "All intermediate and off-chip read/write fractions are set to zero.",
+            "On-package SRAM bandwidth and pJ/byte are local sweep parameters."
+          ],
+          "reviewer_note": "This pack tests the upside of keeping converter-interface traffic near the photonic core."
+        },
+        "contention_provenance": {
+          "status": "local-baseline",
+          "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+          "sources": [],
+          "local_assumptions": [
+            "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+          ],
+          "reviewer_note": "Use as the no-contention reference point."
+        },
         "assumptions": {
           "shared_bandwidth_clients": 1.0,
           "arbitration_efficiency": 1.0,
@@ -155,6 +185,36 @@ window.PhotonicBenchPayloadRegistry["profile_sensitivity_64x64_on_package_sram.j
         "contention_preset": "single_client",
         "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
         "overlap_model": "profile_timing_mode",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "High-bandwidth local memory sensitivity case with no modeled off-package movement.",
+          "sources": [
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "All intermediate and off-chip read/write fractions are set to zero.",
+            "On-package SRAM bandwidth and pJ/byte are local sweep parameters."
+          ],
+          "reviewer_note": "This pack tests the upside of keeping converter-interface traffic near the photonic core."
+        },
+        "contention_provenance": {
+          "status": "local-baseline",
+          "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+          "sources": [],
+          "local_assumptions": [
+            "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+          ],
+          "reviewer_note": "Use as the no-contention reference point."
+        },
         "assumptions": {
           "shared_bandwidth_clients": 1.0,
           "arbitration_efficiency": 1.0,

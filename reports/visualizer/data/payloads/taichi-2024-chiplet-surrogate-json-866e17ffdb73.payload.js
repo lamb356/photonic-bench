@@ -59,6 +59,36 @@ window.PhotonicBenchPayloadRegistry["taichi_2024_chiplet_surrogate.json"] = {
         "contention_preset": "single_client",
         "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
         "overlap_model": "profile_timing_mode",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+          "sources": [
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+            "The scenario is a conservative baseline for sensitivity comparisons."
+          ],
+          "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+        },
+        "contention_provenance": {
+          "status": "local-baseline",
+          "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+          "sources": [],
+          "local_assumptions": [
+            "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+          ],
+          "reviewer_note": "Use as the no-contention reference point."
+        },
         "assumptions": {
           "shared_bandwidth_clients": 1.0,
           "arbitration_efficiency": 1.0,
@@ -155,6 +185,36 @@ window.PhotonicBenchPayloadRegistry["taichi_2024_chiplet_surrogate.json"] = {
         "contention_preset": "single_client",
         "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
         "overlap_model": "profile_timing_mode",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+          "sources": [
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+            "The scenario is a conservative baseline for sensitivity comparisons."
+          ],
+          "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+        },
+        "contention_provenance": {
+          "status": "local-baseline",
+          "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+          "sources": [],
+          "local_assumptions": [
+            "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+          ],
+          "reviewer_note": "Use as the no-contention reference point."
+        },
         "assumptions": {
           "shared_bandwidth_clients": 1.0,
           "arbitration_efficiency": 1.0,
@@ -437,6 +497,118 @@ window.PhotonicBenchPayloadRegistry["taichi_2024_chiplet_surrogate.json"] = {
         "Strong energy, area, scale, and task-metric coverage, but no exact dense-matmul local reproduction of the Taichi protocol is claimed."
       ],
       "note": "Source quality grades summarize evidence coverage for the published reference card. They do not upgrade local surrogate estimates into paper measurements."
+    },
+    "source_audit": {
+      "quoted_metrics": [
+        {
+          "metric": "Architecture",
+          "quoted_value": "Diffractive-interference hybrid photonic AI chiplet",
+          "source_location": "published_calibration.architecture",
+          "note": "Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics."
+        },
+        {
+          "metric": "Energy efficiency including lasers",
+          "quoted_value": "160.0",
+          "source_location": "published_calibration.energy_efficiency_including_lasers_tops_per_watt",
+          "note": "Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics."
+        },
+        {
+          "metric": "Input output dimension",
+          "quoted_value": "64x64",
+          "source_location": "published_calibration.additional_metrics.input_output_dimension",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Area efficiency tmacs per mm2",
+          "quoted_value": "879",
+          "source_location": "published_calibration.additional_metrics.area_efficiency_tmacs_per_mm2",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Optical neurons max",
+          "quoted_value": "10000000000",
+          "source_location": "published_calibration.additional_metrics.optical_neurons_max",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Experimental omniglot accuracy percent",
+          "quoted_value": "91.89",
+          "source_location": "published_calibration.additional_metrics.experimental_omniglot_accuracy_percent",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Experimental mini imagenet accuracy percent",
+          "quoted_value": "87.74",
+          "source_location": "published_calibration.additional_metrics.experimental_mini_imagenet_accuracy_percent",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Reported energy efficiency note",
+          "quoted_value": "Source reports 160 TOPS/W on-chip energy efficiency.",
+          "source_location": "published_calibration.additional_metrics.reported_energy_efficiency_note",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Surrogate mapping",
+          "quoted_value": "m=64, k=64, n=64 is a dense local surrogate for comparison only; not the Taichi distributed optical protocol.",
+          "source_location": "published_calibration.additional_metrics.surrogate_mapping",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        }
+      ],
+      "local_assumptions": [
+        "Local surrogate type: dense_photonic_chiplet_surrogate.",
+        "Strong energy, area, scale, and task-metric coverage, but no exact dense-matmul local reproduction of the Taichi protocol is claimed.",
+        "Source reports 64x64 input/output chiplet dimensions and 160 TOPS/W energy efficiency; this card keeps those values as published references.",
+        "Local timing, device energy, converter, and noise settings are PhotonicBench assumptions, not extracted Taichi device-level measurements.",
+        "Weight-stationary mode is used only to avoid reloading the surrogate right operand within one dense local tile."
+      ],
+      "conversion_math": [
+        {
+          "derived_metric": "energy_per_op_including_lasers_pj",
+          "formula": "1 / energy_efficiency_including_lasers_tops_per_watt",
+          "inputs": {
+            "energy_efficiency_including_lasers_tops_per_watt": 160.0
+          },
+          "result": "0.00625"
+        },
+        {
+          "derived_metric": "energy_per_mac_including_lasers_pj",
+          "formula": "2 / energy_efficiency_including_lasers_tops_per_watt",
+          "inputs": {
+            "energy_efficiency_including_lasers_tops_per_watt": 160.0
+          },
+          "result": "0.0125"
+        },
+        {
+          "derived_metric": "total_energy_including_lasers_pj",
+          "formula": "equivalent_ops / energy_efficiency_including_lasers_tops_per_watt",
+          "inputs": {
+            "energy_efficiency_including_lasers_tops_per_watt": 160.0,
+            "equivalent_ops": 524288
+          },
+          "result": "3276.8"
+        },
+        {
+          "derived_metric": "model_to_published_including_lasers_ratio",
+          "formula": "local_model.energy.total_pj / published_reference.derived_unit_conversions.total_energy_including_lasers_pj",
+          "inputs": {
+            "published_total_energy_including_lasers_pj": 3276.8
+          },
+          "result": "1.2975",
+          "note": "Diagnostic ratio only; it does not change local_model or published_reference."
+        }
+      ],
+      "confidence_flags": [
+        "claim_status=paper-reported energy/scale targets; matmul-surrogate local model",
+        "source_doi=10.1126/science.adl1203",
+        "source_quality_grade=B",
+        "coverage.accuracy=reported",
+        "coverage.area=reported",
+        "coverage.energy=reported",
+        "coverage.precision=not_reported",
+        "coverage.throughput=derived"
+      ],
+      "separation_note": "Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs."
     },
     "separation_note": "Published values are paper-reported references or direct unit conversions, not local component-model estimates."
   },

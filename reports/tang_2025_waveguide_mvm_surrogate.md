@@ -54,6 +54,51 @@ Source-quality notes:
 - Direct primitive shape and detector bandwidth are reported, but energy and exact system timing are not converted into local model outputs.
 
 
+## Source Audit
+
+These rows keep quoted source metrics, direct conversion math, local assumptions,
+and confidence flags separate. They do not turn local surrogate estimates into
+paper measurements.
+
+| Metric | Quoted value | Source location | Note |
+| --- | --- | --- | --- |
+| Architecture | Waveguide-multiplexed intensity MVM processor with multiport Ge photodetectors | published_calibration.architecture | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Demonstrated mvm shape | 4x4 | published_calibration.additional_metrics.demonstrated_mvm_shape | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Photodetector ports | 16 | published_calibration.additional_metrics.photodetector_ports | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Photodetector 3db bandwidth ghz | 11.8 | published_calibration.additional_metrics.photodetector_3db_bandwidth_ghz | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Photodetector bias voltage v | -3 | published_calibration.additional_metrics.photodetector_bias_voltage_v | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Projected scaled ports | 250 | published_calibration.additional_metrics.projected_scaled_ports | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Projected scaled bandwidth ghz | 6.1 | published_calibration.additional_metrics.projected_scaled_bandwidth_ghz | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Iris accuracy percent | 93.3 | published_calibration.additional_metrics.iris_accuracy_percent | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Fashion mnist sim accuracy percent | 90.53 | published_calibration.additional_metrics.fashion_mnist_sim_accuracy_percent | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Surrogate mapping | m=1, k=4, n=4 encodes the demonstrated 4x4 MVM primitive; it does not model multiport photodetector analog summing physics. | published_calibration.additional_metrics.surrogate_mapping | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+
+| Derived metric | Formula | Inputs | Result | Note |
+| --- | --- | --- | ---: | --- |
+
+
+Local assumptions:
+
+- Local surrogate type: direct_4x4_waveguide_mvm_surrogate.
+- Direct primitive shape and detector bandwidth are reported, but energy and exact system timing are not converted into local model outputs.
+- The local card uses a dense 4x4 MVM bookkeeping surrogate for the paper's waveguide-multiplexed MVM demonstration.
+- Paper-reported photodetector bandwidth, port scaling, and task accuracy remain published reference metadata.
+- Local converter energy, system tiers, timing, and noise settings are generic PhotonicBench assumptions.
+
+Confidence flags:
+
+- claim_status=paper-reported 4x4 MVM and multiport photodetector metrics; matmul-surrogate local model
+- source_doi=10.1364/OPTICA.552023
+- source_quality_grade=B
+- coverage.accuracy=reported
+- coverage.area=not_reported
+- coverage.energy=not_reported
+- coverage.precision=not_reported
+- coverage.throughput=derived
+
+Boundary note: Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs.
+
+
 
 ## Workload
 
@@ -188,6 +233,17 @@ not a published hardware energy breakdown.
 | Contention-adjusted transfer-to-compute time ratio | 1.5 |
 | Contention pressure ratio | 1.5 |
 | Contention-adjusted equivalent ops/s | 21333333333.333 |
+
+### Scenario Provenance Packs
+
+These packs justify the selected local memory hierarchy and contention preset
+without implying measured end-to-end hardware behavior.
+
+| Pack | Status | Calibration scope | Sources | Local assumptions | Reviewer note |
+| --- | --- | --- | --- | --- | --- |
+| Memory scenario | source-context-plus-local-parameters | Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions. | Computing's energy problem (and what we can do about it) (10.1109/ISSCC.2014.6757323) | SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.; The scenario is a conservative baseline for sensitivity comparisons. | Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior. |
+| Contention preset | local-baseline | Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband. | explicit local assumption | shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions. | Use as the no-contention reference point. |
+
 
 ## Energy
 

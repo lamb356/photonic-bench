@@ -56,6 +56,9 @@ def test_render_markdown_exposes_assumptions_and_totals() -> None:
     assert "| Contention bandwidth derate | 1 |" in markdown
     assert "| Contention-only loaded hierarchy bandwidth | 48.000 bytes/ns |" in markdown
     assert "| Effective loaded hierarchy bandwidth | 48.000 bytes/ns |" in markdown
+    assert "### Scenario Provenance Packs" in markdown
+    assert "| Memory scenario | source-context-plus-local-parameters |" in markdown
+    assert "| Contention preset | local-baseline |" in markdown
     assert "| Bandwidth-limited tier | compute |" in markdown
     assert "| Bandwidth-limited batch latency | 5.000 ns |" in markdown
     assert "| Bandwidth pressure ratio | 1 |" in markdown
@@ -117,6 +120,10 @@ def test_render_markdown_includes_optional_provenance_and_published_calibration(
     assert "## Source Quality Index" in markdown
     assert "| Confidence grade | A |" in markdown
     assert "| Precision | reported |" in markdown
+    assert "## Source Audit" in markdown
+    assert "| Architecture | PACE 64x64 matrix-vector oMAC |" in markdown
+    assert "| energy_per_op_including_lasers_pj |" in markdown
+    assert "Local surrogate type: direct_matrix_vector." in markdown
 
 
 def test_render_markdown_includes_calibration_fit() -> None:

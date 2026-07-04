@@ -2769,6 +2769,7 @@
           [{ label: "Metric" }, { label: "Value", num: true }],
           summaryRows.map(([label, value]) => [escapeHtml(label), escapeHtml(value)])
         )}
+        ${renderScenarioProvenancePacks(scenario)}
       </section>
     `;
   }
@@ -2813,6 +2814,128 @@
           : ""
       }
     `;
+  }
+
+  function renderSourceAudit(sourceAudit) {
+    if (!isPlainObject(sourceAudit)) {
+      return '<div class="notes"><p>No source_audit block is attached to this card.</p></div>';
+    }
+    const metricRows = Array.isArray(sourceAudit.quoted_metrics)
+      ? sourceAudit.quoted_metrics.map((row) => [
+          escapeHtml(row.metric || "n/a"),
+          escapeHtml(row.quoted_value || "n/a"),
+          escapeHtml(row.source_location || "n/a"),
+          escapeHtml(row.note || ""),
+        ])
+      : [];
+    const conversionRows = Array.isArray(sourceAudit.conversion_math)
+      ? sourceAudit.conversion_math.map((row) => [
+          escapeHtml(row.derived_metric || "n/a"),
+          escapeHtml(row.formula || "n/a"),
+          escapeHtml(formatAuditInputs(row.inputs)),
+          escapeHtml(row.result || "n/a"),
+          escapeHtml(row.note || ""),
+        ])
+      : [];
+    const assumptions = Array.isArray(sourceAudit.local_assumptions)
+      ? sourceAudit.local_assumptions
+      : [];
+    const flags = Array.isArray(sourceAudit.confidence_flags)
+      ? sourceAudit.confidence_flags
+      : [];
+    return `
+      <div class="notes"><p>${escapeHtml(sourceAudit.separation_note || "Quoted metrics, conversion math, and local assumptions stay separate.")}</p></div>
+      ${simpleTable(
+        [
+          { label: "Metric" },
+          { label: "Quoted value" },
+          { label: "Source location" },
+          { label: "Note" },
+        ],
+        metricRows.length ? metricRows : [["n/a", "n/a", "n/a", ""]]
+      )}
+      ${simpleTable(
+        [
+          { label: "Derived metric" },
+          { label: "Formula" },
+          { label: "Inputs" },
+          { label: "Result", num: true },
+          { label: "Note" },
+        ],
+        conversionRows.length ? conversionRows : [["n/a", "n/a", "", "n/a", ""]]
+      )}
+      <div class="grid-2">
+        <div class="notes">
+          <strong>Local assumptions</strong>
+          ${(assumptions.length ? assumptions : ["None recorded."])
+            .map((item) => `<p>${escapeHtml(item)}</p>`)
+            .join("")}
+        </div>
+        <div class="notes">
+          <strong>Confidence flags</strong>
+          ${(flags.length ? flags : ["None recorded."])
+            .map((item) => `<p>${escapeHtml(item)}</p>`)
+            .join("")}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderScenarioProvenancePacks(scenario) {
+    if (!isPlainObject(scenario)) return "";
+    const packs = [
+      ["Memory scenario", scenario.scenario_provenance],
+      ["Contention preset", scenario.contention_provenance],
+    ].filter(([, pack]) => isPlainObject(pack));
+    if (!packs.length) return "";
+    const rows = packs.map(([label, pack]) => [
+      escapeHtml(label),
+      escapeHtml(pack.status || "n/a"),
+      escapeHtml(pack.calibration_scope || "n/a"),
+      escapeHtml(formatScenarioPackSources(pack.sources)),
+      escapeHtml(formatList(pack.local_assumptions)),
+      escapeHtml(pack.reviewer_note || ""),
+    ]);
+    return `
+      <h4>Scenario Provenance Packs</h4>
+      <div class="notes"><p>These packs justify local memory-hierarchy and contention assumptions; they are not measured end-to-end hardware behavior.</p></div>
+      ${simpleTable(
+        [
+          { label: "Pack" },
+          { label: "Status" },
+          { label: "Calibration scope" },
+          { label: "Sources" },
+          { label: "Local assumptions" },
+          { label: "Reviewer note" },
+        ],
+        rows,
+        "comparison-table"
+      )}
+    `;
+  }
+
+  function formatScenarioPackSources(sources) {
+    if (!Array.isArray(sources) || !sources.length) return "explicit local assumption";
+    return sources
+      .map((source) => {
+        if (!isPlainObject(source)) return "source";
+        const title = source.title || "source";
+        const reference = source.reference_id ? ` (${source.reference_id})` : "";
+        return `${title}${reference}`;
+      })
+      .join("; ");
+  }
+
+  function formatAuditInputs(inputs) {
+    if (!isPlainObject(inputs)) return "";
+    return Object.entries(inputs)
+      .map(([key, value]) => `${key}=${defaultFormatter(value)}`)
+      .join(", ");
+  }
+
+  function formatList(values) {
+    if (!Array.isArray(values) || !values.length) return "";
+    return values.join("; ");
   }
 
   function renderConcepts() {
@@ -2948,6 +3071,10 @@
           }
         </section>
       </div>
+      <section class="panel">
+        <h3>Source Audit</h3>
+        ${renderSourceAudit(published?.source_audit)}
+      </section>
       <div class="grid-2">
         <section class="panel">
           <h3>Provenance</h3>

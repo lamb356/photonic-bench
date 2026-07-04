@@ -52,6 +52,49 @@ Source-quality notes:
 - The source reports relative improvements rather than a scalar absolute TOPS or TOPS/W value, so PhotonicBench stores those as additional metrics only.
 
 
+## Source Audit
+
+These rows keep quoted source metrics, direct conversion math, local assumptions,
+and confidence flags separate. They do not turn local surrogate estimates into
+paper measurements.
+
+| Metric | Quoted value | Source location | Note |
+| --- | --- | --- | --- |
+| Architecture | Free-spectral-range parallel photonic accelerator for real-valued GEMM | published_calibration.architecture | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Area efficiency improvement x | 57 | published_calibration.additional_metrics.area_efficiency_improvement_x | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Energy efficiency gain x | 13.8 | published_calibration.additional_metrics.energy_efficiency_gain_x | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Energy reduction percent vs mrr | 70 | published_calibration.additional_metrics.energy_reduction_percent_vs_mrr | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Speedup vs leading photonic gemm x | 21 | published_calibration.additional_metrics.speedup_vs_leading_photonic_gemm_x | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Supports dynamic real valued operands | True | published_calibration.additional_metrics.supports_dynamic_real_valued_operands | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Avoids svd preprocessing | True | published_calibration.additional_metrics.avoids_svd_preprocessing | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Surrogate mapping | m=64, k=64, n=64 is a dense local GEMM tile for an FSR-GeMM architecture paper; it is not the paper's full FSR-parallel hardware schedule. | published_calibration.additional_metrics.surrogate_mapping | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+
+| Derived metric | Formula | Inputs | Result | Note |
+| --- | --- | --- | ---: | --- |
+
+
+Local assumptions:
+
+- Local surrogate type: dense_fsr_parallel_gemm_surrogate.
+- The source reports relative improvements rather than a scalar absolute TOPS or TOPS/W value, so PhotonicBench stores those as additional metrics only.
+- Source relative speed, energy, and area claims remain under published_calibration.additional_metrics.
+- Local dense workload, converter counts, latency, and system-tier movement are PhotonicBench assumptions for cross-card analysis.
+- Weight-stationary mode approximates one reused right-hand operand tile and does not model FSR routing, crosstalk, or FSR-parallel scheduling.
+
+Confidence flags:
+
+- claim_status=paper-reported relative FSR-GeMM architecture metrics; matmul-surrogate local model
+- source_doi=10.23919/DATE69613.2026.11539161
+- source_quality_grade=B
+- coverage.accuracy=not_reported
+- coverage.area=derived
+- coverage.energy=derived
+- coverage.precision=not_reported
+- coverage.throughput=derived
+
+Boundary note: Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs.
+
+
 
 ## Workload
 
@@ -186,6 +229,17 @@ not a published hardware energy breakdown.
 | Contention-adjusted transfer-to-compute time ratio | 768 |
 | Contention pressure ratio | 768 |
 | Contention-adjusted equivalent ops/s | 682666666666.667 |
+
+### Scenario Provenance Packs
+
+These packs justify the selected local memory hierarchy and contention preset
+without implying measured end-to-end hardware behavior.
+
+| Pack | Status | Calibration scope | Sources | Local assumptions | Reviewer note |
+| --- | --- | --- | --- | --- | --- |
+| Memory scenario | source-context-plus-local-parameters | Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions. | Computing's energy problem (and what we can do about it) (10.1109/ISSCC.2014.6757323) | SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.; The scenario is a conservative baseline for sensitivity comparisons. | Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior. |
+| Contention preset | local-baseline | Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband. | explicit local assumption | shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions. | Use as the no-contention reference point. |
+
 
 ## Energy
 

@@ -667,6 +667,35 @@ labels for source/card coverage. The generated report copies the DOI/reference
 from `provenance` into `published_reference.source_quality` so a published card
 can be audited without mixing paper-reported metrics into `local_model`.
 
+Published cards can also include a `source_audit` section for reviewer-depth
+source evidence. This records exact quoted metric values, source locations,
+local assumptions, conversion math, and confidence flags:
+
+```yaml
+source_audit:
+  quoted_metrics:
+    - metric: Reported throughput
+      quoted_value: "8.19 TOPS"
+      source_location: Paper abstract or table
+      note: Direct source quote.
+  local_assumptions:
+    - Local converter energy and hierarchy movement are PhotonicBench estimates.
+  conversion_math:
+    - derived_metric: energy_per_op_including_lasers_pj
+      formula: 1 / energy_efficiency_including_lasers_tops_per_watt
+      inputs:
+        energy_efficiency_including_lasers_tops_per_watt: 2.38
+      result: "0.420"
+  confidence_flags:
+    - exact_shape_match
+```
+
+The generated JSON and Markdown reports also add a default audit from
+`published_calibration`, `source_quality`, and direct TOPS/W conversions. YAML
+`source_audit` entries are prepended so card authors can provide exact paper
+locations for the most important metrics. The source audit is not a new model
+result and does not move source values into `local_model`.
+
 PhotonicBench only derives energy units when the corresponding TOPS/W fields are present. Throughput-only published cards remain valid, but their `derived_unit_conversions` section is empty.
 
 PhotonicBench derives comparable energy units directly from the paper-reported TOPS/W:

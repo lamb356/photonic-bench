@@ -17,6 +17,7 @@ from photonic_bench.model import (
     PublishedCalibrationResult,
 )
 from photonic_bench.report import result_assumptions
+from photonic_bench.source_audit import build_source_audit
 
 
 REPORT_SCHEMA_VERSION = "photonic-bench-report-v1"
@@ -417,6 +418,11 @@ def _published_reference(
         "reported": _reported_calibration(calibration),
         "derived_unit_conversions": _derived_calibration(derived),
         "source_quality": _source_quality(config.source_quality, config.provenance),
+        "source_audit": build_source_audit(
+            config,
+            derived,
+            equivalent_ops=result.equivalent_ops,
+        ),
         "separation_note": (
             "Published values are paper-reported references or direct unit "
             "conversions, not local component-model estimates."

@@ -54,6 +54,51 @@ Source-quality notes:
 - Reported TOPS and benchmark kappa are direct paper metrics; energy evidence is relative to comparator modulator implementations, so local energy and timing remain generic assumptions.
 
 
+## Source Audit
+
+These rows keep quoted source metrics, direct conversion math, local assumptions,
+and confidence flags separate. They do not turn local surrogate estimates into
+paper measurements.
+
+| Metric | Quoted value | Source location | Note |
+| --- | --- | --- | --- |
+| Architecture | AWGR-enabled photonic integrated tensor core with WDM SiGe EAM array chiplets | published_calibration.architecture | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Reported throughput | 2.56 | published_calibration.reported_tops | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Demonstrated pitc shape | 8x8 | published_calibration.additional_metrics.demonstrated_pitc_shape | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Eam wdm channels | 8 | published_calibration.additional_metrics.eam_wdm_channels | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Modulation rate gbaud | 20 | published_calibration.additional_metrics.modulation_rate_gbaud | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Iris cohen kappa | 0.8438 | published_calibration.additional_metrics.iris_cohen_kappa | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Mnist cohen kappa | 0.7421 | published_calibration.additional_metrics.mnist_cohen_kappa | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Eam footprint reduction x vs ring modulator | 4.0 | published_calibration.additional_metrics.eam_footprint_reduction_x_vs_ring_modulator | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Eam energy efficiency improvement x vs mzm | 6.9 | published_calibration.additional_metrics.eam_energy_efficiency_improvement_x_vs_mzm | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Surrogate mapping | m=8, k=8, n=8 is a dense local tile for the demonstrated PITC layout; it does not model AWGR routing or WDM EAM chiplet behavior. | published_calibration.additional_metrics.surrogate_mapping | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+
+| Derived metric | Formula | Inputs | Result | Note |
+| --- | --- | --- | ---: | --- |
+
+
+Local assumptions:
+
+- Local surrogate type: dense_8x8_tsw_pitc_surrogate.
+- Reported TOPS and benchmark kappa are direct paper metrics; energy evidence is relative to comparator modulator implementations, so local energy and timing remain generic assumptions.
+- The local card maps the reported 8x8 PITC architectural layout into one dense 8x8 GEMM tile.
+- Reported 2.56 TOPS and task kappa stay in the published reference section.
+- Local converter energy, system tiers, timing, and noise settings are generic PhotonicBench assumptions.
+
+Confidence flags:
+
+- claim_status=paper-reported PITC throughput, modulation, and benchmark metrics; matmul-surrogate local model
+- source_doi=10.1364/OE.564666
+- source_quality_grade=B
+- coverage.accuracy=reported
+- coverage.area=derived
+- coverage.energy=derived
+- coverage.precision=not_reported
+- coverage.throughput=reported
+
+Boundary note: Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs.
+
+
 
 ## Workload
 
@@ -188,6 +233,17 @@ not a published hardware energy breakdown.
 | Contention-adjusted transfer-to-compute time ratio | 12 |
 | Contention pressure ratio | 12 |
 | Contention-adjusted equivalent ops/s | 85333333333.333 |
+
+### Scenario Provenance Packs
+
+These packs justify the selected local memory hierarchy and contention preset
+without implying measured end-to-end hardware behavior.
+
+| Pack | Status | Calibration scope | Sources | Local assumptions | Reviewer note |
+| --- | --- | --- | --- | --- | --- |
+| Memory scenario | source-context-plus-local-parameters | Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions. | Computing's energy problem (and what we can do about it) (10.1109/ISSCC.2014.6757323) | SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.; The scenario is a conservative baseline for sensitivity comparisons. | Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior. |
+| Contention preset | local-baseline | Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband. | explicit local assumption | shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions. | Use as the no-contention reference point. |
+
 
 ## Energy
 

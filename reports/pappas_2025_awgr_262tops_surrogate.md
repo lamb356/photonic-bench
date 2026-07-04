@@ -58,6 +58,54 @@ Source-quality notes:
 - Good throughput, energy, and task-metric coverage; local dense tile is still a surrogate for the reported AWGR MbTM schedule.
 
 
+## Source Audit
+
+These rows keep quoted source metrics, direct conversion math, local assumptions,
+and confidence flags separate. They do not turn local surrogate estimates into
+paper measurements.
+
+| Metric | Quoted value | Source location | Note |
+| --- | --- | --- | --- |
+| Architecture | 16x16 AWGR Matrix-by-Tensor-Multiply photonic AI accelerator | published_calibration.architecture | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Reported throughput | 262.0 | published_calibration.reported_tops | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Energy efficiency including lasers | 3.663003663003663 | published_calibration.energy_efficiency_including_lasers_tops_per_watt | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Reported energy per op fj | 273 | published_calibration.additional_metrics.reported_energy_per_op_fj | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Data rate gbaud | 32 | published_calibration.additional_metrics.data_rate_gbaud | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Awgr dimension | 16x16 | published_calibration.additional_metrics.awgr_dimension | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Ddos kappa score | 0.8652 | published_calibration.additional_metrics.ddos_kappa_score | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Mnist accuracy percent | 92.14 | published_calibration.additional_metrics.mnist_accuracy_percent | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Energy efficiency note | 3.663 TOPS/W is the direct conversion of the paper's 273 fJ/OP statement. | published_calibration.additional_metrics.energy_efficiency_note | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Surrogate mapping | m=16, k=16, n=16 is a dense tile surrogate for the 16x16 AWGR engine; not an exact MbTM schedule. | published_calibration.additional_metrics.surrogate_mapping | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+
+| Derived metric | Formula | Inputs | Result | Note |
+| --- | --- | --- | ---: | --- |
+| energy_per_op_including_lasers_pj | 1 / energy_efficiency_including_lasers_tops_per_watt | energy_efficiency_including_lasers_tops_per_watt=3.663003663003663 | 0.273 |  |
+| energy_per_mac_including_lasers_pj | 2 / energy_efficiency_including_lasers_tops_per_watt | energy_efficiency_including_lasers_tops_per_watt=3.663003663003663 | 0.546 |  |
+| total_energy_including_lasers_pj | equivalent_ops / energy_efficiency_including_lasers_tops_per_watt | energy_efficiency_including_lasers_tops_per_watt=3.663003663003663, equivalent_ops=8192 | 2236.416 |  |
+| model_to_published_including_lasers_ratio | local_model.energy.total_pj / published_reference.derived_unit_conversions.total_energy_including_lasers_pj | published_total_energy_including_lasers_pj=2236.416 | 0.10782967033 | Diagnostic ratio only; it does not change local_model or published_reference. |
+
+Local assumptions:
+
+- Local surrogate type: dense_awgr_tile_surrogate.
+- Good throughput, energy, and task-metric coverage; local dense tile is still a surrogate for the reported AWGR MbTM schedule.
+- Source reports 262 TOPS at 32 Gbaud and a 273 fJ/OP silicon-photonic energy-efficiency analysis; PhotonicBench keeps those values in published_reference.
+- The local model uses a one-cycle 32 Gbaud timing surrogate and generic converter energy assumptions.
+- Weight-stationary mode approximates reusing the reported AWGR weight/tensor structure for one dense local tile.
+
+Confidence flags:
+
+- claim_status=paper-reported and paper-projected throughput/energy targets; matmul-surrogate local model
+- source_doi=10.1063/5.0271374
+- source_quality_grade=B
+- coverage.accuracy=reported
+- coverage.area=not_reported
+- coverage.energy=reported
+- coverage.precision=not_reported
+- coverage.throughput=reported
+
+Boundary note: Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs.
+
+
 
 ## Workload
 
@@ -192,6 +240,17 @@ not a published hardware energy breakdown.
 | Contention-adjusted transfer-to-compute time ratio | 1536 |
 | Contention pressure ratio | 1536 |
 | Contention-adjusted equivalent ops/s | 170666666666.667 |
+
+### Scenario Provenance Packs
+
+These packs justify the selected local memory hierarchy and contention preset
+without implying measured end-to-end hardware behavior.
+
+| Pack | Status | Calibration scope | Sources | Local assumptions | Reviewer note |
+| --- | --- | --- | --- | --- | --- |
+| Memory scenario | source-context-plus-local-parameters | Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions. | Computing's energy problem (and what we can do about it) (10.1109/ISSCC.2014.6757323) | SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.; The scenario is a conservative baseline for sensitivity comparisons. | Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior. |
+| Contention preset | local-baseline | Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband. | explicit local assumption | shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions. | Use as the no-contention reference point. |
+
 
 ## Energy
 

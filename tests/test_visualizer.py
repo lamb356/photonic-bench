@@ -115,6 +115,9 @@ def test_discover_visualizer_data_loads_root_and_nested_reports() -> None:
         "shen_2017_coherent_onn_surrogate.json",
         "tait_2017_microring_weight_bank_surrogate.json",
         "chipai_2025_photonic_chiplet_surrogate.json",
+        "lightening_transformer_2024_surrogate.json",
+        "lightning_2023_smartnic_surrogate.json",
+        "adept_2023_electro_photonic_surrogate.json",
     )
     assert data.comparison_presets[0].analysis_intent["analysis_focus"] == "provenance"
     assert "local UI triage" in data.comparison_presets[0].reviewer_notes

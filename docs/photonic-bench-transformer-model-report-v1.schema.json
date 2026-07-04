@@ -2,6 +2,20 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://photonicbench.local/schemas/photonic-bench-transformer-model-report-v1.schema.json",
   "title": "PhotonicBench transformer model aggregate report v1",
+  "x-schema-version-policy": {
+    "schema_identifier": "photonic-bench-transformer-model-report-v1",
+    "compatible_changes": [
+      "Add optional properties to existing objects.",
+      "Add shared $defs that are only referenced by optional properties.",
+      "Clarify descriptions, examples, or documentation without changing meaning."
+    ],
+    "breaking_changes": [
+      "Add new required properties.",
+      "Remove or rename existing properties.",
+      "Change units, nullability, value type, or local-model versus published-reference semantics."
+    ],
+    "breaking_change_action": "Use a new schema_version string and a new schema file."
+  },
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -565,6 +579,8 @@
         "contention_preset": {"type": "string"},
         "contention_preset_description": {"type": "string"},
         "overlap_model": {"type": "string"},
+        "scenario_provenance": {"$ref": "#/$defs/scenarioProvenancePack"},
+        "contention_provenance": {"$ref": "#/$defs/scenarioProvenancePack"},
         "assumptions": {
           "type": "object",
           "required": [
@@ -593,6 +609,51 @@
           }
         },
         "note": {"type": "string"}
+      }
+    },
+    "scenarioProvenancePack": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "calibration_scope",
+        "sources",
+        "local_assumptions",
+        "reviewer_note"
+      ],
+      "properties": {
+        "status": {"type": "string"},
+        "calibration_scope": {"type": "string"},
+        "sources": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/scenarioProvenanceSource"}
+        },
+        "local_assumptions": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "reviewer_note": {"type": "string"}
+      }
+    },
+    "scenarioProvenanceSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "url",
+        "reference_id",
+        "evidence_type",
+        "supports"
+      ],
+      "properties": {
+        "title": {"type": "string"},
+        "url": {"type": "string"},
+        "reference_id": {"type": "string"},
+        "evidence_type": {"type": "string"},
+        "supports": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
       }
     },
     "memoryScenarioTier": {

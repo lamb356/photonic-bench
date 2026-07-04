@@ -59,6 +59,36 @@ window.PhotonicBenchPayloadRegistry["meng_2025_mrr_otpu_tensor_core_surrogate.js
         "contention_preset": "single_client",
         "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
         "overlap_model": "profile_timing_mode",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+          "sources": [
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+            "The scenario is a conservative baseline for sensitivity comparisons."
+          ],
+          "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+        },
+        "contention_provenance": {
+          "status": "local-baseline",
+          "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+          "sources": [],
+          "local_assumptions": [
+            "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+          ],
+          "reviewer_note": "Use as the no-contention reference point."
+        },
         "assumptions": {
           "shared_bandwidth_clients": 1.0,
           "arbitration_efficiency": 1.0,
@@ -155,6 +185,36 @@ window.PhotonicBenchPayloadRegistry["meng_2025_mrr_otpu_tensor_core_surrogate.js
         "contention_preset": "single_client",
         "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
         "overlap_model": "profile_timing_mode",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+          "sources": [
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+            "The scenario is a conservative baseline for sensitivity comparisons."
+          ],
+          "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+        },
+        "contention_provenance": {
+          "status": "local-baseline",
+          "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+          "sources": [],
+          "local_assumptions": [
+            "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+          ],
+          "reviewer_note": "Use as the no-contention reference point."
+        },
         "assumptions": {
           "shared_bandwidth_clients": 1.0,
           "arbitration_efficiency": 1.0,
@@ -429,6 +489,71 @@ window.PhotonicBenchPayloadRegistry["meng_2025_mrr_otpu_tensor_core_surrogate.js
         "Computing-density and task accuracy are source-backed, but no scalar TOPS or TOPS/W value is encoded."
       ],
       "note": "Source quality grades summarize evidence coverage for the published reference card. They do not upgrade local surrogate estimates into paper measurements."
+    },
+    "source_audit": {
+      "quoted_metrics": [
+        {
+          "metric": "Architecture",
+          "quoted_value": "Microring-resonator optical tensor processing unit with lightwave/microwave multidomain multiplexing",
+          "source_location": "published_calibration.architecture",
+          "note": "Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics."
+        },
+        {
+          "metric": "Computing density tops per mm2",
+          "quoted_value": "34.04",
+          "source_location": "published_calibration.additional_metrics.computing_density_tops_per_mm2",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Mnist accuracy percent",
+          "quoted_value": "96.41",
+          "source_location": "published_calibration.additional_metrics.mnist_accuracy_percent",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Theoretical mnist accuracy percent",
+          "quoted_value": "96.79",
+          "source_location": "published_calibration.additional_metrics.theoretical_mnist_accuracy_percent",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Multiplexing domains",
+          "quoted_value": "time-wavelength-microwave-frequency",
+          "source_location": "published_calibration.additional_metrics.multiplexing_domains",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Optical core",
+          "quoted_value": "single microring resonator",
+          "source_location": "published_calibration.additional_metrics.optical_core",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Surrogate mapping",
+          "quoted_value": "m=16, k=16, n=16 is a dense local surrogate for an MRR OTPU tensor-convolution result; not an exact multidomain convolution schedule.",
+          "source_location": "published_calibration.additional_metrics.surrogate_mapping",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        }
+      ],
+      "local_assumptions": [
+        "Local surrogate type: dense_mrr_tensor_convolution_surrogate.",
+        "Computing-density and task accuracy are source-backed, but no scalar TOPS or TOPS/W value is encoded.",
+        "Source reports 34.04 TOPS/mm2 computing density and 96.41 percent MNIST accuracy; this card keeps those values as published references.",
+        "No scalar total TOPS or TOPS/W value is encoded because the cited paper metric is computing density rather than absolute throughput or energy efficiency.",
+        "Local timing, converter energy, system tiers, and dense workload shape are PhotonicBench assumptions for cross-card comparison."
+      ],
+      "conversion_math": [],
+      "confidence_flags": [
+        "claim_status=paper-reported computing-density/accuracy claims; matmul-surrogate local model",
+        "source_doi=10.1038/s41377-024-01706-9",
+        "source_quality_grade=C",
+        "coverage.accuracy=reported",
+        "coverage.area=reported",
+        "coverage.energy=not_reported",
+        "coverage.precision=not_reported",
+        "coverage.throughput=derived"
+      ],
+      "separation_note": "Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs."
     },
     "separation_note": "Published values are paper-reported references or direct unit conversions, not local component-model estimates."
   },

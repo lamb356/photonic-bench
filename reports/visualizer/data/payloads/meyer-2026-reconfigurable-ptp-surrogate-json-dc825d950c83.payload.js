@@ -59,6 +59,36 @@ window.PhotonicBenchPayloadRegistry["meyer_2026_reconfigurable_ptp_surrogate.jso
         "contention_preset": "single_client",
         "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
         "overlap_model": "profile_timing_mode",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+          "sources": [
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+            "The scenario is a conservative baseline for sensitivity comparisons."
+          ],
+          "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+        },
+        "contention_provenance": {
+          "status": "local-baseline",
+          "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+          "sources": [],
+          "local_assumptions": [
+            "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+          ],
+          "reviewer_note": "Use as the no-contention reference point."
+        },
         "assumptions": {
           "shared_bandwidth_clients": 1.0,
           "arbitration_efficiency": 1.0,
@@ -155,6 +185,36 @@ window.PhotonicBenchPayloadRegistry["meyer_2026_reconfigurable_ptp_surrogate.jso
         "contention_preset": "single_client",
         "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
         "overlap_model": "profile_timing_mode",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+          "sources": [
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+            "The scenario is a conservative baseline for sensitivity comparisons."
+          ],
+          "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+        },
+        "contention_provenance": {
+          "status": "local-baseline",
+          "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+          "sources": [],
+          "local_assumptions": [
+            "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+          ],
+          "reviewer_note": "Use as the no-contention reference point."
+        },
         "assumptions": {
           "shared_bandwidth_clients": 1.0,
           "arbitration_efficiency": 1.0,
@@ -445,6 +505,160 @@ window.PhotonicBenchPayloadRegistry["meyer_2026_reconfigurable_ptp_surrogate.jso
         "The paper reports system-level throughput, projected efficiency, classification accuracy, MVM error, and integration details; the local PhotonicBench workload only mirrors the crossbar primitive shape."
       ],
       "note": "Source quality grades summarize evidence coverage for the published reference card. They do not upgrade local surrogate estimates into paper measurements."
+    },
+    "source_audit": {
+      "quoted_metrics": [
+        {
+          "metric": "Architecture",
+          "quoted_value": "Rack-integrated 9-input, 3-output incoherent photonic tensor processor",
+          "source_location": "published_calibration.architecture",
+          "note": "Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics."
+        },
+        {
+          "metric": "Reported throughput",
+          "quoted_value": "0.054",
+          "source_location": "published_calibration.reported_tops",
+          "note": "Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics."
+        },
+        {
+          "metric": "Energy efficiency including lasers",
+          "quoted_value": "0.022",
+          "source_location": "published_calibration.energy_efficiency_including_lasers_tops_per_watt",
+          "note": "Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics."
+        },
+        {
+          "metric": "Reported gmac per second",
+          "quoted_value": "27",
+          "source_location": "published_calibration.additional_metrics.reported_gmac_per_second",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Projected continuous streaming power w",
+          "quoted_value": "2.5",
+          "source_location": "published_calibration.additional_metrics.projected_continuous_streaming_power_w",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Effective symbol rate ghz",
+          "quoted_value": "1",
+          "source_location": "published_calibration.additional_metrics.effective_symbol_rate_ghz",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Input dac rate gsps",
+          "quoted_value": "4",
+          "source_location": "published_calibration.additional_metrics.input_dac_rate_gsps",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Output adc rate gsps",
+          "quoted_value": "2",
+          "source_location": "published_calibration.additional_metrics.output_adc_rate_gsps",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Weight reprogramming ms",
+          "quoted_value": "62",
+          "source_location": "published_calibration.additional_metrics.weight_reprogramming_ms",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Mvm error single shot percent",
+          "quoted_value": "19.4",
+          "source_location": "published_calibration.additional_metrics.mvm_error_single_shot_percent",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Mvm error four average percent",
+          "quoted_value": "10.9",
+          "source_location": "published_calibration.additional_metrics.mvm_error_four_average_percent",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Mnist accuracy precision percent",
+          "quoted_value": "98.1",
+          "source_location": "published_calibration.additional_metrics.mnist_accuracy_precision_percent",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Cifar10 accuracy percent",
+          "quoted_value": "72.0",
+          "source_location": "published_calibration.additional_metrics.cifar10_accuracy_percent",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Optical workload mnist percent",
+          "quoted_value": "97.5",
+          "source_location": "published_calibration.additional_metrics.optical_workload_mnist_percent",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Optical workload cifar10 percent",
+          "quoted_value": "99.0",
+          "source_location": "published_calibration.additional_metrics.optical_workload_cifar10_percent",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Surrogate mapping",
+          "quoted_value": "m=1, k=9, n=3 mirrors one reported 9-input by 3-output MVM primitive; it is not an end-to-end CNN, RFSoC, calibration, or tiling reproduction.",
+          "source_location": "published_calibration.additional_metrics.surrogate_mapping",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        }
+      ],
+      "local_assumptions": [
+        "Local surrogate type: primitive_ptp_mvm_surrogate.",
+        "The paper reports system-level throughput, projected efficiency, classification accuracy, MVM error, and integration details; the local PhotonicBench workload only mirrors the crossbar primitive shape.",
+        "Source throughput, efficiency, MVM error, and accuracy values remain under published_calibration and published_reference.",
+        "Local optical MAC energy, converter energy, one-nanosecond latency, and system-tier movement are generic PhotonicBench assumptions.",
+        "Weight-stationary mode approximates fixed programmed weights during streamed input vectors and does not model RFSoC scheduling, calibration, analog averaging, CNN tiling, or off-board electronics."
+      ],
+      "conversion_math": [
+        {
+          "derived_metric": "energy_per_op_including_lasers_pj",
+          "formula": "1 / energy_efficiency_including_lasers_tops_per_watt",
+          "inputs": {
+            "energy_efficiency_including_lasers_tops_per_watt": 0.022
+          },
+          "result": "45.4545454545"
+        },
+        {
+          "derived_metric": "energy_per_mac_including_lasers_pj",
+          "formula": "2 / energy_efficiency_including_lasers_tops_per_watt",
+          "inputs": {
+            "energy_efficiency_including_lasers_tops_per_watt": 0.022
+          },
+          "result": "90.9090909091"
+        },
+        {
+          "derived_metric": "total_energy_including_lasers_pj",
+          "formula": "equivalent_ops / energy_efficiency_including_lasers_tops_per_watt",
+          "inputs": {
+            "energy_efficiency_including_lasers_tops_per_watt": 0.022,
+            "equivalent_ops": 54
+          },
+          "result": "2454.54545455"
+        },
+        {
+          "derived_metric": "model_to_published_including_lasers_ratio",
+          "formula": "local_model.energy.total_pj / published_reference.derived_unit_conversions.total_energy_including_lasers_pj",
+          "inputs": {
+            "published_total_energy_including_lasers_pj": 2454.545454545455
+          },
+          "result": "0.00357866666667",
+          "note": "Diagnostic ratio only; it does not change local_model or published_reference."
+        }
+      ],
+      "confidence_flags": [
+        "claim_status=paper-reported integrated photonic tensor processor metrics; MVM-surrogate local model",
+        "source_doi=10.1038/s41467-026-71599-2",
+        "source_quality_grade=A",
+        "coverage.accuracy=reported",
+        "coverage.area=not_reported",
+        "coverage.energy=reported",
+        "coverage.precision=reported",
+        "coverage.throughput=reported"
+      ],
+      "separation_note": "Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs."
     },
     "separation_note": "Published values are paper-reported references or direct unit conversions, not local component-model estimates."
   },

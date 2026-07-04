@@ -317,6 +317,19 @@ def test_report_to_dict_keeps_published_reference_separate() -> None:
     assert reference["derived_unit_conversions"][
         "energy_per_op_including_lasers_pj"
     ] == pytest.approx(1 / 2.38)
+    audit = reference["source_audit"]
+    assert audit["quoted_metrics"]
+    assert audit["quoted_metrics"][0]["metric"] == "Architecture"
+    assert audit["conversion_math"]
+    assert {
+        row["derived_metric"] for row in audit["conversion_math"]
+    } >= {
+        "energy_per_op_including_lasers_pj",
+        "energy_per_mac_including_lasers_pj",
+        "total_energy_including_lasers_pj",
+    }
+    assert "Local surrogate type: direct_matrix_vector." in audit["local_assumptions"]
+    assert "source_quality_grade=A" in audit["confidence_flags"]
     assert payload["local_model"]["energy"]["total_pj"] == pytest.approx(21.248)
 
 

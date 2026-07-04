@@ -50,6 +50,47 @@ Source-quality notes:
 - The source is a primary Optica paper with high-order tensor-processor evidence, but this card stores architecture/scaling claims rather than absolute TOPS or TOPS/W.
 
 
+## Source Audit
+
+These rows keep quoted source metrics, direct conversion math, local assumptions,
+and confidence flags separate. They do not turn local surrogate estimates into
+paper measurements.
+
+| Metric | Quoted value | Source location | Note |
+| --- | --- | --- | --- |
+| Architecture | High-order integrated photonic tensor processor using frequency-domain modulation | published_calibration.architecture | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Demonstrated tensor orders | third-order and fourth-order tensor multiplication | published_calibration.additional_metrics.demonstrated_tensor_orders | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Frequency domain modulation | True | published_calibration.additional_metrics.frequency_domain_modulation | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Decouples computational dimensionality from physical device count | True | published_calibration.additional_metrics.decouples_computational_dimensionality_from_physical_device_count | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Physical core | two-dimensional cascaded MZI and photodetector array | published_calibration.additional_metrics.physical_core | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Surrogate mapping | m=16, k=16, n=16 is a dense local GEMM tile used to place the high-order tensor architecture in PhotonicBench comparisons; it is not a frequency-domain high-order tensor reproduction. | published_calibration.additional_metrics.surrogate_mapping | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+
+| Derived metric | Formula | Inputs | Result | Note |
+| --- | --- | --- | ---: | --- |
+
+
+Local assumptions:
+
+- Local surrogate type: dense_high_order_tensor_surrogate.
+- The source is a primary Optica paper with high-order tensor-processor evidence, but this card stores architecture/scaling claims rather than absolute TOPS or TOPS/W.
+- Source high-order tensor and frequency-domain modulation claims remain under published_calibration.additional_metrics.
+- Local dense GEMM shape, generic device energy, memory hierarchy, and latency are PhotonicBench assumptions for dashboard comparison only.
+- The card does not model microwave frequency bins, high-order tensor indexing, MZI calibration, or detector-array scheduling.
+
+Confidence flags:
+
+- claim_status=paper-reported high-order tensor processor architecture; dense-GEMM-surrogate local model
+- source_doi=10.1364/OPTICA.579208
+- source_quality_grade=C
+- coverage.accuracy=derived
+- coverage.area=not_reported
+- coverage.energy=not_reported
+- coverage.precision=not_reported
+- coverage.throughput=not_reported
+
+Boundary note: Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs.
+
+
 
 ## Workload
 
@@ -184,6 +225,17 @@ not a published hardware energy breakdown.
 | Contention-adjusted transfer-to-compute time ratio | 48 |
 | Contention pressure ratio | 48 |
 | Contention-adjusted equivalent ops/s | 170666666666.667 |
+
+### Scenario Provenance Packs
+
+These packs justify the selected local memory hierarchy and contention preset
+without implying measured end-to-end hardware behavior.
+
+| Pack | Status | Calibration scope | Sources | Local assumptions | Reviewer note |
+| --- | --- | --- | --- | --- | --- |
+| Memory scenario | source-context-plus-local-parameters | Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions. | Computing's energy problem (and what we can do about it) (10.1109/ISSCC.2014.6757323) | SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.; The scenario is a conservative baseline for sensitivity comparisons. | Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior. |
+| Contention preset | local-baseline | Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband. | explicit local assumption | shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions. | Use as the no-contention reference point. |
+
 
 ## Energy
 

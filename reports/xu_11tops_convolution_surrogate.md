@@ -52,6 +52,46 @@ Source-quality notes:
 - Strong source-backed throughput and task metric coverage, but the local workload is a dense matmul surrogate for vector convolution.
 
 
+## Source Audit
+
+These rows keep quoted source metrics, direct conversion math, local assumptions,
+and confidence flags separate. They do not turn local surrogate estimates into
+paper measurements.
+
+| Metric | Quoted value | Source location | Note |
+| --- | --- | --- | --- |
+| Architecture | Kerr microcomb optical vector convolution accelerator | published_calibration.architecture | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Reported throughput | 11.0 | published_calibration.reported_tops | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Reported speed note | Nature title reports 11 TOPS; abstract states more than ten TOPS. | published_calibration.additional_metrics.reported_speed_note | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Image pixels | 250000 | published_calibration.additional_metrics.image_pixels | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Kernels | 10 | published_calibration.additional_metrics.kernels | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Input resolution bits | 8 | published_calibration.additional_metrics.input_resolution_bits | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Digit recognition accuracy percent | 88 | published_calibration.additional_metrics.digit_recognition_accuracy_percent | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Surrogate mapping | m=1, k=250000, n=10 represents one dense vector-by-kernel surrogate; not an exact convolution dataflow reproduction. | published_calibration.additional_metrics.surrogate_mapping | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+
+| Derived metric | Formula | Inputs | Result | Note |
+| --- | --- | --- | ---: | --- |
+
+
+Local assumptions:
+
+- Local surrogate type: dense_vector_by_kernel_matmul_surrogate.
+- Strong source-backed throughput and task metric coverage, but the local workload is a dense matmul surrogate for vector convolution.
+
+Confidence flags:
+
+- claim_status=paper-reported throughput/workload targets; matmul-surrogate local model
+- source_doi=10.1038/s41586-020-03063-0
+- source_quality_grade=B
+- coverage.accuracy=reported
+- coverage.area=not_reported
+- coverage.energy=not_reported
+- coverage.precision=reported
+- coverage.throughput=reported
+
+Boundary note: Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs.
+
+
 
 ## Workload
 
@@ -186,6 +226,17 @@ not a published hardware energy breakdown.
 | Contention-adjusted transfer-to-compute time ratio | 34375.1 |
 | Contention pressure ratio | 34375.1 |
 | Contention-adjusted equivalent ops/s | 29090803306.170 |
+
+### Scenario Provenance Packs
+
+These packs justify the selected local memory hierarchy and contention preset
+without implying measured end-to-end hardware behavior.
+
+| Pack | Status | Calibration scope | Sources | Local assumptions | Reviewer note |
+| --- | --- | --- | --- | --- | --- |
+| Memory scenario | source-context-plus-local-parameters | Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions. | Computing's energy problem (and what we can do about it) (10.1109/ISSCC.2014.6757323) | SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.; The scenario is a conservative baseline for sensitivity comparisons. | Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior. |
+| Contention preset | local-baseline | Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband. | explicit local assumption | shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions. | Use as the no-contention reference point. |
+
 
 ## Energy
 

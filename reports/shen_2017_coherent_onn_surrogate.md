@@ -52,6 +52,49 @@ Source-quality notes:
 - The source strongly anchors the coherent 4x4 optical primitive and vowel-classification accuracy, but the local energy and hierarchy model are PhotonicBench assumptions.
 
 
+## Source Audit
+
+These rows keep quoted source metrics, direct conversion math, local assumptions,
+and confidence flags separate. They do not turn local surrogate estimates into
+paper measurements.
+
+| Metric | Quoted value | Source location | Note |
+| --- | --- | --- | --- |
+| Architecture | Coherent nanophotonic neural-network mesh | published_calibration.architecture | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Matrix dimension | 4 | published_calibration.additional_metrics.matrix_dimension | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Output classes | 4 | published_calibration.additional_metrics.output_classes | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Programmable unitary | SU(4) | published_calibration.additional_metrics.programmable_unitary | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Experimental vowel accuracy percent | 76.7 | published_calibration.additional_metrics.experimental_vowel_accuracy_percent | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Simulated vowel accuracy percent | 91.7 | published_calibration.additional_metrics.simulated_vowel_accuracy_percent | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Source energy scaling note | Source discusses optical matrix-multiplication energy scaling under idealized assumptions; PhotonicBench does not claim measured energy from this paper. | published_calibration.additional_metrics.source_energy_scaling_note | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Surrogate mapping | m=4, k=4, n=4 follows the demonstrated four-dimensional coherent optical classifier, not a full neural-network training reproduction. | published_calibration.additional_metrics.surrogate_mapping | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+
+| Derived metric | Formula | Inputs | Result | Note |
+| --- | --- | --- | ---: | --- |
+
+
+Local assumptions:
+
+- Local surrogate type: coherent_mesh_4x4_surrogate.
+- The source strongly anchors the coherent 4x4 optical primitive and vowel-classification accuracy, but the local energy and hierarchy model are PhotonicBench assumptions.
+- Published coherent-mesh and accuracy values remain under published_calibration.
+- Local timing, converter, energy, noise, and on-package SRAM scenario settings are PhotonicBench assumptions for comparison only.
+- Weight-stationary mode approximates programmed coherent mesh weights during one local inference tile.
+
+Confidence flags:
+
+- claim_status=paper-reported coherent-mesh accuracy and scaling discussion; 4x4 local dense surrogate
+- source_doi=10.1038/nphoton.2017.93
+- source_quality_grade=B
+- coverage.accuracy=reported
+- coverage.area=not_reported
+- coverage.energy=derived
+- coverage.precision=not_reported
+- coverage.throughput=derived
+
+Boundary note: Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs.
+
+
 
 ## Workload
 
@@ -186,6 +229,17 @@ not a published hardware energy breakdown.
 | Contention-adjusted transfer-to-compute time ratio | 0.0117188 |
 | Contention pressure ratio | 1 |
 | Contention-adjusted equivalent ops/s | 128000000000.000 |
+
+### Scenario Provenance Packs
+
+These packs justify the selected local memory hierarchy and contention preset
+without implying measured end-to-end hardware behavior.
+
+| Pack | Status | Calibration scope | Sources | Local assumptions | Reviewer note |
+| --- | --- | --- | --- | --- | --- |
+| Memory scenario | source-context-plus-local-parameters | High-bandwidth local memory sensitivity case with no modeled off-package movement. | Computing's energy problem (and what we can do about it) (10.1109/ISSCC.2014.6757323) | All intermediate and off-chip read/write fractions are set to zero.; On-package SRAM bandwidth and pJ/byte are local sweep parameters. | This pack tests the upside of keeping converter-interface traffic near the photonic core. |
+| Contention preset | local-baseline | Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband. | explicit local assumption | shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions. | Use as the no-contention reference point. |
+
 
 ## Energy
 

@@ -6,6 +6,7 @@ Same 64x64 photonic matmul workload as the starter card, using the ddr system pr
 
 
 
+
 ## Workload
 
 | Metric | Value |
@@ -139,6 +140,17 @@ not a published hardware energy breakdown.
 | Contention-adjusted transfer-to-compute time ratio | 884.736 |
 | Contention pressure ratio | 884.736 |
 | Contention-adjusted equivalent ops/s | 118518518518.518 |
+
+### Scenario Provenance Packs
+
+These packs justify the selected local memory hierarchy and contention preset
+without implying measured end-to-end hardware behavior.
+
+| Pack | Status | Calibration scope | Sources | Local assumptions | Reviewer note |
+| --- | --- | --- | --- | --- | --- |
+| Memory scenario | source-context-plus-local-parameters | Generic DDR-class off-chip tier matching the conservative PhotonicBench baseline movement defaults. | JEDEC DDR5 SDRAM standard catalog (JEDEC JESD79-5); Computing's energy problem (and what we can do about it) (10.1109/ISSCC.2014.6757323) | The 16 bytes/ns off-chip bandwidth and 10 pJ/byte energy are local default parameters.; Controller turnaround is represented by the local contention preset. | Use this scenario to expose cards that become movement-bound when off-chip traffic is DDR-like. |
+| Contention preset | source-context-plus-local-parameters | DDR/controller-style sharing with local multi-client derate and larger control guardband. | JEDEC DDR5 SDRAM standard catalog (JEDEC JESD79-5) | Four modeled clients, 0.75 arbitration efficiency, and 0.08 guardband are local controller-stress assumptions. | Use when off-chip traffic should be penalized for controller and turnaround pressure. |
+
 
 ## Energy
 

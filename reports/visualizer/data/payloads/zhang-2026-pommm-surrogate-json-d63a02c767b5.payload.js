@@ -59,6 +59,36 @@ window.PhotonicBenchPayloadRegistry["zhang_2026_pommm_surrogate.json"] = {
         "contention_preset": "single_client",
         "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
         "overlap_model": "profile_timing_mode",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+          "sources": [
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+            "The scenario is a conservative baseline for sensitivity comparisons."
+          ],
+          "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+        },
+        "contention_provenance": {
+          "status": "local-baseline",
+          "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+          "sources": [],
+          "local_assumptions": [
+            "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+          ],
+          "reviewer_note": "Use as the no-contention reference point."
+        },
         "assumptions": {
           "shared_bandwidth_clients": 1.0,
           "arbitration_efficiency": 1.0,
@@ -155,6 +185,36 @@ window.PhotonicBenchPayloadRegistry["zhang_2026_pommm_surrogate.json"] = {
         "contention_preset": "single_client",
         "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
         "overlap_model": "profile_timing_mode",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+          "sources": [
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+            "The scenario is a conservative baseline for sensitivity comparisons."
+          ],
+          "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+        },
+        "contention_provenance": {
+          "status": "local-baseline",
+          "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+          "sources": [],
+          "local_assumptions": [
+            "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+          ],
+          "reviewer_note": "Use as the no-contention reference point."
+        },
         "assumptions": {
           "shared_bandwidth_clients": 1.0,
           "arbitration_efficiency": 1.0,
@@ -433,6 +493,89 @@ window.PhotonicBenchPayloadRegistry["zhang_2026_pommm_surrogate.json"] = {
         "The source directly demonstrates matrix-matrix multiplication and publishes code/data, but no scalar TOPS or TOPS/W value is encoded in this card."
       ],
       "note": "Source quality grades summarize evidence coverage for the published reference card. They do not upgrade local surrogate estimates into paper measurements."
+    },
+    "source_audit": {
+      "quoted_metrics": [
+        {
+          "metric": "Architecture",
+          "quoted_value": "Parallel optical matrix-matrix multiplication with coherent light",
+          "source_location": "published_calibration.architecture",
+          "note": "Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics."
+        },
+        {
+          "metric": "Demonstrated nonnegative matrix size",
+          "quoted_value": "20",
+          "source_location": "published_calibration.additional_metrics.demonstrated_nonnegative_matrix_size",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Demonstrated real valued matrix size",
+          "quoted_value": "10",
+          "source_location": "published_calibration.additional_metrics.demonstrated_real_valued_matrix_size",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Quantitative matrix sizes",
+          "quoted_value": "10,20,30,40,50",
+          "source_location": "published_calibration.additional_metrics.quantitative_matrix_sizes",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Random matrix pairs per size",
+          "quoted_value": "50",
+          "source_location": "published_calibration.additional_metrics.random_matrix_pairs_per_size",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Mean absolute error less than",
+          "quoted_value": "0.15",
+          "source_location": "published_calibration.additional_metrics.mean_absolute_error_less_than",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Normalized rmse less than",
+          "quoted_value": "0.1",
+          "source_location": "published_calibration.additional_metrics.normalized_rmse_less_than",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Data doi",
+          "quoted_value": "10.6084/m9.figshare.30173512",
+          "source_location": "published_calibration.additional_metrics.data_doi",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Code url",
+          "quoted_value": "https://github.com/DecadeBin/POMMM.git",
+          "source_location": "published_calibration.additional_metrics.code_url",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Surrogate mapping",
+          "quoted_value": "m=20, k=20, n=20 matches the reported non-negative POMMM matrix-matrix demonstration; it is not a full optical-field propagation or camera-readout reproduction.",
+          "source_location": "published_calibration.additional_metrics.surrogate_mapping",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        }
+      ],
+      "local_assumptions": [
+        "Local surrogate type: dense_pommm_matrix_matrix_surrogate.",
+        "The source directly demonstrates matrix-matrix multiplication and publishes code/data, but no scalar TOPS or TOPS/W value is encoded in this card.",
+        "Source-reported accuracy/error and matrix-size evidence are preserved as published references.",
+        "Local optical MAC energy, converter energy, SRAM/intermediate/off-chip tiers, and one-nanosecond latency are generic PhotonicBench assumptions.",
+        "Weight-stationary mode approximates reusing the right operand within the local dense tile and does not model coherent field propagation, imaging, or camera readout."
+      ],
+      "conversion_math": [],
+      "confidence_flags": [
+        "claim_status=paper-reported optical matrix-matrix multiplication; matmul-surrogate local model",
+        "source_doi=10.1038/s41566-025-01799-7",
+        "source_quality_grade=B",
+        "coverage.accuracy=reported",
+        "coverage.area=not_reported",
+        "coverage.energy=not_reported",
+        "coverage.precision=derived",
+        "coverage.throughput=not_reported"
+      ],
+      "separation_note": "Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs."
     },
     "separation_note": "Published values are paper-reported references or direct unit conversions, not local component-model estimates."
   },

@@ -59,6 +59,67 @@ window.PhotonicBenchPayloadRegistry["profile_sensitivity_64x64_optical_interconn
         "contention_preset": "optical_interconnect_broadcast",
         "contention_preset_description": "Optical interconnect/broadcast path: wavelength fanout reduces loaded-client contention, but arbitration and control guardband remain explicit local assumptions.",
         "overlap_model": "wavelength_broadcast_overlap",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "WDM/broadcast-like optical movement scenario with high-bandwidth intermediate/off-chip paths.",
+          "sources": [
+            {
+              "title": "Neuromorphic photonic networks using silicon photonic weight banks",
+              "url": "https://www.nature.com/articles/s41598-017-07754-z",
+              "reference_id": "10.1038/s41598-017-07754-z",
+              "evidence_type": "photonic WDM broadcast-and-weight context",
+              "supports": [
+                "optical interconnect scenario",
+                "broadcast movement preset"
+              ]
+            },
+            {
+              "title": "Lightening-Transformer: A dynamically-operated optically-interconnected photonic Transformer accelerator",
+              "url": "https://arxiv.org/abs/2305.19533",
+              "reference_id": "10.48550/arXiv.2305.19533",
+              "evidence_type": "optically interconnected accelerator context",
+              "supports": [
+                "activation-heavy optical broadcast",
+                "dynamic tensor movement"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "Optical interconnect tier pJ/byte, bandwidth, and traffic fractions are PhotonicBench local sweep parameters.",
+            "Broadcast overlap is represented by a local contention model, not measured link-level scheduling."
+          ],
+          "reviewer_note": "Use this scenario for cards whose claim depends on optical movement, broadcast, or chiplet/interconnect behavior."
+        },
+        "contention_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Optical broadcast contention model with reduced loaded-client penalty and explicit control guardband.",
+          "sources": [
+            {
+              "title": "Neuromorphic photonic networks using silicon photonic weight banks",
+              "url": "https://www.nature.com/articles/s41598-017-07754-z",
+              "reference_id": "10.1038/s41598-017-07754-z",
+              "evidence_type": "photonic WDM broadcast-and-weight context",
+              "supports": [
+                "optical interconnect scenario",
+                "broadcast movement preset"
+              ]
+            },
+            {
+              "title": "Lightening-Transformer: A dynamically-operated optically-interconnected photonic Transformer accelerator",
+              "url": "https://arxiv.org/abs/2305.19533",
+              "reference_id": "10.48550/arXiv.2305.19533",
+              "evidence_type": "optically interconnected accelerator context",
+              "supports": [
+                "activation-heavy optical broadcast",
+                "dynamic tensor movement"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "1.5 modeled clients, 0.92 arbitration efficiency, and 0.02 guardband are local WDM/broadcast sensitivity parameters."
+          ],
+          "reviewer_note": "Use to compare whether optical broadcast movement changes the decision without presenting it as measured hardware contention."
+        },
         "assumptions": {
           "shared_bandwidth_clients": 1.5,
           "arbitration_efficiency": 0.92,
@@ -155,6 +216,67 @@ window.PhotonicBenchPayloadRegistry["profile_sensitivity_64x64_optical_interconn
         "contention_preset": "optical_interconnect_broadcast",
         "contention_preset_description": "Optical interconnect/broadcast path: wavelength fanout reduces loaded-client contention, but arbitration and control guardband remain explicit local assumptions.",
         "overlap_model": "wavelength_broadcast_overlap",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "WDM/broadcast-like optical movement scenario with high-bandwidth intermediate/off-chip paths.",
+          "sources": [
+            {
+              "title": "Neuromorphic photonic networks using silicon photonic weight banks",
+              "url": "https://www.nature.com/articles/s41598-017-07754-z",
+              "reference_id": "10.1038/s41598-017-07754-z",
+              "evidence_type": "photonic WDM broadcast-and-weight context",
+              "supports": [
+                "optical interconnect scenario",
+                "broadcast movement preset"
+              ]
+            },
+            {
+              "title": "Lightening-Transformer: A dynamically-operated optically-interconnected photonic Transformer accelerator",
+              "url": "https://arxiv.org/abs/2305.19533",
+              "reference_id": "10.48550/arXiv.2305.19533",
+              "evidence_type": "optically interconnected accelerator context",
+              "supports": [
+                "activation-heavy optical broadcast",
+                "dynamic tensor movement"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "Optical interconnect tier pJ/byte, bandwidth, and traffic fractions are PhotonicBench local sweep parameters.",
+            "Broadcast overlap is represented by a local contention model, not measured link-level scheduling."
+          ],
+          "reviewer_note": "Use this scenario for cards whose claim depends on optical movement, broadcast, or chiplet/interconnect behavior."
+        },
+        "contention_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Optical broadcast contention model with reduced loaded-client penalty and explicit control guardband.",
+          "sources": [
+            {
+              "title": "Neuromorphic photonic networks using silicon photonic weight banks",
+              "url": "https://www.nature.com/articles/s41598-017-07754-z",
+              "reference_id": "10.1038/s41598-017-07754-z",
+              "evidence_type": "photonic WDM broadcast-and-weight context",
+              "supports": [
+                "optical interconnect scenario",
+                "broadcast movement preset"
+              ]
+            },
+            {
+              "title": "Lightening-Transformer: A dynamically-operated optically-interconnected photonic Transformer accelerator",
+              "url": "https://arxiv.org/abs/2305.19533",
+              "reference_id": "10.48550/arXiv.2305.19533",
+              "evidence_type": "optically interconnected accelerator context",
+              "supports": [
+                "activation-heavy optical broadcast",
+                "dynamic tensor movement"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "1.5 modeled clients, 0.92 arbitration efficiency, and 0.02 guardband are local WDM/broadcast sensitivity parameters."
+          ],
+          "reviewer_note": "Use to compare whether optical broadcast movement changes the decision without presenting it as measured hardware contention."
+        },
         "assumptions": {
           "shared_bandwidth_clients": 1.5,
           "arbitration_efficiency": 0.92,

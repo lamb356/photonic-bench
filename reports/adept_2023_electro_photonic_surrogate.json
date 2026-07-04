@@ -1,0 +1,626 @@
+{
+  "schema_version": "photonic-bench-report-v1",
+  "benchmark": {
+    "name": "ADEPT 2023 electro-photonic system surrogate",
+    "description": "Source-backed analog/full-system card for the JETC 2023 ADEPT electro-photonic DNN accelerator. The paper combines photonic GEMM, a vectorized digital ASIC for non-GEMM work, and SRAM arrays for parameters and activations; this config uses a batch weight-stationary 128x128 local GEMM under the on_chip_sram scenario for PhotonicBench comparison only."
+  },
+  "workload": {
+    "type": "matmul",
+    "shape": {
+      "m": 128,
+      "k": 128,
+      "n": 128
+    },
+    "macs": 33554432,
+    "equivalent_ops": 67108864,
+    "output_elements": 262144
+  },
+  "model_inputs": {
+    "device": {
+      "optical_mac_energy_fj": 0.5,
+      "laser_wall_plug_efficiency": 0.25,
+      "photodetector_energy_fj_per_sample": 10.0,
+      "adc": {
+        "bits": 8,
+        "energy_pj_per_conversion": 0.5
+      },
+      "dac": {
+        "bits": 8,
+        "energy_pj_per_conversion": 0.2
+      },
+      "vector_dac": {
+        "bits": 8,
+        "energy_pj_per_conversion": 0.2
+      },
+      "weight_dac": {
+        "bits": 8,
+        "energy_pj_per_conversion": 0.2
+      }
+    },
+    "execution": {
+      "batch_size": 16,
+      "vector_reuse_factor": 2,
+      "weight_reuse_factor": 16,
+      "weight_stationary": true,
+      "pipeline": {
+        "stages": 1,
+        "cycle_time_ns": null
+      }
+    },
+    "system": {
+      "profile": "on_chip_sram",
+      "profile_overrides": [],
+      "scenario": {
+        "name": "on_chip_sram",
+        "description": "All modeled converter-interface traffic is assumed to stay on local SRAM; off-chip fractions are zero.",
+        "profile_overrides": [],
+        "memory_timing_mode": "overlapped",
+        "contention_preset": "single_client",
+        "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+        "overlap_model": "profile_timing_mode",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "All modeled converter-interface traffic stays on local SRAM.",
+          "sources": [
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "Off-chip and intermediate traffic fractions are local zeros.",
+            "SRAM bandwidth and energy are local parameters for sensitivity, not a specific macro datasheet."
+          ],
+          "reviewer_note": "Use this to bound cards whose system story depends on aggressive local buffering."
+        },
+        "contention_provenance": {
+          "status": "local-baseline",
+          "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+          "sources": [],
+          "local_assumptions": [
+            "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+          ],
+          "reviewer_note": "Use as the no-contention reference point."
+        },
+        "assumptions": {
+          "shared_bandwidth_clients": 1.0,
+          "arbitration_efficiency": 1.0,
+          "calibration_overhead_fraction": 0.0,
+          "sram": {
+            "read_energy_pj_per_byte": 0.02,
+            "write_energy_pj_per_byte": 0.02,
+            "bandwidth_bytes_per_ns": 2048.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "intermediate": {
+            "read_energy_pj_per_byte": 0.2,
+            "write_energy_pj_per_byte": 0.2,
+            "bandwidth_bytes_per_ns": 256.0,
+            "read_fraction": 0.0,
+            "write_fraction": 0.0
+          },
+          "off_chip": {
+            "read_energy_pj_per_byte": 10.0,
+            "write_energy_pj_per_byte": 10.0,
+            "bandwidth_bytes_per_ns": 16.0,
+            "read_fraction": 0.0,
+            "write_fraction": 0.0
+          }
+        },
+        "note": "Memory scenario fields are local modeling assumptions for review and sensitivity analysis; they are not paper-published hardware measurements unless a card states otherwise."
+      },
+      "memory_timing_mode": "overlapped",
+      "contention": {
+        "preset": "single_client",
+        "shared_bandwidth_clients": 1.0,
+        "arbitration_efficiency": 1.0,
+        "calibration_overhead_fraction": 0.0,
+        "overlap_model": "profile_timing_mode"
+      },
+      "sram": {
+        "read_energy_pj_per_byte": 0.02,
+        "write_energy_pj_per_byte": 0.02,
+        "bandwidth_bytes_per_ns": 2048.0,
+        "read_fraction": 1.0,
+        "write_fraction": 1.0
+      },
+      "intermediate": {
+        "read_energy_pj_per_byte": 0.2,
+        "write_energy_pj_per_byte": 0.2,
+        "bandwidth_bytes_per_ns": 256.0,
+        "read_fraction": 0.0,
+        "write_fraction": 0.0
+      },
+      "off_chip": {
+        "read_energy_pj_per_byte": 10.0,
+        "write_energy_pj_per_byte": 10.0,
+        "bandwidth_bytes_per_ns": 16.0,
+        "read_fraction": 0.0,
+        "write_fraction": 0.0
+      }
+    },
+    "timing": {
+      "optical_latency_ns": 1.0,
+      "adc_latency_ns": 0.0,
+      "dac_latency_ns": 0.0
+    },
+    "noise": {
+      "phase_noise_rad_rms": 0.02,
+      "drift_rad_per_second": 0.1,
+      "integration_time_ns": 1.0
+    }
+  },
+  "local_model": {
+    "conversion_counts": {
+      "adc_conversions": 262144,
+      "vector_dac_conversions": 131072,
+      "weight_dac_conversions": 16384,
+      "dac_conversions": 147456
+    },
+    "memory_traffic": {
+      "vector_operand_read_bytes": 131072,
+      "weight_operand_read_bytes": 16384,
+      "output_write_bytes": 262144,
+      "total_interface_bytes": 409600,
+      "macs_per_byte": 81.92,
+      "equivalent_ops_per_byte": 163.84,
+      "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
+    },
+    "system": {
+      "profile": "on_chip_sram",
+      "profile_overrides": [],
+      "memory_scenario": {
+        "name": "on_chip_sram",
+        "description": "All modeled converter-interface traffic is assumed to stay on local SRAM; off-chip fractions are zero.",
+        "profile_overrides": [],
+        "memory_timing_mode": "overlapped",
+        "contention_preset": "single_client",
+        "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+        "overlap_model": "profile_timing_mode",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "All modeled converter-interface traffic stays on local SRAM.",
+          "sources": [
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "Off-chip and intermediate traffic fractions are local zeros.",
+            "SRAM bandwidth and energy are local parameters for sensitivity, not a specific macro datasheet."
+          ],
+          "reviewer_note": "Use this to bound cards whose system story depends on aggressive local buffering."
+        },
+        "contention_provenance": {
+          "status": "local-baseline",
+          "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+          "sources": [],
+          "local_assumptions": [
+            "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+          ],
+          "reviewer_note": "Use as the no-contention reference point."
+        },
+        "assumptions": {
+          "shared_bandwidth_clients": 1.0,
+          "arbitration_efficiency": 1.0,
+          "calibration_overhead_fraction": 0.0,
+          "sram": {
+            "read_energy_pj_per_byte": 0.02,
+            "write_energy_pj_per_byte": 0.02,
+            "bandwidth_bytes_per_ns": 2048.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "intermediate": {
+            "read_energy_pj_per_byte": 0.2,
+            "write_energy_pj_per_byte": 0.2,
+            "bandwidth_bytes_per_ns": 256.0,
+            "read_fraction": 0.0,
+            "write_fraction": 0.0
+          },
+          "off_chip": {
+            "read_energy_pj_per_byte": 10.0,
+            "write_energy_pj_per_byte": 10.0,
+            "bandwidth_bytes_per_ns": 16.0,
+            "read_fraction": 0.0,
+            "write_fraction": 0.0
+          }
+        },
+        "note": "Memory scenario fields are local modeling assumptions for review and sensitivity analysis; they are not paper-published hardware measurements unless a card states otherwise."
+      },
+      "memory_timing_mode": "overlapped",
+      "contention": {
+        "preset": "single_client",
+        "shared_bandwidth_clients": 1.0,
+        "arbitration_efficiency": 1.0,
+        "calibration_overhead_fraction": 0.0,
+        "overlap_model": "profile_timing_mode"
+      },
+      "contention_preset": "single_client",
+      "contention_overlap_model": "profile_timing_mode",
+      "tiers": {
+        "sram": {
+          "name": "sram",
+          "read_bytes": 147456.0,
+          "write_bytes": 262144.0,
+          "total_bytes": 409600.0,
+          "read_energy_pj": 2949.12,
+          "write_energy_pj": 5242.88,
+          "total_energy_pj": 8192.0,
+          "bandwidth_bytes_per_ns": 2048.0,
+          "effective_bandwidth_bytes_per_ns": 2048.0,
+          "transfer_time_ns": 200.0,
+          "contention_adjusted_transfer_time_ns": 200.0,
+          "read_fraction": 1.0,
+          "write_fraction": 1.0,
+          "calibration_adjusted_transfer_time_ns": 200.0,
+          "traffic_share": 1.0,
+          "movement_energy_share": 1.0,
+          "system_energy_share": 0.0343500961802693,
+          "nominal_transfer_share": 1.0,
+          "contention_adjusted_transfer_share": 1.0,
+          "nominal_transfer_pressure_ratio": 12.5,
+          "contention_adjusted_transfer_pressure_ratio": 12.5,
+          "compute_window_required_bandwidth_bytes_per_ns": 25600.0,
+          "contention_bandwidth_utilization": 12.5,
+          "contention_bandwidth_headroom_bytes_per_ns": -23552.0,
+          "contention_bandwidth_headroom_ratio": 0.08
+        },
+        "intermediate": {
+          "name": "intermediate",
+          "read_bytes": 0.0,
+          "write_bytes": 0.0,
+          "total_bytes": 0.0,
+          "read_energy_pj": 0.0,
+          "write_energy_pj": 0.0,
+          "total_energy_pj": 0.0,
+          "bandwidth_bytes_per_ns": 256.0,
+          "effective_bandwidth_bytes_per_ns": 256.0,
+          "transfer_time_ns": 0.0,
+          "contention_adjusted_transfer_time_ns": 0.0,
+          "read_fraction": 0.0,
+          "write_fraction": 0.0,
+          "calibration_adjusted_transfer_time_ns": 0.0,
+          "traffic_share": 0.0,
+          "movement_energy_share": 0.0,
+          "system_energy_share": 0.0,
+          "nominal_transfer_share": 0.0,
+          "contention_adjusted_transfer_share": 0.0,
+          "nominal_transfer_pressure_ratio": 0.0,
+          "contention_adjusted_transfer_pressure_ratio": 0.0,
+          "compute_window_required_bandwidth_bytes_per_ns": 0.0,
+          "contention_bandwidth_utilization": 0.0,
+          "contention_bandwidth_headroom_bytes_per_ns": 256.0,
+          "contention_bandwidth_headroom_ratio": 0.0
+        },
+        "off_chip": {
+          "name": "off_chip",
+          "read_bytes": 0.0,
+          "write_bytes": 0.0,
+          "total_bytes": 0.0,
+          "read_energy_pj": 0.0,
+          "write_energy_pj": 0.0,
+          "total_energy_pj": 0.0,
+          "bandwidth_bytes_per_ns": 16.0,
+          "effective_bandwidth_bytes_per_ns": 16.0,
+          "transfer_time_ns": 0.0,
+          "contention_adjusted_transfer_time_ns": 0.0,
+          "read_fraction": 0.0,
+          "write_fraction": 0.0,
+          "calibration_adjusted_transfer_time_ns": 0.0,
+          "traffic_share": 0.0,
+          "movement_energy_share": 0.0,
+          "system_energy_share": 0.0,
+          "nominal_transfer_share": 0.0,
+          "contention_adjusted_transfer_share": 0.0,
+          "nominal_transfer_pressure_ratio": 0.0,
+          "contention_adjusted_transfer_pressure_ratio": 0.0,
+          "compute_window_required_bandwidth_bytes_per_ns": 0.0,
+          "contention_bandwidth_utilization": 0.0,
+          "contention_bandwidth_headroom_bytes_per_ns": 16.0,
+          "contention_bandwidth_headroom_ratio": 0.0
+        }
+      },
+      "local_compute_and_conversion_energy_pj": 230293.50400000002,
+      "total_movement_energy_pj": 8192.0,
+      "total_system_energy_pj": 238485.50400000002,
+      "system_energy_per_mac_pj": 0.0071074218750000005,
+      "system_energy_per_op_pj": 0.0035537109375000002,
+      "hierarchy_energy_breakdown": {
+        "local_compute_and_conversion": {
+          "energy_pj": 230293.50400000002,
+          "share": 0.9656499038197307
+        },
+        "sram": {
+          "energy_pj": 8192.0,
+          "share": 0.0343500961802693
+        },
+        "intermediate": {
+          "energy_pj": 0.0,
+          "share": 0.0
+        },
+        "off_chip": {
+          "energy_pj": 0.0,
+          "share": 0.0
+        },
+        "movement_total": {
+          "energy_pj": 8192.0,
+          "share": 0.0343500961802693
+        },
+        "total_system_energy_pj": 238485.50400000002,
+        "dominant_component": "local_compute_and_conversion",
+        "note": "Hierarchy energy is a local decomposition of compute/conversion energy plus modeled movement energy by tier; it is not a published hardware energy breakdown."
+      },
+      "local_compute_and_conversion_energy_share": 0.9656499038197307,
+      "movement_energy_share": 0.0343500961802693,
+      "movement_to_compute_energy_ratio": 0.035571997723392146,
+      "total_hierarchy_bytes": 409600.0,
+      "hierarchy_equivalent_ops_per_byte": 163.84,
+      "movement_energy_per_hierarchy_byte_pj": 0.02,
+      "sram_traffic_share": 1.0,
+      "intermediate_traffic_share": 0.0,
+      "off_chip_traffic_share": 0.0,
+      "dominant_traffic_tier": "sram",
+      "dominant_system_energy_component": "local_compute_and_conversion",
+      "dominant_movement_energy_tier": "sram",
+      "nominal_memory_bottleneck_tier": "sram",
+      "contention_memory_bottleneck_tier": "sram",
+      "max_tier_nominal_transfer_pressure_ratio": 12.5,
+      "max_tier_contention_adjusted_transfer_pressure_ratio": 12.5,
+      "max_tier_movement_energy_share": 1.0,
+      "max_tier_system_energy_share": 0.0343500961802693,
+      "contention_bandwidth_saturation_tier": "sram",
+      "max_tier_contention_bandwidth_utilization": 12.5,
+      "min_tier_contention_bandwidth_headroom_ratio": 0.08,
+      "max_transfer_time_ns": 200.0,
+      "serial_transfer_time_ns": 200.0,
+      "effective_transfer_time_ns": 200.0,
+      "contention_bandwidth_derate_factor": 1.0,
+      "contention_adjusted_max_transfer_time_ns": 200.0,
+      "contention_adjusted_serial_transfer_time_ns": 200.0,
+      "contention_adjusted_effective_transfer_time_ns": 200.0,
+      "calibration_adjusted_effective_transfer_time_ns": 200.0,
+      "calibration_guardband_time_ns": 0.0,
+      "contention_transfer_overhead_fraction": 0.0,
+      "total_transfer_overhead_fraction": 0.0,
+      "effective_loaded_bandwidth_bytes_per_ns": 2048.0,
+      "contention_only_loaded_bandwidth_bytes_per_ns": 2048.0,
+      "contention_adjusted_loaded_bandwidth_bytes_per_ns": 2048.0,
+      "effective_usable_bandwidth_under_load_bytes_per_ns": 2048.0,
+      "guardbanded_usable_bandwidth_under_load_bytes_per_ns": 2048.0,
+      "transfer_to_compute_time_ratio": 12.5,
+      "bandwidth_limited_batch_latency_ns": 200.0,
+      "bandwidth_pressure_ratio": 12.5,
+      "bandwidth_limited_equivalent_ops_per_second": 335544320000000.0,
+      "bandwidth_limited_tier": "sram",
+      "contention_adjusted_batch_latency_ns": 200.0,
+      "contention_adjusted_transfer_to_compute_time_ratio": 12.5,
+      "contention_pressure_ratio": 12.5,
+      "contention_adjusted_equivalent_ops_per_second": 335544320000000.0,
+      "contention_limited_tier": "sram",
+      "note": "System movement energy is a local estimate over explicit SRAM, intermediate, and off-chip tiers. Contention and calibration guardband fields are local shared-link assumptions. These values are added separately from photonic core compute/conversion energy and are not a published measurement."
+    },
+    "energy": {
+      "optical_compute_pj": 16777.216,
+      "laser_electrical_pj": 67108.864,
+      "detector_pj": 2621.44,
+      "adc_pj": 131072.0,
+      "vector_dac_pj": 26214.4,
+      "weight_dac_pj": 3276.8,
+      "dac_pj": 29491.2,
+      "total_pj": 230293.50400000002,
+      "energy_per_mac_pj": 0.0068632812500000005,
+      "energy_per_op_pj": 0.0034316406250000002,
+      "peripheral_share": 0.7085941946499715
+    },
+    "timing": {
+      "optical_latency_ns": 1.0,
+      "adc_latency_ns": 0.0,
+      "dac_latency_ns": 0.0,
+      "total_latency_ns": 1.0,
+      "pipeline_stages": 1,
+      "pipeline_cycle_time_ns": 1.0,
+      "batch_latency_ns": 16.0,
+      "steady_state_operations_per_second": 1000000000.0,
+      "steady_state_equivalent_ops_per_second": 4194304000000000.0
+    },
+    "noise": {
+      "quantization_snr_db": 49.919999999999995,
+      "quantization_rms": 0.0011320593513522075,
+      "phase_noise_rad_rms": 0.02,
+      "drift_rms_rad": 1.0000000000000002e-10,
+      "estimated_relative_error_rms": 0.020032013338029307
+    }
+  },
+  "published_reference": {
+    "source_type": "published_calibration",
+    "provenance": {
+      "source_title": "An electro-photonic system for accelerating deep neural networks",
+      "source_url": "https://doi.org/10.1145/3606949",
+      "doi": "10.1145/3606949",
+      "venue": "ACM Journal on Emerging Technologies in Computing Systems 19(4), Article 30 (2023)",
+      "claim_status": "paper-reported full-system throughput-per-Watt comparisons and architecture; SRAM-backed GEMM surrogate"
+    },
+    "reported": {
+      "architecture": "ADEPT electro-photonic accelerator with photonic GEMM, vectorized digital ASIC, and SRAM arrays",
+      "additional_metrics": {
+        "throughput_per_watt_vs_systolic_arrays_x": 5.73,
+        "throughput_per_watt_vs_state_of_art_electronic_accelerators_min_x": 6.8,
+        "throughput_per_watt_vs_state_of_art_photonic_accelerators_x": 2.5,
+        "photonic_unit_for_gemm": true,
+        "vectorized_digital_asic_for_non_gemm": true,
+        "sram_arrays_for_parameters_and_activations": true,
+        "full_system_perspective": true,
+        "surrogate_mapping": "m=128, k=128, n=128 with batch=16 and weight_stationary=true stresses SRAM-backed GEMM reuse; it is not an ADEPT full-system simulator or non-GEMM ASIC model."
+      }
+    },
+    "derived_unit_conversions": {},
+    "source_quality": {
+      "source_reference": "An electro-photonic system for accelerating deep neural networks",
+      "source_doi": "10.1145/3606949",
+      "reported_metrics": [
+        "throughput_per_watt",
+        "full_system_architecture",
+        "memory_architecture",
+        "comparative_efficiency"
+      ],
+      "local_surrogate_type": "sram_backed_weight_stationary_gemm_surrogate",
+      "coverage": {
+        "throughput": "reported",
+        "energy": "reported",
+        "accuracy": "not_reported",
+        "area": "not_reported",
+        "precision": "not_reported"
+      },
+      "confidence_grade": "B",
+      "notes": [
+        "Source reports full-system throughput-per-Watt comparisons and SRAM-backed architecture; local energy, timing, and hierarchy values remain PhotonicBench estimates."
+      ],
+      "note": "Source quality grades summarize evidence coverage for the published reference card. They do not upgrade local surrogate estimates into paper measurements."
+    },
+    "source_audit": {
+      "quoted_metrics": [
+        {
+          "metric": "Throughput per Watt vs traditional systolic arrays",
+          "quoted_value": "5.73x higher on average",
+          "source_location": "Abstract, arXiv:2109.01126 / JETC 2023"
+        },
+        {
+          "metric": "Throughput per Watt vs state-of-the-art electronic accelerators",
+          "quoted_value": "at least 6.8x better",
+          "source_location": "Abstract, arXiv:2109.01126 / JETC 2023"
+        },
+        {
+          "metric": "Throughput per Watt vs state-of-the-art photonic accelerators",
+          "quoted_value": "2.5x better",
+          "source_location": "Abstract, arXiv:2109.01126 / JETC 2023"
+        },
+        {
+          "metric": "Memory architecture",
+          "quoted_value": "SRAM arrays for storing DNN parameters and activations",
+          "source_location": "Abstract, arXiv:2109.01126 / JETC 2023"
+        },
+        {
+          "metric": "Architecture",
+          "quoted_value": "ADEPT electro-photonic accelerator with photonic GEMM, vectorized digital ASIC, and SRAM arrays",
+          "source_location": "published_calibration.architecture",
+          "note": "Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics."
+        },
+        {
+          "metric": "Throughput per watt vs systolic arrays x",
+          "quoted_value": "5.73",
+          "source_location": "published_calibration.additional_metrics.throughput_per_watt_vs_systolic_arrays_x",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Throughput per watt vs state of art electronic accelerators min x",
+          "quoted_value": "6.8",
+          "source_location": "published_calibration.additional_metrics.throughput_per_watt_vs_state_of_art_electronic_accelerators_min_x",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Throughput per watt vs state of art photonic accelerators x",
+          "quoted_value": "2.5",
+          "source_location": "published_calibration.additional_metrics.throughput_per_watt_vs_state_of_art_photonic_accelerators_x",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Photonic unit for gemm",
+          "quoted_value": "True",
+          "source_location": "published_calibration.additional_metrics.photonic_unit_for_gemm",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Vectorized digital asic for non gemm",
+          "quoted_value": "True",
+          "source_location": "published_calibration.additional_metrics.vectorized_digital_asic_for_non_gemm",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Sram arrays for parameters and activations",
+          "quoted_value": "True",
+          "source_location": "published_calibration.additional_metrics.sram_arrays_for_parameters_and_activations",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Full system perspective",
+          "quoted_value": "True",
+          "source_location": "published_calibration.additional_metrics.full_system_perspective",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Surrogate mapping",
+          "quoted_value": "m=128, k=128, n=128 with batch=16 and weight_stationary=true stresses SRAM-backed GEMM reuse; it is not an ADEPT full-system simulator or non-GEMM ASIC model.",
+          "source_location": "published_calibration.additional_metrics.surrogate_mapping",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        }
+      ],
+      "local_assumptions": [
+        "Local batch weight-stationary 128x128 GEMM is chosen to stress SRAM-backed reuse and does not reproduce ADEPT's full DNN pipeline.",
+        "The on_chip_sram scenario is a local PhotonicBench movement assumption for parameter and activation locality.",
+        "Local surrogate type: sram_backed_weight_stationary_gemm_surrogate.",
+        "Source reports full-system throughput-per-Watt comparisons and SRAM-backed architecture; local energy, timing, and hierarchy values remain PhotonicBench estimates.",
+        "Published comparative throughput-per-Watt claims and architecture facts remain under published_calibration and published_reference.",
+        "Local optical MAC energy, converter energy, one-nanosecond latency, and SRAM tier parameters are generic PhotonicBench assumptions.",
+        "Weight-stationary mode approximates parameter reuse in an SRAM-backed GEMM slice and does not model ADEPT's vectorized non-GEMM ASIC."
+      ],
+      "conversion_math": [],
+      "confidence_flags": [
+        "comparative_efficiency_only_no_absolute_tops_per_watt",
+        "non_gemm_asic_not_modeled",
+        "claim_status=paper-reported full-system throughput-per-Watt comparisons and architecture; SRAM-backed GEMM surrogate",
+        "source_doi=10.1145/3606949",
+        "source_quality_grade=B",
+        "coverage.accuracy=not_reported",
+        "coverage.area=not_reported",
+        "coverage.energy=reported",
+        "coverage.precision=not_reported",
+        "coverage.throughput=reported"
+      ],
+      "separation_note": "Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs."
+    },
+    "separation_note": "Published values are paper-reported references or direct unit conversions, not local component-model estimates."
+  },
+  "calibration_fit": null,
+  "assumptions": [
+    "The optical MAC energy is treated as delivered optical energy per multiply-accumulate.",
+    "The laser wall-plug efficiency converts delivered optical energy into electrical laser energy.",
+    "ADC conversions are counted once per output element.",
+    "DAC conversions are counted once per input value for the left and right matmul operands.",
+    "Detector energy is counted once per output sample.",
+    "The first noise model combines ADC quantization RMS, phase noise RMS, and drift RMS as independent terms.",
+    "Total latency is a transparent sum of DAC, optical, and ADC latency rather than a pipelined throughput model.",
+    "Published comparative throughput-per-Watt claims and architecture facts remain under published_calibration and published_reference.",
+    "Local optical MAC energy, converter energy, one-nanosecond latency, and SRAM tier parameters are generic PhotonicBench assumptions.",
+    "Weight-stationary mode approximates parameter reuse in an SRAM-backed GEMM slice and does not model ADEPT's vectorized non-GEMM ASIC.",
+    "The benchmark models 16 operation(s) per batch.",
+    "Vector DAC conversions are counted as ceil(batch_size / vector_reuse_factor) * m * k.",
+    "Weight DAC conversions are counted once per batch because weight_stationary is true.",
+    "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
+    "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.",
+    "The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.",
+    "System contention fields model shared bandwidth clients, arbitration efficiency, and calibration/control guardband as local assumptions; they are not inferred from published hardware unless a card says so.",
+    "Memory scenario and contention preset names describe local review assumptions, including the overlap model used to interpret transfer timing; they are not benchmark claims."
+  ],
+  "provenance": {
+    "source_title": "An electro-photonic system for accelerating deep neural networks",
+    "source_url": "https://doi.org/10.1145/3606949",
+    "doi": "10.1145/3606949",
+    "venue": "ACM Journal on Emerging Technologies in Computing Systems 19(4), Article 30 (2023)",
+    "claim_status": "paper-reported full-system throughput-per-Watt comparisons and architecture; SRAM-backed GEMM surrogate"
+  }
+}

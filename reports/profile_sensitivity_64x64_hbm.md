@@ -6,6 +6,7 @@ Same 64x64 photonic matmul workload as the starter card, using the hbm system pr
 
 
 
+
 ## Workload
 
 | Metric | Value |
@@ -139,6 +140,17 @@ not a published hardware energy breakdown.
 | Contention-adjusted transfer-to-compute time ratio | 21.287 |
 | Contention pressure ratio | 21.287 |
 | Contention-adjusted equivalent ops/s | 4925908496732.026 |
+
+### Scenario Provenance Packs
+
+These packs justify the selected local memory hierarchy and contention preset
+without implying measured end-to-end hardware behavior.
+
+| Pack | Status | Calibration scope | Sources | Local assumptions | Reviewer note |
+| --- | --- | --- | --- | --- | --- |
+| Memory scenario | source-context-plus-local-parameters | HBM-like off-chip tier with lower movement energy and higher bandwidth than the DDR/default tier. | JEDEC JESD238 High Bandwidth Memory HBM3 standard notice (JEDEC JESD238); Computing's energy problem (and what we can do about it) (10.1109/ISSCC.2014.6757323) | The 512 bytes/ns off-chip bandwidth is a PhotonicBench local scenario parameter.; The 3 pJ/byte read/write energy is a local comparison value, not a JEDEC-published energy number. | The source anchors the HBM-class hierarchy choice; numeric model inputs remain local assumptions. |
+| Contention preset | source-context-plus-local-parameters | HBM-style shared stack with local two-client bandwidth division, arbitration loss, and small guardband. | JEDEC JESD238 High Bandwidth Memory HBM3 standard notice (JEDEC JESD238) | Two modeled clients, 0.92 arbitration efficiency, and 0.02 guardband are PhotonicBench local contention parameters. | Use to test whether HBM sharing changes the ranking. |
+
 
 ## Energy
 

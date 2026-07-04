@@ -23,7 +23,10 @@
         "dong_2023_continuous_time_tensor_core_surrogate.json",
         "shen_2017_coherent_onn_surrogate.json",
         "tait_2017_microring_weight_bank_surrogate.json",
-        "chipai_2025_photonic_chiplet_surrogate.json"
+        "chipai_2025_photonic_chiplet_surrogate.json",
+        "lightening_transformer_2024_surrogate.json",
+        "lightning_2023_smartnic_surrogate.json",
+        "adept_2023_electro_photonic_surrogate.json"
       ],
       "pinned_id": "nature_pace_64x64.json",
       "analysis_intent": {

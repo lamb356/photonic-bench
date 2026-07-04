@@ -108,6 +108,11 @@ Named profiles are local memory-scenario presets, not measured hardware claims:
 | `pcie_attached` | Uses a lower-bandwidth, higher-energy host/PCIe-attached tier and serialized memory timing. |
 | `optical_interconnect` | Uses high-bandwidth intermediate/off-chip movement paths to stress WDM, broadcast, and chiplet-style optical interconnect assumptions. |
 
+Generated reports attach scenario provenance packs to the memory-scenario object
+for every named profile and contention preset. These packs provide source
+context and explicit local assumptions for review; they do not make the local
+pJ/byte, bandwidth, arbitration, or guardband values measured hardware data.
+
 Profile selection can be combined with tier overrides:
 
 ```yaml
@@ -371,7 +376,7 @@ The Xu 2021 example uses the Nature paper "11 TOPS photonic convolutional accele
 
 Because that source is a vector convolution accelerator, PhotonicBench labels the local workload as a dense matmul surrogate (`m=1`, `k=250000`, `n=10`). The card carries the paper numbers as published references, not as local model results.
 
-This repository also includes twenty-five additional source-backed published-card
+This repository also includes twenty-eight additional source-backed published-card
 surrogates:
 
 - Feldmann et al., "Parallel convolutional processing using an integrated
@@ -460,6 +465,20 @@ surrogates:
   (2025), DOI: `10.1016/j.sysarc.2024.103308`. The card records relative
   inference-time and energy reductions plus hybrid optical-network behavior
   while using a dense chiplet/off-chip movement surrogate.
+- Zhu et al., "Lightening-Transformer: A dynamically-operated
+  optically-interconnected photonic Transformer accelerator", HPCA 2024,
+  DOI: `10.48550/arXiv.2305.19533`. The card records relative energy, latency,
+  EDP, dynamic tensor-core, and optical-broadcast claims while using an
+  activation-heavy dense transformer-matmul surrogate.
+- Zhong et al., "Lightning: A reconfigurable photonic-electronic SmartNIC for
+  fast and energy-efficient inference", ACM SIGCOMM 2023, DOI:
+  `10.1145/3603269.3604821`. The card records NIC rate, prototype frequency,
+  accuracy, DDR datapath rate, and relative serve-time/energy claims while using
+  a host/network-attached LeNet-style matvec surrogate.
+- Demirkiran et al., "An electro-photonic system for accelerating deep neural
+  networks", ACM JETC 19(4), Article 30 (2023), DOI: `10.1145/3606949`. The
+  card records full-system throughput-per-Watt comparisons and SRAM-backed
+  architecture facts while using a weight-stationary SRAM GEMM surrogate.
 - Meyer et al., "Deep neural network inference on an integrated,
   reconfigurable photonic tensor processor", Nature Communications 17, 3396
   (2026), DOI: `10.1038/s41467-026-71599-2`. The card records the 9-input,
@@ -513,6 +532,11 @@ energy, accuracy, area, and precision, and a conservative `A` through `D`
 confidence grade. This table is an audit aid only; it does not change local
 model math or promote a surrogate card into a measured reproduction.
 
+Published cards now also carry a structured Source Audit under
+`published_reference.source_audit`. It separates quoted source metrics, direct
+conversion math, local assumptions, and confidence flags so reviewers can trace
+paper values without mixing them into `local_model`.
+
 ## Machine-Readable JSON
 
 The `run` command can write Markdown and JSON in the same invocation:
@@ -531,7 +555,7 @@ The JSON card includes:
   contention-adjusted latency/throughput outputs, including named memory
   scenarios, contention presets, effective usable bandwidth under load, and
   hierarchy energy breakdowns
-- optional published reference data, source quality, and provenance
+- optional published reference data, source quality, source audit, and provenance
 - a `calibration_fit` field reserved for fitted calibration results
 
 Published reference values and source-quality metadata remain under

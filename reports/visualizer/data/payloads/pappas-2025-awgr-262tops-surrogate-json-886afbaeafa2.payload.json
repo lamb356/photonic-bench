@@ -58,6 +58,36 @@
         "contention_preset": "single_client",
         "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
         "overlap_model": "profile_timing_mode",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+          "sources": [
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+            "The scenario is a conservative baseline for sensitivity comparisons."
+          ],
+          "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+        },
+        "contention_provenance": {
+          "status": "local-baseline",
+          "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+          "sources": [],
+          "local_assumptions": [
+            "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+          ],
+          "reviewer_note": "Use as the no-contention reference point."
+        },
         "assumptions": {
           "shared_bandwidth_clients": 1.0,
           "arbitration_efficiency": 1.0,
@@ -154,6 +184,36 @@
         "contention_preset": "single_client",
         "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
         "overlap_model": "profile_timing_mode",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+          "sources": [
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+            "The scenario is a conservative baseline for sensitivity comparisons."
+          ],
+          "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+        },
+        "contention_provenance": {
+          "status": "local-baseline",
+          "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+          "sources": [],
+          "local_assumptions": [
+            "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+          ],
+          "reviewer_note": "Use as the no-contention reference point."
+        },
         "assumptions": {
           "shared_bandwidth_clients": 1.0,
           "arbitration_efficiency": 1.0,
@@ -437,6 +497,124 @@
         "Good throughput, energy, and task-metric coverage; local dense tile is still a surrogate for the reported AWGR MbTM schedule."
       ],
       "note": "Source quality grades summarize evidence coverage for the published reference card. They do not upgrade local surrogate estimates into paper measurements."
+    },
+    "source_audit": {
+      "quoted_metrics": [
+        {
+          "metric": "Architecture",
+          "quoted_value": "16x16 AWGR Matrix-by-Tensor-Multiply photonic AI accelerator",
+          "source_location": "published_calibration.architecture",
+          "note": "Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics."
+        },
+        {
+          "metric": "Reported throughput",
+          "quoted_value": "262.0",
+          "source_location": "published_calibration.reported_tops",
+          "note": "Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics."
+        },
+        {
+          "metric": "Energy efficiency including lasers",
+          "quoted_value": "3.663003663003663",
+          "source_location": "published_calibration.energy_efficiency_including_lasers_tops_per_watt",
+          "note": "Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics."
+        },
+        {
+          "metric": "Reported energy per op fj",
+          "quoted_value": "273",
+          "source_location": "published_calibration.additional_metrics.reported_energy_per_op_fj",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Data rate gbaud",
+          "quoted_value": "32",
+          "source_location": "published_calibration.additional_metrics.data_rate_gbaud",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Awgr dimension",
+          "quoted_value": "16x16",
+          "source_location": "published_calibration.additional_metrics.awgr_dimension",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Ddos kappa score",
+          "quoted_value": "0.8652",
+          "source_location": "published_calibration.additional_metrics.ddos_kappa_score",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Mnist accuracy percent",
+          "quoted_value": "92.14",
+          "source_location": "published_calibration.additional_metrics.mnist_accuracy_percent",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Energy efficiency note",
+          "quoted_value": "3.663 TOPS/W is the direct conversion of the paper's 273 fJ/OP statement.",
+          "source_location": "published_calibration.additional_metrics.energy_efficiency_note",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Surrogate mapping",
+          "quoted_value": "m=16, k=16, n=16 is a dense tile surrogate for the 16x16 AWGR engine; not an exact MbTM schedule.",
+          "source_location": "published_calibration.additional_metrics.surrogate_mapping",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        }
+      ],
+      "local_assumptions": [
+        "Local surrogate type: dense_awgr_tile_surrogate.",
+        "Good throughput, energy, and task-metric coverage; local dense tile is still a surrogate for the reported AWGR MbTM schedule.",
+        "Source reports 262 TOPS at 32 Gbaud and a 273 fJ/OP silicon-photonic energy-efficiency analysis; PhotonicBench keeps those values in published_reference.",
+        "The local model uses a one-cycle 32 Gbaud timing surrogate and generic converter energy assumptions.",
+        "Weight-stationary mode approximates reusing the reported AWGR weight/tensor structure for one dense local tile."
+      ],
+      "conversion_math": [
+        {
+          "derived_metric": "energy_per_op_including_lasers_pj",
+          "formula": "1 / energy_efficiency_including_lasers_tops_per_watt",
+          "inputs": {
+            "energy_efficiency_including_lasers_tops_per_watt": 3.663003663003663
+          },
+          "result": "0.273"
+        },
+        {
+          "derived_metric": "energy_per_mac_including_lasers_pj",
+          "formula": "2 / energy_efficiency_including_lasers_tops_per_watt",
+          "inputs": {
+            "energy_efficiency_including_lasers_tops_per_watt": 3.663003663003663
+          },
+          "result": "0.546"
+        },
+        {
+          "derived_metric": "total_energy_including_lasers_pj",
+          "formula": "equivalent_ops / energy_efficiency_including_lasers_tops_per_watt",
+          "inputs": {
+            "energy_efficiency_including_lasers_tops_per_watt": 3.663003663003663,
+            "equivalent_ops": 8192
+          },
+          "result": "2236.416"
+        },
+        {
+          "derived_metric": "model_to_published_including_lasers_ratio",
+          "formula": "local_model.energy.total_pj / published_reference.derived_unit_conversions.total_energy_including_lasers_pj",
+          "inputs": {
+            "published_total_energy_including_lasers_pj": 2236.416
+          },
+          "result": "0.10782967033",
+          "note": "Diagnostic ratio only; it does not change local_model or published_reference."
+        }
+      ],
+      "confidence_flags": [
+        "claim_status=paper-reported and paper-projected throughput/energy targets; matmul-surrogate local model",
+        "source_doi=10.1063/5.0271374",
+        "source_quality_grade=B",
+        "coverage.accuracy=reported",
+        "coverage.area=not_reported",
+        "coverage.energy=reported",
+        "coverage.precision=not_reported",
+        "coverage.throughput=reported"
+      ],
+      "separation_note": "Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs."
     },
     "separation_note": "Published values are paper-reported references or direct unit conversions, not local component-model estimates."
   },

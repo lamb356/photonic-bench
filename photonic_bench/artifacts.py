@@ -229,6 +229,18 @@ MATMUL_ARTIFACT_RECIPES: tuple[MatmulArtifactRecipe, ...] = (
         "chipai_2025_photonic_chiplet_surrogate",
     ),
     MatmulArtifactRecipe(
+        "lightening_transformer_2024_surrogate.yaml",
+        "lightening_transformer_2024_surrogate",
+    ),
+    MatmulArtifactRecipe(
+        "lightning_2023_smartnic_surrogate.yaml",
+        "lightning_2023_smartnic_surrogate",
+    ),
+    MatmulArtifactRecipe(
+        "adept_2023_electro_photonic_surrogate.yaml",
+        "adept_2023_electro_photonic_surrogate",
+    ),
+    MatmulArtifactRecipe(
         "meyer_2026_reconfigurable_ptp_surrogate.yaml",
         "meyer_2026_reconfigurable_ptp_surrogate",
     ),

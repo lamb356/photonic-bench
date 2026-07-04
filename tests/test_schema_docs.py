@@ -20,6 +20,9 @@ def test_json_schema_file_documents_report_v1_contract() -> None:
     )
 
     assert schema["title"] == "PhotonicBench report v1"
+    assert schema["x-schema-version-policy"]["schema_identifier"] == (
+        "photonic-bench-report-v1"
+    )
     assert schema["properties"]["schema_version"]["const"] == REPORT_SCHEMA_VERSION
     assert set(schema["required"]) == {
         "schema_version",
@@ -56,6 +59,13 @@ def test_json_schema_file_documents_report_v1_contract() -> None:
     assert "memoryScenario" in schema["$defs"]
     assert "hierarchyEnergyBreakdown" in schema["$defs"]
     assert "sourceQuality" in schema["$defs"]
+    assert "sourceAudit" in schema["$defs"]
+    assert "source_audit" in schema["properties"]["published_reference"]["oneOf"][1][
+        "properties"
+    ]
+    assert "scenarioProvenancePack" in schema["$defs"]
+    assert "scenario_provenance" in schema["$defs"]["memoryScenario"]["properties"]
+    assert "contention_provenance" in schema["$defs"]["memoryScenario"]["properties"]
 
 
 def test_transformer_layer_json_schema_file_documents_aggregate_contract() -> None:
@@ -66,6 +76,9 @@ def test_transformer_layer_json_schema_file_documents_aggregate_contract() -> No
     )
 
     assert schema["title"] == "PhotonicBench transformer layer aggregate report v1"
+    assert schema["x-schema-version-policy"]["schema_identifier"] == (
+        "photonic-bench-transformer-layer-report-v1"
+    )
     assert (
         schema["properties"]["schema_version"]["const"]
         == TRANSFORMER_LAYER_REPORT_SCHEMA_VERSION
@@ -113,6 +126,8 @@ def test_transformer_layer_json_schema_file_documents_aggregate_contract() -> No
     )
     assert "systemContentionInputs" in schema["$defs"]
     assert "memoryScenario" in schema["$defs"]
+    assert "scenarioProvenancePack" in schema["$defs"]
+    assert "scenario_provenance" in schema["$defs"]["memoryScenario"]["properties"]
     assert "rows" in schema["properties"]["formula_audit"]["required"]
     assert schema["properties"]["workload"]["properties"]["matmul_count"]["const"] == 5
     assert (
@@ -136,6 +151,9 @@ def test_transformer_model_json_schema_file_documents_aggregate_contract() -> No
     )
 
     assert schema["title"] == "PhotonicBench transformer model aggregate report v1"
+    assert schema["x-schema-version-policy"]["schema_identifier"] == (
+        "photonic-bench-transformer-model-report-v1"
+    )
     assert (
         schema["properties"]["schema_version"]["const"]
         == TRANSFORMER_MODEL_REPORT_SCHEMA_VERSION
@@ -171,6 +189,8 @@ def test_transformer_model_json_schema_file_documents_aggregate_contract() -> No
     )
     assert "systemContentionInputs" in schema["$defs"]
     assert "memoryScenario" in schema["$defs"]
+    assert "scenarioProvenancePack" in schema["$defs"]
+    assert "scenario_provenance" in schema["$defs"]["memoryScenario"]["properties"]
     assert "overlap_adjusted_batch_latency_ns" in schema["$defs"]["modelTiming"][
         "required"
     ]
@@ -187,6 +207,9 @@ def test_comparison_export_json_schema_file_documents_browser_contract() -> None
     )
 
     assert schema["title"] == "PhotonicBench visualizer comparison export v1"
+    assert schema["x-schema-version-policy"]["schema_identifier"] == (
+        "photonic-bench-comparison-export-v1"
+    )
     assert (
         schema["properties"]["schema_version"]["const"]
         == "photonic-bench-comparison-export-v1"
@@ -232,6 +255,9 @@ def test_decision_packet_json_schema_file_documents_browser_review_contract() ->
     )
 
     assert schema["title"] == "PhotonicBench visualizer decision packet v1"
+    assert schema["x-schema-version-policy"]["schema_identifier"] == (
+        "photonic-bench-decision-packet-v1"
+    )
     assert (
         schema["properties"]["schema_version"]["const"]
         == "photonic-bench-decision-packet-v1"
@@ -266,6 +292,11 @@ def test_json_schema_docs_describe_units_nullability_and_examples() -> None:
     assert "`published_reference` | yes | object or null" in docs
     assert "Published Source Quality" in docs
     assert "`published_reference.source_quality`" in docs
+    assert "Published Source Audit" in docs
+    assert "`published_reference.source_audit`" in docs
+    assert "Schema Compatibility Policy" in docs
+    assert "`scenario_provenance`" in docs
+    assert "`contention_provenance`" in docs
     assert "`calibration_fit` | yes | object or null" in docs
     assert "`formula_audit` | yes | object" in docs
     assert "`matmuls` | yes | array" in docs
@@ -306,6 +337,17 @@ def test_json_schema_docs_describe_units_nullability_and_examples() -> None:
     assert "`score_explanation`" in docs
     assert "python examples/load_report_json.py" in docs
     assert "python -m photonic_bench.cli compare" in docs
+
+
+def test_pull_request_template_contains_reviewer_gates() -> None:
+    template = Path(".github/pull_request_template.md").read_text(encoding="utf-8")
+
+    assert "python -m photonic_bench.cli verify-artifacts" in template
+    assert "Visual-regression screenshots" in template
+    assert "Decision Packet JSON export/import replay" in template
+    assert "Schema changes follow the compatibility policy" in template
+    assert "`published_reference`" in template
+    assert "`local_model`" in template
 
 
 def test_load_report_json_example_prints_summary(tmp_path: Path) -> None:

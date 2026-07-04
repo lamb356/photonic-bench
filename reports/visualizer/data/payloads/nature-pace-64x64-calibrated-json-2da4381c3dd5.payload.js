@@ -59,6 +59,36 @@ window.PhotonicBenchPayloadRegistry["nature_pace_64x64_calibrated.json"] = {
         "contention_preset": "single_client",
         "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
         "overlap_model": "profile_timing_mode",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+          "sources": [
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+            "The scenario is a conservative baseline for sensitivity comparisons."
+          ],
+          "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+        },
+        "contention_provenance": {
+          "status": "local-baseline",
+          "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+          "sources": [],
+          "local_assumptions": [
+            "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+          ],
+          "reviewer_note": "Use as the no-contention reference point."
+        },
         "assumptions": {
           "shared_bandwidth_clients": 1.0,
           "arbitration_efficiency": 1.0,
@@ -155,6 +185,36 @@ window.PhotonicBenchPayloadRegistry["nature_pace_64x64_calibrated.json"] = {
         "contention_preset": "single_client",
         "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
         "overlap_model": "profile_timing_mode",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+          "sources": [
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+            "The scenario is a conservative baseline for sensitivity comparisons."
+          ],
+          "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+        },
+        "contention_provenance": {
+          "status": "local-baseline",
+          "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+          "sources": [],
+          "local_assumptions": [
+            "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+          ],
+          "reviewer_note": "Use as the no-contention reference point."
+        },
         "assumptions": {
           "shared_bandwidth_clients": 1.0,
           "arbitration_efficiency": 1.0,
@@ -441,6 +501,152 @@ window.PhotonicBenchPayloadRegistry["nature_pace_64x64_calibrated.json"] = {
         "Direct 64x64 matrix-vector calibration card with paper-reported TOPS, TOPS/W, latency, ENOB, and component-count evidence."
       ],
       "note": "Source quality grades summarize evidence coverage for the published reference card. They do not upgrade local surrogate estimates into paper measurements."
+    },
+    "source_audit": {
+      "quoted_metrics": [
+        {
+          "metric": "Architecture",
+          "quoted_value": "PACE 64x64 matrix-vector oMAC",
+          "source_location": "published_calibration.architecture",
+          "note": "Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics."
+        },
+        {
+          "metric": "Reported throughput",
+          "quoted_value": "8.19",
+          "source_location": "published_calibration.reported_tops",
+          "note": "Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics."
+        },
+        {
+          "metric": "Energy efficiency excluding lasers",
+          "quoted_value": "4.21",
+          "source_location": "published_calibration.energy_efficiency_excluding_lasers_tops_per_watt",
+          "note": "Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics."
+        },
+        {
+          "metric": "Energy efficiency including lasers",
+          "quoted_value": "2.38",
+          "source_location": "published_calibration.energy_efficiency_including_lasers_tops_per_watt",
+          "note": "Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics."
+        },
+        {
+          "metric": "Reported latency",
+          "quoted_value": "5.0",
+          "source_location": "published_calibration.reported_latency_ns",
+          "note": "Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics."
+        },
+        {
+          "metric": "Reported future-device latency",
+          "quoted_value": "3.0",
+          "source_location": "published_calibration.reported_future_latency_ns",
+          "note": "Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics."
+        },
+        {
+          "metric": "Reported ENOB",
+          "quoted_value": "7.61",
+          "source_location": "published_calibration.reported_enob",
+          "note": "Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics."
+        },
+        {
+          "metric": "Reported component count minimum",
+          "quoted_value": "16000",
+          "source_location": "published_calibration.reported_component_count_min",
+          "note": "Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics."
+        },
+        {
+          "metric": "A10 comparison latency minimum",
+          "quoted_value": "2300.0",
+          "source_location": "published_calibration.a10_latency_ns_min",
+          "note": "Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics."
+        },
+        {
+          "metric": "PACE total time",
+          "quoted_value": "2.7",
+          "source_location": "published_calibration.pace_total_time_us",
+          "note": "Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics."
+        },
+        {
+          "metric": "GPU/A10 total time",
+          "quoted_value": "798.1",
+          "source_location": "published_calibration.gpu_total_time_us",
+          "note": "Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics."
+        }
+      ],
+      "local_assumptions": [
+        "Local surrogate type: direct_64x64_matrix_vector_calibration.",
+        "Direct 64x64 matrix-vector calibration card with paper-reported TOPS, TOPS/W, latency, ENOB, and component-count evidence."
+      ],
+      "conversion_math": [
+        {
+          "derived_metric": "energy_per_op_excluding_lasers_pj",
+          "formula": "1 / energy_efficiency_excluding_lasers_tops_per_watt",
+          "inputs": {
+            "energy_efficiency_excluding_lasers_tops_per_watt": 4.21
+          },
+          "result": "0.237529691211"
+        },
+        {
+          "derived_metric": "energy_per_mac_excluding_lasers_pj",
+          "formula": "2 / energy_efficiency_excluding_lasers_tops_per_watt",
+          "inputs": {
+            "energy_efficiency_excluding_lasers_tops_per_watt": 4.21
+          },
+          "result": "0.475059382423"
+        },
+        {
+          "derived_metric": "total_energy_excluding_lasers_pj",
+          "formula": "equivalent_ops / energy_efficiency_excluding_lasers_tops_per_watt",
+          "inputs": {
+            "energy_efficiency_excluding_lasers_tops_per_watt": 4.21,
+            "equivalent_ops": 8192
+          },
+          "result": "1945.8432304"
+        },
+        {
+          "derived_metric": "energy_per_op_including_lasers_pj",
+          "formula": "1 / energy_efficiency_including_lasers_tops_per_watt",
+          "inputs": {
+            "energy_efficiency_including_lasers_tops_per_watt": 2.38
+          },
+          "result": "0.420168067227"
+        },
+        {
+          "derived_metric": "energy_per_mac_including_lasers_pj",
+          "formula": "2 / energy_efficiency_including_lasers_tops_per_watt",
+          "inputs": {
+            "energy_efficiency_including_lasers_tops_per_watt": 2.38
+          },
+          "result": "0.840336134454"
+        },
+        {
+          "derived_metric": "total_energy_including_lasers_pj",
+          "formula": "equivalent_ops / energy_efficiency_including_lasers_tops_per_watt",
+          "inputs": {
+            "energy_efficiency_including_lasers_tops_per_watt": 2.38,
+            "equivalent_ops": 8192
+          },
+          "result": "3442.01680672"
+        },
+        {
+          "derived_metric": "model_to_published_including_lasers_ratio",
+          "formula": "local_model.energy.total_pj / published_reference.derived_unit_conversions.total_energy_including_lasers_pj",
+          "inputs": {
+            "published_total_energy_including_lasers_pj": 3442.016806722689
+          },
+          "result": "0.2535815625",
+          "note": "Diagnostic ratio only; it does not change local_model or published_reference."
+        }
+      ],
+      "confidence_flags": [
+        "claim_status=paper-reported calibration targets",
+        "source_doi=10.1038/s41586-025-08786-6",
+        "source_quality_grade=A",
+        "coverage.accuracy=not_applicable",
+        "coverage.area=derived",
+        "coverage.energy=reported",
+        "coverage.precision=reported",
+        "coverage.throughput=reported"
+      ],
+      "separation_note": "Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs."
     },
     "separation_note": "Published values are paper-reported references or direct unit conversions, not local component-model estimates."
   },

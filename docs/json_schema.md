@@ -16,11 +16,28 @@ Transformer-model aggregate schema version:
 Machine-readable transformer-model aggregate schema:
 `docs/photonic-bench-transformer-model-report-v1.schema.json`
 
-## Versioning
+## Schema Compatibility Policy
 
-`schema_version` is required and currently must be `photonic-bench-report-v1`.
+`schema_version` is required and currently must be one of the documented
+`*-v1` schema identifiers for the artifact type being loaded.
 
-Patch-level additions may add optional fields under existing objects. A future breaking change must use a new schema version string.
+The compatibility rule is intentionally conservative:
+
+- Keeping the same schema id is allowed only for additive optional properties,
+  new shared `$defs` referenced by optional properties, docs, examples, or
+  clarifying descriptions.
+- Adding required properties, removing or renaming existing properties,
+  changing units, changing nullability or value types, or changing the boundary
+  between `published_reference` and `local_model` is breaking.
+- Breaking changes require a new `schema_version` string and a new machine
+  schema file.
+- Deprecated aliases may stay in a `*-v1` schema for compatibility, but new
+  canonical fields must be documented and generated artifacts must be
+  regenerated and validated.
+
+Every checked JSON schema carries the same policy in an
+`x-schema-version-policy` object so reviewers do not have to infer whether a
+schema edit is additive or breaking.
 
 Transformer-layer aggregate JSON uses its own schema version because it
 summarizes a whole layer rather than one matmul card. Its current
@@ -54,6 +71,26 @@ math and does not convert a surrogate into a paper measurement. The object
 records source DOI/reference, metric types reported by the paper, local
 surrogate type, coverage for throughput/energy/accuracy/area/precision, a
 conservative `A` through `D` confidence grade, and grading notes.
+
+## Published Source Audit
+
+Generated published cards include `published_reference.source_audit`. The field
+is optional in `photonic-bench-report-v1` so older v1 reports remain
+schema-compatible, but newly generated checked reports include it whenever
+`published_reference` is present.
+
+`published_reference.source_audit` separates:
+
+- `quoted_metrics[]`: source-reported values or card-level source metadata with
+  `metric`, `quoted_value`, `source_location`, and optional `note`.
+- `conversion_math[]`: direct unit conversions from `published_calibration`
+  fields, with formula, inputs, and result.
+- `local_assumptions[]`: local PhotonicBench assumptions and surrogate mapping
+  notes.
+- `confidence_flags[]`: conservative source-quality and boundary flags.
+
+This field is a reviewer audit aid. It does not move paper values into
+`local_model`, and it does not make local surrogate estimates source-reported.
 
 ## Per-Card System Model Fields
 
@@ -149,6 +186,12 @@ bandwidth diagnostics.
 describe the named local scenario, tier assumptions, contention preset, and
 overlap model used for the run. These scenario fields are local review and
 sensitivity assumptions, not paper-published hardware measurements.
+New generated reports also include optional `scenario_provenance` and
+`contention_provenance` packs inside those scenario objects. The packs list
+source context, explicit local assumptions, calibration scope, and reviewer
+notes for the memory hierarchy and contention preset. They justify why the
+scenario exists; they do not make pJ/byte, bandwidth, guardband, or arbitration
+values paper-measured hardware data.
 `local_model.system.hierarchy_energy_breakdown` makes local compute/conversion
 energy and SRAM/intermediate/off-chip movement energy first-class by hierarchy
 level.

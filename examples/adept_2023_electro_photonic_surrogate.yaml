@@ -1,0 +1,95 @@
+benchmark:
+  name: ADEPT 2023 electro-photonic system surrogate
+  description: Source-backed analog/full-system card for the JETC 2023 ADEPT electro-photonic DNN accelerator. The paper combines photonic GEMM, a vectorized digital ASIC for non-GEMM work, and SRAM arrays for parameters and activations; this config uses a batch weight-stationary 128x128 local GEMM under the on_chip_sram scenario for PhotonicBench comparison only.
+workload:
+  type: matmul
+  m: 128
+  n: 128
+  k: 128
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 8
+    energy_pj_per_conversion: 0.5
+  vector_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+  weight_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+execution:
+  batch_size: 16
+  vector_reuse_factor: 2
+  weight_reuse_factor: 16
+  weight_stationary: true
+  pipeline:
+    stages: 1
+system:
+  profile: on_chip_sram
+timing:
+  optical_latency_ns: 1
+  adc_latency_ns: 0
+  dac_latency_ns: 0
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 1
+provenance:
+  source_title: An electro-photonic system for accelerating deep neural networks
+  source_url: https://doi.org/10.1145/3606949
+  doi: 10.1145/3606949
+  venue: ACM Journal on Emerging Technologies in Computing Systems 19(4), Article 30 (2023)
+  claim_status: paper-reported full-system throughput-per-Watt comparisons and architecture; SRAM-backed GEMM surrogate
+published_calibration:
+  architecture: ADEPT electro-photonic accelerator with photonic GEMM, vectorized digital ASIC, and SRAM arrays
+  additional_metrics:
+    throughput_per_watt_vs_systolic_arrays_x: 5.73
+    throughput_per_watt_vs_state_of_art_electronic_accelerators_min_x: 6.8
+    throughput_per_watt_vs_state_of_art_photonic_accelerators_x: 2.5
+    photonic_unit_for_gemm: true
+    vectorized_digital_asic_for_non_gemm: true
+    sram_arrays_for_parameters_and_activations: true
+    full_system_perspective: true
+    surrogate_mapping: m=128, k=128, n=128 with batch=16 and weight_stationary=true stresses SRAM-backed GEMM reuse; it is not an ADEPT full-system simulator or non-GEMM ASIC model.
+source_quality:
+  reported_metrics:
+    - throughput_per_watt
+    - full_system_architecture
+    - memory_architecture
+    - comparative_efficiency
+  local_surrogate_type: sram_backed_weight_stationary_gemm_surrogate
+  coverage:
+    throughput: reported
+    energy: reported
+    accuracy: not_reported
+    area: not_reported
+    precision: not_reported
+  confidence_grade: B
+  notes:
+    - Source reports full-system throughput-per-Watt comparisons and SRAM-backed architecture; local energy, timing, and hierarchy values remain PhotonicBench estimates.
+source_audit:
+  quoted_metrics:
+    - metric: Throughput per Watt vs traditional systolic arrays
+      quoted_value: "5.73x higher on average"
+      source_location: Abstract, arXiv:2109.01126 / JETC 2023
+    - metric: Throughput per Watt vs state-of-the-art electronic accelerators
+      quoted_value: "at least 6.8x better"
+      source_location: Abstract, arXiv:2109.01126 / JETC 2023
+    - metric: Throughput per Watt vs state-of-the-art photonic accelerators
+      quoted_value: "2.5x better"
+      source_location: Abstract, arXiv:2109.01126 / JETC 2023
+    - metric: Memory architecture
+      quoted_value: "SRAM arrays for storing DNN parameters and activations"
+      source_location: Abstract, arXiv:2109.01126 / JETC 2023
+  local_assumptions:
+    - Local batch weight-stationary 128x128 GEMM is chosen to stress SRAM-backed reuse and does not reproduce ADEPT's full DNN pipeline.
+    - The on_chip_sram scenario is a local PhotonicBench movement assumption for parameter and activation locality.
+  confidence_flags:
+    - comparative_efficiency_only_no_absolute_tops_per_watt
+    - non_gemm_asic_not_modeled
+assumptions:
+  - Published comparative throughput-per-Watt claims and architecture facts remain under published_calibration and published_reference.
+  - Local optical MAC energy, converter energy, one-nanosecond latency, and SRAM tier parameters are generic PhotonicBench assumptions.
+  - Weight-stationary mode approximates parameter reuse in an SRAM-backed GEMM slice and does not model ADEPT's vectorized non-GEMM ASIC.

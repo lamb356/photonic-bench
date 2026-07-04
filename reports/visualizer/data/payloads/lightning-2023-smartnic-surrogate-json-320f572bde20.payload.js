@@ -1,0 +1,746 @@
+window.PhotonicBenchPayloadRegistry = window.PhotonicBenchPayloadRegistry || {};
+window.PhotonicBenchPayloadRegistry["lightning_2023_smartnic_surrogate.json"] = {
+  "schema_version": "photonic-bench-report-v1",
+  "benchmark": {
+    "name": "Lightning 2023 photonic-electronic SmartNIC surrogate",
+    "description": "Source-backed host/network-attached card for the SIGCOMM 2023 Lightning SmartNIC. The paper demonstrates a photonic-electronic inference datapath connected to a 100 Gbps NIC and local DDR; this config uses a LeNet-style 784x300 matvec surrogate under the pcie_attached scenario for PhotonicBench comparison only."
+  },
+  "workload": {
+    "type": "matmul",
+    "shape": {
+      "m": 1,
+      "k": 784,
+      "n": 300
+    },
+    "macs": 235200,
+    "equivalent_ops": 470400,
+    "output_elements": 300
+  },
+  "model_inputs": {
+    "device": {
+      "optical_mac_energy_fj": 0.5,
+      "laser_wall_plug_efficiency": 0.25,
+      "photodetector_energy_fj_per_sample": 10.0,
+      "adc": {
+        "bits": 8,
+        "energy_pj_per_conversion": 0.5
+      },
+      "dac": {
+        "bits": 8,
+        "energy_pj_per_conversion": 0.2
+      },
+      "vector_dac": {
+        "bits": 8,
+        "energy_pj_per_conversion": 0.2
+      },
+      "weight_dac": {
+        "bits": 8,
+        "energy_pj_per_conversion": 0.2
+      }
+    },
+    "execution": {
+      "batch_size": 1,
+      "vector_reuse_factor": 1,
+      "weight_reuse_factor": 1,
+      "weight_stationary": false,
+      "pipeline": {
+        "stages": 1,
+        "cycle_time_ns": null
+      }
+    },
+    "system": {
+      "profile": "pcie_attached",
+      "profile_overrides": [],
+      "scenario": {
+        "name": "pcie_attached",
+        "description": "Local SRAM plus a host/PCIe-attached memory path with lower effective bandwidth and higher movement energy.",
+        "profile_overrides": [],
+        "memory_timing_mode": "serialized",
+        "contention_preset": "pcie_round_robin",
+        "contention_preset_description": "Host/PCIe-attached path: two clients share a serialized host link with round-robin arbitration and explicit protocol guardband.",
+        "overlap_model": "serialized_host_link",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Serialized host/PCIe-attached path for cards whose data movement leaves the local accelerator package.",
+          "sources": [
+            {
+              "title": "PCI-SIG PCI Express 6.0 specification overview",
+              "url": "https://pcisig.com/pci-express-6.0-specification",
+              "reference_id": "PCIe 6.0 specification overview",
+              "evidence_type": "host-link/interconnect context",
+              "supports": [
+                "serialized host-link scenario",
+                "PCIe-attached movement path"
+              ]
+            },
+            {
+              "title": "Lightning: A reconfigurable photonic-electronic SmartNIC for fast and energy-efficient inference",
+              "url": "https://dl.acm.org/doi/10.1145/3603269.3604821",
+              "reference_id": "10.1145/3603269.3604821",
+              "evidence_type": "host/network-attached photonic system context",
+              "supports": [
+                "serialized host-attached movement",
+                "packet-to-photonic datapath"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "Host-link bandwidth and 50 pJ/byte movement are conservative local parameters.",
+            "The serialized timing mode is a local review guardrail for host-attached designs."
+          ],
+          "reviewer_note": "The pack makes host-link exposure visible without claiming a full PCIe protocol simulation."
+        },
+        "contention_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Serialized host-link contention with a local round-robin sharing and protocol guardband model.",
+          "sources": [
+            {
+              "title": "PCI-SIG PCI Express 6.0 specification overview",
+              "url": "https://pcisig.com/pci-express-6.0-specification",
+              "reference_id": "PCIe 6.0 specification overview",
+              "evidence_type": "host-link/interconnect context",
+              "supports": [
+                "serialized host-link scenario",
+                "PCIe-attached movement path"
+              ]
+            },
+            {
+              "title": "Lightning: A reconfigurable photonic-electronic SmartNIC for fast and energy-efficient inference",
+              "url": "https://dl.acm.org/doi/10.1145/3603269.3604821",
+              "reference_id": "10.1145/3603269.3604821",
+              "evidence_type": "host/network-attached photonic system context",
+              "supports": [
+                "serialized host-attached movement",
+                "packet-to-photonic datapath"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "Two modeled clients, 0.85 arbitration efficiency, and 0.05 guardband are local host-link review parameters."
+          ],
+          "reviewer_note": "Use to catch host-attached designs whose ranking depends on assuming free host movement."
+        },
+        "assumptions": {
+          "shared_bandwidth_clients": 2.0,
+          "arbitration_efficiency": 0.85,
+          "calibration_overhead_fraction": 0.05,
+          "sram": {
+            "read_energy_pj_per_byte": 0.02,
+            "write_energy_pj_per_byte": 0.02,
+            "bandwidth_bytes_per_ns": 1024.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "intermediate": {
+            "read_energy_pj_per_byte": 0.2,
+            "write_energy_pj_per_byte": 0.2,
+            "bandwidth_bytes_per_ns": 128.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "off_chip": {
+            "read_energy_pj_per_byte": 50.0,
+            "write_energy_pj_per_byte": 50.0,
+            "bandwidth_bytes_per_ns": 8.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          }
+        },
+        "note": "Memory scenario fields are local modeling assumptions for review and sensitivity analysis; they are not paper-published hardware measurements unless a card states otherwise."
+      },
+      "memory_timing_mode": "serialized",
+      "contention": {
+        "preset": "pcie_round_robin",
+        "shared_bandwidth_clients": 2.0,
+        "arbitration_efficiency": 0.85,
+        "calibration_overhead_fraction": 0.05,
+        "overlap_model": "serialized_host_link"
+      },
+      "sram": {
+        "read_energy_pj_per_byte": 0.02,
+        "write_energy_pj_per_byte": 0.02,
+        "bandwidth_bytes_per_ns": 1024.0,
+        "read_fraction": 1.0,
+        "write_fraction": 1.0
+      },
+      "intermediate": {
+        "read_energy_pj_per_byte": 0.2,
+        "write_energy_pj_per_byte": 0.2,
+        "bandwidth_bytes_per_ns": 128.0,
+        "read_fraction": 1.0,
+        "write_fraction": 1.0
+      },
+      "off_chip": {
+        "read_energy_pj_per_byte": 50.0,
+        "write_energy_pj_per_byte": 50.0,
+        "bandwidth_bytes_per_ns": 8.0,
+        "read_fraction": 1.0,
+        "write_fraction": 1.0
+      }
+    },
+    "timing": {
+      "optical_latency_ns": 1.0,
+      "adc_latency_ns": 0.0,
+      "dac_latency_ns": 0.0
+    },
+    "noise": {
+      "phase_noise_rad_rms": 0.02,
+      "drift_rad_per_second": 0.1,
+      "integration_time_ns": 1.0
+    }
+  },
+  "local_model": {
+    "conversion_counts": {
+      "adc_conversions": 300,
+      "vector_dac_conversions": 784,
+      "weight_dac_conversions": 235200,
+      "dac_conversions": 235984
+    },
+    "memory_traffic": {
+      "vector_operand_read_bytes": 784,
+      "weight_operand_read_bytes": 235200,
+      "output_write_bytes": 300,
+      "total_interface_bytes": 236284,
+      "macs_per_byte": 0.9954123004519985,
+      "equivalent_ops_per_byte": 1.990824600903997,
+      "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
+    },
+    "system": {
+      "profile": "pcie_attached",
+      "profile_overrides": [],
+      "memory_scenario": {
+        "name": "pcie_attached",
+        "description": "Local SRAM plus a host/PCIe-attached memory path with lower effective bandwidth and higher movement energy.",
+        "profile_overrides": [],
+        "memory_timing_mode": "serialized",
+        "contention_preset": "pcie_round_robin",
+        "contention_preset_description": "Host/PCIe-attached path: two clients share a serialized host link with round-robin arbitration and explicit protocol guardband.",
+        "overlap_model": "serialized_host_link",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Serialized host/PCIe-attached path for cards whose data movement leaves the local accelerator package.",
+          "sources": [
+            {
+              "title": "PCI-SIG PCI Express 6.0 specification overview",
+              "url": "https://pcisig.com/pci-express-6.0-specification",
+              "reference_id": "PCIe 6.0 specification overview",
+              "evidence_type": "host-link/interconnect context",
+              "supports": [
+                "serialized host-link scenario",
+                "PCIe-attached movement path"
+              ]
+            },
+            {
+              "title": "Lightning: A reconfigurable photonic-electronic SmartNIC for fast and energy-efficient inference",
+              "url": "https://dl.acm.org/doi/10.1145/3603269.3604821",
+              "reference_id": "10.1145/3603269.3604821",
+              "evidence_type": "host/network-attached photonic system context",
+              "supports": [
+                "serialized host-attached movement",
+                "packet-to-photonic datapath"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "Host-link bandwidth and 50 pJ/byte movement are conservative local parameters.",
+            "The serialized timing mode is a local review guardrail for host-attached designs."
+          ],
+          "reviewer_note": "The pack makes host-link exposure visible without claiming a full PCIe protocol simulation."
+        },
+        "contention_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Serialized host-link contention with a local round-robin sharing and protocol guardband model.",
+          "sources": [
+            {
+              "title": "PCI-SIG PCI Express 6.0 specification overview",
+              "url": "https://pcisig.com/pci-express-6.0-specification",
+              "reference_id": "PCIe 6.0 specification overview",
+              "evidence_type": "host-link/interconnect context",
+              "supports": [
+                "serialized host-link scenario",
+                "PCIe-attached movement path"
+              ]
+            },
+            {
+              "title": "Lightning: A reconfigurable photonic-electronic SmartNIC for fast and energy-efficient inference",
+              "url": "https://dl.acm.org/doi/10.1145/3603269.3604821",
+              "reference_id": "10.1145/3603269.3604821",
+              "evidence_type": "host/network-attached photonic system context",
+              "supports": [
+                "serialized host-attached movement",
+                "packet-to-photonic datapath"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "Two modeled clients, 0.85 arbitration efficiency, and 0.05 guardband are local host-link review parameters."
+          ],
+          "reviewer_note": "Use to catch host-attached designs whose ranking depends on assuming free host movement."
+        },
+        "assumptions": {
+          "shared_bandwidth_clients": 2.0,
+          "arbitration_efficiency": 0.85,
+          "calibration_overhead_fraction": 0.05,
+          "sram": {
+            "read_energy_pj_per_byte": 0.02,
+            "write_energy_pj_per_byte": 0.02,
+            "bandwidth_bytes_per_ns": 1024.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "intermediate": {
+            "read_energy_pj_per_byte": 0.2,
+            "write_energy_pj_per_byte": 0.2,
+            "bandwidth_bytes_per_ns": 128.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "off_chip": {
+            "read_energy_pj_per_byte": 50.0,
+            "write_energy_pj_per_byte": 50.0,
+            "bandwidth_bytes_per_ns": 8.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          }
+        },
+        "note": "Memory scenario fields are local modeling assumptions for review and sensitivity analysis; they are not paper-published hardware measurements unless a card states otherwise."
+      },
+      "memory_timing_mode": "serialized",
+      "contention": {
+        "preset": "pcie_round_robin",
+        "shared_bandwidth_clients": 2.0,
+        "arbitration_efficiency": 0.85,
+        "calibration_overhead_fraction": 0.05,
+        "overlap_model": "serialized_host_link"
+      },
+      "contention_preset": "pcie_round_robin",
+      "contention_overlap_model": "serialized_host_link",
+      "tiers": {
+        "sram": {
+          "name": "sram",
+          "read_bytes": 235984.0,
+          "write_bytes": 300.0,
+          "total_bytes": 236284.0,
+          "read_energy_pj": 4719.68,
+          "write_energy_pj": 6.0,
+          "total_energy_pj": 4725.68,
+          "bandwidth_bytes_per_ns": 1024.0,
+          "effective_bandwidth_bytes_per_ns": 435.2,
+          "transfer_time_ns": 230.74609375,
+          "contention_adjusted_transfer_time_ns": 542.9319852941177,
+          "read_fraction": 1.0,
+          "write_fraction": 1.0,
+          "calibration_adjusted_transfer_time_ns": 570.0785845588235,
+          "traffic_share": 0.3333333333333333,
+          "movement_energy_share": 0.00039824771007566706,
+          "system_energy_share": 0.0003966492309031443,
+          "nominal_transfer_share": 0.0072992700729927005,
+          "contention_adjusted_transfer_share": 0.0072992700729927,
+          "nominal_transfer_pressure_ratio": 230.74609375,
+          "contention_adjusted_transfer_pressure_ratio": 570.0785845588235,
+          "compute_window_required_bandwidth_bytes_per_ns": 236284.0,
+          "contention_bandwidth_utilization": 542.9319852941177,
+          "contention_bandwidth_headroom_bytes_per_ns": -235848.8,
+          "contention_bandwidth_headroom_ratio": 0.0018418513314485956
+        },
+        "intermediate": {
+          "name": "intermediate",
+          "read_bytes": 235984.0,
+          "write_bytes": 300.0,
+          "total_bytes": 236284.0,
+          "read_energy_pj": 47196.8,
+          "write_energy_pj": 60.0,
+          "total_energy_pj": 47256.8,
+          "bandwidth_bytes_per_ns": 128.0,
+          "effective_bandwidth_bytes_per_ns": 54.4,
+          "transfer_time_ns": 1845.96875,
+          "contention_adjusted_transfer_time_ns": 4343.455882352941,
+          "read_fraction": 1.0,
+          "write_fraction": 1.0,
+          "calibration_adjusted_transfer_time_ns": 4560.628676470588,
+          "traffic_share": 0.3333333333333333,
+          "movement_energy_share": 0.003982477100756671,
+          "system_energy_share": 0.003966492309031443,
+          "nominal_transfer_share": 0.058394160583941604,
+          "contention_adjusted_transfer_share": 0.0583941605839416,
+          "nominal_transfer_pressure_ratio": 1845.96875,
+          "contention_adjusted_transfer_pressure_ratio": 4560.628676470588,
+          "compute_window_required_bandwidth_bytes_per_ns": 236284.0,
+          "contention_bandwidth_utilization": 4343.455882352941,
+          "contention_bandwidth_headroom_bytes_per_ns": -236229.6,
+          "contention_bandwidth_headroom_ratio": 0.00023023141643107445
+        },
+        "off_chip": {
+          "name": "off_chip",
+          "read_bytes": 235984.0,
+          "write_bytes": 300.0,
+          "total_bytes": 236284.0,
+          "read_energy_pj": 11799200.0,
+          "write_energy_pj": 15000.0,
+          "total_energy_pj": 11814200.0,
+          "bandwidth_bytes_per_ns": 8.0,
+          "effective_bandwidth_bytes_per_ns": 3.4,
+          "transfer_time_ns": 29535.5,
+          "contention_adjusted_transfer_time_ns": 69495.29411764706,
+          "read_fraction": 1.0,
+          "write_fraction": 1.0,
+          "calibration_adjusted_transfer_time_ns": 72970.05882352941,
+          "traffic_share": 0.3333333333333333,
+          "movement_energy_share": 0.9956192751891676,
+          "system_energy_share": 0.9916230772578608,
+          "nominal_transfer_share": 0.9343065693430657,
+          "contention_adjusted_transfer_share": 0.9343065693430656,
+          "nominal_transfer_pressure_ratio": 29535.5,
+          "contention_adjusted_transfer_pressure_ratio": 72970.05882352941,
+          "compute_window_required_bandwidth_bytes_per_ns": 236284.0,
+          "contention_bandwidth_utilization": 69495.29411764706,
+          "contention_bandwidth_headroom_bytes_per_ns": -236280.6,
+          "contention_bandwidth_headroom_ratio": 1.4389463526942153e-05
+        }
+      },
+      "local_compute_and_conversion_energy_pj": 47820.200000000004,
+      "total_movement_energy_pj": 11866182.48,
+      "total_system_energy_pj": 11914002.68,
+      "system_energy_per_mac_pj": 50.65477329931973,
+      "system_energy_per_op_pj": 25.327386649659864,
+      "hierarchy_energy_breakdown": {
+        "local_compute_and_conversion": {
+          "energy_pj": 47820.200000000004,
+          "share": 0.0040137812022046655
+        },
+        "sram": {
+          "energy_pj": 4725.68,
+          "share": 0.0003966492309031443
+        },
+        "intermediate": {
+          "energy_pj": 47256.8,
+          "share": 0.003966492309031443
+        },
+        "off_chip": {
+          "energy_pj": 11814200.0,
+          "share": 0.9916230772578608
+        },
+        "movement_total": {
+          "energy_pj": 11866182.48,
+          "share": 0.9959862187977954
+        },
+        "total_system_energy_pj": 11914002.68,
+        "dominant_component": "off_chip",
+        "note": "Hierarchy energy is a local decomposition of compute/conversion energy plus modeled movement energy by tier; it is not a published hardware energy breakdown."
+      },
+      "local_compute_and_conversion_energy_share": 0.0040137812022046655,
+      "movement_energy_share": 0.9959862187977954,
+      "movement_to_compute_energy_ratio": 248.14163219727226,
+      "total_hierarchy_bytes": 708852.0,
+      "hierarchy_equivalent_ops_per_byte": 0.6636082003013323,
+      "movement_energy_per_hierarchy_byte_pj": 16.740000000000002,
+      "sram_traffic_share": 0.3333333333333333,
+      "intermediate_traffic_share": 0.3333333333333333,
+      "off_chip_traffic_share": 0.3333333333333333,
+      "dominant_traffic_tier": "sram",
+      "dominant_system_energy_component": "off_chip",
+      "dominant_movement_energy_tier": "off_chip",
+      "nominal_memory_bottleneck_tier": "off_chip",
+      "contention_memory_bottleneck_tier": "off_chip",
+      "max_tier_nominal_transfer_pressure_ratio": 29535.5,
+      "max_tier_contention_adjusted_transfer_pressure_ratio": 72970.05882352941,
+      "max_tier_movement_energy_share": 0.9956192751891676,
+      "max_tier_system_energy_share": 0.9916230772578608,
+      "contention_bandwidth_saturation_tier": "off_chip",
+      "max_tier_contention_bandwidth_utilization": 69495.29411764706,
+      "min_tier_contention_bandwidth_headroom_ratio": 1.4389463526942153e-05,
+      "max_transfer_time_ns": 29535.5,
+      "serial_transfer_time_ns": 31612.21484375,
+      "effective_transfer_time_ns": 31612.21484375,
+      "contention_bandwidth_derate_factor": 0.425,
+      "contention_adjusted_max_transfer_time_ns": 69495.29411764706,
+      "contention_adjusted_serial_transfer_time_ns": 74381.68198529413,
+      "contention_adjusted_effective_transfer_time_ns": 74381.68198529413,
+      "calibration_adjusted_effective_transfer_time_ns": 78100.76608455884,
+      "calibration_guardband_time_ns": 3719.0840992647136,
+      "contention_transfer_overhead_fraction": 1.3529411764705883,
+      "total_transfer_overhead_fraction": 1.4705882352941182,
+      "effective_loaded_bandwidth_bytes_per_ns": 22.423357664233578,
+      "contention_only_loaded_bandwidth_bytes_per_ns": 9.52992700729927,
+      "contention_adjusted_loaded_bandwidth_bytes_per_ns": 9.076120959332636,
+      "effective_usable_bandwidth_under_load_bytes_per_ns": 9.52992700729927,
+      "guardbanded_usable_bandwidth_under_load_bytes_per_ns": 9.076120959332636,
+      "transfer_to_compute_time_ratio": 31612.21484375,
+      "bandwidth_limited_batch_latency_ns": 31612.21484375,
+      "bandwidth_pressure_ratio": 31612.21484375,
+      "bandwidth_limited_equivalent_ops_per_second": 14880324024.275127,
+      "bandwidth_limited_tier": "serialized_tier_path",
+      "contention_adjusted_batch_latency_ns": 78100.76608455884,
+      "contention_adjusted_transfer_to_compute_time_ratio": 78100.76608455884,
+      "contention_pressure_ratio": 78100.76608455884,
+      "contention_adjusted_equivalent_ops_per_second": 6022988295.539932,
+      "contention_limited_tier": "serialized_tier_path",
+      "note": "System movement energy is a local estimate over explicit SRAM, intermediate, and off-chip tiers. Contention and calibration guardband fields are local shared-link assumptions. These values are added separately from photonic core compute/conversion energy and are not a published measurement."
+    },
+    "energy": {
+      "optical_compute_pj": 117.6,
+      "laser_electrical_pj": 470.4,
+      "detector_pj": 3.0,
+      "adc_pj": 150.0,
+      "vector_dac_pj": 156.8,
+      "weight_dac_pj": 47040.0,
+      "dac_pj": 47196.8,
+      "total_pj": 47820.200000000004,
+      "energy_per_mac_pj": 0.20331717687074832,
+      "energy_per_op_pj": 0.10165858843537416,
+      "peripheral_share": 0.9901631528099004
+    },
+    "timing": {
+      "optical_latency_ns": 1.0,
+      "adc_latency_ns": 0.0,
+      "dac_latency_ns": 0.0,
+      "total_latency_ns": 1.0,
+      "pipeline_stages": 1,
+      "pipeline_cycle_time_ns": 1.0,
+      "batch_latency_ns": 1.0,
+      "steady_state_operations_per_second": 1000000000.0,
+      "steady_state_equivalent_ops_per_second": 470400000000000.0
+    },
+    "noise": {
+      "quantization_snr_db": 49.919999999999995,
+      "quantization_rms": 0.0011320593513522075,
+      "phase_noise_rad_rms": 0.02,
+      "drift_rms_rad": 1.0000000000000002e-10,
+      "estimated_relative_error_rms": 0.020032013338029307
+    }
+  },
+  "published_reference": {
+    "source_type": "published_calibration",
+    "provenance": {
+      "source_title": "Lightning: A reconfigurable photonic-electronic SmartNIC for fast and energy-efficient inference",
+      "source_url": "https://dl.acm.org/doi/10.1145/3603269.3604821",
+      "doi": "10.1145/3603269.3604821",
+      "venue": "ACM SIGCOMM 2023",
+      "claim_status": "paper-reported SmartNIC prototype and large-DNN simulation metrics; host/network-attached matvec surrogate"
+    },
+    "reported": {
+      "architecture": "Reconfigurable photonic-electronic SmartNIC datapath",
+      "additional_metrics": {
+        "realtime_network_rate_gbps": 100,
+        "prototype_frequency_ghz": 4.055,
+        "mac_accuracy_percent": 99.25,
+        "mnist_accuracy_percent": 96.2,
+        "top5_accuracy_delta_vs_digital_percent": 2.25,
+        "serve_time_speedup_vs_nvidia_a100_x": 337,
+        "serve_time_speedup_vs_a100x_dpu_x": 329,
+        "serve_time_speedup_vs_brainwave_smartnic_x": 42,
+        "energy_reduction_vs_nvidia_a100_x": 352,
+        "energy_reduction_vs_a100x_dpu_x": 419,
+        "energy_reduction_vs_brainwave_smartnic_x": 54,
+        "ddr_data_rate_gbps": 170,
+        "cmac_input_rate_gbps": 100,
+        "aggregate_weight_dac_data_rate_gbps": 64.88,
+        "surrogate_mapping": "m=1, k=784, n=300 mirrors the paper's LeNet-300-100 first-layer example; it is not the full packet DAG, RFSoC datapath, DDR controller, or large-model simulation."
+      }
+    },
+    "derived_unit_conversions": {},
+    "source_quality": {
+      "source_reference": "Lightning: A reconfigurable photonic-electronic SmartNIC for fast and energy-efficient inference",
+      "source_doi": "10.1145/3603269.3604821",
+      "reported_metrics": [
+        "network_rate",
+        "prototype_frequency",
+        "accuracy",
+        "relative_latency_reduction",
+        "relative_energy_reduction",
+        "memory_data_rate"
+      ],
+      "local_surrogate_type": "host_network_attached_lenet_matvec_surrogate",
+      "coverage": {
+        "throughput": "reported",
+        "energy": "reported",
+        "accuracy": "reported",
+        "area": "reported",
+        "precision": "reported"
+      },
+      "confidence_grade": "B",
+      "notes": [
+        "Source reports prototype frequency, NIC rate, accuracy, relative serve-time/energy results, and DDR datapath rates; PhotonicBench uses a single local matvec to stress host-attached movement."
+      ],
+      "note": "Source quality grades summarize evidence coverage for the published reference card. They do not upgrade local surrogate estimates into paper measurements."
+    },
+    "source_audit": {
+      "quoted_metrics": [
+        {
+          "metric": "Real-time inference network rate",
+          "quoted_value": "100 Gbps",
+          "source_location": "MIT Lightning project page and SIGCOMM 2023 paper"
+        },
+        {
+          "metric": "Prototype photonic computation frequency",
+          "quoted_value": "4.055 GHz",
+          "source_location": "SIGCOMM 2023 paper abstract and Section 6.1"
+        },
+        {
+          "metric": "Average inference serve-time speedup",
+          "quoted_value": "337x vs Nvidia A100, 329x vs A100X DPU, 42x vs Brainwave SmartNIC",
+          "source_location": "SIGCOMM 2023 paper abstract"
+        },
+        {
+          "metric": "Average inference energy reduction",
+          "quoted_value": "352x vs Nvidia A100, 419x vs A100X DPU, 54x vs Brainwave SmartNIC",
+          "source_location": "SIGCOMM 2023 paper abstract"
+        },
+        {
+          "metric": "DDR datapath rate",
+          "quoted_value": "approximately 170 Gbps",
+          "source_location": "SIGCOMM 2023 paper Section 6.1"
+        },
+        {
+          "metric": "Architecture",
+          "quoted_value": "Reconfigurable photonic-electronic SmartNIC datapath",
+          "source_location": "published_calibration.architecture",
+          "note": "Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics."
+        },
+        {
+          "metric": "Realtime network rate gbps",
+          "quoted_value": "100",
+          "source_location": "published_calibration.additional_metrics.realtime_network_rate_gbps",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Prototype frequency ghz",
+          "quoted_value": "4.055",
+          "source_location": "published_calibration.additional_metrics.prototype_frequency_ghz",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Mac accuracy percent",
+          "quoted_value": "99.25",
+          "source_location": "published_calibration.additional_metrics.mac_accuracy_percent",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Mnist accuracy percent",
+          "quoted_value": "96.2",
+          "source_location": "published_calibration.additional_metrics.mnist_accuracy_percent",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Top5 accuracy delta vs digital percent",
+          "quoted_value": "2.25",
+          "source_location": "published_calibration.additional_metrics.top5_accuracy_delta_vs_digital_percent",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Serve time speedup vs nvidia a100 x",
+          "quoted_value": "337",
+          "source_location": "published_calibration.additional_metrics.serve_time_speedup_vs_nvidia_a100_x",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Serve time speedup vs a100x dpu x",
+          "quoted_value": "329",
+          "source_location": "published_calibration.additional_metrics.serve_time_speedup_vs_a100x_dpu_x",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Serve time speedup vs brainwave smartnic x",
+          "quoted_value": "42",
+          "source_location": "published_calibration.additional_metrics.serve_time_speedup_vs_brainwave_smartnic_x",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Energy reduction vs nvidia a100 x",
+          "quoted_value": "352",
+          "source_location": "published_calibration.additional_metrics.energy_reduction_vs_nvidia_a100_x",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Energy reduction vs a100x dpu x",
+          "quoted_value": "419",
+          "source_location": "published_calibration.additional_metrics.energy_reduction_vs_a100x_dpu_x",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Energy reduction vs brainwave smartnic x",
+          "quoted_value": "54",
+          "source_location": "published_calibration.additional_metrics.energy_reduction_vs_brainwave_smartnic_x",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Ddr data rate gbps",
+          "quoted_value": "170",
+          "source_location": "published_calibration.additional_metrics.ddr_data_rate_gbps",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Cmac input rate gbps",
+          "quoted_value": "100",
+          "source_location": "published_calibration.additional_metrics.cmac_input_rate_gbps",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Aggregate weight dac data rate gbps",
+          "quoted_value": "64.88",
+          "source_location": "published_calibration.additional_metrics.aggregate_weight_dac_data_rate_gbps",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Surrogate mapping",
+          "quoted_value": "m=1, k=784, n=300 mirrors the paper's LeNet-300-100 first-layer example; it is not the full packet DAG, RFSoC datapath, DDR controller, or large-model simulation.",
+          "source_location": "published_calibration.additional_metrics.surrogate_mapping",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        }
+      ],
+      "local_assumptions": [
+        "Local 784x300 matvec mirrors a paper example layer only; the SmartNIC packet DAG and full inference serving system are not reproduced.",
+        "The pcie_attached scenario is used to stress host/network-attached movement even though the paper avoids punting inference packets through host PCIe.",
+        "Local surrogate type: host_network_attached_lenet_matvec_surrogate.",
+        "Source reports prototype frequency, NIC rate, accuracy, relative serve-time/energy results, and DDR datapath rates; PhotonicBench uses a single local matvec to stress host-attached movement.",
+        "Source network-rate, frequency, accuracy, DDR-rate, and relative speed/energy values remain under published_calibration and published_reference.",
+        "The local pcie_attached profile intentionally penalizes host-attached movement for review sensitivity; it is not a cycle-accurate Lightning datapath model.",
+        "Local optical MAC energy, converter energy, one-nanosecond latency, and movement pJ/byte are generic PhotonicBench assumptions."
+      ],
+      "conversion_math": [],
+      "confidence_flags": [
+        "prototype_plus_simulation_metrics",
+        "host_link_scenario_is_local_stress_case",
+        "claim_status=paper-reported SmartNIC prototype and large-DNN simulation metrics; host/network-attached matvec surrogate",
+        "source_doi=10.1145/3603269.3604821",
+        "source_quality_grade=B",
+        "coverage.accuracy=reported",
+        "coverage.area=reported",
+        "coverage.energy=reported",
+        "coverage.precision=reported",
+        "coverage.throughput=reported"
+      ],
+      "separation_note": "Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs."
+    },
+    "separation_note": "Published values are paper-reported references or direct unit conversions, not local component-model estimates."
+  },
+  "calibration_fit": null,
+  "assumptions": [
+    "The optical MAC energy is treated as delivered optical energy per multiply-accumulate.",
+    "The laser wall-plug efficiency converts delivered optical energy into electrical laser energy.",
+    "ADC conversions are counted once per output element.",
+    "DAC conversions are counted once per input value for the left and right matmul operands.",
+    "Detector energy is counted once per output sample.",
+    "The first noise model combines ADC quantization RMS, phase noise RMS, and drift RMS as independent terms.",
+    "Total latency is a transparent sum of DAC, optical, and ADC latency rather than a pipelined throughput model.",
+    "Source network-rate, frequency, accuracy, DDR-rate, and relative speed/energy values remain under published_calibration and published_reference.",
+    "The local pcie_attached profile intentionally penalizes host-attached movement for review sensitivity; it is not a cycle-accurate Lightning datapath model.",
+    "Local optical MAC energy, converter energy, one-nanosecond latency, and movement pJ/byte are generic PhotonicBench assumptions.",
+    "The benchmark models 1 operation(s) per batch.",
+    "Vector DAC conversions are counted as ceil(batch_size / vector_reuse_factor) * m * k.",
+    "Weight DAC conversions are counted every 1 operation(s).",
+    "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
+    "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.",
+    "The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.",
+    "System contention fields model shared bandwidth clients, arbitration efficiency, and calibration/control guardband as local assumptions; they are not inferred from published hardware unless a card says so.",
+    "Memory scenario and contention preset names describe local review assumptions, including the overlap model used to interpret transfer timing; they are not benchmark claims."
+  ],
+  "provenance": {
+    "source_title": "Lightning: A reconfigurable photonic-electronic SmartNIC for fast and energy-efficient inference",
+    "source_url": "https://dl.acm.org/doi/10.1145/3603269.3604821",
+    "doi": "10.1145/3603269.3604821",
+    "venue": "ACM SIGCOMM 2023",
+    "claim_status": "paper-reported SmartNIC prototype and large-DNN simulation metrics; host/network-attached matvec surrogate"
+  }
+}
+;

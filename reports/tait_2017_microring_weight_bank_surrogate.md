@@ -53,6 +53,50 @@ Source-quality notes:
 - The source anchors WDM broadcast-and-weight memory behavior and scale, while local energy and contention outputs are PhotonicBench scenario estimates.
 
 
+## Source Audit
+
+These rows keep quoted source metrics, direct conversion math, local assumptions,
+and confidence flags separate. They do not turn local surrogate estimates into
+paper measurements.
+
+| Metric | Quoted value | Source location | Note |
+| --- | --- | --- | --- |
+| Architecture | Silicon photonic broadcast-and-weight microring weight-bank network | published_calibration.architecture | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Simulated nodes | 24 | published_calibration.additional_metrics.simulated_nodes | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Microring weights | 576 | published_calibration.additional_metrics.microring_weights | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Laser modulator count | 24 | published_calibration.additional_metrics.laser_modulator_count | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Weight bank count | 24 | published_calibration.additional_metrics.weight_bank_count | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Expected system power mw | 106 | published_calibration.additional_metrics.expected_system_power_mw | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Predicted acceleration vs conventional | 294 | published_calibration.additional_metrics.predicted_acceleration_vs_conventional | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Protocol | wavelength-division multiplexed broadcast-and-weight | published_calibration.additional_metrics.protocol | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Surrogate mapping | m=24, k=24, n=1 follows one 24-node recurrent weight-bank matvec step; it is not a full recurrent network simulation. | published_calibration.additional_metrics.surrogate_mapping | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+
+| Derived metric | Formula | Inputs | Result | Note |
+| --- | --- | --- | ---: | --- |
+
+
+Local assumptions:
+
+- Local surrogate type: wdm_microring_weight_bank_matvec_surrogate.
+- The source anchors WDM broadcast-and-weight memory behavior and scale, while local energy and contention outputs are PhotonicBench scenario estimates.
+- Source-reported 24-node, 576-weight, expected-power, and acceleration figures remain under published_calibration.
+- The optical_interconnect scenario is used to stress WDM/broadcast movement; it is not a measured link model from the paper.
+- Weight-stationary mode approximates microring weight banks for one local recurrent-network step.
+
+Confidence flags:
+
+- claim_status=paper-reported broadcast-and-weight architecture and 24-node simulation; WDM matvec surrogate
+- source_doi=10.1038/s41598-017-07754-z
+- source_quality_grade=B
+- coverage.accuracy=derived
+- coverage.area=reported
+- coverage.energy=estimated
+- coverage.precision=not_reported
+- coverage.throughput=derived
+
+Boundary note: Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs.
+
+
 
 ## Workload
 
@@ -187,6 +231,17 @@ not a published hardware energy breakdown.
 | Contention-adjusted transfer-to-compute time ratio | 0.760063 |
 | Contention pressure ratio | 1 |
 | Contention-adjusted equivalent ops/s | 1152000000000.000 |
+
+### Scenario Provenance Packs
+
+These packs justify the selected local memory hierarchy and contention preset
+without implying measured end-to-end hardware behavior.
+
+| Pack | Status | Calibration scope | Sources | Local assumptions | Reviewer note |
+| --- | --- | --- | --- | --- | --- |
+| Memory scenario | source-context-plus-local-parameters | WDM/broadcast-like optical movement scenario with high-bandwidth intermediate/off-chip paths. | Neuromorphic photonic networks using silicon photonic weight banks (10.1038/s41598-017-07754-z); Lightening-Transformer: A dynamically-operated optically-interconnected photonic Transformer accelerator (10.48550/arXiv.2305.19533) | Optical interconnect tier pJ/byte, bandwidth, and traffic fractions are PhotonicBench local sweep parameters.; Broadcast overlap is represented by a local contention model, not measured link-level scheduling. | Use this scenario for cards whose claim depends on optical movement, broadcast, or chiplet/interconnect behavior. |
+| Contention preset | source-context-plus-local-parameters | Optical broadcast contention model with reduced loaded-client penalty and explicit control guardband. | Neuromorphic photonic networks using silicon photonic weight banks (10.1038/s41598-017-07754-z); Lightening-Transformer: A dynamically-operated optically-interconnected photonic Transformer accelerator (10.48550/arXiv.2305.19533) | 1.5 modeled clients, 0.92 arbitration efficiency, and 0.02 guardband are local WDM/broadcast sensitivity parameters. | Use to compare whether optical broadcast movement changes the decision without presenting it as measured hardware contention. |
+
 
 ## Energy
 

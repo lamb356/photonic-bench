@@ -52,6 +52,49 @@ Source-quality notes:
 - Local dense matmul accounting does not model RF multiplexing, PCM memory programming, optical routing, or clinical ECG preprocessing.
 
 
+## Source Audit
+
+These rows keep quoted source metrics, direct conversion math, local assumptions,
+and confidence flags separate. They do not turn local surrogate estimates into
+paper measurements.
+
+| Metric | Quoted value | Source location | Note |
+| --- | --- | --- | --- |
+| Architecture | Electro-optically controlled photonic tensor core with spatial, wavelength, and RF degrees of freedom | published_calibration.architecture | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Reported parallelism | 100 | published_calibration.additional_metrics.reported_parallelism | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Rf components | 50 | published_calibration.additional_metrics.rf_components | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Wdm channels | 2 | published_calibration.additional_metrics.wdm_channels | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Reported ecg signals | 100 | published_calibration.additional_metrics.reported_ecg_signals | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Reported cnn accuracy percent | 93.5 | published_calibration.additional_metrics.reported_cnn_accuracy_percent | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Surrogate mapping | m=3, k=3, n=100 follows the paper's 3x3 kernel and 3x100 ECG input framing; it is not a continuous-time RF/WDM simulation. | published_calibration.additional_metrics.surrogate_mapping | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+
+| Derived metric | Formula | Inputs | Result | Note |
+| --- | --- | --- | ---: | --- |
+
+
+Local assumptions:
+
+- Local surrogate type: continuous_time_tensor_core_ecg_matmul_surrogate.
+- The source reports a hardware photonic tensor core using spatial, wavelength, and RF degrees of freedom with parallelism of 100.
+- Local dense matmul accounting does not model RF multiplexing, PCM memory programming, optical routing, or clinical ECG preprocessing.
+- The dense surrogate preserves the reported 3x3-kernel and 100-signal ECG demonstration scale.
+- Local timing, energy, converter, and system movement values are generic PhotonicBench assumptions.
+- Weight-stationary mode approximates fixed tensor-core weights for one local ECG convolution tile.
+
+Confidence flags:
+
+- claim_status=paper-reported continuous-time higher-dimensional photonic tensor core; ECG-convolution matmul-surrogate local model
+- source_doi=10.1038/s41566-023-01313-x
+- source_quality_grade=B
+- coverage.accuracy=reported
+- coverage.area=not_reported
+- coverage.energy=not_reported
+- coverage.precision=reported
+- coverage.throughput=derived
+
+Boundary note: Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs.
+
+
 
 ## Workload
 
@@ -186,6 +229,17 @@ not a published hardware energy breakdown.
 | Contention-adjusted transfer-to-compute time ratio | 38.0625 |
 | Contention pressure ratio | 38.0625 |
 | Contention-adjusted equivalent ops/s | 47290640394.089 |
+
+### Scenario Provenance Packs
+
+These packs justify the selected local memory hierarchy and contention preset
+without implying measured end-to-end hardware behavior.
+
+| Pack | Status | Calibration scope | Sources | Local assumptions | Reviewer note |
+| --- | --- | --- | --- | --- | --- |
+| Memory scenario | source-context-plus-local-parameters | Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions. | Computing's energy problem (and what we can do about it) (10.1109/ISSCC.2014.6757323) | SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.; The scenario is a conservative baseline for sensitivity comparisons. | Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior. |
+| Contention preset | local-baseline | Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband. | explicit local assumption | shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions. | Use as the no-contention reference point. |
+
 
 ## Energy
 

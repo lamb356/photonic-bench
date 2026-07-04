@@ -57,6 +57,53 @@ Source-quality notes:
 - Strong energy, area, scale, and task-metric coverage, but no exact dense-matmul local reproduction of the Taichi protocol is claimed.
 
 
+## Source Audit
+
+These rows keep quoted source metrics, direct conversion math, local assumptions,
+and confidence flags separate. They do not turn local surrogate estimates into
+paper measurements.
+
+| Metric | Quoted value | Source location | Note |
+| --- | --- | --- | --- |
+| Architecture | Diffractive-interference hybrid photonic AI chiplet | published_calibration.architecture | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Energy efficiency including lasers | 160.0 | published_calibration.energy_efficiency_including_lasers_tops_per_watt | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Input output dimension | 64x64 | published_calibration.additional_metrics.input_output_dimension | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Area efficiency tmacs per mm2 | 879 | published_calibration.additional_metrics.area_efficiency_tmacs_per_mm2 | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Optical neurons max | 10000000000 | published_calibration.additional_metrics.optical_neurons_max | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Experimental omniglot accuracy percent | 91.89 | published_calibration.additional_metrics.experimental_omniglot_accuracy_percent | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Experimental mini imagenet accuracy percent | 87.74 | published_calibration.additional_metrics.experimental_mini_imagenet_accuracy_percent | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Reported energy efficiency note | Source reports 160 TOPS/W on-chip energy efficiency. | published_calibration.additional_metrics.reported_energy_efficiency_note | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Surrogate mapping | m=64, k=64, n=64 is a dense local surrogate for comparison only; not the Taichi distributed optical protocol. | published_calibration.additional_metrics.surrogate_mapping | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+
+| Derived metric | Formula | Inputs | Result | Note |
+| --- | --- | --- | ---: | --- |
+| energy_per_op_including_lasers_pj | 1 / energy_efficiency_including_lasers_tops_per_watt | energy_efficiency_including_lasers_tops_per_watt=160.0 | 0.00625 |  |
+| energy_per_mac_including_lasers_pj | 2 / energy_efficiency_including_lasers_tops_per_watt | energy_efficiency_including_lasers_tops_per_watt=160.0 | 0.0125 |  |
+| total_energy_including_lasers_pj | equivalent_ops / energy_efficiency_including_lasers_tops_per_watt | energy_efficiency_including_lasers_tops_per_watt=160.0, equivalent_ops=524288 | 3276.8 |  |
+| model_to_published_including_lasers_ratio | local_model.energy.total_pj / published_reference.derived_unit_conversions.total_energy_including_lasers_pj | published_total_energy_including_lasers_pj=3276.8 | 1.2975 | Diagnostic ratio only; it does not change local_model or published_reference. |
+
+Local assumptions:
+
+- Local surrogate type: dense_photonic_chiplet_surrogate.
+- Strong energy, area, scale, and task-metric coverage, but no exact dense-matmul local reproduction of the Taichi protocol is claimed.
+- Source reports 64x64 input/output chiplet dimensions and 160 TOPS/W energy efficiency; this card keeps those values as published references.
+- Local timing, device energy, converter, and noise settings are PhotonicBench assumptions, not extracted Taichi device-level measurements.
+- Weight-stationary mode is used only to avoid reloading the surrogate right operand within one dense local tile.
+
+Confidence flags:
+
+- claim_status=paper-reported energy/scale targets; matmul-surrogate local model
+- source_doi=10.1126/science.adl1203
+- source_quality_grade=B
+- coverage.accuracy=reported
+- coverage.area=reported
+- coverage.energy=reported
+- coverage.precision=not_reported
+- coverage.throughput=derived
+
+Boundary note: Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs.
+
+
 
 ## Workload
 
@@ -191,6 +238,17 @@ not a published hardware energy breakdown.
 | Contention-adjusted transfer-to-compute time ratio | 768 |
 | Contention pressure ratio | 768 |
 | Contention-adjusted equivalent ops/s | 682666666666.667 |
+
+### Scenario Provenance Packs
+
+These packs justify the selected local memory hierarchy and contention preset
+without implying measured end-to-end hardware behavior.
+
+| Pack | Status | Calibration scope | Sources | Local assumptions | Reviewer note |
+| --- | --- | --- | --- | --- | --- |
+| Memory scenario | source-context-plus-local-parameters | Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions. | Computing's energy problem (and what we can do about it) (10.1109/ISSCC.2014.6757323) | SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.; The scenario is a conservative baseline for sensitivity comparisons. | Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior. |
+| Contention preset | local-baseline | Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband. | explicit local assumption | shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions. | Use as the no-contention reference point. |
+
 
 ## Energy
 

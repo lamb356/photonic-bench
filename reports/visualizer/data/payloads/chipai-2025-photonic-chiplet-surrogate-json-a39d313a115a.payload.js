@@ -59,6 +59,67 @@ window.PhotonicBenchPayloadRegistry["chipai_2025_photonic_chiplet_surrogate.json
         "contention_preset": "optical_interconnect_broadcast",
         "contention_preset_description": "Optical interconnect/broadcast path: wavelength fanout reduces loaded-client contention, but arbitration and control guardband remain explicit local assumptions.",
         "overlap_model": "wavelength_broadcast_overlap",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "WDM/broadcast-like optical movement scenario with high-bandwidth intermediate/off-chip paths.",
+          "sources": [
+            {
+              "title": "Neuromorphic photonic networks using silicon photonic weight banks",
+              "url": "https://www.nature.com/articles/s41598-017-07754-z",
+              "reference_id": "10.1038/s41598-017-07754-z",
+              "evidence_type": "photonic WDM broadcast-and-weight context",
+              "supports": [
+                "optical interconnect scenario",
+                "broadcast movement preset"
+              ]
+            },
+            {
+              "title": "Lightening-Transformer: A dynamically-operated optically-interconnected photonic Transformer accelerator",
+              "url": "https://arxiv.org/abs/2305.19533",
+              "reference_id": "10.48550/arXiv.2305.19533",
+              "evidence_type": "optically interconnected accelerator context",
+              "supports": [
+                "activation-heavy optical broadcast",
+                "dynamic tensor movement"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "Optical interconnect tier pJ/byte, bandwidth, and traffic fractions are PhotonicBench local sweep parameters.",
+            "Broadcast overlap is represented by a local contention model, not measured link-level scheduling."
+          ],
+          "reviewer_note": "Use this scenario for cards whose claim depends on optical movement, broadcast, or chiplet/interconnect behavior."
+        },
+        "contention_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Optical broadcast contention model with reduced loaded-client penalty and explicit control guardband.",
+          "sources": [
+            {
+              "title": "Neuromorphic photonic networks using silicon photonic weight banks",
+              "url": "https://www.nature.com/articles/s41598-017-07754-z",
+              "reference_id": "10.1038/s41598-017-07754-z",
+              "evidence_type": "photonic WDM broadcast-and-weight context",
+              "supports": [
+                "optical interconnect scenario",
+                "broadcast movement preset"
+              ]
+            },
+            {
+              "title": "Lightening-Transformer: A dynamically-operated optically-interconnected photonic Transformer accelerator",
+              "url": "https://arxiv.org/abs/2305.19533",
+              "reference_id": "10.48550/arXiv.2305.19533",
+              "evidence_type": "optically interconnected accelerator context",
+              "supports": [
+                "activation-heavy optical broadcast",
+                "dynamic tensor movement"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "1.5 modeled clients, 0.92 arbitration efficiency, and 0.02 guardband are local WDM/broadcast sensitivity parameters."
+          ],
+          "reviewer_note": "Use to compare whether optical broadcast movement changes the decision without presenting it as measured hardware contention."
+        },
         "assumptions": {
           "shared_bandwidth_clients": 1.5,
           "arbitration_efficiency": 0.92,
@@ -155,6 +216,67 @@ window.PhotonicBenchPayloadRegistry["chipai_2025_photonic_chiplet_surrogate.json
         "contention_preset": "optical_interconnect_broadcast",
         "contention_preset_description": "Optical interconnect/broadcast path: wavelength fanout reduces loaded-client contention, but arbitration and control guardband remain explicit local assumptions.",
         "overlap_model": "wavelength_broadcast_overlap",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "WDM/broadcast-like optical movement scenario with high-bandwidth intermediate/off-chip paths.",
+          "sources": [
+            {
+              "title": "Neuromorphic photonic networks using silicon photonic weight banks",
+              "url": "https://www.nature.com/articles/s41598-017-07754-z",
+              "reference_id": "10.1038/s41598-017-07754-z",
+              "evidence_type": "photonic WDM broadcast-and-weight context",
+              "supports": [
+                "optical interconnect scenario",
+                "broadcast movement preset"
+              ]
+            },
+            {
+              "title": "Lightening-Transformer: A dynamically-operated optically-interconnected photonic Transformer accelerator",
+              "url": "https://arxiv.org/abs/2305.19533",
+              "reference_id": "10.48550/arXiv.2305.19533",
+              "evidence_type": "optically interconnected accelerator context",
+              "supports": [
+                "activation-heavy optical broadcast",
+                "dynamic tensor movement"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "Optical interconnect tier pJ/byte, bandwidth, and traffic fractions are PhotonicBench local sweep parameters.",
+            "Broadcast overlap is represented by a local contention model, not measured link-level scheduling."
+          ],
+          "reviewer_note": "Use this scenario for cards whose claim depends on optical movement, broadcast, or chiplet/interconnect behavior."
+        },
+        "contention_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Optical broadcast contention model with reduced loaded-client penalty and explicit control guardband.",
+          "sources": [
+            {
+              "title": "Neuromorphic photonic networks using silicon photonic weight banks",
+              "url": "https://www.nature.com/articles/s41598-017-07754-z",
+              "reference_id": "10.1038/s41598-017-07754-z",
+              "evidence_type": "photonic WDM broadcast-and-weight context",
+              "supports": [
+                "optical interconnect scenario",
+                "broadcast movement preset"
+              ]
+            },
+            {
+              "title": "Lightening-Transformer: A dynamically-operated optically-interconnected photonic Transformer accelerator",
+              "url": "https://arxiv.org/abs/2305.19533",
+              "reference_id": "10.48550/arXiv.2305.19533",
+              "evidence_type": "optically interconnected accelerator context",
+              "supports": [
+                "activation-heavy optical broadcast",
+                "dynamic tensor movement"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "1.5 modeled clients, 0.92 arbitration efficiency, and 0.02 guardband are local WDM/broadcast sensitivity parameters."
+          ],
+          "reviewer_note": "Use to compare whether optical broadcast movement changes the decision without presenting it as measured hardware contention."
+        },
         "assumptions": {
           "shared_bandwidth_clients": 1.5,
           "arbitration_efficiency": 0.92,
@@ -429,6 +551,71 @@ window.PhotonicBenchPayloadRegistry["chipai_2025_photonic_chiplet_surrogate.json
         "The paper-reported relative reductions and hybrid optical-network behavior are kept as published references; local absolute energy, timing, and hierarchy metrics are PhotonicBench estimates."
       ],
       "note": "Source quality grades summarize evidence coverage for the published reference card. They do not upgrade local surrogate estimates into paper measurements."
+    },
+    "source_audit": {
+      "quoted_metrics": [
+        {
+          "metric": "Architecture",
+          "quoted_value": "ChipAI silicon-photonic chiplet accelerator with hybrid optical network",
+          "source_location": "published_calibration.architecture",
+          "note": "Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics."
+        },
+        {
+          "metric": "Inference time reduction percent up to",
+          "quoted_value": "82",
+          "source_location": "published_calibration.additional_metrics.inference_time_reduction_percent_up_to",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Energy reduction percent up to",
+          "quoted_value": "79",
+          "source_location": "published_calibration.additional_metrics.energy_reduction_percent_up_to",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Hybrid optical network",
+          "quoted_value": "True",
+          "source_location": "published_calibration.additional_metrics.hybrid_optical_network",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Inter chiplet data sharing",
+          "quoted_value": "True",
+          "source_location": "published_calibration.additional_metrics.inter_chiplet_data_sharing",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Intra chiplet data sharing",
+          "quoted_value": "True",
+          "source_location": "published_calibration.additional_metrics.intra_chiplet_data_sharing",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Surrogate mapping",
+          "quoted_value": "m=128, k=128, n=128 with batch/reuse settings stresses off-chip/chiplet movement; it is not a reproduction of the ChipAI simulator.",
+          "source_location": "published_calibration.additional_metrics.surrogate_mapping",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        }
+      ],
+      "local_assumptions": [
+        "Local surrogate type: photonic_chiplet_dense_movement_surrogate.",
+        "The paper-reported relative reductions and hybrid optical-network behavior are kept as published references; local absolute energy, timing, and hierarchy metrics are PhotonicBench estimates.",
+        "The dense local workload intentionally stresses chiplet/off-chip movement and reuse rather than matching a specific DNN layer from the ChipAI paper.",
+        "The optical_interconnect scenario is used as a local calibrated movement assumption for the chiplet interconnect sensitivity.",
+        "Published relative latency and energy reductions remain under published_calibration and are not converted into absolute local model claims."
+      ],
+      "conversion_math": [],
+      "confidence_flags": [
+        "claim_status=paper-reported relative inference-time and energy reductions; dense chiplet/off-chip surrogate",
+        "source_doi=10.1016/j.sysarc.2024.103308",
+        "source_quality_grade=B",
+        "coverage.accuracy=not_applicable",
+        "coverage.area=not_reported",
+        "coverage.energy=reported",
+        "coverage.precision=not_reported",
+        "coverage.throughput=reported"
+      ],
+      "separation_note": "Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs."
     },
     "separation_note": "Published values are paper-reported references or direct unit conversions, not local component-model estimates."
   },

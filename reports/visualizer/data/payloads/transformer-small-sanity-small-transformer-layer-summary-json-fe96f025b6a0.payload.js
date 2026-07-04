@@ -62,6 +62,36 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
         "contention_preset": "single_client",
         "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
         "overlap_model": "profile_timing_mode",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+          "sources": [
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+            "The scenario is a conservative baseline for sensitivity comparisons."
+          ],
+          "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+        },
+        "contention_provenance": {
+          "status": "local-baseline",
+          "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+          "sources": [],
+          "local_assumptions": [
+            "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+          ],
+          "reviewer_note": "Use as the no-contention reference point."
+        },
         "assumptions": {
           "shared_bandwidth_clients": 1.0,
           "arbitration_efficiency": 1.0,
@@ -405,6 +435,36 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
             "contention_preset": "single_client",
             "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
             "overlap_model": "profile_timing_mode",
+            "scenario_provenance": {
+              "status": "source-context-plus-local-parameters",
+              "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+              "sources": [
+                {
+                  "title": "Computing's energy problem (and what we can do about it)",
+                  "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+                  "reference_id": "10.1109/ISSCC.2014.6757323",
+                  "evidence_type": "memory-energy hierarchy context",
+                  "supports": [
+                    "local SRAM/intermediate/off-chip tier separation",
+                    "data movement can dominate efficient compute"
+                  ]
+                }
+              ],
+              "local_assumptions": [
+                "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+                "The scenario is a conservative baseline for sensitivity comparisons."
+              ],
+              "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+            },
+            "contention_provenance": {
+              "status": "local-baseline",
+              "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+              "sources": [],
+              "local_assumptions": [
+                "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+              ],
+              "reviewer_note": "Use as the no-contention reference point."
+            },
             "assumptions": {
               "shared_bandwidth_clients": 1.0,
               "arbitration_efficiency": 1.0,
@@ -501,6 +561,36 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
             "contention_preset": "single_client",
             "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
             "overlap_model": "profile_timing_mode",
+            "scenario_provenance": {
+              "status": "source-context-plus-local-parameters",
+              "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+              "sources": [
+                {
+                  "title": "Computing's energy problem (and what we can do about it)",
+                  "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+                  "reference_id": "10.1109/ISSCC.2014.6757323",
+                  "evidence_type": "memory-energy hierarchy context",
+                  "supports": [
+                    "local SRAM/intermediate/off-chip tier separation",
+                    "data movement can dominate efficient compute"
+                  ]
+                }
+              ],
+              "local_assumptions": [
+                "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+                "The scenario is a conservative baseline for sensitivity comparisons."
+              ],
+              "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+            },
+            "contention_provenance": {
+              "status": "local-baseline",
+              "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+              "sources": [],
+              "local_assumptions": [
+                "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+              ],
+              "reviewer_note": "Use as the no-contention reference point."
+            },
             "assumptions": {
               "shared_bandwidth_clients": 1.0,
               "arbitration_efficiency": 1.0,
@@ -823,6 +913,36 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
             "contention_preset": "single_client",
             "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
             "overlap_model": "profile_timing_mode",
+            "scenario_provenance": {
+              "status": "source-context-plus-local-parameters",
+              "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+              "sources": [
+                {
+                  "title": "Computing's energy problem (and what we can do about it)",
+                  "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+                  "reference_id": "10.1109/ISSCC.2014.6757323",
+                  "evidence_type": "memory-energy hierarchy context",
+                  "supports": [
+                    "local SRAM/intermediate/off-chip tier separation",
+                    "data movement can dominate efficient compute"
+                  ]
+                }
+              ],
+              "local_assumptions": [
+                "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+                "The scenario is a conservative baseline for sensitivity comparisons."
+              ],
+              "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+            },
+            "contention_provenance": {
+              "status": "local-baseline",
+              "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+              "sources": [],
+              "local_assumptions": [
+                "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+              ],
+              "reviewer_note": "Use as the no-contention reference point."
+            },
             "assumptions": {
               "shared_bandwidth_clients": 1.0,
               "arbitration_efficiency": 1.0,
@@ -919,6 +1039,36 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
             "contention_preset": "single_client",
             "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
             "overlap_model": "profile_timing_mode",
+            "scenario_provenance": {
+              "status": "source-context-plus-local-parameters",
+              "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+              "sources": [
+                {
+                  "title": "Computing's energy problem (and what we can do about it)",
+                  "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+                  "reference_id": "10.1109/ISSCC.2014.6757323",
+                  "evidence_type": "memory-energy hierarchy context",
+                  "supports": [
+                    "local SRAM/intermediate/off-chip tier separation",
+                    "data movement can dominate efficient compute"
+                  ]
+                }
+              ],
+              "local_assumptions": [
+                "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+                "The scenario is a conservative baseline for sensitivity comparisons."
+              ],
+              "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+            },
+            "contention_provenance": {
+              "status": "local-baseline",
+              "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+              "sources": [],
+              "local_assumptions": [
+                "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+              ],
+              "reviewer_note": "Use as the no-contention reference point."
+            },
             "assumptions": {
               "shared_bandwidth_clients": 1.0,
               "arbitration_efficiency": 1.0,
@@ -1241,6 +1391,36 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
             "contention_preset": "single_client",
             "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
             "overlap_model": "profile_timing_mode",
+            "scenario_provenance": {
+              "status": "source-context-plus-local-parameters",
+              "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+              "sources": [
+                {
+                  "title": "Computing's energy problem (and what we can do about it)",
+                  "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+                  "reference_id": "10.1109/ISSCC.2014.6757323",
+                  "evidence_type": "memory-energy hierarchy context",
+                  "supports": [
+                    "local SRAM/intermediate/off-chip tier separation",
+                    "data movement can dominate efficient compute"
+                  ]
+                }
+              ],
+              "local_assumptions": [
+                "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+                "The scenario is a conservative baseline for sensitivity comparisons."
+              ],
+              "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+            },
+            "contention_provenance": {
+              "status": "local-baseline",
+              "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+              "sources": [],
+              "local_assumptions": [
+                "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+              ],
+              "reviewer_note": "Use as the no-contention reference point."
+            },
             "assumptions": {
               "shared_bandwidth_clients": 1.0,
               "arbitration_efficiency": 1.0,
@@ -1337,6 +1517,36 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
             "contention_preset": "single_client",
             "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
             "overlap_model": "profile_timing_mode",
+            "scenario_provenance": {
+              "status": "source-context-plus-local-parameters",
+              "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+              "sources": [
+                {
+                  "title": "Computing's energy problem (and what we can do about it)",
+                  "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+                  "reference_id": "10.1109/ISSCC.2014.6757323",
+                  "evidence_type": "memory-energy hierarchy context",
+                  "supports": [
+                    "local SRAM/intermediate/off-chip tier separation",
+                    "data movement can dominate efficient compute"
+                  ]
+                }
+              ],
+              "local_assumptions": [
+                "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+                "The scenario is a conservative baseline for sensitivity comparisons."
+              ],
+              "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+            },
+            "contention_provenance": {
+              "status": "local-baseline",
+              "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+              "sources": [],
+              "local_assumptions": [
+                "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+              ],
+              "reviewer_note": "Use as the no-contention reference point."
+            },
             "assumptions": {
               "shared_bandwidth_clients": 1.0,
               "arbitration_efficiency": 1.0,
@@ -1659,6 +1869,36 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
             "contention_preset": "single_client",
             "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
             "overlap_model": "profile_timing_mode",
+            "scenario_provenance": {
+              "status": "source-context-plus-local-parameters",
+              "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+              "sources": [
+                {
+                  "title": "Computing's energy problem (and what we can do about it)",
+                  "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+                  "reference_id": "10.1109/ISSCC.2014.6757323",
+                  "evidence_type": "memory-energy hierarchy context",
+                  "supports": [
+                    "local SRAM/intermediate/off-chip tier separation",
+                    "data movement can dominate efficient compute"
+                  ]
+                }
+              ],
+              "local_assumptions": [
+                "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+                "The scenario is a conservative baseline for sensitivity comparisons."
+              ],
+              "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+            },
+            "contention_provenance": {
+              "status": "local-baseline",
+              "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+              "sources": [],
+              "local_assumptions": [
+                "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+              ],
+              "reviewer_note": "Use as the no-contention reference point."
+            },
             "assumptions": {
               "shared_bandwidth_clients": 1.0,
               "arbitration_efficiency": 1.0,
@@ -1755,6 +1995,36 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
             "contention_preset": "single_client",
             "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
             "overlap_model": "profile_timing_mode",
+            "scenario_provenance": {
+              "status": "source-context-plus-local-parameters",
+              "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+              "sources": [
+                {
+                  "title": "Computing's energy problem (and what we can do about it)",
+                  "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+                  "reference_id": "10.1109/ISSCC.2014.6757323",
+                  "evidence_type": "memory-energy hierarchy context",
+                  "supports": [
+                    "local SRAM/intermediate/off-chip tier separation",
+                    "data movement can dominate efficient compute"
+                  ]
+                }
+              ],
+              "local_assumptions": [
+                "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+                "The scenario is a conservative baseline for sensitivity comparisons."
+              ],
+              "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+            },
+            "contention_provenance": {
+              "status": "local-baseline",
+              "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+              "sources": [],
+              "local_assumptions": [
+                "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+              ],
+              "reviewer_note": "Use as the no-contention reference point."
+            },
             "assumptions": {
               "shared_bandwidth_clients": 1.0,
               "arbitration_efficiency": 1.0,
@@ -2077,6 +2347,36 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
             "contention_preset": "single_client",
             "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
             "overlap_model": "profile_timing_mode",
+            "scenario_provenance": {
+              "status": "source-context-plus-local-parameters",
+              "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+              "sources": [
+                {
+                  "title": "Computing's energy problem (and what we can do about it)",
+                  "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+                  "reference_id": "10.1109/ISSCC.2014.6757323",
+                  "evidence_type": "memory-energy hierarchy context",
+                  "supports": [
+                    "local SRAM/intermediate/off-chip tier separation",
+                    "data movement can dominate efficient compute"
+                  ]
+                }
+              ],
+              "local_assumptions": [
+                "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+                "The scenario is a conservative baseline for sensitivity comparisons."
+              ],
+              "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+            },
+            "contention_provenance": {
+              "status": "local-baseline",
+              "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+              "sources": [],
+              "local_assumptions": [
+                "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+              ],
+              "reviewer_note": "Use as the no-contention reference point."
+            },
             "assumptions": {
               "shared_bandwidth_clients": 1.0,
               "arbitration_efficiency": 1.0,
@@ -2173,6 +2473,36 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
             "contention_preset": "single_client",
             "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
             "overlap_model": "profile_timing_mode",
+            "scenario_provenance": {
+              "status": "source-context-plus-local-parameters",
+              "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+              "sources": [
+                {
+                  "title": "Computing's energy problem (and what we can do about it)",
+                  "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+                  "reference_id": "10.1109/ISSCC.2014.6757323",
+                  "evidence_type": "memory-energy hierarchy context",
+                  "supports": [
+                    "local SRAM/intermediate/off-chip tier separation",
+                    "data movement can dominate efficient compute"
+                  ]
+                }
+              ],
+              "local_assumptions": [
+                "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+                "The scenario is a conservative baseline for sensitivity comparisons."
+              ],
+              "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+            },
+            "contention_provenance": {
+              "status": "local-baseline",
+              "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+              "sources": [],
+              "local_assumptions": [
+                "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+              ],
+              "reviewer_note": "Use as the no-contention reference point."
+            },
             "assumptions": {
               "shared_bandwidth_clients": 1.0,
               "arbitration_efficiency": 1.0,

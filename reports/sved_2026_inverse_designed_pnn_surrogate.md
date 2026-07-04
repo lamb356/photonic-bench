@@ -53,6 +53,50 @@ Source-quality notes:
 - The source is an accelerator paper with strong density and accuracy evidence, but the local dense tile is not a field-propagation or inverse-design model.
 
 
+## Source Audit
+
+These rows keep quoted source metrics, direct conversion math, local assumptions,
+and confidence flags separate. They do not turn local surrogate estimates into
+paper measurements.
+
+| Metric | Quoted value | Source location | Note |
+| --- | --- | --- | --- |
+| Architecture | Inverse-designed nanophotonic neural network accelerator on SOI | published_calibration.architecture | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Computational density parameters per mm2 | 400000000 | published_calibration.additional_metrics.computational_density_parameters_per_mm2 | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Mnist accuracy percent | 89 | published_calibration.additional_metrics.mnist_accuracy_percent | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Mednist accuracy percent | 90 | published_calibration.additional_metrics.mednist_accuracy_percent | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Mnist footprint um2 | 400 | published_calibration.additional_metrics.mnist_footprint_um2 | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Mednist footprint um2 | 600 | published_calibration.additional_metrics.mednist_footprint_um2 | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Example patch input dimension | 16 | published_calibration.additional_metrics.example_patch_input_dimension | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Single wavelength operation | True | published_calibration.additional_metrics.single_wavelength_operation | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Surrogate mapping | m=1, k=16, n=10 is a compact classifier-head surrogate; it does not reproduce inverse-designed scattering fields. | published_calibration.additional_metrics.surrogate_mapping | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+
+| Derived metric | Formula | Inputs | Result | Note |
+| --- | --- | --- | ---: | --- |
+
+
+Local assumptions:
+
+- Local surrogate type: compact_inverse_designed_pnn_classifier_surrogate.
+- The source is an accelerator paper with strong density and accuracy evidence, but the local dense tile is not a field-propagation or inverse-design model.
+- The local card uses a 16-feature by 10-class classifier surrogate to keep the accelerator visible in PhotonicBench comparisons.
+- Published density, footprint, and accuracy are preserved as reference metadata only.
+- Local converter energy, system tiers, timing, and noise settings are generic PhotonicBench assumptions.
+
+Confidence flags:
+
+- claim_status=paper-reported inverse-designed PNN density, footprint, and accuracy metrics; matmul-surrogate local model
+- source_doi=10.1038/s41467-026-68648-1
+- source_quality_grade=C
+- coverage.accuracy=reported
+- coverage.area=reported
+- coverage.energy=not_reported
+- coverage.precision=not_reported
+- coverage.throughput=not_reported
+
+Boundary note: Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs.
+
+
 
 ## Workload
 
@@ -187,6 +231,17 @@ not a published hardware energy breakdown.
 | Contention-adjusted transfer-to-compute time ratio | 11.625 |
 | Contention pressure ratio | 11.625 |
 | Contention-adjusted equivalent ops/s | 27526881720.430 |
+
+### Scenario Provenance Packs
+
+These packs justify the selected local memory hierarchy and contention preset
+without implying measured end-to-end hardware behavior.
+
+| Pack | Status | Calibration scope | Sources | Local assumptions | Reviewer note |
+| --- | --- | --- | --- | --- | --- |
+| Memory scenario | source-context-plus-local-parameters | Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions. | Computing's energy problem (and what we can do about it) (10.1109/ISSCC.2014.6757323) | SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.; The scenario is a conservative baseline for sensitivity comparisons. | Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior. |
+| Contention preset | local-baseline | Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband. | explicit local assumption | shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions. | Use as the no-contention reference point. |
+
 
 ## Energy
 

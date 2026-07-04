@@ -62,6 +62,55 @@ Source-quality notes:
 - Direct 64x64 matrix-vector calibration card with paper-reported TOPS, TOPS/W, latency, ENOB, and component-count evidence.
 
 
+## Source Audit
+
+These rows keep quoted source metrics, direct conversion math, local assumptions,
+and confidence flags separate. They do not turn local surrogate estimates into
+paper measurements.
+
+| Metric | Quoted value | Source location | Note |
+| --- | --- | --- | --- |
+| Architecture | PACE 64x64 matrix-vector oMAC | published_calibration.architecture | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Reported throughput | 8.19 | published_calibration.reported_tops | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Energy efficiency excluding lasers | 4.21 | published_calibration.energy_efficiency_excluding_lasers_tops_per_watt | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Energy efficiency including lasers | 2.38 | published_calibration.energy_efficiency_including_lasers_tops_per_watt | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Reported latency | 5.0 | published_calibration.reported_latency_ns | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Reported future-device latency | 3.0 | published_calibration.reported_future_latency_ns | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Reported ENOB | 7.61 | published_calibration.reported_enob | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Reported component count minimum | 16000 | published_calibration.reported_component_count_min | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| A10 comparison latency minimum | 2300.0 | published_calibration.a10_latency_ns_min | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| PACE total time | 2.7 | published_calibration.pace_total_time_us | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| GPU/A10 total time | 798.1 | published_calibration.gpu_total_time_us | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+
+| Derived metric | Formula | Inputs | Result | Note |
+| --- | --- | --- | ---: | --- |
+| energy_per_op_excluding_lasers_pj | 1 / energy_efficiency_excluding_lasers_tops_per_watt | energy_efficiency_excluding_lasers_tops_per_watt=4.21 | 0.237529691211 |  |
+| energy_per_mac_excluding_lasers_pj | 2 / energy_efficiency_excluding_lasers_tops_per_watt | energy_efficiency_excluding_lasers_tops_per_watt=4.21 | 0.475059382423 |  |
+| total_energy_excluding_lasers_pj | equivalent_ops / energy_efficiency_excluding_lasers_tops_per_watt | energy_efficiency_excluding_lasers_tops_per_watt=4.21, equivalent_ops=8192 | 1945.8432304 |  |
+| energy_per_op_including_lasers_pj | 1 / energy_efficiency_including_lasers_tops_per_watt | energy_efficiency_including_lasers_tops_per_watt=2.38 | 0.420168067227 |  |
+| energy_per_mac_including_lasers_pj | 2 / energy_efficiency_including_lasers_tops_per_watt | energy_efficiency_including_lasers_tops_per_watt=2.38 | 0.840336134454 |  |
+| total_energy_including_lasers_pj | equivalent_ops / energy_efficiency_including_lasers_tops_per_watt | energy_efficiency_including_lasers_tops_per_watt=2.38, equivalent_ops=8192 | 3442.01680672 |  |
+| model_to_published_including_lasers_ratio | local_model.energy.total_pj / published_reference.derived_unit_conversions.total_energy_including_lasers_pj | published_total_energy_including_lasers_pj=3442.016806722689 | 0.2535815625 | Diagnostic ratio only; it does not change local_model or published_reference. |
+
+Local assumptions:
+
+- Local surrogate type: direct_64x64_matrix_vector_calibration.
+- Direct 64x64 matrix-vector calibration card with paper-reported TOPS, TOPS/W, latency, ENOB, and component-count evidence.
+
+Confidence flags:
+
+- claim_status=paper-reported calibration targets
+- source_doi=10.1038/s41586-025-08786-6
+- source_quality_grade=A
+- coverage.accuracy=not_applicable
+- coverage.area=derived
+- coverage.energy=reported
+- coverage.precision=reported
+- coverage.throughput=reported
+
+Boundary note: Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs.
+
+
 ## Calibration Fit
 
 This fit changes one local component-model parameter to match a selected published total-energy target. It is a calibration aid, not an independent reproduction of the source paper.
@@ -220,6 +269,17 @@ not a published hardware energy breakdown.
 | Contention-adjusted transfer-to-compute time ratio | 52.8 |
 | Contention pressure ratio | 52.8 |
 | Contention-adjusted equivalent ops/s | 31030303030.303 |
+
+### Scenario Provenance Packs
+
+These packs justify the selected local memory hierarchy and contention preset
+without implying measured end-to-end hardware behavior.
+
+| Pack | Status | Calibration scope | Sources | Local assumptions | Reviewer note |
+| --- | --- | --- | --- | --- | --- |
+| Memory scenario | source-context-plus-local-parameters | Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions. | Computing's energy problem (and what we can do about it) (10.1109/ISSCC.2014.6757323) | SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.; The scenario is a conservative baseline for sensitivity comparisons. | Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior. |
+| Contention preset | local-baseline | Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband. | explicit local assumption | shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions. | Use as the no-contention reference point. |
+
 
 ## Energy
 
