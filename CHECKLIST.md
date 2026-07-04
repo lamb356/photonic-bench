@@ -41,7 +41,7 @@ Status key:
   - Proof:
     - Added `.github/workflows/ci.yml`.
     - Workflow triggers on push to `master` and on pull requests.
-    - Workflow uses `actions/checkout@v4` and `actions/setup-python@v5` with
+    - Workflow uses `actions/checkout@v7` and `actions/setup-python@v6` with
       Python `3.12` and pip caching.
     - Workflow installs `python -m pip install -e ".[dev]"`.
     - Workflow installs Playwright Chromium with Linux dependencies via
@@ -53,6 +53,10 @@ Status key:
     - First pushed run `28694399915` proved the clean runner also needed
       explicit setuptools package discovery; fixed `pyproject.toml` with
       `[tool.setuptools.packages.find] include = ["photonic_bench*"]`.
+    - Second pushed run `28694440859` passed but annotated that older action
+      majors targeted deprecated Node 20; checked current releases with
+      `gh api` and updated to `actions/checkout@v7` and
+      `actions/setup-python@v6`.
 
 ## Task 2: Local CI Verification
 

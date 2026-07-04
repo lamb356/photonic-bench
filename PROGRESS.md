@@ -197,3 +197,56 @@
 ### Next Step
 
 - Commit and push the packaging fix, then verify the next GitHub Actions run.
+
+## 2026-07-04 Cycle 5: Passing CI And Action Version Hardening
+
+### Packaging Fix Commit And Push
+
+- Staged explicit paths:
+  - `pyproject.toml`;
+  - `CHECKLIST.md`;
+  - `CONTEXT.md`;
+  - `PROGRESS.md`.
+- Created commit:
+  - `f660fe4 Fix editable install package discovery`.
+- `.Codex/scripts/generate-reasoning.sh` was not present, so reasoning
+  generation was skipped.
+- Pushed `master` to `origin`.
+- Verified local and remote `master` both pointed to:
+  - `f660fe49be896e59f22b9455bad2e2ce0b5aa708`.
+
+### Passing Actions Run
+
+- Found GitHub Actions run:
+  - run ID: `28694440859`;
+  - workflow: `CI`;
+  - event: `push`;
+  - commit: `f660fe49be896e59f22b9455bad2e2ce0b5aa708`;
+  - URL:
+    `https://github.com/lamb356/photonic-bench/actions/runs/28694440859`.
+- Result:
+  - passed in 43 seconds.
+- Verified job steps:
+  - install dependencies passed;
+  - install Playwright browser passed;
+  - Ruff passed;
+  - pytest passed.
+
+### Annotation Follow-Up
+
+- The passing run emitted a GitHub Actions annotation that
+  `actions/checkout@v4` and `actions/setup-python@v5` target deprecated
+  Node.js 20 and are being forced to Node.js 24.
+- Queried current action releases:
+  - `gh api repos/actions/checkout/releases/latest` returned `v7.0.0`,
+    published `2026-06-18T13:53:05Z`;
+  - `gh api repos/actions/setup-python/releases/latest` returned `v6.3.0`,
+    published `2026-06-24T02:48:35Z`.
+- Updated `.github/workflows/ci.yml`:
+  - `actions/checkout@v7`;
+  - `actions/setup-python@v6`.
+
+### Next Step
+
+- Commit and push the action-version hardening, then verify the next GitHub
+  Actions run.
