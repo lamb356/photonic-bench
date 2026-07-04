@@ -84,6 +84,8 @@
 - [x] Task 6: Run hostile senior reviewer critique and fix significant
       findings.
 - [ ] Task 7: Commit and push the final visualizer polish and proposal work.
+      Local commit exists; push remains blocked because no remote/upstream is
+      configured for `master`.
 
 ## Explicitly Not Active In This Goal
 

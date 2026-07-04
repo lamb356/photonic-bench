@@ -7,19 +7,21 @@
 - Branch: `master`
 - Current-state feature commit:
   - `416f1f8 Add visualizer comparison smoke and server mode`
+- Final local implementation commit:
+  - `ee90e77 Polish visualizer comparisons and draft benchmark proposal`
 - Remote status:
   - no `git remote` is configured;
   - `master` has no upstream;
   - push is blocked until a remote URL/upstream is configured.
-- Current post-commit working tree:
-  - further visualizer comparison polish;
-  - MLCommons-style proposal artifacts;
-  - README, tests, generated visualizer assets, and state-file updates.
+- Continuation re-audit:
+  - worktree was clean at `ee90e77`;
+  - no remote or upstream was configured;
+  - state ledgers were updated afterward to record the remaining push blocker.
 - Recent commits:
+  - `ee90e77 Polish visualizer comparisons and draft benchmark proposal`
   - `416f1f8 Add visualizer comparison smoke and server mode`
   - `c5d9816 Evolve visualizer static workbench`
   - `ef731c9 Add initial web visualizer`
-  - `a147736 Harden transformer layer aggregate reports`
 
 ## CLI Commands
 
@@ -64,6 +66,8 @@ Existing commands:
   - explicit mixed-schema caveats.
 - The checked-in visualizer example has been regenerated after JavaScript and
   CSS changes.
+- The visualizer polish layer is committed locally in `ee90e77`; only pushing
+  to a remote remains incomplete.
 
 ## Data Contracts
 
@@ -118,6 +122,8 @@ presented as a hidden fused-layer hardware model.
     requirements, verification commands, review checklist, and audit questions.
 - `thoughts/plans/mlcommons_photonic_benchmark_proposal_plan.md`
   - retained as the original planning note and now points to the docs above.
+- The proposal artifacts are committed locally in `ee90e77`; only pushing to a
+  remote remains incomplete.
 
 ## Current Verification
 
