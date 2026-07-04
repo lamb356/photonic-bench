@@ -706,6 +706,15 @@ artifacts still load. Browser-local presets can also be exported as
 `photonic-bench-comparison-presets-v1` JSON and imported back with validation;
 generated sidecar presets remain read-only.
 
+The scenario sensitivity dashboard is rendered from checked artifact data. It
+lets reviewers select one dedicated `profile_sensitivity_*` card and compare the
+matched 64x64 workload across the available memory scenarios and contention
+presets. The table reports local-model system energy/op, contention-adjusted
+latency and throughput, usable bandwidth, guardbanded bandwidth, bottleneck
+tiers, bandwidth utilization, bandwidth headroom, and deltas against the
+selected subject. It is explicitly a local-model sweep over generated artifacts,
+not a measured hardware sweep or recomputation inside the browser.
+
 The comparison dashboard also includes a contention insight panel that
 highlights the best adjusted throughput, lowest adjusted latency, largest
 shared-client count, largest calibration/control overhead, highest pressure
@@ -762,6 +771,11 @@ artifacts, pinned baseline, score weights, checklist status, top tradeoffs,
 reviewer notes, modeling-boundary notes, and an embedded comparison export.
 Decision-packet rankings and "why this card ranks here" explanations are
 explicitly local UI triage aids; they are not published benchmark claims.
+The rail can import the same JSON packet with the `Replay decision packet`
+picker or by dropping the file onto that control. Replay restores selected
+artifacts, pinned baseline, analysis focus, score weights, filters, Pareto mode,
+reviewer notes, and the comparison view against the live artifact index. Stale
+artifact IDs are shown in the replay panel instead of being silently ignored.
 
 The visualizer accessibility pass keeps controls keyboard-reachable, adds
 specific ARIA labels to comparison and pin controls, exposes mode button

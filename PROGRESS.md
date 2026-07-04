@@ -127,6 +127,105 @@
 
 ### Pending
 
-- Commit and push the promoted platform baselines and state updates.
-- Re-run remote CI and inspect the regenerated screenshot artifacts from the
-  green run.
+- Completed by commit `c2ad0d7 Promote remote mobile visual baselines`.
+
+## 2026-07-04 Cycle 3: Green Remote CI And Screenshot Artifact Inspection
+
+### Remote CI Run `28717165055`
+
+- PR #11 follow-up CI run:
+  `https://github.com/lamb356/photonic-bench/actions/runs/28717165055`.
+- Head commit: `c2ad0d7d5cee8fa6730951c88bc98cdf11fe36d4`.
+- `Ruff, package, and pytest`: passed.
+- `macOS visual regression`: passed.
+- PR #11 remained open, draft, and mergeable after the run:
+  `https://github.com/lamb356/photonic-bench/pull/11`.
+
+### Green-Run Screenshot Artifact Inspection
+
+- Downloaded `visual-regression-screenshots` from run `28717165055`:
+  - `desktop-comparison.png`
+  - `detail-published-reference.png`
+  - `external-report-error.png`
+  - `mobile-comparison.png`
+  - `wide-transformer-comparison.png`
+- Downloaded `macos-visual-regression-screenshots` from run `28717165055`:
+  - macOS actual screenshots for the same five cases;
+  - checked macOS baseline images included by the artifact path.
+- Built temporary contact sheets for Linux and macOS artifacts and inspected the
+  rendered views.
+- Inspection result:
+  - desktop comparison, detail view, external-report error state, mobile
+    comparison, and wide transformer comparison all rendered coherently;
+  - mobile comparison showed the expanded recommendation explanation and
+    scorecard without horizontal overflow;
+  - no screenshot artifact suggested a missing asset, blank panel, or broken
+    local-file visualizer path.
+
+### Task 2 Status
+
+- Remote CI and screenshot artifact inspection are complete for the current PR
+  head before the next feature work begins.
+
+## 2026-07-04 Cycle 4: Decision Replay And Scenario Sensitivity
+
+### Scenario Sensitivity Dashboard
+
+- Added a static Scenario Sensitivity Dashboard to the visualizer.
+- The dashboard selects a dedicated `profile_sensitivity_*` subject and compares
+  checked same-workload artifacts across memory scenarios and contention
+  presets.
+- Rows include:
+  - system energy/op;
+  - contention-adjusted latency;
+  - contention-adjusted throughput;
+  - effective usable bandwidth under load;
+  - guardbanded usable bandwidth;
+  - bottleneck tier;
+  - bandwidth utilization;
+  - bandwidth headroom;
+  - energy/latency deltas and throughput ratio against the selected subject.
+- Dashboard wording explicitly labels the table as a local-model sweep over
+  generated artifacts, not a measured hardware sweep.
+- During implementation, an accidental same-shape pair from unrelated published
+  cards was found and excluded by narrowing the dashboard to the dedicated
+  `profile_sensitivity_*` family.
+
+### Decision-Packet Import And Replay
+
+- Added rail support for importing `photonic-bench-decision-packet-v1` JSON via
+  file picker or drag/drop.
+- Replay validates schema version and restores selected artifact IDs, pinned
+  baseline, analysis focus, score weights, filters, Pareto mode, reviewer
+  notes, and comparison mode against the live generated index.
+- Stale artifact IDs are reported in the rail message and in the Decision
+  Packet Replay panel rather than silently ignored.
+- The replay panel records source file, schema version, restored artifact
+  count, pinned baseline, checklist snapshot count, packet generation time,
+  replay time, and missing artifact IDs.
+
+### Documentation And Generated Artifacts
+
+- Updated README visualizer documentation for scenario sensitivity and decision
+  packet replay.
+- Updated `docs/reviewer_workflow.md` with reviewer replay checks and
+  sensitivity-dashboard checks.
+- Updated `docs/json_schema.md` to document packet replay semantics.
+- Regenerated checked visualizer outputs under `reports/visualizer/**`.
+
+### Focused Verification
+
+- `node --check photonic_bench\visualizer_assets\app.js`: passed.
+- `node --check reports\visualizer\assets\app.js`: passed.
+- `python -m photonic_bench.cli verify-artifacts`: passed, 278 generated files
+  fresh.
+- `python -m pytest tests\test_visualizer_smoke.py -q`: passed.
+- `python -m pytest tests\test_visualizer_smoke.py tests\test_visualizer_accessibility.py -q`:
+  passed.
+- `python -m pytest tests\test_visualizer_visual_regression.py -q`: passed.
+
+### Task Status
+
+- Task 4 is DONE with focused browser and visual-regression proof.
+- Task 5 is DONE with focused browser proof for restored state and stale-ID
+  handling.

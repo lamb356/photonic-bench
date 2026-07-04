@@ -347,8 +347,9 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
             page.locator("#reviewer-notes").fill("Decision packet smoke note.")
             with page.expect_download() as packet_json_download:
                 page.get_by_role("button", name="Decision Packet JSON").click()
+            packet_path = Path(packet_json_download.value.path())
             packet_json = json.loads(
-                Path(packet_json_download.value.path()).read_text(encoding="utf-8")
+                packet_path.read_text(encoding="utf-8")
             )
             packet_schema = json.loads(
                 Path("docs/photonic-bench-decision-packet-v1.schema.json").read_text(
@@ -369,6 +370,44 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
             assert packet_json["comparison_export"]["schema_version"] == (
                 "photonic-bench-comparison-export-v1"
             )
+            original_packet_ids = list(packet_json["selected_artifact_ids"])
+            packet_json["reviewer_notes"] = "Replayed packet smoke note."
+            packet_json["selected_artifact_ids"] = [
+                *original_packet_ids,
+                "stale_replay_artifact.json",
+            ]
+            replay_packet = tmp_path / "decision_packet_replay.json"
+            replay_packet.write_text(
+                json.dumps(packet_json),
+                encoding="utf-8",
+            )
+            page.get_by_role("button", name="Clear comparison").click()
+            assert page.locator("#compare-count").text_content() == "0"
+            page.locator("#decision-packet-file").set_input_files(str(replay_packet))
+            page.get_by_text(
+                "Replayed "
+                f"{len(original_packet_ids)} artifact(s); missing: stale_replay_artifact.json"
+            ).wait_for()
+            page.get_by_role("heading", name="Decision Packet Replay").wait_for()
+            page.get_by_text("Missing artifact IDs: stale_replay_artifact.json").wait_for()
+            page.get_by_role("heading", name="Artifact Comparison").wait_for()
+            assert page.locator("#compare-count").text_content() == str(
+                len(original_packet_ids)
+            )
+            assert page.locator("#reviewer-notes").input_value() == (
+                "Replayed packet smoke note."
+            )
+            assert page.locator("#analysis-focus").input_value() == "provenance"
+            page.get_by_role("heading", name="Scenario Sensitivity Dashboard").wait_for()
+            page.get_by_text("not measured hardware sweeps").first.wait_for()
+            page.locator("#scenario-subject").select_option(
+                "profile_sensitivity_64x64_hbm.json"
+            )
+            assert page.locator("#scenario-subject").input_value() == (
+                "profile_sensitivity_64x64_hbm.json"
+            )
+            page.get_by_text("optical_interconnect").first.wait_for()
+            page.get_by_text("Throughput ratio").first.wait_for()
             with page.expect_download() as packet_markdown_download:
                 page.get_by_role("button", name="Decision Packet Markdown").click()
             packet_markdown = Path(packet_markdown_download.value.path()).read_text(
@@ -376,7 +415,7 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
             )
             assert "# PhotonicBench Decision Packet" in packet_markdown
             assert "## Selected Artifacts" in packet_markdown
-            assert "Decision packet smoke note." in packet_markdown
+            assert "Replayed packet smoke note." in packet_markdown
 
             page.locator('button[data-id="nature_pace_64x64.json"]').click()
             page.get_by_role("heading", name="Published Reference").wait_for()

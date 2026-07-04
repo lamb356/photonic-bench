@@ -654,20 +654,27 @@
       diff hygiene. Created commits `192a630` and `ebcee8c`, pushed the branch,
       and opened draft PR #11:
       `https://github.com/lamb356/photonic-bench/pull/11`.
-- [ ] Task 2: Run remote CI on the PR and inspect generated screenshot
+- [x] Task 2: Run remote CI on the PR and inspect generated screenshot
       artifacts.
       First PR run `28717081779` failed only the Linux/macOS
       `mobile-comparison.png` visual baselines. Downloaded and inspected
       `visual-regression-screenshots` and
       `macos-visual-regression-screenshots`, promoted the valid platform
       baselines from the CI artifacts, and verified local default visual
-      regression passes. Follow-up green CI and final artifact inspection are
-      pending.
+      regression passes. Follow-up run `28717165055` passed both required
+      jobs; green-run Linux/macOS screenshot artifacts were downloaded and
+      inspected.
 - [ ] Task 3: Add calibrated scenario provenance packs with source-backed
       justification for memory hierarchy scenarios and contention presets.
-- [ ] Task 4: Add a scenario sensitivity dashboard in the visualizer for
+- [x] Task 4: Add a scenario sensitivity dashboard in the visualizer for
       sweeping one card across memory scenarios.
-- [ ] Task 5: Add decision-packet import/replay to restore full review state.
+      Implemented a local-model dashboard over dedicated
+      `profile_sensitivity_*` artifacts with selected-subject deltas and
+      browser/visual-regression proof.
+- [x] Task 5: Add decision-packet import/replay to restore full review state.
+      Added rail file-picker/drop replay, schema validation, stale-ID warnings,
+      restored review state, replay provenance, docs, generated assets, and
+      browser-smoke proof.
 - [ ] Task 6: Add card source-audit depth with quoted metrics, local
       assumptions, conversion math, and confidence flags.
 - [ ] Task 7: Expand memory-stressing card coverage with 2-4 more

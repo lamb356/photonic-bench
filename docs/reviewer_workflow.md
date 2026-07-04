@@ -106,3 +106,15 @@ notes, boundary notes, and embedded comparison export. The packet text must
 keep ranking and "why this card ranks here" explanations labeled as local UI
 triage, not published benchmark claims.
 
+Then replay the exported JSON through the rail's `Replay decision packet`
+control. Confirm that the comparison view, selected artifact count, pinned
+baseline, analysis focus, score weights, filters, Pareto mode, and reviewer
+notes are restored. If the packet contains artifact IDs that are absent from the
+current generated index, the replay panel must show those stale IDs rather than
+silently dropping them.
+
+For memory-scenario review, open the Scenario Sensitivity Dashboard and select a
+dedicated `profile_sensitivity_*` card. Confirm that the rows compare the
+matched workload across memory scenarios and contention presets, and that the
+dashboard remains labeled as local-model sensitivity rather than a measured
+hardware sweep.

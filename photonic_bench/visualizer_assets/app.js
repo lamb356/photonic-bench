@@ -23,6 +23,10 @@
     userPresets: [],
     presetMessage: "",
     presetMessageIsWarning: false,
+    decisionPacketMessage: "",
+    decisionPacketMessageIsWarning: false,
+    decisionPacketReplay: null,
+    scenarioSubjectId: null,
     externalIds: new Set(),
     externalMessage: "",
     externalMessageIsWarning: false,
@@ -161,6 +165,30 @@
       importPresetFile((event.target.files || [])[0]);
       event.target.value = "";
     });
+
+  document
+    .getElementById("decision-packet-file")
+    .addEventListener("change", (event) => {
+      importDecisionPacketFile((event.target.files || [])[0]);
+      event.target.value = "";
+    });
+
+  const decisionPacketDropZone = document.getElementById("decision-packet-drop-zone");
+  ["dragenter", "dragover"].forEach((eventName) => {
+    decisionPacketDropZone.addEventListener(eventName, (event) => {
+      event.preventDefault();
+      decisionPacketDropZone.classList.add("drag-active");
+    });
+  });
+  ["dragleave", "drop"].forEach((eventName) => {
+    decisionPacketDropZone.addEventListener(eventName, (event) => {
+      event.preventDefault();
+      decisionPacketDropZone.classList.remove("drag-active");
+    });
+  });
+  decisionPacketDropZone.addEventListener("drop", (event) => {
+    importDecisionPacketFile((event.dataTransfer?.files || [])[0]);
+  });
 
   document
     .getElementById("external-report-file")
@@ -804,19 +832,27 @@
     const sanitizedFilters = {
       search:
         typeof filters.search === "string" ? filters.search.toLowerCase() : "",
-      schema: safeOption(filters.schema, VALID_KINDS, DEFAULT_STATE.kind),
+      schema: safeOption(
+        filters.schema ?? filters.kind,
+        VALID_KINDS,
+        DEFAULT_STATE.kind
+      ),
       boundary: safeOption(
         filters.boundary,
         VALID_BOUNDARIES,
         DEFAULT_STATE.boundary
       ),
       source_quality: safeOption(
-        filters.source_quality,
+        filters.source_quality ?? filters.quality,
         VALID_SOURCE_QUALITIES,
         DEFAULT_STATE.quality
       ),
       sort: safeOption(filters.sort, VALID_SORTS, DEFAULT_STATE.sort),
-      grouping: safeOption(filters.grouping, VALID_GROUPS, DEFAULT_STATE.group),
+      grouping: safeOption(
+        filters.grouping ?? filters.group,
+        VALID_GROUPS,
+        DEFAULT_STATE.group
+      ),
     };
     const analysisFocus = safeOption(
       value.analysis_focus,
@@ -828,7 +864,7 @@
       Object.keys(paretoSpecs()),
       ""
     );
-    const scoreWeights = sanitizeScoreWeights(value.score_weights || {});
+    const scoreWeights = sanitizeIntentScoreWeights(value.score_weights || {});
     return {
       analysis_focus: analysisFocus || DEFAULT_STATE.analysisFocus,
       score_profile:
@@ -847,6 +883,25 @@
       pareto_mode: state.paretoMode,
       filters: currentFilterState(),
     };
+  }
+
+  function sanitizeIntentScoreWeights(value) {
+    if (Array.isArray(value)) {
+      return sanitizeScoreWeights(
+        Object.fromEntries(
+          value
+            .filter(
+              (entry) =>
+                entry &&
+                typeof entry.metric === "string" &&
+                entry.metric.trim() &&
+                entry.weight !== undefined
+            )
+            .map((entry) => [entry.metric, entry.weight])
+        )
+      );
+    }
+    return sanitizeScoreWeights(value || {});
   }
 
   function exportUserPresets() {
@@ -928,6 +983,12 @@
     renderPresetControls();
   }
 
+  function setDecisionPacketMessage(message, isWarning = false) {
+    state.decisionPacketMessage = message;
+    state.decisionPacketMessageIsWarning = isWarning;
+    renderDecisionPacketControls();
+  }
+
   function applyPreset(preset) {
     const validIds = preset.artifact_ids.filter((id) => byId.has(id));
     const missingIds = preset.artifact_ids.filter((id) => !byId.has(id));
@@ -947,7 +1008,11 @@
   }
 
   function applyPresetAnalysisIntent(preset) {
-    const intent = sanitizeAnalysisIntent(preset.analysis_intent || {});
+    applyAnalysisIntent(preset.analysis_intent || {}, preset.reviewer_notes);
+  }
+
+  function applyAnalysisIntent(analysisIntent, reviewerNotes) {
+    const intent = sanitizeAnalysisIntent(analysisIntent || {});
     const filters = intent.filters || {};
     state.search = filters.search ?? state.search;
     state.kind = safeOption(filters.schema, VALID_KINDS, state.kind);
@@ -972,7 +1037,128 @@
     state.customScoreWeights = sanitizeScoreWeights(intent.score_weights || {});
     writeScoreWeights();
     state.reviewerNotes =
-      typeof preset.reviewer_notes === "string" ? preset.reviewer_notes : "";
+      typeof reviewerNotes === "string" ? reviewerNotes : "";
+  }
+
+  function importDecisionPacketFile(file) {
+    if (!file) {
+      return;
+    }
+    file
+      .text()
+      .then((text) => {
+        const replay = validateDecisionPacketImport(JSON.parse(text), file.name);
+        applyDecisionPacketReplay(replay);
+      })
+      .catch((error) => {
+        setDecisionPacketMessage(`Decision packet replay failed: ${error.message}`, true);
+      });
+  }
+
+  function validateDecisionPacketImport(payload, fileName = "decision packet") {
+    if (!payload || typeof payload !== "object") {
+      throw new Error("expected a JSON object");
+    }
+    if (payload.schema_version !== DECISION_PACKET_SCHEMA) {
+      throw new Error(`expected schema_version ${DECISION_PACKET_SCHEMA}`);
+    }
+    const selectedIds = uniqueStrings(
+      Array.isArray(payload.selected_artifact_ids)
+        ? payload.selected_artifact_ids
+        : []
+    );
+    const embeddedIds = uniqueStrings(
+      Array.isArray(payload.comparison_export?.selected_artifact_ids)
+        ? payload.comparison_export.selected_artifact_ids
+        : []
+    );
+    const artifactSummaryIds = uniqueStrings(
+      Array.isArray(payload.selected_artifacts)
+        ? payload.selected_artifacts.map((entry) => entry?.artifact_id)
+        : []
+    );
+    const artifactIds = selectedIds.length
+      ? selectedIds
+      : embeddedIds.length
+        ? embeddedIds
+        : artifactSummaryIds;
+    if (!artifactIds.length) {
+      throw new Error("no selected artifact IDs found");
+    }
+    const validIds = artifactIds.filter((id) => byId.has(id));
+    const missingIds = artifactIds.filter((id) => !byId.has(id));
+    if (!validIds.length) {
+      throw new Error("none of the packet artifact IDs exist in this index");
+    }
+    const pinnedId =
+      typeof payload.pinned_baseline?.artifact_id === "string"
+        ? payload.pinned_baseline.artifact_id
+        : typeof payload.comparison_export?.pinned_id === "string"
+          ? payload.comparison_export.pinned_id
+          : null;
+    return {
+      fileName,
+      payload,
+      validIds,
+      missingIds,
+      pinnedId: validIds.includes(pinnedId) ? pinnedId : validIds[0],
+      analysisIntent: packetAnalysisIntent(payload),
+      reviewerNotes:
+        typeof payload.reviewer_notes === "string" ? payload.reviewer_notes : "",
+      checklistCount: Array.isArray(payload.checklist_status)
+        ? payload.checklist_status.length
+        : 0,
+    };
+  }
+
+  function uniqueStrings(values) {
+    return Array.from(new Set(values.filter((value) => typeof value === "string")));
+  }
+
+  function packetAnalysisIntent(payload) {
+    if (payload.analysis_intent && typeof payload.analysis_intent === "object") {
+      return payload.analysis_intent;
+    }
+    const comparison = payload.comparison_export || {};
+    const comparisonFocus =
+      comparison.analysis_focus && typeof comparison.analysis_focus === "object"
+        ? comparison.analysis_focus
+        : {};
+    return {
+      analysis_focus: comparisonFocus.key,
+      score_profile: comparisonFocus.score_profile?.key,
+      score_weights: comparisonFocus.score_weights,
+      filters: comparison.filters,
+    };
+  }
+
+  function applyDecisionPacketReplay(replay) {
+    applyAnalysisIntent(replay.analysisIntent, replay.reviewerNotes);
+    state.compareIds = new Set(replay.validIds);
+    state.pinnedId = replay.validIds.includes(replay.pinnedId)
+      ? replay.pinnedId
+      : replay.validIds[0];
+    state.selectedId = state.pinnedId || replay.validIds[0] || state.selectedId;
+    state.view = "compare";
+    state.decisionPacketReplay = {
+      file_name: replay.fileName,
+      schema_version: replay.payload.schema_version,
+      generated_at:
+        typeof replay.payload.generated_at === "string"
+          ? replay.payload.generated_at
+          : null,
+      imported_at: new Date().toISOString(),
+      restored_artifact_count: replay.validIds.length,
+      missing_artifact_ids: replay.missingIds,
+      pinned_id: state.pinnedId,
+      reviewer_notes_restored: Boolean(replay.reviewerNotes),
+      checklist_entry_count: replay.checklistCount,
+    };
+    state.decisionPacketMessage = replay.missingIds.length
+      ? `Replayed ${replay.validIds.length} artifact(s); missing: ${replay.missingIds.join(", ")}`
+      : `Replayed decision packet with ${replay.validIds.length} artifact(s).`;
+    state.decisionPacketMessageIsWarning = replay.missingIds.length > 0;
+    render();
   }
 
   function saveCurrentPreset() {
@@ -2093,6 +2279,12 @@
     message.classList.toggle("warn", state.presetMessageIsWarning);
   }
 
+  function renderDecisionPacketControls() {
+    const message = document.getElementById("decision-packet-message");
+    message.textContent = state.decisionPacketMessage;
+    message.classList.toggle("warn", state.decisionPacketMessageIsWarning);
+  }
+
   function renderList() {
     const list = document.getElementById("artifact-list");
     const artifacts = filteredArtifacts();
@@ -2712,6 +2904,7 @@
     return `
       ${header(summary)}
       ${renderConcepts()}
+      ${renderScenarioSensitivityDashboard(artifact, true)}
       <div class="grid-2">
         <section class="panel">
           <h3>Workload Shape</h3>
@@ -3102,6 +3295,7 @@
           artifact.summary.kind === "transformer_layer"
             ? renderTransformer(artifact, payload)
             : renderMatmul(artifact, payload);
+        wireScenarioSensitivityControls(detail);
       })
       .catch((error) => {
         detail.innerHTML = `<div class="empty">Could not load artifact payload: ${escapeHtml(error.message)}</div>`;
@@ -5318,6 +5512,308 @@
     `;
   }
 
+  function renderDecisionPacketReplayPanel() {
+    const replay = state.decisionPacketReplay;
+    if (!replay) {
+      return "";
+    }
+    const missing = replay.missing_artifact_ids || [];
+    const missingText = missing.length ? missing.join(", ") : "none";
+    return `
+      <section class="panel decision-replay-panel">
+        <h3>Decision Packet Replay</h3>
+        <div class="metric-grid">
+          ${metric("Replay source", replay.file_name || "browser import", replay.schema_version)}
+          ${metric("Restored artifacts", formatNumber(replay.restored_artifact_count), "matched live index IDs")}
+          ${metric("Pinned baseline", replay.pinned_id || "none", "restored when present")}
+          ${metric("Checklist entries", formatNumber(replay.checklist_entry_count), "packet snapshot")}
+        </div>
+        <div class="notes">
+          <p>Imported packet state is replayed against the live generated artifact index; generated reports are not modified by replay.</p>
+          <p>${escapeHtml(missing.length ? `Missing artifact IDs: ${missingText}` : "No stale artifact IDs were reported during replay.")}</p>
+          <p>${escapeHtml(replay.generated_at ? `Packet generated at ${replay.generated_at}; replayed at ${replay.imported_at}.` : `Packet replayed at ${replay.imported_at}.`)}</p>
+        </div>
+      </section>
+    `;
+  }
+
+  function scenarioSweepKey(summary) {
+    const sourcePath = summary.source_path || summary.id || "";
+    const sensitivityMatch = sourcePath.match(/^(.*profile_sensitivity_[0-9]+x[0-9]+)_/);
+    if (sensitivityMatch) {
+      return sensitivityMatch[1];
+    }
+    return [
+      summary.kind,
+      summary.macs,
+      summary.equivalent_ops,
+      summary.output_elements,
+      summary.total_energy_pj,
+      summary.memory_traffic_bytes,
+      summary.latency_label,
+    ].join("|");
+  }
+
+  function scenarioLabel(summary) {
+    return summary.memory_scenario || summary.system_profile || "default";
+  }
+
+  function scenarioSortKey(summary) {
+    const order = [
+      "on_chip_sram",
+      "on_package_sram",
+      "hbm",
+      "ddr",
+      "pcie_attached",
+      "optical_interconnect",
+      "default",
+    ];
+    const label = scenarioLabel(summary);
+    const index = order.indexOf(label);
+    return [index === -1 ? order.length : index, label, summary.benchmark_name];
+  }
+
+  function compareScenarioSortKeys(left, right) {
+    const leftKey = scenarioSortKey(left.summary);
+    const rightKey = scenarioSortKey(right.summary);
+    if (leftKey[0] !== rightKey[0]) {
+      return leftKey[0] - rightKey[0];
+    }
+    if (leftKey[1] !== rightKey[1]) {
+      return leftKey[1].localeCompare(rightKey[1]);
+    }
+    return leftKey[2].localeCompare(rightKey[2]);
+  }
+
+  function scenarioSensitivityGroups() {
+    const groups = new Map();
+    state.data.artifacts.forEach((artifact) => {
+      const summary = artifact.summary;
+      if (summary.kind !== "matmul_card" || summary.is_external) {
+        return;
+      }
+      if (
+        !Number.isFinite(Number(summary.macs)) ||
+        !Number.isFinite(Number(summary.equivalent_ops)) ||
+        !Number.isFinite(Number(summary.output_elements))
+      ) {
+        return;
+      }
+      const key = scenarioSweepKey(summary);
+      const group = groups.get(key) || [];
+      group.push(artifact);
+      groups.set(key, group);
+    });
+    return Array.from(groups.values())
+      .map((group) => group.sort(compareScenarioSortKeys))
+      .filter((group) => {
+        const key = scenarioSweepKey(group[0].summary);
+        const dedicatedSensitivityGroup =
+          key.includes("profile_sensitivity_") ||
+          group.every((artifact) =>
+            String(artifact.summary.source_path || "").includes("profile_sensitivity_")
+          );
+        const scenarios = new Set(group.map((artifact) => scenarioLabel(artifact.summary)));
+        return dedicatedSensitivityGroup && group.length >= 2 && scenarios.size >= 2;
+      });
+  }
+
+  function scenarioSensitivitySubjectOptions() {
+    return scenarioSensitivityGroups()
+      .flat()
+      .sort((left, right) =>
+        left.summary.benchmark_name.localeCompare(right.summary.benchmark_name)
+      );
+  }
+
+  function scenarioSensitivityPeers(subjectArtifact) {
+    if (!subjectArtifact) {
+      return [];
+    }
+    const key = scenarioSweepKey(subjectArtifact.summary);
+    const group = scenarioSensitivityGroups().find(
+      (candidate) => scenarioSweepKey(candidate[0].summary) === key
+    );
+    return group || [];
+  }
+
+  function scenarioSensitivitySubject(preferredArtifact, forcePreferred = false) {
+    const options = scenarioSensitivitySubjectOptions();
+    if (!options.length) {
+      state.scenarioSubjectId = null;
+      return null;
+    }
+    const preferredId = preferredArtifact?.summary?.id || null;
+    const optionIds = new Set(options.map((artifact) => artifact.summary.id));
+    if (forcePreferred && preferredId && optionIds.has(preferredId)) {
+      state.scenarioSubjectId = preferredId;
+    }
+    if (!state.scenarioSubjectId || !optionIds.has(state.scenarioSubjectId)) {
+      state.scenarioSubjectId =
+        preferredId && optionIds.has(preferredId)
+          ? preferredId
+          : options[0].summary.id;
+    }
+    return byId.get(state.scenarioSubjectId) || options[0];
+  }
+
+  function renderScenarioSensitivityDashboard(
+    preferredArtifact = null,
+    forcePreferred = false
+  ) {
+    const options = scenarioSensitivitySubjectOptions();
+    if (!options.length) {
+      return "";
+    }
+    const subject = scenarioSensitivitySubject(preferredArtifact, forcePreferred);
+    const peers = scenarioSensitivityPeers(subject);
+    if (!subject || peers.length < 2) {
+      return "";
+    }
+    const baseline = subject.summary;
+    const bestThroughput = bestArtifactForScenarioMetric(
+      peers,
+      (summary) => summary.contention_adjusted_throughput_equivalent_ops_per_second,
+      "higher"
+    );
+    const lowestEnergy = bestArtifactForScenarioMetric(
+      peers,
+      (summary) => summary.system_energy_per_op_pj,
+      "lower"
+    );
+    const lowestLatency = bestArtifactForScenarioMetric(
+      peers,
+      (summary) => summary.contention_adjusted_latency_ns,
+      "lower"
+    );
+    const rows = peers.map((artifact) => {
+      const summary = artifact.summary;
+      const isSelected = summary.id === baseline.id;
+      return [
+        `${escapeHtml(scenarioLabel(summary))}${
+          isSelected ? ' <span class="badge layer">selected</span>' : ""
+        }`,
+        escapeHtml(summary.contention_preset || "n/a"),
+        escapeHtml(formatPj(summary.system_energy_per_op_pj)),
+        escapeHtml(formatNs(summary.contention_adjusted_latency_ns)),
+        escapeHtml(
+          formatThroughput(
+            summary.contention_adjusted_throughput_equivalent_ops_per_second
+          )
+        ),
+        escapeHtml(
+          formatBytesPerNs(
+            summary.effective_usable_bandwidth_under_load_bytes_per_ns
+          )
+        ),
+        escapeHtml(
+          formatBytesPerNs(
+            summary.guardbanded_usable_bandwidth_under_load_bytes_per_ns
+          )
+        ),
+        escapeHtml(systemTierLabel(summary.contention_memory_bottleneck_tier || "n/a")),
+        escapeHtml(formatNumber(summary.max_tier_contention_bandwidth_utilization)),
+        escapeHtml(formatNumber(summary.min_tier_contention_bandwidth_headroom_ratio)),
+        escapeHtml(
+          formatDelta(
+            summary.system_energy_per_op_pj,
+            baseline.system_energy_per_op_pj,
+            formatPj
+          )
+        ),
+        escapeHtml(
+          formatDelta(
+            summary.contention_adjusted_latency_ns,
+            baseline.contention_adjusted_latency_ns,
+            formatNs
+          )
+        ),
+        escapeHtml(
+          formatRatio(
+            summary.contention_adjusted_throughput_equivalent_ops_per_second,
+            baseline.contention_adjusted_throughput_equivalent_ops_per_second
+          )
+        ),
+      ];
+    });
+    return `
+      <section class="panel scenario-dashboard">
+        <div class="panel-heading scenario-heading">
+          <div>
+            <h3>Scenario Sensitivity Dashboard</h3>
+            <div class="description">Local-model sweep over checked artifacts with matched workload identity; these rows are not measured hardware sweeps.</div>
+          </div>
+          <label class="scenario-subject-control">
+            <span>Sensitivity subject</span>
+            <select id="scenario-subject" aria-label="Scenario sensitivity subject">
+              ${options
+                .map(
+                  (artifact) =>
+                    `<option value="${escapeHtml(artifact.summary.id)}"${
+                      artifact.summary.id === subject.summary.id ? " selected" : ""
+                    }>${escapeHtml(artifact.summary.benchmark_name)}</option>`
+                )
+                .join("")}
+            </select>
+          </label>
+        </div>
+        <div class="metric-grid">
+          ${metric("Scenario rows", formatNumber(peers.length), "matched artifacts")}
+          ${metric("Selected scenario", scenarioLabel(baseline), baseline.contention_preset || "contention preset")}
+          ${metric("Lowest energy/op", lowestEnergy ? scenarioLabel(lowestEnergy.summary) : "n/a", "system pJ/op")}
+          ${metric("Best throughput", bestThroughput ? scenarioLabel(bestThroughput.summary) : "n/a", "contention-adjusted")}
+          ${metric("Lowest latency", lowestLatency ? scenarioLabel(lowestLatency.summary) : "n/a", "contention-adjusted")}
+        </div>
+        ${simpleTable(
+          [
+            { label: "Scenario" },
+            { label: "Contention preset" },
+            { label: "System energy/op", num: true },
+            { label: "Contention latency", num: true },
+            { label: "Contention throughput", num: true },
+            { label: "Usable BW", num: true },
+            { label: "Guardbanded BW", num: true },
+            { label: "Bottleneck tier" },
+            { label: "BW utilization", num: true },
+            { label: "BW headroom", num: true },
+            { label: "Energy delta", num: true },
+            { label: "Latency delta", num: true },
+            { label: "Throughput ratio", num: true },
+          ],
+          rows,
+          "comparison-table scenario-table"
+        )}
+      </section>
+    `;
+  }
+
+  function bestArtifactForScenarioMetric(group, getter, direction) {
+    const values = group
+      .map((artifact) => ({
+        artifact,
+        value: Number(getter(artifact.summary)),
+      }))
+      .filter((entry) => Number.isFinite(entry.value));
+    if (!values.length) {
+      return null;
+    }
+    values.sort((left, right) =>
+      direction === "higher" ? right.value - left.value : left.value - right.value
+    );
+    return values[0].artifact;
+  }
+
+  function wireScenarioSensitivityControls(container) {
+    const select = container.querySelector("#scenario-subject");
+    if (!select) {
+      return;
+    }
+    select.addEventListener("change", (event) => {
+      state.scenarioSubjectId = event.target.value;
+      render();
+    });
+  }
+
   function renderComparisonWorkspace(artifacts, pinnedArtifact, focus) {
     const visibleCount = filteredArtifacts().length;
     return `
@@ -6227,6 +6723,8 @@ ${notes}
         </div>
       </section>
       ${renderComparisonWorkspace(artifacts, pinnedArtifact, focus)}
+      ${renderDecisionPacketReplayPanel()}
+      ${renderScenarioSensitivityDashboard(pinnedArtifact || artifacts[0])}
       ${renderSelectionDrawer(artifacts)}
       ${renderComparisonBrief(artifacts)}
       ${renderEnergyStack(artifacts)}
@@ -6259,6 +6757,8 @@ ${notes}
         <textarea id="export-preview" class="export-preview" aria-label="Markdown export preview" readonly>${escapeHtml(exportMarkdown)}</textarea>
       </section>
     `;
+
+    wireScenarioSensitivityControls(detail);
 
     const focusSelect = detail.querySelector("#analysis-focus");
     if (focusSelect) {
@@ -6445,6 +6945,7 @@ ${notes}
     ensurePinnedReference();
     renderModeTabs();
     renderPresetControls();
+    renderDecisionPacketControls();
     renderExternalControls();
     renderList();
     renderIssues();

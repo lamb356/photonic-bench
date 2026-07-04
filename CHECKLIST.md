@@ -54,21 +54,29 @@ Status key:
 
 - [x] DONE: Trigger and monitor remote CI on the PR.
   - Proof: PR #11 triggered CI run `28717081779`; Linux and macOS jobs were
-    monitored to completion.
-- [ ] TODO: Confirm required checks pass or fix failures.
-  - Current finding: Run `28717081779` failed only
+    monitored to completion. Follow-up run `28717165055` was monitored to
+    completion after the baseline fix.
+- [x] DONE: Confirm required checks pass or fix failures.
+  - Proof: Run `28717081779` failed only
     `mobile-comparison.png` visual regression on Linux and macOS. The rendered
     screenshots were valid and reflected the new mobile recommendation content.
-    Platform-specific mobile baselines were promoted from the generated CI
-    artifacts; follow-up CI is pending after push.
-- [ ] TODO: Download or inspect generated screenshot artifacts, including
+    Platform-specific mobile baselines were promoted from the generated
+    screenshot artifacts.
+  - Proof: Follow-up run `28717165055` passed both `Ruff, package, and pytest`
+    and `macOS visual regression`.
+- [x] DONE: Download or inspect generated screenshot artifacts, including
       visual regression screenshots, and record what was reviewed.
-  - Partial proof: Downloaded `visual-regression-screenshots` and
-    `macos-visual-regression-screenshots` from run `28717081779`; inspected
-    Linux and macOS `mobile-comparison.png`; promoted only those
-    platform-specific baselines.
-- [ ] TODO: Record PR URL, CI run ID, screenshot artifact names, and inspection
+  - Proof: Downloaded `visual-regression-screenshots` and
+    `macos-visual-regression-screenshots` from failed run `28717081779` and
+    green run `28717165055`.
+  - Proof: Inspected Linux and macOS green-run contact sheets for
+    `desktop-comparison.png`, `detail-published-reference.png`,
+    `external-report-error.png`, `mobile-comparison.png`, and
+    `wide-transformer-comparison.png`.
+- [x] DONE: Record PR URL, CI run ID, screenshot artifact names, and inspection
       results in `PROGRESS.md`.
+  - Proof: Recorded PR #11, runs `28717081779` and `28717165055`, artifact
+    names, promoted-baseline hashes, and inspection results.
 
 ## Task 3: Calibrated Scenario Provenance Packs
 
@@ -84,27 +92,55 @@ Status key:
 
 ## Task 4: Scenario Sensitivity Dashboard
 
-- [ ] TODO: Add visualizer state for selecting one card as the sensitivity
+- [x] DONE: Add visualizer state for selecting one card as the sensitivity
       subject.
-- [ ] TODO: Sweep that card across available memory scenarios and contention
+- [x] DONE: Sweep that card across available memory scenarios and contention
       presets using existing artifact data or generated sensitivity payloads.
-- [ ] TODO: Present throughput, latency, energy, bandwidth headroom, and
+- [x] DONE: Present throughput, latency, energy, bandwidth headroom, and
       bottleneck deltas with clear local-model labels.
-- [ ] TODO: Add browser smoke and visual regression coverage for the dashboard.
-- [ ] TODO: Update README/reviewer docs and regenerate visualizer artifacts.
+- [x] DONE: Add browser smoke and visual regression coverage for the dashboard.
+- [x] DONE: Update README/reviewer docs and regenerate visualizer artifacts.
+  - Proof: Added a static Scenario Sensitivity Dashboard that selects a
+    dedicated `profile_sensitivity_*` subject and compares checked artifacts
+    across memory scenarios and contention presets.
+  - Proof: Dashboard rows include system energy/op, contention-adjusted latency
+    and throughput, usable bandwidth, guardbanded bandwidth, bottleneck tier,
+    bandwidth utilization, bandwidth headroom, and selected-subject deltas.
+  - Proof: Dashboard copy labels the sweep as local-model sensitivity over
+    checked artifacts, not measured hardware behavior.
+  - Proof: Browser smoke now selects
+    `profile_sensitivity_64x64_hbm.json`; local checks passed:
+    `python -m pytest tests\test_visualizer_smoke.py
+    tests\test_visualizer_accessibility.py -q`,
+    `python -m pytest tests\test_visualizer_visual_regression.py -q`,
+    source/generated `node --check`, and
+    `python -m photonic_bench.cli verify-artifacts`.
 
 ## Task 5: Decision-Packet Import And Replay
 
-- [ ] TODO: Accept drag/drop or file-picker import of
+- [x] DONE: Accept drag/drop or file-picker import of
       `photonic-bench-decision-packet-v1` JSON in the visualizer.
-- [ ] TODO: Validate packet schema and report useful errors for incompatible or
+- [x] DONE: Validate packet schema and report useful errors for incompatible or
       stale packets.
-- [ ] TODO: Restore selected artifacts, pinned baseline, focus mode, score
+- [x] DONE: Restore selected artifacts, pinned baseline, focus mode, score
       profile/weights, filters, Pareto mode, reviewer notes, and checklist
       state.
-- [ ] TODO: Add replay provenance to the UI so reviewers can distinguish live
+- [x] DONE: Add replay provenance to the UI so reviewers can distinguish live
       state from imported packet state.
-- [ ] TODO: Add JavaScript unit/browser tests and documentation.
+- [x] DONE: Add JavaScript unit/browser tests and documentation.
+  - Proof: Added rail import with file-picker and drag/drop support for
+    `photonic-bench-decision-packet-v1` JSON.
+  - Proof: Replay validates schema version, restores selected artifacts,
+    pinned baseline, analysis focus, score weights, filters, Pareto mode,
+    reviewer notes, and comparison view, and reports stale artifact IDs.
+  - Proof: Added a Decision Packet Replay panel showing replay source, restored
+    count, pinned baseline, checklist snapshot count, generated/imported
+    timestamps, and stale IDs.
+  - Proof: Browser smoke downloads a packet, injects
+    `stale_replay_artifact.json`, clears the comparison, imports the packet,
+    and verifies restored notes/focus/count plus stale-ID warning.
+  - Proof: Updated README, `docs/reviewer_workflow.md`, and
+    `docs/json_schema.md`; regenerated `reports/visualizer/**`.
 
 ## Task 6: Card Source-Audit Depth
 

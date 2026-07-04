@@ -162,7 +162,8 @@ h1 {
 }
 
 .preset-panel,
-.external-panel {
+.external-panel,
+.decision-packet-panel {
   display: grid;
   gap: 8px;
   border: 1px solid var(--line);
@@ -263,6 +264,19 @@ h1 {
   color: var(--ink);
   padding: 7px;
   min-width: 0;
+}
+
+.decision-packet-drop-zone {
+  border: 1px dashed color-mix(in srgb, var(--teal), var(--line) 35%);
+  border-radius: 6px;
+  background: #fbfcfa;
+  padding: 8px;
+}
+
+.decision-packet-drop-zone.drag-active {
+  background: var(--teal-soft);
+  border-color: var(--teal);
+  color: var(--teal);
 }
 
 .filters {
@@ -381,7 +395,8 @@ button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 summary:focus-visible,
-.import-preset-button:focus-within {
+.import-preset-button:focus-within,
+.decision-packet-drop-zone:focus-within {
   outline: 3px solid color-mix(in srgb, var(--teal), white 20%);
   outline-offset: 2px;
 }
@@ -600,6 +615,26 @@ main {
   color: var(--ink);
   padding: 7px 9px;
   min-width: 220px;
+}
+
+.scenario-heading {
+  align-items: end;
+}
+
+.scenario-subject-control {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 850;
+}
+
+.scenario-subject-control span {
+  overflow-wrap: anywhere;
+}
+
+.scenario-table {
+  min-width: 1180px;
 }
 
 .grid-2 {

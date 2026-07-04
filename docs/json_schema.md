@@ -699,6 +699,12 @@ notes into one review handoff artifact. The packet embeds the comparison export
 for machine-readable replay context, but its rankings and explanations are
 explicitly local UI triage aids, not benchmark claims.
 
+The static visualizer can import the same JSON packet through the
+`Replay decision packet` rail control. Replay validates the schema version,
+restores the selected artifacts, pinned baseline, analysis intent, score
+weights, filters, Pareto mode, reviewer notes, and comparison view against the
+live generated index, and reports stale artifact IDs in the replay panel.
+
 | Field | Meaning |
 | --- | --- |
 | `analysis_intent` | Focus mode, score profile, score weights, filters, Pareto mode, and URL state. |
