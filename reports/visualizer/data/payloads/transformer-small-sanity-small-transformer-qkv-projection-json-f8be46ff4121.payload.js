@@ -1,0 +1,126 @@
+window.PhotonicBenchPayloadRegistry = window.PhotonicBenchPayloadRegistry || {};
+window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_qkv_projection.json"] = {
+  "schema_version": "photonic-bench-report-v1",
+  "benchmark": {
+    "name": "Small transformer sanity layer - QKV projection",
+    "description": "Tiny dense transformer layer shape for exact MAC-count sanity checks. This is a synthetic helper example, not a published accelerator calibration card. Generated decomposed card for QKV projection. Formula: 3 * B * S * H * H. Matmul shape is 4 x 8 times 8 x 24; operation multiplicity is 2. The right operand is a learned model-weight matrix."
+  },
+  "workload": {
+    "type": "matmul",
+    "shape": {
+      "m": 4,
+      "k": 8,
+      "n": 24
+    },
+    "macs": 1536,
+    "equivalent_ops": 3072,
+    "output_elements": 192
+  },
+  "model_inputs": {
+    "device": {
+      "optical_mac_energy_fj": 0.5,
+      "laser_wall_plug_efficiency": 0.25,
+      "photodetector_energy_fj_per_sample": 10.0,
+      "adc": {
+        "bits": 6,
+        "energy_pj_per_conversion": 0.5
+      },
+      "dac": {
+        "bits": 6,
+        "energy_pj_per_conversion": 0.12
+      },
+      "vector_dac": {
+        "bits": 6,
+        "energy_pj_per_conversion": 0.12
+      },
+      "weight_dac": {
+        "bits": 8,
+        "energy_pj_per_conversion": 0.45
+      }
+    },
+    "execution": {
+      "batch_size": 2,
+      "vector_reuse_factor": 1,
+      "weight_reuse_factor": 1,
+      "weight_stationary": true,
+      "pipeline": {
+        "stages": 4,
+        "cycle_time_ns": 2.0
+      }
+    },
+    "timing": {
+      "optical_latency_ns": 3.0,
+      "adc_latency_ns": 1.0,
+      "dac_latency_ns": 1.0
+    },
+    "noise": {
+      "phase_noise_rad_rms": 0.02,
+      "drift_rad_per_second": 0.1,
+      "integration_time_ns": 3.0
+    }
+  },
+  "local_model": {
+    "conversion_counts": {
+      "adc_conversions": 192,
+      "vector_dac_conversions": 64,
+      "weight_dac_conversions": 192,
+      "dac_conversions": 256
+    },
+    "energy": {
+      "optical_compute_pj": 0.768,
+      "laser_electrical_pj": 3.072,
+      "detector_pj": 1.92,
+      "adc_pj": 96.0,
+      "vector_dac_pj": 7.68,
+      "weight_dac_pj": 86.4,
+      "dac_pj": 94.08000000000001,
+      "total_pj": 195.072,
+      "energy_per_mac_pj": 0.127,
+      "energy_per_op_pj": 0.0635,
+      "peripheral_share": 0.984251968503937
+    },
+    "timing": {
+      "optical_latency_ns": 3.0,
+      "adc_latency_ns": 1.0,
+      "dac_latency_ns": 1.0,
+      "total_latency_ns": 5.0,
+      "pipeline_stages": 4,
+      "pipeline_cycle_time_ns": 2.0,
+      "batch_latency_ns": 7.0,
+      "steady_state_operations_per_second": 500000000.0,
+      "steady_state_equivalent_ops_per_second": 768000000000.0
+    },
+    "noise": {
+      "quantization_snr_db": 37.879999999999995,
+      "quantization_rms": 0.004582144993568459,
+      "phase_noise_rad_rms": 0.02,
+      "drift_rms_rad": 3.0000000000000005e-10,
+      "estimated_relative_error_rms": 0.02051818833966792
+    }
+  },
+  "published_reference": null,
+  "calibration_fit": null,
+  "assumptions": [
+    "The optical MAC energy is treated as delivered optical energy per multiply-accumulate.",
+    "The laser wall-plug efficiency converts delivered optical energy into electrical laser energy.",
+    "ADC conversions are counted once per output element.",
+    "DAC conversions are counted once per input value for the left and right matmul operands.",
+    "Detector energy is counted once per output sample.",
+    "The first noise model combines ADC quantization RMS, phase noise RMS, and drift RMS as independent terms.",
+    "Total latency is a transparent sum of DAC, optical, and ADC latency rather than a pipelined throughput model.",
+    "Dense full-sequence transformer accounting is used.",
+    "This tiny shape is intended for manual MAC-count verification.",
+    "Transformer operation: QKV projection.",
+    "Transformer formula: 3 * B * S * H * H.",
+    "Transformer batch/head multiplicity is represented by the generated card's execution.batch_size.",
+    "Layer shape: batch=2, sequence=4, hidden=8, heads=2, head_dim=4, intermediate=16.",
+    "Dense attention accounting is used; decoder/causal labels do not halve attention MAC counts.",
+    "Non-matmul costs such as softmax, layer norm, bias adds, activations, dropout, masking, KV-cache incremental decoding, and non-matmul memory traffic are excluded.",
+    "The benchmark models 2 operation(s) per batch.",
+    "Vector DAC conversions are counted as ceil(batch_size / vector_reuse_factor) * m * k.",
+    "Weight DAC conversions are counted once per batch because weight_stationary is true.",
+    "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time."
+  ],
+  "provenance": null
+}
+;

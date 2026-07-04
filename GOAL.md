@@ -1,78 +1,98 @@
 # PhotonicBench Goal
 
-Date started: 2026-07-03
+Date started: 2026-07-04
 
 ## Objective
 
-Create a clean commit of the current hardened PhotonicBench state, including
-the transformer-layer aggregate JSON work, then build the first working web
-visualizer foundation.
+Commit the current visualizer work, then evolve the PhotonicBench visualizer
+into a more useful analytical workbench with stronger comparison tools, a real
+browser smoke test, and a practical scaling path for larger artifact sets.
 
-The visualizer must discover checked-in report artifacts, load both supported
-JSON schemas, and display a transformer-layer aggregate report without blurring
-the modeling boundaries that the benchmark cards were built to preserve.
+## Required Outcomes
 
-## Primary Objectives
+1. Create a clean commit of the current visualizer state before new feature
+   work proceeds.
+2. Improve comparison mode so it supports pinned selections, deltas, ratios,
+   and clearer grouped or mixed-schema analysis.
+3. Add a Playwright browser smoke test as a project dev dependency.
+4. Implement a working local `--serve` mode for the visualizer so large report
+   directories can be browsed without writing or embedding every full payload
+   into the generated static artifact tree.
 
-1. Commit the hardened baseline with a clear professional message.
-2. Add artifact discovery and indexing over report directories.
-3. Add schema-aware loading for:
-   - `photonic-bench-report-v1` per-matmul JSON cards.
-   - `photonic-bench-transformer-layer-report-v1` aggregate layer JSON.
-4. Build a basic transformer-layer detail view.
-5. Present key concepts clearly:
-   - local model estimates versus published references;
-   - serial transformer-layer timing;
-   - non-additive aggregate noise diagnostics;
-   - transformer-layer exclusions;
-   - assumptions and provenance.
-6. Verify the implementation with tests and documentation.
-7. Run a mandatory hostile senior reviewer critique and fix major findings.
-
-## Initial Scope
-
-The first visualizer pass is intentionally a local-first static workbench backed
-by checked-in JSON artifacts. It should be useful immediately without inventing
-a server-side product surface.
+## Scope
 
 In scope:
 
-- Generate a discoverable artifact index from JSON files under `reports/`.
-- Load and normalize supported report schemas through a small adapter layer.
-- Render artifact lists and schema-specific summaries.
-- Render a transformer-layer aggregate detail view with layer shape, aggregate
-  totals, energy/timing/noise semantics, formula audit rows, per-matmul rows,
-  assumptions, exclusions, and provenance.
-- Document how to generate/open the visualizer.
-- Add focused tests for discovery, schema routing, and generated page content.
+- Preserve the static command:
+  `python -m photonic_bench.cli visualize --reports-dir reports --output reports/visualizer/index.html`.
+- Add a simple server command through the same visualizer CLI surface, for
+  example:
+  `python -m photonic_bench.cli visualize --reports-dir reports --serve`.
+- Keep static `file://` usage working for generated visualizers.
+- Make server mode load the artifact index and payloads on demand over HTTP
+  from source reports instead of duplicating all payloads into generated
+  payload assets.
+- Preserve schema-aware adapters for:
+  - `photonic-bench-report-v1` per-matmul benchmark cards;
+  - `photonic-bench-transformer-layer-report-v1` transformer-layer aggregate
+    summaries.
+- Extend comparison mode with pinned/reference artifacts, absolute deltas,
+  ratios, grouped per-schema sections, and explicit mixed-schema caveats.
+- Keep local model estimates, published references, serial transformer timing,
+  non-additive aggregate noise diagnostics, exclusions, assumptions, and
+  provenance visibly separate.
+- Add and document Playwright smoke coverage that exercises the generated
+  visualizer in a real browser.
+- Update README/docs, generated examples, tests, and state files.
+- Run a hostile senior reviewer critique focused on code quality, usability,
+  scalability, and maintainability, then fix significant findings.
 
-Out of initial scope:
+Out of scope:
 
-- File upload.
+- File upload workflow.
+- Hosted backend service or deployment.
 - Persistent user settings.
-- Backend APIs.
-- Full comparison dashboards.
-- Interactive chart libraries.
+- Charting-library dashboards.
 - MLCommons-style proposal implementation.
 - Pushes or pull requests.
+
+## Scaling Choice
+
+Implement `--serve`.
+
+The existing static output already keeps the HTML small by splitting index and
+payload assets, but static `file://` support requires executable payload
+wrappers beside JSON payload copies. Server mode should avoid that duplication
+for larger corpora by serving:
+
+- the visualizer HTML shell;
+- static CSS and JavaScript assets;
+- a lightweight JSON index;
+- individual artifact payload JSON on demand.
+
+Static output remains the portable artifact for `file://` use. Server mode is
+the practical scaling path for larger local report directories.
 
 ## Stop Condition
 
 Stop only when all of the following are true:
 
-- `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and `RUBRIC.md`
-  have been re-read at the start of each cycle.
-- The hardened baseline has been committed.
-- The visualizer can discover, load, and display both per-matmul cards and
-  transformer-layer aggregate reports.
-- A transformer-layer aggregate detail view is working for checked-in examples.
-- Key modeling concepts are visible in the UI without overstating what is
-  modeled.
-- Documentation explains how to generate/open the visualizer.
-- Relevant tests pass.
+- `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and `RUBRIC.md` have
+  been re-read at the start of each cycle.
+- All checklist items are marked DONE with proof.
+- The current visualizer state has been committed with a clear descriptive
+  message and no push has been performed.
+- Comparison mode supports pinned selections, deltas, ratios, grouped
+  same-schema comparison, and labeled mixed-schema comparison.
+- Playwright is declared as a dev dependency and a browser smoke test is part
+  of the project test surface.
+- A working `--serve` mode avoids generating or embedding all payloads while
+  preserving the existing static `file://` visualizer path.
+- Documentation explains static generation, server mode, comparison analytics,
+  Playwright smoke testing, and modeling boundaries.
+- The checked-in visualizer example has been regenerated where appropriate.
 - `python -m pytest` passes.
 - `python -m ruff check` passes.
-- All checklist items for the baseline commit and initial visualizer are marked
-  DONE with proof.
+- The Playwright browser smoke test passes.
 - A hostile senior reviewer critique is recorded in `PROGRESS.md`, and major
   issues are fixed or explicitly justified.

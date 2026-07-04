@@ -11,5 +11,8 @@ dependencies = [
 [project.scripts]
 photonic-bench = "photonic_bench.cli:main"
 
+[tool.setuptools.package-data]
+"photonic_bench.visualizer_assets" = ["*.html", "*.css", "*.js"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]

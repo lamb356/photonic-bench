@@ -1,0 +1,678 @@
+{
+  "reports_dir": "reports",
+  "artifacts": [
+    {
+      "summary": {
+        "id": "bert_base_encoder_layer/bert_base_layer_attention_scores.json",
+        "kind": "matmul_card",
+        "schema_version": "photonic-bench-report-v1",
+        "benchmark_name": "BERT-base style encoder layer - Attention scores",
+        "description": "Dense one-layer BERT-base style encoder benchmark shape with hidden size 768, 12 attention heads, sequence length 128, and MLP intermediate size 3072. This is a shape helper example, not a published accelerator calibration card. Generated decomposed card for Attention scores. Formula: B * heads * S * S * head_dim. Matmul shape is 128 x 64 times 64 x 128; operation multiplicity is 12. The right operand is activation data for attention, so cross-batch weight-stationary reuse is disabled in this generated card.",
+        "source_path": "bert_base_encoder_layer/bert_base_layer_attention_scores.json",
+        "browser_path": "../bert_base_encoder_layer/bert_base_layer_attention_scores.json",
+        "macs": 12582912,
+        "equivalent_ops": 25165824,
+        "output_elements": 196608,
+        "total_energy_pj": 181469.184,
+        "energy_per_op_pj": 0.0072109375,
+        "latency_label": "Batch latency",
+        "latency_ns": 27.0,
+        "throughput_equivalent_ops_per_second": 1048576000000000.0,
+        "provenance_status": "local model artifact",
+        "has_published_reference": false,
+        "assumptions_count": 19,
+        "has_calibration_fit": false,
+        "boundary_tags": [
+          "local model"
+        ],
+        "payload_path": "data/payloads/bert-base-encoder-layer-bert-base-layer-attention-scores-json-3aa49ecb63fc.payload.json",
+        "payload_script_path": "data/payloads/bert-base-encoder-layer-bert-base-layer-attention-scores-json-3aa49ecb63fc.payload.js"
+      }
+    },
+    {
+      "summary": {
+        "id": "bert_base_encoder_layer/bert_base_layer_attention_value.json",
+        "kind": "matmul_card",
+        "schema_version": "photonic-bench-report-v1",
+        "benchmark_name": "BERT-base style encoder layer - Attention-value",
+        "description": "Dense one-layer BERT-base style encoder benchmark shape with hidden size 768, 12 attention heads, sequence length 128, and MLP intermediate size 3072. This is a shape helper example, not a published accelerator calibration card. Generated decomposed card for Attention-value. Formula: B * heads * S * S * head_dim. Matmul shape is 128 x 128 times 128 x 64; operation multiplicity is 12. The right operand is activation data for attention, so cross-batch weight-stationary reuse is disabled in this generated card.",
+        "source_path": "bert_base_encoder_layer/bert_base_layer_attention_value.json",
+        "browser_path": "../bert_base_encoder_layer/bert_base_layer_attention_value.json",
+        "macs": 12582912,
+        "equivalent_ops": 25165824,
+        "output_elements": 98304,
+        "total_energy_pj": 143130.624,
+        "energy_per_op_pj": 0.005687500000000001,
+        "latency_label": "Batch latency",
+        "latency_ns": 27.0,
+        "throughput_equivalent_ops_per_second": 1048576000000000.0,
+        "provenance_status": "local model artifact",
+        "has_published_reference": false,
+        "assumptions_count": 19,
+        "has_calibration_fit": false,
+        "boundary_tags": [
+          "local model"
+        ],
+        "payload_path": "data/payloads/bert-base-encoder-layer-bert-base-layer-attention-value-json-c9bb8cf36a36.payload.json",
+        "payload_script_path": "data/payloads/bert-base-encoder-layer-bert-base-layer-attention-value-json-c9bb8cf36a36.payload.js"
+      }
+    },
+    {
+      "summary": {
+        "id": "bert_base_encoder_layer/bert_base_layer_mlp_down_projection.json",
+        "kind": "matmul_card",
+        "schema_version": "photonic-bench-report-v1",
+        "benchmark_name": "BERT-base style encoder layer - MLP down-projection",
+        "description": "Dense one-layer BERT-base style encoder benchmark shape with hidden size 768, 12 attention heads, sequence length 128, and MLP intermediate size 3072. This is a shape helper example, not a published accelerator calibration card. Generated decomposed card for MLP down-projection. Formula: B * S * intermediate * H. Matmul shape is 128 x 3072 times 3072 x 768; operation multiplicity is 1. The right operand is a learned model-weight matrix.",
+        "source_path": "bert_base_encoder_layer/bert_base_layer_mlp_down_projection.json",
+        "browser_path": "../bert_base_encoder_layer/bert_base_layer_mlp_down_projection.json",
+        "macs": 301989888,
+        "equivalent_ops": 603979776,
+        "output_elements": 98304,
+        "total_energy_pj": 1762983.9359999998,
+        "energy_per_op_pj": 0.0029189453124999994,
+        "latency_label": "Batch latency",
+        "latency_ns": 5.0,
+        "throughput_equivalent_ops_per_second": 3.01989888e+17,
+        "provenance_status": "local model artifact",
+        "has_published_reference": false,
+        "assumptions_count": 19,
+        "has_calibration_fit": false,
+        "boundary_tags": [
+          "local model"
+        ],
+        "payload_path": "data/payloads/bert-base-encoder-layer-bert-base-layer-mlp-down-projection-json-63df6ce9b00a.payload.json",
+        "payload_script_path": "data/payloads/bert-base-encoder-layer-bert-base-layer-mlp-down-projection-json-63df6ce9b00a.payload.js"
+      }
+    },
+    {
+      "summary": {
+        "id": "bert_base_encoder_layer/bert_base_layer_mlp_up_projection.json",
+        "kind": "matmul_card",
+        "schema_version": "photonic-bench-report-v1",
+        "benchmark_name": "BERT-base style encoder layer - MLP up-projection",
+        "description": "Dense one-layer BERT-base style encoder benchmark shape with hidden size 768, 12 attention heads, sequence length 128, and MLP intermediate size 3072. This is a shape helper example, not a published accelerator calibration card. Generated decomposed card for MLP up-projection. Formula: B * S * H * intermediate. Matmul shape is 128 x 768 times 768 x 3072; operation multiplicity is 1. The right operand is a learned model-weight matrix.",
+        "source_path": "bert_base_encoder_layer/bert_base_layer_mlp_up_projection.json",
+        "browser_path": "../bert_base_encoder_layer/bert_base_layer_mlp_up_projection.json",
+        "macs": 301989888,
+        "equivalent_ops": 603979776,
+        "output_elements": 393216,
+        "total_energy_pj": 1877999.616,
+        "energy_per_op_pj": 0.0031093749999999997,
+        "latency_label": "Batch latency",
+        "latency_ns": 5.0,
+        "throughput_equivalent_ops_per_second": 3.01989888e+17,
+        "provenance_status": "local model artifact",
+        "has_published_reference": false,
+        "assumptions_count": 19,
+        "has_calibration_fit": false,
+        "boundary_tags": [
+          "local model"
+        ],
+        "payload_path": "data/payloads/bert-base-encoder-layer-bert-base-layer-mlp-up-projection-json-be4acd4058f4.payload.json",
+        "payload_script_path": "data/payloads/bert-base-encoder-layer-bert-base-layer-mlp-up-projection-json-be4acd4058f4.payload.js"
+      }
+    },
+    {
+      "summary": {
+        "id": "bert_base_encoder_layer/bert_base_layer_qkv_projection.json",
+        "kind": "matmul_card",
+        "schema_version": "photonic-bench-report-v1",
+        "benchmark_name": "BERT-base style encoder layer - QKV projection",
+        "description": "Dense one-layer BERT-base style encoder benchmark shape with hidden size 768, 12 attention heads, sequence length 128, and MLP intermediate size 3072. This is a shape helper example, not a published accelerator calibration card. Generated decomposed card for QKV projection. Formula: 3 * B * S * H * H. Matmul shape is 128 x 768 times 768 x 2304; operation multiplicity is 1. The right operand is a learned model-weight matrix.",
+        "source_path": "bert_base_encoder_layer/bert_base_layer_qkv_projection.json",
+        "browser_path": "../bert_base_encoder_layer/bert_base_layer_qkv_projection.json",
+        "macs": 226492416,
+        "equivalent_ops": 452984832,
+        "output_elements": 294912,
+        "total_energy_pj": 1411448.832,
+        "energy_per_op_pj": 0.0031158854166666665,
+        "latency_label": "Batch latency",
+        "latency_ns": 5.0,
+        "throughput_equivalent_ops_per_second": 2.26492416e+17,
+        "provenance_status": "local model artifact",
+        "has_published_reference": false,
+        "assumptions_count": 19,
+        "has_calibration_fit": false,
+        "boundary_tags": [
+          "local model"
+        ],
+        "payload_path": "data/payloads/bert-base-encoder-layer-bert-base-layer-qkv-projection-json-7458632a2cdb.payload.json",
+        "payload_script_path": "data/payloads/bert-base-encoder-layer-bert-base-layer-qkv-projection-json-7458632a2cdb.payload.js"
+      }
+    },
+    {
+      "summary": {
+        "id": "gpt_style_decoder_layer/gpt_decoder_layer_attention_scores.json",
+        "kind": "matmul_card",
+        "schema_version": "photonic-bench-report-v1",
+        "benchmark_name": "GPT-style decoder layer - Attention scores",
+        "description": "Dense GPT-2-small style decoder benchmark shape with hidden size 768, 12 attention heads, sequence length 1024, and MLP intermediate size 3072. This is a shape helper example, not a published accelerator calibration card. Generated decomposed card for Attention scores. Formula: B * heads * S * S * head_dim. Matmul shape is 1024 x 64 times 64 x 1024; operation multiplicity is 12. The right operand is activation data for attention, so cross-batch weight-stationary reuse is disabled in this generated card.",
+        "source_path": "gpt_style_decoder_layer/gpt_decoder_layer_attention_scores.json",
+        "browser_path": "../gpt_style_decoder_layer/gpt_decoder_layer_attention_scores.json",
+        "macs": 805306368,
+        "equivalent_ops": 1610612736,
+        "output_elements": 12582912,
+        "total_energy_pj": 8476164.096,
+        "energy_per_op_pj": 0.0052626953125,
+        "latency_label": "Batch latency",
+        "latency_ns": 27.0,
+        "throughput_equivalent_ops_per_second": 6.7108864e+16,
+        "provenance_status": "local model artifact",
+        "has_published_reference": false,
+        "assumptions_count": 20,
+        "has_calibration_fit": false,
+        "boundary_tags": [
+          "local model"
+        ],
+        "payload_path": "data/payloads/gpt-style-decoder-layer-gpt-decoder-layer-attention-scores-json-f34aa25346d9.payload.json",
+        "payload_script_path": "data/payloads/gpt-style-decoder-layer-gpt-decoder-layer-attention-scores-json-f34aa25346d9.payload.js"
+      }
+    },
+    {
+      "summary": {
+        "id": "gpt_style_decoder_layer/gpt_decoder_layer_attention_value.json",
+        "kind": "matmul_card",
+        "schema_version": "photonic-bench-report-v1",
+        "benchmark_name": "GPT-style decoder layer - Attention-value",
+        "description": "Dense GPT-2-small style decoder benchmark shape with hidden size 768, 12 attention heads, sequence length 1024, and MLP intermediate size 3072. This is a shape helper example, not a published accelerator calibration card. Generated decomposed card for Attention-value. Formula: B * heads * S * S * head_dim. Matmul shape is 1024 x 1024 times 1024 x 64; operation multiplicity is 12. The right operand is activation data for attention, so cross-batch weight-stationary reuse is disabled in this generated card.",
+        "source_path": "gpt_style_decoder_layer/gpt_decoder_layer_attention_value.json",
+        "browser_path": "../gpt_style_decoder_layer/gpt_decoder_layer_attention_value.json",
+        "macs": 805306368,
+        "equivalent_ops": 1610612736,
+        "output_elements": 786432,
+        "total_energy_pj": 3875536.8959999997,
+        "energy_per_op_pj": 0.00240625,
+        "latency_label": "Batch latency",
+        "latency_ns": 27.0,
+        "throughput_equivalent_ops_per_second": 6.7108864e+16,
+        "provenance_status": "local model artifact",
+        "has_published_reference": false,
+        "assumptions_count": 20,
+        "has_calibration_fit": false,
+        "boundary_tags": [
+          "local model"
+        ],
+        "payload_path": "data/payloads/gpt-style-decoder-layer-gpt-decoder-layer-attention-value-json-262497ac11d1.payload.json",
+        "payload_script_path": "data/payloads/gpt-style-decoder-layer-gpt-decoder-layer-attention-value-json-262497ac11d1.payload.js"
+      }
+    },
+    {
+      "summary": {
+        "id": "gpt_style_decoder_layer/gpt_decoder_layer_mlp_down_projection.json",
+        "kind": "matmul_card",
+        "schema_version": "photonic-bench-report-v1",
+        "benchmark_name": "GPT-style decoder layer - MLP down-projection",
+        "description": "Dense GPT-2-small style decoder benchmark shape with hidden size 768, 12 attention heads, sequence length 1024, and MLP intermediate size 3072. This is a shape helper example, not a published accelerator calibration card. Generated decomposed card for MLP down-projection. Formula: B * S * intermediate * H. Matmul shape is 1024 x 3072 times 3072 x 768; operation multiplicity is 1. The right operand is a learned model-weight matrix.",
+        "source_path": "gpt_style_decoder_layer/gpt_decoder_layer_mlp_down_projection.json",
+        "browser_path": "../gpt_style_decoder_layer/gpt_decoder_layer_mlp_down_projection.json",
+        "macs": 2415919104,
+        "equivalent_ops": 4831838208,
+        "output_elements": 786432,
+        "total_energy_pj": 6672089.0879999995,
+        "energy_per_op_pj": 0.001380859375,
+        "latency_label": "Batch latency",
+        "latency_ns": 5.0,
+        "throughput_equivalent_ops_per_second": 2.415919104e+18,
+        "provenance_status": "local model artifact",
+        "has_published_reference": false,
+        "assumptions_count": 20,
+        "has_calibration_fit": false,
+        "boundary_tags": [
+          "local model"
+        ],
+        "payload_path": "data/payloads/gpt-style-decoder-layer-gpt-decoder-layer-mlp-down-projection-json-5503fbaef73e.payload.json",
+        "payload_script_path": "data/payloads/gpt-style-decoder-layer-gpt-decoder-layer-mlp-down-projection-json-5503fbaef73e.payload.js"
+      }
+    },
+    {
+      "summary": {
+        "id": "gpt_style_decoder_layer/gpt_decoder_layer_mlp_up_projection.json",
+        "kind": "matmul_card",
+        "schema_version": "photonic-bench-report-v1",
+        "benchmark_name": "GPT-style decoder layer - MLP up-projection",
+        "description": "Dense GPT-2-small style decoder benchmark shape with hidden size 768, 12 attention heads, sequence length 1024, and MLP intermediate size 3072. This is a shape helper example, not a published accelerator calibration card. Generated decomposed card for MLP up-projection. Formula: B * S * H * intermediate. Matmul shape is 1024 x 768 times 768 x 3072; operation multiplicity is 1. The right operand is a learned model-weight matrix.",
+        "source_path": "gpt_style_decoder_layer/gpt_decoder_layer_mlp_up_projection.json",
+        "browser_path": "../gpt_style_decoder_layer/gpt_decoder_layer_mlp_up_projection.json",
+        "macs": 2415919104,
+        "equivalent_ops": 4831838208,
+        "output_elements": 3145728,
+        "total_energy_pj": 7592214.528,
+        "energy_per_op_pj": 0.0015712890625,
+        "latency_label": "Batch latency",
+        "latency_ns": 5.0,
+        "throughput_equivalent_ops_per_second": 2.415919104e+18,
+        "provenance_status": "local model artifact",
+        "has_published_reference": false,
+        "assumptions_count": 20,
+        "has_calibration_fit": false,
+        "boundary_tags": [
+          "local model"
+        ],
+        "payload_path": "data/payloads/gpt-style-decoder-layer-gpt-decoder-layer-mlp-up-projection-json-625d57dc9689.payload.json",
+        "payload_script_path": "data/payloads/gpt-style-decoder-layer-gpt-decoder-layer-mlp-up-projection-json-625d57dc9689.payload.js"
+      }
+    },
+    {
+      "summary": {
+        "id": "gpt_style_decoder_layer/gpt_decoder_layer_qkv_projection.json",
+        "kind": "matmul_card",
+        "schema_version": "photonic-bench-report-v1",
+        "benchmark_name": "GPT-style decoder layer - QKV projection",
+        "description": "Dense GPT-2-small style decoder benchmark shape with hidden size 768, 12 attention heads, sequence length 1024, and MLP intermediate size 3072. This is a shape helper example, not a published accelerator calibration card. Generated decomposed card for QKV projection. Formula: 3 * B * S * H * H. Matmul shape is 1024 x 768 times 768 x 2304; operation multiplicity is 1. The right operand is a learned model-weight matrix.",
+        "source_path": "gpt_style_decoder_layer/gpt_decoder_layer_qkv_projection.json",
+        "browser_path": "../gpt_style_decoder_layer/gpt_decoder_layer_qkv_projection.json",
+        "macs": 1811939328,
+        "equivalent_ops": 3623878656,
+        "output_elements": 2359296,
+        "total_energy_pj": 5717753.856000001,
+        "energy_per_op_pj": 0.0015777994791666668,
+        "latency_label": "Batch latency",
+        "latency_ns": 5.0,
+        "throughput_equivalent_ops_per_second": 1.811939328e+18,
+        "provenance_status": "local model artifact",
+        "has_published_reference": false,
+        "assumptions_count": 20,
+        "has_calibration_fit": false,
+        "boundary_tags": [
+          "local model"
+        ],
+        "payload_path": "data/payloads/gpt-style-decoder-layer-gpt-decoder-layer-qkv-projection-json-b122f1aa744a.payload.json",
+        "payload_script_path": "data/payloads/gpt-style-decoder-layer-gpt-decoder-layer-qkv-projection-json-b122f1aa744a.payload.js"
+      }
+    },
+    {
+      "summary": {
+        "id": "matmul_64x64.json",
+        "kind": "matmul_card",
+        "schema_version": "photonic-bench-report-v1",
+        "benchmark_name": "64x64 starter photonic matmul",
+        "description": "Audit-sized 64x64 photonic matmul example. This is not yet a calibrated reproduction of a published accelerator result.",
+        "source_path": "matmul_64x64.json",
+        "browser_path": "../matmul_64x64.json",
+        "macs": 262144,
+        "equivalent_ops": 524288,
+        "output_elements": 4096,
+        "total_energy_pj": 4251.648,
+        "energy_per_op_pj": 0.008109375,
+        "latency_label": "Batch latency",
+        "latency_ns": 5.0,
+        "throughput_equivalent_ops_per_second": 104857600000000.0,
+        "provenance_status": "local model artifact",
+        "has_published_reference": false,
+        "assumptions_count": 11,
+        "has_calibration_fit": false,
+        "boundary_tags": [
+          "local model"
+        ],
+        "payload_path": "data/payloads/matmul-64x64-json-cd433727195f.payload.json",
+        "payload_script_path": "data/payloads/matmul-64x64-json-cd433727195f.payload.js"
+      }
+    },
+    {
+      "summary": {
+        "id": "nature_pace_64x64.json",
+        "kind": "matmul_card",
+        "schema_version": "photonic-bench-report-v1",
+        "benchmark_name": "Nature PACE 64x64 matrix-vector calibration",
+        "description": "Source-backed calibration card for the Nature 2025 PACE 64x64 photonic matrix-vector accelerator. The component model remains a simple local assumption set; the published calibration table carries the paper-reported values.",
+        "source_path": "nature_pace_64x64.json",
+        "browser_path": "../nature_pace_64x64.json",
+        "macs": 4096,
+        "equivalent_ops": 8192,
+        "output_elements": 64,
+        "total_energy_pj": 872.832,
+        "energy_per_op_pj": 0.106546875,
+        "latency_label": "Batch latency",
+        "latency_ns": 5.0,
+        "throughput_equivalent_ops_per_second": 1638400000000.0,
+        "provenance_status": "paper-reported calibration targets",
+        "has_published_reference": true,
+        "assumptions_count": 11,
+        "has_calibration_fit": false,
+        "boundary_tags": [
+          "local model",
+          "published reference",
+          "provenance"
+        ],
+        "payload_path": "data/payloads/nature-pace-64x64-json-7ba2e271c0cd.payload.json",
+        "payload_script_path": "data/payloads/nature-pace-64x64-json-7ba2e271c0cd.payload.js"
+      }
+    },
+    {
+      "summary": {
+        "id": "nature_pace_64x64_calibrated.json",
+        "kind": "matmul_card",
+        "schema_version": "photonic-bench-report-v1",
+        "benchmark_name": "Nature PACE 64x64 matrix-vector calibration",
+        "description": "Source-backed calibration card for the Nature 2025 PACE 64x64 photonic matrix-vector accelerator. The component model remains a simple local assumption set; the published calibration table carries the paper-reported values.",
+        "source_path": "nature_pace_64x64_calibrated.json",
+        "browser_path": "../nature_pace_64x64_calibrated.json",
+        "macs": 4096,
+        "equivalent_ops": 8192,
+        "output_elements": 64,
+        "total_energy_pj": 872.832,
+        "energy_per_op_pj": 0.106546875,
+        "latency_label": "Batch latency",
+        "latency_ns": 5.0,
+        "throughput_equivalent_ops_per_second": 1638400000000.0,
+        "provenance_status": "paper-reported calibration targets",
+        "has_published_reference": true,
+        "assumptions_count": 11,
+        "has_calibration_fit": true,
+        "boundary_tags": [
+          "local model",
+          "published reference",
+          "calibration fit",
+          "provenance"
+        ],
+        "payload_path": "data/payloads/nature-pace-64x64-calibrated-json-2da4381c3dd5.payload.json",
+        "payload_script_path": "data/payloads/nature-pace-64x64-calibrated-json-2da4381c3dd5.payload.js"
+      }
+    },
+    {
+      "summary": {
+        "id": "transformer_small_sanity/small_transformer_attention_scores.json",
+        "kind": "matmul_card",
+        "schema_version": "photonic-bench-report-v1",
+        "benchmark_name": "Small transformer sanity layer - Attention scores",
+        "description": "Tiny dense transformer layer shape for exact MAC-count sanity checks. This is a synthetic helper example, not a published accelerator calibration card. Generated decomposed card for Attention scores. Formula: B * heads * S * S * head_dim. Matmul shape is 4 x 4 times 4 x 4; operation multiplicity is 4. The right operand is activation data for attention, so cross-batch weight-stationary reuse is disabled in this generated card.",
+        "source_path": "transformer_small_sanity/small_transformer_attention_scores.json",
+        "browser_path": "../transformer_small_sanity/small_transformer_attention_scores.json",
+        "macs": 256,
+        "equivalent_ops": 512,
+        "output_elements": 64,
+        "total_energy_pj": 69.632,
+        "energy_per_op_pj": 0.136,
+        "latency_label": "Batch latency",
+        "latency_ns": 11.0,
+        "throughput_equivalent_ops_per_second": 64000000000.0,
+        "provenance_status": "local model artifact",
+        "has_published_reference": false,
+        "assumptions_count": 19,
+        "has_calibration_fit": false,
+        "boundary_tags": [
+          "local model"
+        ],
+        "payload_path": "data/payloads/transformer-small-sanity-small-transformer-attention-scores-json-de9d6ab8fa88.payload.json",
+        "payload_script_path": "data/payloads/transformer-small-sanity-small-transformer-attention-scores-json-de9d6ab8fa88.payload.js"
+      }
+    },
+    {
+      "summary": {
+        "id": "transformer_small_sanity/small_transformer_attention_value.json",
+        "kind": "matmul_card",
+        "schema_version": "photonic-bench-report-v1",
+        "benchmark_name": "Small transformer sanity layer - Attention-value",
+        "description": "Tiny dense transformer layer shape for exact MAC-count sanity checks. This is a synthetic helper example, not a published accelerator calibration card. Generated decomposed card for Attention-value. Formula: B * heads * S * S * head_dim. Matmul shape is 4 x 4 times 4 x 4; operation multiplicity is 4. The right operand is activation data for attention, so cross-batch weight-stationary reuse is disabled in this generated card.",
+        "source_path": "transformer_small_sanity/small_transformer_attention_value.json",
+        "browser_path": "../transformer_small_sanity/small_transformer_attention_value.json",
+        "macs": 256,
+        "equivalent_ops": 512,
+        "output_elements": 64,
+        "total_energy_pj": 69.632,
+        "energy_per_op_pj": 0.136,
+        "latency_label": "Batch latency",
+        "latency_ns": 11.0,
+        "throughput_equivalent_ops_per_second": 64000000000.0,
+        "provenance_status": "local model artifact",
+        "has_published_reference": false,
+        "assumptions_count": 19,
+        "has_calibration_fit": false,
+        "boundary_tags": [
+          "local model"
+        ],
+        "payload_path": "data/payloads/transformer-small-sanity-small-transformer-attention-value-json-ddd6b4817388.payload.json",
+        "payload_script_path": "data/payloads/transformer-small-sanity-small-transformer-attention-value-json-ddd6b4817388.payload.js"
+      }
+    },
+    {
+      "summary": {
+        "id": "transformer_small_sanity/small_transformer_mlp_down_projection.json",
+        "kind": "matmul_card",
+        "schema_version": "photonic-bench-report-v1",
+        "benchmark_name": "Small transformer sanity layer - MLP down-projection",
+        "description": "Tiny dense transformer layer shape for exact MAC-count sanity checks. This is a synthetic helper example, not a published accelerator calibration card. Generated decomposed card for MLP down-projection. Formula: B * S * intermediate * H. Matmul shape is 4 x 16 times 16 x 8; operation multiplicity is 2. The right operand is a learned model-weight matrix.",
+        "source_path": "transformer_small_sanity/small_transformer_mlp_down_projection.json",
+        "browser_path": "../transformer_small_sanity/small_transformer_mlp_down_projection.json",
+        "macs": 1024,
+        "equivalent_ops": 2048,
+        "output_elements": 64,
+        "total_energy_pj": 107.64800000000001,
+        "energy_per_op_pj": 0.052562500000000005,
+        "latency_label": "Batch latency",
+        "latency_ns": 7.0,
+        "throughput_equivalent_ops_per_second": 512000000000.0,
+        "provenance_status": "local model artifact",
+        "has_published_reference": false,
+        "assumptions_count": 19,
+        "has_calibration_fit": false,
+        "boundary_tags": [
+          "local model"
+        ],
+        "payload_path": "data/payloads/transformer-small-sanity-small-transformer-mlp-down-projection-json-858d8be30dfc.payload.json",
+        "payload_script_path": "data/payloads/transformer-small-sanity-small-transformer-mlp-down-projection-json-858d8be30dfc.payload.js"
+      }
+    },
+    {
+      "summary": {
+        "id": "transformer_small_sanity/small_transformer_mlp_up_projection.json",
+        "kind": "matmul_card",
+        "schema_version": "photonic-bench-report-v1",
+        "benchmark_name": "Small transformer sanity layer - MLP up-projection",
+        "description": "Tiny dense transformer layer shape for exact MAC-count sanity checks. This is a synthetic helper example, not a published accelerator calibration card. Generated decomposed card for MLP up-projection. Formula: B * S * H * intermediate. Matmul shape is 4 x 8 times 8 x 16; operation multiplicity is 2. The right operand is a learned model-weight matrix.",
+        "source_path": "transformer_small_sanity/small_transformer_mlp_up_projection.json",
+        "browser_path": "../transformer_small_sanity/small_transformer_mlp_up_projection.json",
+        "macs": 1024,
+        "equivalent_ops": 2048,
+        "output_elements": 128,
+        "total_energy_pj": 132.608,
+        "energy_per_op_pj": 0.06475,
+        "latency_label": "Batch latency",
+        "latency_ns": 7.0,
+        "throughput_equivalent_ops_per_second": 512000000000.0,
+        "provenance_status": "local model artifact",
+        "has_published_reference": false,
+        "assumptions_count": 19,
+        "has_calibration_fit": false,
+        "boundary_tags": [
+          "local model"
+        ],
+        "payload_path": "data/payloads/transformer-small-sanity-small-transformer-mlp-up-projection-json-177cdd1eca5c.payload.json",
+        "payload_script_path": "data/payloads/transformer-small-sanity-small-transformer-mlp-up-projection-json-177cdd1eca5c.payload.js"
+      }
+    },
+    {
+      "summary": {
+        "id": "transformer_small_sanity/small_transformer_qkv_projection.json",
+        "kind": "matmul_card",
+        "schema_version": "photonic-bench-report-v1",
+        "benchmark_name": "Small transformer sanity layer - QKV projection",
+        "description": "Tiny dense transformer layer shape for exact MAC-count sanity checks. This is a synthetic helper example, not a published accelerator calibration card. Generated decomposed card for QKV projection. Formula: 3 * B * S * H * H. Matmul shape is 4 x 8 times 8 x 24; operation multiplicity is 2. The right operand is a learned model-weight matrix.",
+        "source_path": "transformer_small_sanity/small_transformer_qkv_projection.json",
+        "browser_path": "../transformer_small_sanity/small_transformer_qkv_projection.json",
+        "macs": 1536,
+        "equivalent_ops": 3072,
+        "output_elements": 192,
+        "total_energy_pj": 195.072,
+        "energy_per_op_pj": 0.0635,
+        "latency_label": "Batch latency",
+        "latency_ns": 7.0,
+        "throughput_equivalent_ops_per_second": 768000000000.0,
+        "provenance_status": "local model artifact",
+        "has_published_reference": false,
+        "assumptions_count": 19,
+        "has_calibration_fit": false,
+        "boundary_tags": [
+          "local model"
+        ],
+        "payload_path": "data/payloads/transformer-small-sanity-small-transformer-qkv-projection-json-f8be46ff4121.payload.json",
+        "payload_script_path": "data/payloads/transformer-small-sanity-small-transformer-qkv-projection-json-f8be46ff4121.payload.js"
+      }
+    },
+    {
+      "summary": {
+        "id": "weight_stationary_64x64_batch.json",
+        "kind": "matmul_card",
+        "schema_version": "photonic-bench-report-v1",
+        "benchmark_name": "64x64 weight-stationary batched photonic matmul",
+        "description": "Synthetic component-model example that exercises operand reuse, weight-stationary execution, pipelining, and separate vector/weight DAC assumptions. This is not a published accelerator calibration card.",
+        "source_path": "weight_stationary_64x64_batch.json",
+        "browser_path": "../weight_stationary_64x64_batch.json",
+        "macs": 4194304,
+        "equivalent_ops": 8388608,
+        "output_elements": 65536,
+        "total_energy_pj": 51519.488,
+        "energy_per_op_pj": 0.0061416015625,
+        "latency_label": "Batch latency",
+        "latency_ns": 35.0,
+        "throughput_equivalent_ops_per_second": 262144000000000.0,
+        "provenance_status": "local model artifact",
+        "has_published_reference": false,
+        "assumptions_count": 11,
+        "has_calibration_fit": false,
+        "boundary_tags": [
+          "local model"
+        ],
+        "payload_path": "data/payloads/weight-stationary-64x64-batch-json-a5785b114142.payload.json",
+        "payload_script_path": "data/payloads/weight-stationary-64x64-batch-json-a5785b114142.payload.js"
+      }
+    },
+    {
+      "summary": {
+        "id": "xu_11tops_convolution_surrogate.json",
+        "kind": "matmul_card",
+        "schema_version": "photonic-bench-report-v1",
+        "benchmark_name": "Xu 2021 11 TOPS convolution accelerator surrogate",
+        "description": "Source-backed benchmark card for Xu et al. Nature 2021. The published reference is an optical vector convolution accelerator; this config uses PhotonicBench's matmul path as a dense vector-by-kernel surrogate only, not as an exact convolution dataflow reproduction.",
+        "source_path": "xu_11tops_convolution_surrogate.json",
+        "browser_path": "../xu_11tops_convolution_surrogate.json",
+        "macs": 2500000,
+        "equivalent_ops": 5000000,
+        "output_elements": 10,
+        "total_energy_pj": 555005.1,
+        "energy_per_op_pj": 0.11100101999999999,
+        "latency_label": "Batch latency",
+        "latency_ns": 5.0,
+        "throughput_equivalent_ops_per_second": 1000000000000000.0,
+        "provenance_status": "paper-reported throughput/workload targets; matmul-surrogate local model",
+        "has_published_reference": true,
+        "assumptions_count": 11,
+        "has_calibration_fit": false,
+        "boundary_tags": [
+          "local model",
+          "published reference",
+          "provenance"
+        ],
+        "payload_path": "data/payloads/xu-11tops-convolution-surrogate-json-512e60e4b543.payload.json",
+        "payload_script_path": "data/payloads/xu-11tops-convolution-surrogate-json-512e60e4b543.payload.js"
+      }
+    },
+    {
+      "summary": {
+        "id": "bert_base_encoder_layer/bert_base_layer_layer_summary.json",
+        "kind": "transformer_layer",
+        "schema_version": "photonic-bench-transformer-layer-report-v1",
+        "benchmark_name": "BERT-base style encoder layer",
+        "description": "Dense one-layer BERT-base style encoder benchmark shape with hidden size 768, 12 attention heads, sequence length 128, and MLP intermediate size 3072. This is a shape helper example, not a published accelerator calibration card.",
+        "source_path": "bert_base_encoder_layer/bert_base_layer_layer_summary.json",
+        "browser_path": "../bert_base_encoder_layer/bert_base_layer_layer_summary.json",
+        "macs": 855638016,
+        "equivalent_ops": 1711276032,
+        "output_elements": 1081344,
+        "total_energy_pj": 5377032.192,
+        "energy_per_op_pj": 0.0031421185661764705,
+        "latency_label": "Serial batch latency",
+        "latency_ns": 69.0,
+        "throughput_equivalent_ops_per_second": 2.4801101913043476e+16,
+        "provenance_status": "local model artifact",
+        "has_published_reference": false,
+        "assumptions_count": 6,
+        "has_calibration_fit": false,
+        "boundary_tags": [
+          "local model",
+          "serial timing",
+          "non-additive noise",
+          "exclusions"
+        ],
+        "payload_path": "data/payloads/bert-base-encoder-layer-bert-base-layer-layer-summary-json-206b04929fc6.payload.json",
+        "payload_script_path": "data/payloads/bert-base-encoder-layer-bert-base-layer-layer-summary-json-206b04929fc6.payload.js"
+      }
+    },
+    {
+      "summary": {
+        "id": "gpt_style_decoder_layer/gpt_decoder_layer_layer_summary.json",
+        "kind": "transformer_layer",
+        "schema_version": "photonic-bench-transformer-layer-report-v1",
+        "benchmark_name": "GPT-style decoder layer",
+        "description": "Dense GPT-2-small style decoder benchmark shape with hidden size 768, 12 attention heads, sequence length 1024, and MLP intermediate size 3072. This is a shape helper example, not a published accelerator calibration card.",
+        "source_path": "gpt_style_decoder_layer/gpt_decoder_layer_layer_summary.json",
+        "browser_path": "../gpt_style_decoder_layer/gpt_decoder_layer_layer_summary.json",
+        "macs": 8254390272,
+        "equivalent_ops": 16508780544,
+        "output_elements": 19660800,
+        "total_energy_pj": 32333758.464,
+        "energy_per_op_pj": 0.0019585794588414633,
+        "latency_label": "Serial batch latency",
+        "latency_ns": 69.0,
+        "throughput_equivalent_ops_per_second": 2.3925768904347824e+17,
+        "provenance_status": "local model artifact",
+        "has_published_reference": false,
+        "assumptions_count": 7,
+        "has_calibration_fit": false,
+        "boundary_tags": [
+          "local model",
+          "serial timing",
+          "non-additive noise",
+          "exclusions"
+        ],
+        "payload_path": "data/payloads/gpt-style-decoder-layer-gpt-decoder-layer-layer-summary-json-d127989f02f4.payload.json",
+        "payload_script_path": "data/payloads/gpt-style-decoder-layer-gpt-decoder-layer-layer-summary-json-d127989f02f4.payload.js"
+      }
+    },
+    {
+      "summary": {
+        "id": "transformer_small_sanity/small_transformer_layer_summary.json",
+        "kind": "transformer_layer",
+        "schema_version": "photonic-bench-transformer-layer-report-v1",
+        "benchmark_name": "Small transformer sanity layer",
+        "description": "Tiny dense transformer layer shape for exact MAC-count sanity checks. This is a synthetic helper example, not a published accelerator calibration card.",
+        "source_path": "transformer_small_sanity/small_transformer_layer_summary.json",
+        "browser_path": "../transformer_small_sanity/small_transformer_layer_summary.json",
+        "macs": 4096,
+        "equivalent_ops": 8192,
+        "output_elements": 512,
+        "total_energy_pj": 574.592,
+        "energy_per_op_pj": 0.070140625,
+        "latency_label": "Serial batch latency",
+        "latency_ns": 43.0,
+        "throughput_equivalent_ops_per_second": 190511627906.97675,
+        "provenance_status": "local model artifact",
+        "has_published_reference": false,
+        "assumptions_count": 6,
+        "has_calibration_fit": false,
+        "boundary_tags": [
+          "local model",
+          "serial timing",
+          "non-additive noise",
+          "exclusions"
+        ],
+        "payload_path": "data/payloads/transformer-small-sanity-small-transformer-layer-summary-json-fe96f025b6a0.payload.json",
+        "payload_script_path": "data/payloads/transformer-small-sanity-small-transformer-layer-summary-json-fe96f025b6a0.payload.js"
+      }
+    }
+  ],
+  "issues": [],
+  "data_layout": {
+    "index_json": "data/index.json",
+    "index_script": "data/index.js",
+    "payload_dir": "data/payloads"
+  },
+  "modeling_boundaries": [
+    "Local model estimates come from local_model fields.",
+    "Published references remain separate under published_reference.",
+    "Transformer aggregate timing is serial, not a fused scheduler claim.",
+    "Transformer aggregate noise is diagnostic and non-additive.",
+    "Transformer-layer exclusions are not modeled matmul costs."
+  ]
+}

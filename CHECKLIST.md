@@ -1,4 +1,4 @@
-# PhotonicBench Commit And Visualizer Checklist
+# PhotonicBench Visualizer Comparison And Scaling Checklist
 
 Status key:
 
@@ -8,168 +8,109 @@ Status key:
 
 ## Cycle Control
 
-- [x] DONE: Roll state files forward to the commit plus initial visualizer goal.
+- [x] DONE: Roll state files forward and create the prioritized checklist.
   - Done when:
     - `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and `RUBRIC.md`
-      describe the baseline commit plus initial web visualizer goal.
-    - `tasks/todo.md` reflects the web visualizer as the active goal.
-    - The initial prioritized checklist is present.
+      describe the comparison, smoke-test, and scaling goal.
+    - `tasks/todo.md` marks Web Visualizer Evolution as complete and this goal
+      as active.
+    - The scaling implementation path is chosen.
   - Proof:
-    - Replaced the hardening goal state with the commit plus visualizer goal.
-    - Updated `tasks/todo.md` so transformer-layer hardening is recorded as
-      complete and the initial visualizer work is active.
+    - Re-read all five state files and `tasks/todo.md` at the start of the
+      cycle.
+    - Inspected `git status --short --branch` and `git diff --stat`.
+    - Chose local `--serve` mode as the scaling implementation because it
+      avoids static payload duplication for large report directories while
+      keeping the existing `file://` path intact.
 
-## Task 1: Hardened Baseline Commit
+## Task 1: Current Visualizer Commit
 
-- [x] DONE: Commit the current hardened PhotonicBench state.
+- [ ] TODO: Commit the current visualizer evolution work.
   - Done when:
     - Git status and diff have been inspected.
-    - Relevant files have been staged.
-    - A clean commit exists with a descriptive hardening-focused message.
-    - The latest commit hash is recorded in `PROGRESS.md`.
+    - Current visualizer evolution files have been staged explicitly.
+    - A clean commit exists with a descriptive message.
     - No push has been performed.
+    - The commit hash and verification notes are recorded in `PROGRESS.md`.
   - Proof:
-    - Ran `python -m pytest`: 63 passed.
-    - Ran `python -m ruff check`: passed.
-    - Inspected `git status --short --branch` and staged the project files
-      listed by `git ls-files --others --exclude-standard`.
-    - Created commit `a147736 Harden transformer layer aggregate reports`.
-    - Confirmed post-commit `git status --short --branch` reported a clean
-      `master` worktree.
-    - Confirmed no push was performed.
-    - Checked for `.Codex/scripts/generate-reasoning.sh`; it is not present in
-      this checkout.
+    - Pending.
 
-## Task 2: Artifact Discovery And Indexing
+## Task 2: Comparison Analytics
 
-- [x] DONE: Add visualizer artifact discovery over report directories.
+- [ ] TODO: Upgrade comparison mode into a stronger analysis tool.
   - Done when:
-    - JSON artifacts under `reports/` can be discovered recursively.
-    - Unsupported or malformed JSON files are reported without crashing the
-      index generation.
-    - Artifact summaries include schema version, artifact kind, benchmark name,
-      MACs, equivalent ops, local energy, and source path.
-    - Tests cover discovery across root reports and nested transformer reports.
+    - Users can pin one selected artifact as the reference artifact.
+    - Comparison output shows absolute deltas and ratios against the pinned
+      reference where the metrics are compatible.
+    - Same-schema selections are grouped with richer metric rows.
+    - Mixed-schema selections remain allowed but are explicitly labeled and do
+      not imply false equivalence.
+    - The UI makes pinned state, selected state, and clear actions obvious.
+    - Tests and browser smoke cover the new comparison behaviors.
   - Proof:
-    - Added `discover_visualizer_data()` in `photonic_bench/visualizer.py`.
-    - Discovery walks `reports/` recursively and considers `.json` files only.
-    - Unsupported or malformed files become `ArtifactIssue` entries instead of
-      aborting the index.
-    - Artifact summaries include schema version, kind, benchmark name, MACs,
-      equivalent ops, output elements, local total energy, source path, browser
-      path, provenance status, and published-reference status.
-    - `python -m photonic_bench.cli visualize --reports-dir reports --output
-      reports\visualizer\index.html` generated 23 artifacts with 0 warnings.
-    - `python -m pytest tests\test_visualizer.py` passed: 5 tests.
+    - Pending.
 
-## Task 3: Schema-Aware Loading
+## Task 3: Playwright Browser Smoke
 
-- [x] DONE: Add schema-aware adapters for per-matmul and transformer-layer JSON.
+- [ ] TODO: Add Playwright as a dev dependency and check in a browser smoke test.
   - Done when:
-    - `photonic-bench-report-v1` cards load through a typed adapter path.
-    - `photonic-bench-transformer-layer-report-v1` aggregates load through a
-      separate adapter path.
-    - Unknown schema versions are rejected or surfaced clearly.
-    - Adapter tests cover required summary fields and schema routing.
+    - Project dev dependencies include Playwright.
+    - A browser smoke test opens the generated visualizer in Chromium.
+    - The smoke test verifies representative detail and comparison flows.
+    - The smoke test fails on page errors or unexpected console errors.
+    - Documentation explains how to run it.
   - Proof:
-    - Added `load_visualizer_artifact()` with explicit branching on
-      `schema_version`.
-    - Added separate `_load_matmul_artifact()` and
-      `_load_transformer_layer_artifact()` adapter paths.
-    - Unknown schema versions are surfaced as index warnings.
-    - Added tests for per-matmul summary fields, transformer-layer summary
-      fields, and unsupported schema handling.
-    - `python -m pytest tests\test_visualizer.py` passed: 5 tests.
+    - Pending.
 
-## Task 4: Basic Visualizer UI
+## Task 4: Local Server Scaling Mode
 
-- [x] DONE: Build the initial static web visualizer.
+- [ ] TODO: Implement `visualize --serve` as the practical scaling path.
   - Done when:
-    - A generated HTML page loads the artifact index and checked-in JSON
-      artifacts using browser-friendly relative paths.
-    - The page lists discovered per-matmul and aggregate artifacts.
-    - Selecting an aggregate transformer-layer report shows the detail view.
-    - The UI remains compact and workbench-like rather than marketing-oriented.
+    - The CLI exposes a simple server mode on the visualizer command.
+    - Server mode serves the visualizer shell, static assets, a lightweight
+      index, and per-artifact payload JSON on demand.
+    - Server mode does not write duplicated payload JSON/script assets.
+    - Static generation still works from `file://`.
+    - Tests cover server route behavior or route construction.
+    - Documentation explains when to use static output versus server mode.
   - Proof:
-    - Added `render_visualizer_html()` and `write_visualizer()`.
-    - Added CLI command:
-      `python -m photonic_bench.cli visualize --reports-dir reports --output reports\visualizer\index.html`.
-    - Generated `reports/visualizer/index.html`.
-    - The HTML embeds the discovered artifact index and payloads with
-      browser-friendly links back to checked-in JSON artifacts.
-    - The UI is a compact artifact rail plus detail workbench, with no landing
-      page or marketing surface.
-    - `Select-String` confirmed generated HTML contains `photonicbench-data`,
-      `nature_pace_64x64.json`, and transformer-layer detail labels.
-    - `python -m pytest tests\test_visualizer.py` passed: 5 tests.
+    - Pending.
 
-## Task 5: Transformer Layer Detail View
+## Task 5: Documentation, Examples, And Verification
 
-- [x] DONE: Render the transformer-layer aggregate detail view.
+- [ ] TODO: Update docs, regenerate examples, and run verification.
   - Done when:
-    - Layer shape, workload totals, local energy, serial timing, diagnostic
-      noise, formula audit rows, and per-matmul rows are visible.
-    - Assumptions, exclusions, provenance, and aggregate semantics are visible.
-    - Serial timing and non-additive noise are labeled accurately.
-    - Tests or generated-content checks protect the key concept labels.
-  - Proof:
-    - Transformer detail view renders shape, aggregate metric strip, serial
-      timing, non-additive noise, aggregate semantics, formula audit,
-      per-matmul breakdown, exclusions, provenance, and assumptions.
-    - Concept panels explicitly label local model estimates, published
-      references, serial timing, and non-additive noise.
-    - Generated HTML contains `Serial timing`, `Non-additive noise`,
-      `Transformer Exclusions`, `Formula Audit`, and `Per-Matmul Breakdown`.
-    - `python -m pytest tests\test_visualizer.py` passed: 5 tests.
-
-## Task 6: Documentation And Verification
-
-- [x] DONE: Document and verify the initial visualizer.
-  - Done when:
-    - README or docs explain how to generate/open the visualizer.
-    - Any new commands are documented with expected outputs.
+    - README/docs describe improved comparison analytics, Playwright smoke, and
+      `--serve`.
+    - The checked-in static visualizer example is regenerated if source assets
+      changed.
+    - Focused visualizer tests pass.
     - `python -m pytest` passes.
     - `python -m ruff check` passes.
+    - The Playwright smoke test passes.
   - Proof:
-    - README documents `python -m photonic_bench.cli visualize --reports-dir
-      reports --output reports/visualizer/index.html`.
-    - README explains that the generated page is self-contained, JSON is the
-      machine interface, Markdown is not scraped, and local estimates,
-      published references, serial timing, non-additive noise, and exclusions
-      remain distinct.
-    - Generated `reports/visualizer/index.html`.
-    - Pre-critique full `python -m pytest` passed: 68 tests.
-    - Pre-critique full `python -m ruff check` passed.
-    - Post-fix focused `python -m pytest tests\test_visualizer.py` passed:
-      5 tests.
-    - Post-fix focused `python -m ruff check photonic_bench\visualizer.py
-      photonic_bench\cli.py tests\test_visualizer.py` passed.
-    - Playwright browser smoke opened `reports/visualizer/index.html`, selected
-      `transformer_small_sanity/small_transformer_layer_summary.json`, and
-      verified the key transformer detail sections with no page or console
-      errors.
-    - Final post-critique `python -m pytest` passed: 68 tests.
-    - Final post-critique `python -m ruff check` passed.
+    - Pending.
 
-## Task 7: Mandatory Hostile Senior Reviewer Critique
+## Task 6: Mandatory Hostile Senior Reviewer Critique
 
-- [x] DONE: Critique the visualizer scaffolding and fix major findings.
+- [ ] TODO: Critique code quality, usability, scalability, and maintainability.
   - Done when:
-    - `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and `RUBRIC.md`
-      have been re-read before the critique pass.
-    - The critique is recorded in `PROGRESS.md`.
-    - Major code-structure, maintainability, or scaling issues are fixed or
-      explicitly justified.
-    - Final `python -m pytest` and `python -m ruff check` pass after fixes.
+    - The five state files are re-read before the critique pass.
+    - Findings are recorded in `PROGRESS.md`.
+    - Significant issues are fixed or explicitly justified.
+    - The visualizer is regenerated after fixes when assets change.
+    - Final `python -m pytest`, `python -m ruff check`, and Playwright smoke
+      all pass.
   - Proof:
-    - Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
-      `RUBRIC.md` before the critique pass.
-    - Recorded hostile reviewer findings in `PROGRESS.md`.
-    - Fixed warning routing so visualizer index warnings print to stderr.
-    - Fixed the JavaScript object-table formatter so string fields such as
-      `timing_model` are not rendered as `n/a`.
-    - Regenerated `reports/visualizer/index.html` after fixes.
-    - Playwright browser smoke passed after fixes.
-    - Remaining scale risks are documented in `PROGRESS.md`.
-    - Final post-critique `python -m pytest` passed: 68 tests.
-    - Final post-critique `python -m ruff check` passed.
+    - Pending.
+
+## Task 7: Final State
+
+- [ ] TODO: Close the loop cleanly.
+  - Done when:
+    - All required outcomes in `GOAL.md` are complete.
+    - `CHECKLIST.md`, `PROGRESS.md`, `CONTEXT.md`, `RUBRIC.md`, and
+      `tasks/todo.md` reflect the final state.
+    - Git status is inspected and reported.
+  - Proof:
+    - Pending.

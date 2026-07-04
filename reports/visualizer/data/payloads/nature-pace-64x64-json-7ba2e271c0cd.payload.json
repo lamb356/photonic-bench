@@ -1,0 +1,154 @@
+{
+  "schema_version": "photonic-bench-report-v1",
+  "benchmark": {
+    "name": "Nature PACE 64x64 matrix-vector calibration",
+    "description": "Source-backed calibration card for the Nature 2025 PACE 64x64 photonic matrix-vector accelerator. The component model remains a simple local assumption set; the published calibration table carries the paper-reported values."
+  },
+  "workload": {
+    "type": "matmul",
+    "shape": {
+      "m": 1,
+      "k": 64,
+      "n": 64
+    },
+    "macs": 4096,
+    "equivalent_ops": 8192,
+    "output_elements": 64
+  },
+  "model_inputs": {
+    "device": {
+      "optical_mac_energy_fj": 0.5,
+      "laser_wall_plug_efficiency": 0.25,
+      "photodetector_energy_fj_per_sample": 10.0,
+      "adc": {
+        "bits": 8,
+        "energy_pj_per_conversion": 0.5
+      },
+      "dac": {
+        "bits": 8,
+        "energy_pj_per_conversion": 0.2
+      },
+      "vector_dac": {
+        "bits": 8,
+        "energy_pj_per_conversion": 0.2
+      },
+      "weight_dac": {
+        "bits": 8,
+        "energy_pj_per_conversion": 0.2
+      }
+    },
+    "execution": {
+      "batch_size": 1,
+      "vector_reuse_factor": 1,
+      "weight_reuse_factor": 1,
+      "weight_stationary": false,
+      "pipeline": {
+        "stages": 1,
+        "cycle_time_ns": null
+      }
+    },
+    "timing": {
+      "optical_latency_ns": 5.0,
+      "adc_latency_ns": 0.0,
+      "dac_latency_ns": 0.0
+    },
+    "noise": {
+      "phase_noise_rad_rms": 0.02,
+      "drift_rad_per_second": 0.1,
+      "integration_time_ns": 5.0
+    }
+  },
+  "local_model": {
+    "conversion_counts": {
+      "adc_conversions": 64,
+      "vector_dac_conversions": 64,
+      "weight_dac_conversions": 4096,
+      "dac_conversions": 4160
+    },
+    "energy": {
+      "optical_compute_pj": 2.048,
+      "laser_electrical_pj": 8.192,
+      "detector_pj": 0.64,
+      "adc_pj": 32.0,
+      "vector_dac_pj": 12.8,
+      "weight_dac_pj": 819.2,
+      "dac_pj": 832.0,
+      "total_pj": 872.832,
+      "energy_per_mac_pj": 0.21309375,
+      "energy_per_op_pj": 0.106546875,
+      "peripheral_share": 0.9906144595981815
+    },
+    "timing": {
+      "optical_latency_ns": 5.0,
+      "adc_latency_ns": 0.0,
+      "dac_latency_ns": 0.0,
+      "total_latency_ns": 5.0,
+      "pipeline_stages": 1,
+      "pipeline_cycle_time_ns": 5.0,
+      "batch_latency_ns": 5.0,
+      "steady_state_operations_per_second": 200000000.0,
+      "steady_state_equivalent_ops_per_second": 1638400000000.0
+    },
+    "noise": {
+      "quantization_snr_db": 49.919999999999995,
+      "quantization_rms": 0.0011320593513522075,
+      "phase_noise_rad_rms": 0.02,
+      "drift_rms_rad": 5e-10,
+      "estimated_relative_error_rms": 0.020032013338029314
+    }
+  },
+  "published_reference": {
+    "source_type": "published_calibration",
+    "provenance": {
+      "source_title": "An integrated large-scale photonic accelerator with ultralow latency",
+      "source_url": "https://www.nature.com/articles/s41586-025-08786-6",
+      "doi": "10.1038/s41586-025-08786-6",
+      "venue": "Nature 640, 361-367 (2025)",
+      "claim_status": "paper-reported calibration targets"
+    },
+    "reported": {
+      "architecture": "PACE 64x64 matrix-vector oMAC",
+      "reported_tops": 8.19,
+      "energy_efficiency_excluding_lasers_tops_per_watt": 4.21,
+      "energy_efficiency_including_lasers_tops_per_watt": 2.38,
+      "reported_latency_ns": 5.0,
+      "reported_future_latency_ns": 3.0,
+      "reported_enob": 7.61,
+      "reported_component_count_min": 16000,
+      "a10_latency_ns_min": 2300.0,
+      "pace_total_time_us": 2.7,
+      "gpu_total_time_us": 798.1
+    },
+    "derived_unit_conversions": {
+      "energy_per_op_excluding_lasers_pj": 0.23752969121140144,
+      "energy_per_op_including_lasers_pj": 0.42016806722689076,
+      "energy_per_mac_excluding_lasers_pj": 0.4750593824228029,
+      "energy_per_mac_including_lasers_pj": 0.8403361344537815,
+      "total_energy_excluding_lasers_pj": 1945.8432304038006,
+      "total_energy_including_lasers_pj": 3442.016806722689,
+      "model_to_published_including_lasers_ratio": 0.25358156249999997
+    },
+    "separation_note": "Published values are paper-reported references or direct unit conversions, not local component-model estimates."
+  },
+  "calibration_fit": null,
+  "assumptions": [
+    "The optical MAC energy is treated as delivered optical energy per multiply-accumulate.",
+    "The laser wall-plug efficiency converts delivered optical energy into electrical laser energy.",
+    "ADC conversions are counted once per output element.",
+    "DAC conversions are counted once per input value for the left and right matmul operands.",
+    "Detector energy is counted once per output sample.",
+    "The first noise model combines ADC quantization RMS, phase noise RMS, and drift RMS as independent terms.",
+    "Total latency is a transparent sum of DAC, optical, and ADC latency rather than a pipelined throughput model.",
+    "The benchmark models 1 operation(s) per batch.",
+    "Vector DAC conversions are counted as ceil(batch_size / vector_reuse_factor) * m * k.",
+    "Weight DAC conversions are counted every 1 operation(s).",
+    "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time."
+  ],
+  "provenance": {
+    "source_title": "An integrated large-scale photonic accelerator with ultralow latency",
+    "source_url": "https://www.nature.com/articles/s41586-025-08786-6",
+    "doi": "10.1038/s41586-025-08786-6",
+    "venue": "Nature 640, 361-367 (2025)",
+    "claim_status": "paper-reported calibration targets"
+  }
+}

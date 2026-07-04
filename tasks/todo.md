@@ -28,7 +28,7 @@
 - [x] Create gated web visualizer planning artifact.
 - [x] Create gated MLCommons-style photonic benchmark proposal planning artifact.
 
-## Active Goal: Hardened Baseline Commit And Initial Web Visualizer
+## Completed Goal: Hardened Baseline Commit And Initial Web Visualizer
 
 - [x] Task 1: Commit the current hardened PhotonicBench baseline.
 - [x] Task 2: Add artifact discovery and indexing over report directories.
@@ -39,9 +39,40 @@
 - [x] Task 7: Run mandatory hostile senior reviewer critique and fix important
       findings.
 
+## Completed Goal: Web Visualizer Evolution
+
+- [x] Task 0: Roll state files forward and create prioritized checklist.
+- [x] Task 1: Refactor visualizer source structure into Python, template, CSS,
+      and JavaScript assets.
+- [x] Task 2: Separate lightweight artifact index data from full artifact
+      payload data.
+- [x] Task 3: Improve navigation, filtering, labeling, and artifact
+      presentation.
+- [x] Task 4: Add schema-aware side-by-side comparison mode.
+- [x] Task 5: Preserve and harden per-matmul and transformer-layer detail views
+      through the new data path.
+- [x] Task 6: Update documentation, regenerate visualizer artifacts, and run
+      focused plus full verification.
+- [x] Task 7: Run hostile senior reviewer critique focused on maintainability,
+      performance, and UX, then fix major findings.
+
+## Active Goal: Visualizer Comparison, Smoke, And Scaling
+
+- [x] Task 0: Roll state files forward and create prioritized checklist.
+- [ ] Task 1: Commit the current visualizer evolution work.
+- [ ] Task 2: Upgrade comparison mode with pinned selections, deltas, ratios,
+      and grouped or mixed-schema analysis.
+- [ ] Task 3: Add Playwright as a dev dependency and check in a browser smoke
+      test.
+- [ ] Task 4: Implement local `visualize --serve` scaling mode.
+- [ ] Task 5: Update documentation, regenerate examples, and run full
+      verification.
+- [ ] Task 6: Run hostile senior reviewer critique and fix significant
+      findings.
+- [ ] Task 7: Close final state files and inspect git status.
+
 ## Explicitly Not Active In This Goal
 
-- [ ] Full comparison dashboard.
 - [ ] File upload workflow.
-- [ ] Backend web service.
+- [ ] Hosted backend web service.
 - [ ] MLCommons-style proposal implementation.

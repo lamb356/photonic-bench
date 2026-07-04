@@ -21,10 +21,13 @@ def test_discover_visualizer_data_loads_root_and_nested_reports() -> None:
     )
     assert summaries["nature_pace_64x64.json"].kind == "matmul_card"
     assert summaries["nature_pace_64x64.json"].has_published_reference is True
+    assert "published reference" in summaries["nature_pace_64x64.json"].boundary_tags
     layer = summaries["transformer_small_sanity/small_transformer_layer_summary.json"]
     assert layer.kind == "transformer_layer"
     assert layer.latency_label == "Serial batch latency"
     assert layer.equivalent_ops == 8192
+    assert "serial timing" in layer.boundary_tags
+    assert "non-additive noise" in layer.boundary_tags
 
 
 def test_discover_visualizer_data_reports_unsupported_schema(tmp_path: Path) -> None:
@@ -43,31 +46,36 @@ def test_discover_visualizer_data_reports_unsupported_schema(tmp_path: Path) -> 
     assert "unsupported schema_version" in data.issues[0].message
 
 
-def test_render_visualizer_html_contains_transformer_detail_concepts() -> None:
+def test_render_visualizer_html_uses_external_static_assets() -> None:
     data = discover_visualizer_data(Path("reports"))
     html = render_visualizer_html(data)
 
     assert "PhotonicBench Visualizer" in html
-    assert "Small transformer sanity layer" in html
-    assert "Local model estimate" in html
-    assert "Published references" in html
-    assert "Serial timing" in html
-    assert "Non-additive noise" in html
-    assert "Transformer Exclusions" in html
-    assert "softmax" in html
-    assert "Formula Audit" in html
-    assert "Per-Matmul Breakdown" in html
-    assert "photonicbench-data" in html
+    assert 'href="assets/styles.css"' in html
+    assert 'src="data/index.js"' in html
+    assert 'src="assets/app.js"' in html
+    assert "photonicbench-data" not in html
+    assert "Small transformer sanity layer" not in html
 
 
-def test_write_visualizer_uses_browser_relative_artifact_paths(tmp_path: Path) -> None:
+def test_write_visualizer_emits_index_payloads_and_static_assets(
+    tmp_path: Path,
+) -> None:
     output_path = tmp_path / "site" / "index.html"
 
     data = write_visualizer(Path("reports"), output_path)
     html = output_path.read_text(encoding="utf-8")
+    index = json.loads((output_path.parent / "data" / "index.json").read_text())
 
     assert output_path.exists()
-    assert "../" in html
+    assert "assets/styles.css" in html
+    assert "data/index.js" in html
+    assert (output_path.parent / "assets" / "styles.css").exists()
+    assert (output_path.parent / "assets" / "app.js").exists()
+    assert (output_path.parent / "data" / "index.js").exists()
+    assert len(index["artifacts"]) == len(data.artifacts)
+    assert "modeling_boundaries" in index
+
     layer = next(
         artifact
         for artifact in data.artifacts
@@ -77,9 +85,37 @@ def test_write_visualizer_uses_browser_relative_artifact_paths(tmp_path: Path) -
     assert layer.summary.browser_path.endswith(
         "reports/transformer_small_sanity/small_transformer_layer_summary.json"
     )
+    assert layer.summary.payload_path.endswith(".payload.json")
+    assert layer.summary.payload_script_path.endswith(".payload.js")
+    payload_json = output_path.parent / layer.summary.payload_path
+    payload_script = output_path.parent / layer.summary.payload_script_path
+    assert payload_json.exists()
+    assert payload_script.exists()
+    assert (
+        json.loads(payload_json.read_text(encoding="utf-8"))["schema_version"]
+        == "photonic-bench-transformer-layer-report-v1"
+    )
 
 
-def test_cli_visualize_writes_static_html(tmp_path: Path) -> None:
+def test_static_app_contains_comparison_and_boundary_labels() -> None:
+    app_js = Path("photonic_bench/visualizer_assets/app.js").read_text(
+        encoding="utf-8"
+    )
+    styles = Path("photonic_bench/visualizer_assets/styles.css").read_text(
+        encoding="utf-8"
+    )
+
+    assert "Comparison Mode" in app_js
+    assert "Mixed-schema comparison" in app_js
+    assert "Serial Timing" in app_js
+    assert "Non-additive Noise" in app_js
+    assert "Transformer Exclusions" in app_js
+    assert "Published references" in app_js
+    assert 'startsWith("<")' not in app_js
+    assert ".comparison-table" in styles
+
+
+def test_cli_visualize_writes_static_html_and_data_assets(tmp_path: Path) -> None:
     output_path = tmp_path / "visualizer" / "index.html"
 
     completed = subprocess.run(
@@ -101,6 +137,8 @@ def test_cli_visualize_writes_static_html(tmp_path: Path) -> None:
     assert completed.returncode == 0, completed.stderr
     assert "Wrote web visualizer" in completed.stdout
     assert output_path.exists()
-    assert "photonic-bench-transformer-layer-report-v1" in output_path.read_text(
-        encoding="utf-8"
-    )
+    assert (output_path.parent / "data" / "index.json").exists()
+    assert (output_path.parent / "data" / "payloads").is_dir()
+    assert "photonic-bench-transformer-layer-report-v1" in (
+        output_path.parent / "data" / "index.json"
+    ).read_text(encoding="utf-8")

@@ -237,7 +237,19 @@ python -m photonic_bench.cli visualize --reports-dir reports --output reports/vi
 ```
 
 Then open `reports/visualizer/index.html` in a browser. The generated page is
-self-contained, so it can be opened directly from disk without a backend server.
+static and can be opened directly from disk without a backend server. The CLI
+writes a small visualizer bundle beside the HTML:
+
+- `reports/visualizer/index.html`: shell page.
+- `reports/visualizer/assets/styles.css`: visualizer styling.
+- `reports/visualizer/assets/app.js`: browser UI logic.
+- `reports/visualizer/data/index.json`: lightweight artifact index for tools.
+- `reports/visualizer/data/index.js`: disk-safe browser bootstrap for the same
+  index.
+- `reports/visualizer/data/payloads/*.payload.json`: one full JSON payload per
+  discovered artifact.
+- `reports/visualizer/data/payloads/*.payload.js`: disk-safe lazy-load wrappers
+  for those payloads.
 
 The visualizer discovers `.json` files recursively under `reports/`, branches on
 `schema_version`, and loads both supported contracts:
@@ -248,15 +260,30 @@ The visualizer discovers `.json` files recursively under `reports/`, branches on
 
 Unsupported or malformed JSON files are shown as index warnings instead of
 crashing the whole page. Markdown reports are not scraped; JSON is the machine
-interface.
+interface. The generated `reports/visualizer/` directory is excluded from input
+discovery so regenerating the visualizer does not index its own payload copies.
 
-The initial transformer-layer detail view shows layer shape, aggregate workload
-totals, local energy, serial timing, non-additive noise diagnostics, formula
-audit rows, per-matmul breakdowns, assumptions, exclusions, and provenance. The
-page keeps the major modeling boundaries visible: local model estimates are
-separate from published references, `serial_*` timing is not a fused hardware
-scheduler claim, and aggregate noise is diagnostic rather than an additive
-layer-level error.
+The Detail view lazy-loads the selected artifact payload. Per-matmul cards show
+workload shape, local energy components, timing, published-reference separation,
+provenance, and assumptions. Transformer-layer summaries show layer shape,
+aggregate workload totals, local energy, serial timing, non-additive noise
+diagnostics, aggregate semantics, formula audit rows, per-matmul breakdowns,
+assumptions, exclusions, and provenance.
+
+The Compare view lets you select multiple artifacts from the rail and inspect a
+schema-aware side-by-side matrix. Mixed per-matmul and transformer-layer
+comparison is allowed, but labeled as mixed-schema comparison so serial timing,
+non-additive aggregate noise, exclusions, local estimates, and published
+references are not flattened into one false hardware model.
+
+Source layout for the visualizer:
+
+- `photonic_bench/visualizer.py`: discovery, schema-aware adapters, data asset
+  generation, and template assembly.
+- `photonic_bench/visualizer_assets/template.html`: generated HTML shell.
+- `photonic_bench/visualizer_assets/styles.css`: workbench styling.
+- `photonic_bench/visualizer_assets/app.js`: browser navigation, lazy payload
+  loading, detail views, and comparison mode.
 
 ## Comparison Tables
 
@@ -303,7 +330,8 @@ The output records the target, target source, original value, fitted value, pre-
 - `photonic_bench/json_report.py`: machine-readable JSON card rendering.
 - `photonic_bench/comparison.py`: Markdown comparison table rendering from JSON cards.
 - `photonic_bench/transformer.py`: transformer-layer shape helpers and aggregate layer comparison rendering.
-- `photonic_bench/visualizer.py`: static web visualizer artifact discovery, schema-aware loading, and HTML rendering.
+- `photonic_bench/visualizer.py`: static web visualizer discovery, schema-aware loading, template assembly, and generated data asset writing.
+- `photonic_bench/visualizer_assets/`: source HTML, CSS, and JavaScript assets for the generated visualizer.
 - `docs/photonic-bench-transformer-layer-report-v1.schema.json`: machine-readable aggregate transformer-layer JSON Schema.
 - `photonic_bench/cli.py`: command-line entry point.
 - `docs/json_schema.md`: JSON schema guide, units, nullability, and examples.

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PhotonicBench Visualizer</title>
-  <link rel="stylesheet" href="assets/styles.css">
+  <link rel="stylesheet" href="{{ stylesheet_path }}">
 </head>
 <body>
   <div class="app-shell">
@@ -19,11 +19,11 @@
 
       <div class="counts" aria-label="Artifact counts">
         <div class="count-box">
-          <strong id="artifact-count">23</strong>
+          <strong id="artifact-count">{{ artifact_count }}</strong>
           <span>loaded artifacts</span>
         </div>
         <div class="count-box">
-          <strong id="issue-count">0</strong>
+          <strong id="issue-count">{{ issue_count }}</strong>
           <span>index warnings</span>
         </div>
       </div>
@@ -66,7 +66,7 @@
     </main>
   </div>
 
-  <script src="data/index.js"></script>
-  <script src="assets/app.js" defer></script>
+  <script src="{{ index_script_path }}"></script>
+  <script src="{{ app_script_path }}" defer></script>
 </body>
 </html>
