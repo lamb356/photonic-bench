@@ -7,11 +7,14 @@
     search: "",
     kind: "all",
     boundary: "all",
+    quality: "all",
     sort: "name",
+    group: "schema",
     view: "detail",
     compareIds: new Set(),
     pinnedId: null,
     paretoMode: "energy-throughput",
+    analysisFocus: "balanced",
     payloadCache: new Map(),
     payloadPromises: new Map(),
     userPresets: [],
@@ -24,6 +27,8 @@
   };
   const USER_PRESETS_KEY = "photonic-bench-comparison-presets:v1";
   const COMPARISON_EXPORT_SCHEMA = "photonic-bench-comparison-export-v1";
+  const SOURCE_CONFIDENCE_BY_GRADE = { A: 100, B: 75, C: 50, D: 25 };
+  const PUBLISHED_UNRATED_SOURCE_CONFIDENCE = 40;
   const REPORT_SCHEMA_VERSION = "photonic-bench-report-v1";
   const TRANSFORMER_LAYER_SCHEMA_VERSION =
     "photonic-bench-transformer-layer-report-v1";
@@ -66,9 +71,27 @@
       render();
     });
 
+  document.getElementById("quality-filter").addEventListener("change", (event) => {
+    state.quality = event.target.value;
+    render();
+  });
+
   document.getElementById("sort-filter").addEventListener("change", (event) => {
     state.sort = event.target.value;
     render();
+  });
+
+  document.getElementById("group-filter").addEventListener("change", (event) => {
+    state.group = event.target.value;
+    render();
+  });
+
+  document.getElementById("compare-visible").addEventListener("click", () => {
+    compareVisibleArtifacts();
+  });
+
+  document.getElementById("clear-filters").addEventListener("click", () => {
+    resetFilters();
   });
 
   state.userPresets = readUserPresets();
@@ -228,6 +251,26 @@
     return true;
   }
 
+  function qualityMatches(summary) {
+    if (state.quality === "all") return true;
+    const grade = summary.source_quality_grade || "";
+    if (state.quality === "unrated") return !grade;
+    return grade.toUpperCase() === state.quality;
+  }
+
+  function compareFiniteNumbers(left, right, direction = "ascending") {
+    const a = Number(left);
+    const b = Number(right);
+    const aFinite = Number.isFinite(a);
+    const bFinite = Number.isFinite(b);
+    if (aFinite && bFinite) {
+      return direction === "descending" ? b - a : a - b;
+    }
+    if (aFinite) return -1;
+    if (bFinite) return 1;
+    return 0;
+  }
+
   function filteredArtifacts() {
     const artifacts = state.data.artifacts.filter((artifact) => {
       const summary = artifact.summary;
@@ -236,6 +279,10 @@
         summary.description,
         summary.source_path,
         summary.schema_version,
+        summary.source_quality_grade,
+        summary.source_surrogate_type,
+        summary.system_profile,
+        summary.memory_timing_mode,
         ...(summary.boundary_tags || []),
       ]
         .join(" ")
@@ -243,6 +290,7 @@
       return (
         (state.kind === "all" || summary.kind === state.kind) &&
         boundaryMatches(summary) &&
+        qualityMatches(summary) &&
         haystack.includes(state.search)
       );
     });
@@ -250,17 +298,130 @@
     return artifacts.sort((left, right) => {
       const a = left.summary;
       const b = right.summary;
-      if (state.sort === "energy") return a.total_energy_pj - b.total_energy_pj;
-      if (state.sort === "intensity") {
+      if (state.sort === "energy") {
         return (
-          Number(b.operational_intensity_ops_per_byte || 0) -
-          Number(a.operational_intensity_ops_per_byte || 0)
+          compareFiniteNumbers(a.total_energy_pj, b.total_energy_pj) ||
+          a.benchmark_name.localeCompare(b.benchmark_name)
         );
       }
-      if (state.sort === "latency") return a.latency_ns - b.latency_ns;
-      if (state.sort === "ops") return b.equivalent_ops - a.equivalent_ops;
+      if (state.sort === "intensity") {
+        return (
+          compareFiniteNumbers(
+            a.operational_intensity_ops_per_byte,
+            b.operational_intensity_ops_per_byte,
+            "descending"
+          ) || a.benchmark_name.localeCompare(b.benchmark_name)
+        );
+      }
+      if (state.sort === "latency") {
+        return (
+          compareFiniteNumbers(a.latency_ns, b.latency_ns) ||
+          a.benchmark_name.localeCompare(b.benchmark_name)
+        );
+      }
+      if (state.sort === "ops") {
+        return (
+          compareFiniteNumbers(a.equivalent_ops, b.equivalent_ops, "descending") ||
+          a.benchmark_name.localeCompare(b.benchmark_name)
+        );
+      }
       return a.benchmark_name.localeCompare(b.benchmark_name);
     });
+  }
+
+  function compareVisibleArtifacts() {
+    const artifacts = filteredArtifacts();
+    if (!artifacts.length) {
+      setPresetMessage("No visible artifacts to compare.", true);
+      return;
+    }
+    state.compareIds = new Set(artifacts.map((artifact) => artifact.summary.id));
+    if (!state.compareIds.has(state.pinnedId)) {
+      state.pinnedId = artifacts[0].summary.id;
+    }
+    ensurePinnedReference(artifacts);
+    state.selectedId = artifacts[0].summary.id;
+    state.view = "compare";
+    setPresetMessage(`Comparing ${artifacts.length} visible artifact(s).`);
+    render();
+  }
+
+  function resetFilters() {
+    state.search = "";
+    state.kind = "all";
+    state.boundary = "all";
+    state.quality = "all";
+    state.sort = "name";
+    state.group = "schema";
+    document.getElementById("search").value = "";
+    document.getElementById("kind-filter").value = state.kind;
+    document.getElementById("boundary-filter").value = state.boundary;
+    document.getElementById("quality-filter").value = state.quality;
+    document.getElementById("sort-filter").value = state.sort;
+    document.getElementById("group-filter").value = state.group;
+    setPresetMessage("Filters reset.");
+    render();
+  }
+
+  function filterSummaryLabel() {
+    const labels = [];
+    if (state.search) labels.push(`search: ${state.search}`);
+    if (state.kind !== "all") labels.push(`schema: ${kindLabel(state.kind)}`);
+    if (state.boundary !== "all") labels.push(`boundary: ${state.boundary}`);
+    if (state.quality !== "all") {
+      labels.push(
+        state.quality === "unrated"
+          ? "source grade: unrated"
+          : `source grade: ${state.quality}`
+      );
+    }
+    if (state.sort !== "name") labels.push(`sort: ${state.sort}`);
+    return labels.length ? labels.join(" | ") : "All artifacts, sorted by name";
+  }
+
+  function currentFilterState() {
+    return {
+      search: state.search,
+      schema: state.kind,
+      boundary: state.boundary,
+      source_quality: state.quality,
+      sort: state.sort,
+      grouping: state.group,
+    };
+  }
+
+  function groupArtifactsForRail(artifacts) {
+    if (state.group === "none") {
+      return [["All artifacts", artifacts]];
+    }
+    const groups = new Map();
+    artifacts.forEach((artifact) => {
+      const labels = railGroupLabels(artifact.summary);
+      labels.forEach((label) => {
+        if (!groups.has(label)) {
+          groups.set(label, []);
+        }
+        groups.get(label).push(artifact);
+      });
+    });
+    return Array.from(groups.entries()).sort(([left], [right]) =>
+      left.localeCompare(right)
+    );
+  }
+
+  function railGroupLabels(summary) {
+    if (state.group === "schema") return [kindLabel(summary.kind)];
+    if (state.group === "source-quality") {
+      return [`Source grade ${summary.source_quality_grade || "unrated"}`];
+    }
+    if (state.group === "system-profile") {
+      return [`Profile ${summary.system_profile || "n/a"}`];
+    }
+    if (state.group === "boundary") {
+      const tags = summary.boundary_tags || [];
+      return tags.length ? tags : ["untagged boundary"];
+    }
+    return ["All artifacts"];
   }
 
   function selectedArtifacts() {
@@ -1307,56 +1468,28 @@
     const artifacts = filteredArtifacts();
     if (!artifacts.length) {
       list.innerHTML =
-        '<div class="empty">No artifacts match the current filters.</div>';
+        `<div class="filter-summary">0 visible - ${escapeHtml(filterSummaryLabel())}</div>
+        <div class="empty">No artifacts match the current filters.</div>`;
       return;
     }
 
-    list.innerHTML = artifacts
-      .map((artifact) => {
-        const summary = artifact.summary;
-        const active = summary.id === state.selectedId ? " active" : "";
-        const pinned = summary.id === state.pinnedId ? " pinned" : "";
-        const checked = state.compareIds.has(summary.id) ? " checked" : "";
-        const pinDisabled = state.compareIds.has(summary.id) ? "" : " disabled";
-        const pinActive = summary.id === state.pinnedId ? " active" : "";
-        const badgeClass =
-          summary.kind === "transformer_layer" || summary.kind === "transformer_model"
-            ? "badge layer"
-            : "badge";
-        const tags = (summary.boundary_tags || [])
-          .slice(0, 3)
-          .map((tag) => `<span class="badge">${escapeHtml(tag)}</span>`)
-          .join("");
-        return `
-          <div class="artifact-row${active}${pinned}" data-id="${escapeHtml(summary.id)}">
-            <button class="artifact-main" type="button" data-id="${escapeHtml(summary.id)}">
-              <div class="artifact-title">${escapeHtml(summary.benchmark_name)}</div>
-              <div class="artifact-meta">${escapeHtml(summary.source_path)}</div>
-              <div class="badge-row">
-                <span class="${badgeClass}">${kindLabel(summary.kind)}</span>
-                ${summary.is_external ? '<span class="badge mix">external</span>' : ""}
-                ${summary.id === state.pinnedId ? '<span class="badge layer">pinned reference</span>' : ""}
-                <span class="badge">${formatNumber(summary.equivalent_ops)} eq ops</span>
-                <span class="badge">${formatPj(summary.total_energy_pj)}</span>
-                ${
-                  summary.has_published_reference
-                    ? '<span class="badge warn">published reference</span>'
-                    : ""
-                }
-                ${tags}
-              </div>
-            </button>
-            <div class="compare-controls">
-              <label class="compare-pick">
-                <input type="checkbox" data-compare-id="${escapeHtml(summary.id)}"${checked}>
-                Compare
-              </label>
-              <button class="pin-button${pinActive}" type="button" data-pin-id="${escapeHtml(summary.id)}"${pinDisabled}>Pin</button>
+    const grouped = groupArtifactsForRail(artifacts);
+    list.innerHTML = [
+      `<div class="filter-summary">${artifacts.length} visible - ${escapeHtml(filterSummaryLabel())}</div>`,
+      ...grouped.map(
+        ([label, group]) => `
+          <section class="artifact-group">
+            <div class="artifact-group-heading">
+              <span>${escapeHtml(label)}</span>
+              <strong>${formatNumber(group.length)}</strong>
             </div>
-          </div>
-        `;
-      })
-      .join("");
+            <div class="artifact-group-list">
+              ${group.map(renderArtifactRow).join("")}
+            </div>
+          </section>
+        `
+      ),
+    ].join("");
 
     list.querySelectorAll("button[data-id]").forEach((button) => {
       button.addEventListener("click", () => {
@@ -1393,6 +1526,53 @@
         render();
       });
     });
+  }
+
+  function renderArtifactRow(artifact) {
+    const summary = artifact.summary;
+    const active = summary.id === state.selectedId ? " active" : "";
+    const pinned = summary.id === state.pinnedId ? " pinned" : "";
+    const checked = state.compareIds.has(summary.id) ? " checked" : "";
+    const pinDisabled = state.compareIds.has(summary.id) ? "" : " disabled";
+    const pinActive = summary.id === state.pinnedId ? " active" : "";
+    const badgeClass =
+      summary.kind === "transformer_layer" || summary.kind === "transformer_model"
+        ? "badge layer"
+        : "badge";
+    const tags = (summary.boundary_tags || [])
+      .slice(0, 3)
+      .map((tag) => `<span class="badge">${escapeHtml(tag)}</span>`)
+      .join("");
+    return `
+      <div class="artifact-row${active}${pinned}" data-id="${escapeHtml(summary.id)}">
+        <button class="artifact-main" type="button" data-id="${escapeHtml(summary.id)}">
+          <div class="artifact-title">${escapeHtml(summary.benchmark_name)}</div>
+          <div class="artifact-meta">${escapeHtml(summary.source_path)}</div>
+          <div class="badge-row">
+            <span class="${badgeClass}">${kindLabel(summary.kind)}</span>
+            ${summary.is_external ? '<span class="badge mix">external</span>' : ""}
+            ${summary.id === state.pinnedId ? '<span class="badge layer">pinned reference</span>' : ""}
+            ${summary.source_quality_grade ? `<span class="badge good">grade ${escapeHtml(summary.source_quality_grade)}</span>` : '<span class="badge">unrated source</span>'}
+            ${summary.system_profile ? `<span class="badge">profile: ${escapeHtml(summary.system_profile)}</span>` : ""}
+            <span class="badge">${formatNumber(summary.equivalent_ops)} eq ops</span>
+            <span class="badge">${formatPj(summary.total_energy_pj)}</span>
+            ${
+              summary.has_published_reference
+                ? '<span class="badge warn">published reference</span>'
+                : ""
+            }
+            ${tags}
+          </div>
+        </button>
+        <div class="compare-controls">
+          <label class="compare-pick">
+            <input type="checkbox" data-compare-id="${escapeHtml(summary.id)}"${checked}>
+            Compare
+          </label>
+          <button class="pin-button${pinActive}" type="button" data-pin-id="${escapeHtml(summary.id)}"${pinDisabled}>Pin</button>
+        </div>
+      </div>
+    `;
   }
 
   function renderIssues() {
@@ -2297,6 +2477,18 @@
         direction: "higher",
       },
       {
+        label: "Shared bandwidth clients",
+        get: (summary) => summary.shared_bandwidth_clients,
+        format: formatNumber,
+        direction: "lower",
+      },
+      {
+        label: "Calibration/control overhead",
+        get: (summary) => summary.calibration_overhead_fraction,
+        format: formatPercent,
+        direction: "lower",
+      },
+      {
         label: "Interface traffic",
         get: (summary) => summary.memory_traffic_bytes,
         format: formatBytes,
@@ -2314,7 +2506,110 @@
         format: formatNumber,
         direction: "context",
       },
+      {
+        label: "Source confidence",
+        get: sourceConfidenceScore,
+        format: formatConfidenceScore,
+        direction: "higher",
+      },
     ];
+  }
+
+  function sourceConfidenceScore(summary) {
+    const gradeScore =
+      SOURCE_CONFIDENCE_BY_GRADE[
+        String(summary.source_quality_grade || "").toUpperCase()
+      ];
+    if (gradeScore !== undefined) {
+      return gradeScore;
+    }
+    return summary.has_published_reference ? PUBLISHED_UNRATED_SOURCE_CONFIDENCE : 0;
+  }
+
+  function formatConfidenceScore(value) {
+    if (value === null || value === undefined || Number.isNaN(Number(value))) {
+      return "n/a";
+    }
+    return `${formatNumber(value)} / 100`;
+  }
+
+  function comparisonFocusOptions() {
+    return {
+      balanced: {
+        label: "Balanced",
+        description:
+          "Balances energy, movement, latency, bandwidth-limited throughput, contention-adjusted throughput, operational intensity, and source confidence.",
+        metricLabels: [
+          "Energy per op",
+          "System energy per op",
+          "Movement share",
+          "Latency",
+          "Bandwidth-limited throughput",
+          "Contention-adjusted throughput",
+          "Operational intensity",
+          "Source confidence",
+        ],
+      },
+      efficiency: {
+        label: "Efficiency",
+        description:
+          "Prioritizes low local/system energy, low movement share, low interface traffic, and high operational intensity.",
+        metricLabels: [
+          "Energy per op",
+          "System energy per op",
+          "Movement share",
+          "Interface traffic",
+          "Operational intensity",
+        ],
+      },
+      throughput: {
+        label: "Throughput",
+        description:
+          "Prioritizes low latency and high local, bandwidth-limited, and contention-adjusted throughput.",
+        metricLabels: [
+          "Latency",
+          "Throughput",
+          "Bandwidth-limited throughput",
+          "Contention-adjusted latency",
+          "Contention-adjusted throughput",
+        ],
+      },
+      contention: {
+        label: "Contention",
+        description:
+          "Prioritizes adjusted throughput/latency while penalizing shared-client and calibration/control guardband assumptions.",
+        metricLabels: [
+          "Contention-adjusted latency",
+          "Contention-adjusted throughput",
+          "Shared bandwidth clients",
+          "Calibration/control overhead",
+          "System energy per op",
+        ],
+      },
+      provenance: {
+        label: "Provenance",
+        description:
+          "Prioritizes source confidence while still including system energy and operational intensity for context.",
+        metricLabels: [
+          "Source confidence",
+          "System energy per op",
+          "Operational intensity",
+        ],
+      },
+    };
+  }
+
+  function activeComparisonFocus() {
+    const options = comparisonFocusOptions();
+    return {
+      key: state.analysisFocus,
+      ...(options[state.analysisFocus] || options.balanced),
+    };
+  }
+
+  function specsForFocus(focus = activeComparisonFocus()) {
+    const metricLabels = new Set(focus.metricLabels);
+    return comparisonMetricSpecs().filter((spec) => metricLabels.has(spec.label));
   }
 
   function paretoSpecs() {
@@ -2524,20 +2819,14 @@
     return Array.from(groups.entries());
   }
 
-  function renderComparisonInsights(artifacts, pinnedArtifact) {
-    const insightSpecs = comparisonMetricSpecs().filter((spec) =>
-      [
-        "Energy per op",
-        "System energy per op",
-        "Latency",
-        "Throughput",
-        "Operational intensity",
-      ].includes(spec.label)
+  function renderComparisonInsights(artifacts, pinnedArtifact, focus) {
+    const insightSpecs = specsForFocus(focus).filter((spec) =>
+      ["lower", "higher"].includes(spec.direction)
     );
     return `
       <section class="panel">
         <h3>Comparison Insights</h3>
-        <div class="notes"><p>Ranking cues stay inside each schema group so per-matmul cards and transformer-layer aggregates are not treated as interchangeable hardware results.</p></div>
+        <div class="notes"><p>${escapeHtml(focus.label)} focus: ${escapeHtml(focus.description)} Ranking cues stay inside each schema group so per-matmul cards and transformer-layer aggregates are not treated as interchangeable hardware results.</p></div>
         <div class="insight-grid">
           ${groupArtifactsByKind(artifacts)
             .map(([label, group]) => {
@@ -2562,7 +2851,7 @@
               return `
                 <div class="insight-card">
                   <div class="insight-title">${escapeHtml(label)}</div>
-                  <div class="insight-meta">${group.length} selected · ${
+                  <div class="insight-meta">${group.length} selected - ${
                     compatiblePinned
                       ? "pinned deltas active"
                       : "values only for this schema"
@@ -2577,16 +2866,9 @@
     `;
   }
 
-  function renderDecisionScorecard(artifacts) {
-    const scoreSpecs = comparisonMetricSpecs().filter((spec) =>
-      [
-        "Energy per op",
-        "System energy per op",
-        "Movement share",
-        "Latency",
-        "Bandwidth-limited throughput",
-        "Operational intensity",
-      ].includes(spec.label)
+  function renderDecisionScorecard(artifacts, focus) {
+    const scoreSpecs = specsForFocus(focus).filter((spec) =>
+      ["lower", "higher"].includes(spec.direction)
     );
     const sections = groupArtifactsByKind(artifacts)
       .map(([label, group]) => {
@@ -2600,7 +2882,7 @@
           escapeHtml(formatNumber(index + 1)),
           escapeHtml(entry.artifact.summary.benchmark_name),
           escapeHtml(formatNumber(entry.score)),
-          escapeHtml(bestUseLabel(entry.artifact.summary, group)),
+          escapeHtml(bestUseLabel(entry.artifact.summary, group, scoreSpecs)),
           escapeHtml(entry.artifact.summary.memory_timing_mode || "n/a"),
           escapeHtml(formatPj(entry.artifact.summary.system_energy_per_op_pj)),
           escapeHtml(
@@ -2613,7 +2895,7 @@
         return `
           <section class="panel">
             <h3>${escapeHtml(label)} Decision Scorecard</h3>
-            <div class="notes"><p>Scores normalize selected same-schema artifacts across energy, movement, latency, bandwidth-limited throughput, and operational intensity. The score is a triage aid, not a benchmark claim.</p></div>
+            <div class="notes"><p>${escapeHtml(focus.label)} focus normalizes selected same-schema artifacts across: ${escapeHtml(scoreSpecs.map((spec) => spec.label).join(", "))}. The score is a local UI triage aid, not a benchmark claim.</p></div>
             ${simpleTable(
               [
                 { label: "Rank", num: true },
@@ -2632,6 +2914,60 @@
       })
       .join("");
     return sections;
+  }
+
+  function comparisonRecommendations(artifacts, focus) {
+    const scoreSpecs = specsForFocus(focus).filter((spec) =>
+      ["lower", "higher"].includes(spec.direction)
+    );
+    return groupArtifactsByKind(artifacts)
+      .map(([label, group]) => {
+        const ranked = group
+          .map((artifact) => ({
+            artifact,
+            score: decisionScore(artifact, group, scoreSpecs),
+          }))
+          .filter((entry) => Number.isFinite(entry.score))
+          .sort((left, right) => right.score - left.score);
+        const winner = ranked[0];
+        if (!winner) {
+          return null;
+        }
+        return {
+          group: label,
+          artifact: winner.artifact,
+          score: winner.score,
+          bestUse: bestUseLabel(winner.artifact.summary, group, scoreSpecs),
+        };
+      })
+      .filter(Boolean);
+  }
+
+  function renderComparisonRecommendations(artifacts, focus) {
+    const recommendations = comparisonRecommendations(artifacts, focus);
+    if (!recommendations.length) {
+      return "";
+    }
+    return `
+      <section class="panel">
+        <h3>Comparison Recommendations</h3>
+        <div class="notes"><p>${escapeHtml(focus.label)} focus is applied within each schema group. Recommendations are local dashboard heuristics from selected artifacts and do not convert surrogate estimates or system-model assumptions into measured hardware claims.</p></div>
+        <div class="recommendation-grid">
+          ${recommendations
+            .map(
+              (entry) => `
+                <div class="recommendation-card">
+                  <div class="recommendation-kicker">${escapeHtml(entry.group)}</div>
+                  <strong>${escapeHtml(entry.artifact.summary.benchmark_name)}</strong>
+                  <span>${escapeHtml(entry.bestUse)}</span>
+                  <code>${escapeHtml(formatNumber(entry.score))} focus score</code>
+                </div>
+              `
+            )
+            .join("")}
+        </div>
+      </section>
+    `;
   }
 
   function decisionScore(artifact, group, specs) {
@@ -2661,17 +2997,15 @@
     return Number.NaN;
   }
 
-  function bestUseLabel(summary, group) {
+  function bestUseLabel(summary, group, specs = comparisonMetricSpecs()) {
     const labels = [];
-    if (isBestByLabel(summary, group, "System energy per op")) {
-      labels.push("lowest system energy");
-    }
-    if (isBestByLabel(summary, group, "Bandwidth-limited throughput")) {
-      labels.push("highest BW throughput");
-    }
-    if (isBestByLabel(summary, group, "Operational intensity")) {
-      labels.push("highest ops/byte");
-    }
+    specs
+      .filter((spec) => ["lower", "higher"].includes(spec.direction))
+      .forEach((spec) => {
+        if (isBestByLabel(summary, group, spec.label)) {
+          labels.push(`${bestBadge(spec)} ${spec.label.toLowerCase()}`);
+        }
+      });
     return labels.length ? labels.join(", ") : "balanced trade-off";
   }
 
@@ -2869,6 +3203,28 @@
     `;
   }
 
+  function renderComparisonWorkspace(artifacts, pinnedArtifact, focus) {
+    const visibleCount = filteredArtifacts().length;
+    return `
+      <section class="panel">
+        <h3>Comparison Workspace</h3>
+        <div class="metric-grid">
+          ${metric("Analysis focus", focus.label, "local UI scoring lens")}
+          ${metric("Selected artifacts", formatNumber(artifacts.length), "comparison set")}
+          ${metric("Visible artifacts", formatNumber(visibleCount), "current rail filters")}
+          ${metric(
+            "Pinned reference",
+            pinnedArtifact ? pinnedArtifact.summary.benchmark_name : "none",
+            "same-schema deltas only"
+          )}
+          ${metric("List grouping", state.group, "rail organization")}
+          ${metric("Filter state", filterSummaryLabel(), "active artifact slice")}
+        </div>
+        <div class="notes"><p>Workspace state affects dashboard recommendations and exports, but it does not change the generated JSON reports or their modeling boundaries.</p></div>
+      </section>
+    `;
+  }
+
   function analyticsRows(group, reference, showDeltas) {
     const specs = comparisonMetricSpecs();
     return specs.flatMap((spec) =>
@@ -2968,13 +3324,28 @@
     return `${formatNumber(value / referenceValue)}x`;
   }
 
-  function comparisonExport(artifacts, pinnedArtifact, boundaryNotes) {
+  function comparisonExport(artifacts, pinnedArtifact, boundaryNotes, focus) {
     return {
       schema_version: COMPARISON_EXPORT_SCHEMA,
       generated_at: new Date().toISOString(),
       reports_dir: state.data.reports_dir,
       pinned_id: pinnedArtifact ? pinnedArtifact.summary.id : null,
       selected_artifact_ids: artifacts.map((artifact) => artifact.summary.id),
+      analysis_focus: {
+        key: focus.key,
+        label: focus.label,
+        description: focus.description,
+        metric_labels: focus.metricLabels,
+      },
+      filters: currentFilterState(),
+      visible_artifact_ids: filteredArtifacts().map((artifact) => artifact.summary.id),
+      recommendations: comparisonRecommendations(artifacts, focus).map((entry) => ({
+        group: entry.group,
+        artifact_id: entry.artifact.summary.id,
+        benchmark_name: entry.artifact.summary.benchmark_name,
+        score: entry.score,
+        best_use: entry.bestUse,
+      })),
       modeling_boundaries: state.data.modeling_boundaries || [],
       boundary_notes: boundaryNotes,
       artifacts: artifacts.map((artifact) => ({
@@ -3030,20 +3401,15 @@
             score: decisionScore(
               artifact,
               group,
-              comparisonMetricSpecs().filter((spec) =>
-                [
-                  "Energy per op",
-                  "System energy per op",
-                  "Movement share",
-                  "Latency",
-                  "Bandwidth-limited throughput",
-                  "Contention-adjusted latency",
-                  "Contention-adjusted throughput",
-                  "Operational intensity",
-                ].includes(spec.label)
+              specsForFocus(focus).filter((spec) =>
+                ["lower", "higher"].includes(spec.direction)
               )
             ),
-            best_use: bestUseLabel(artifact.summary, group),
+            best_use: bestUseLabel(
+              artifact.summary,
+              group,
+              specsForFocus(focus)
+            ),
           }))
           .sort((left, right) => right.score - left.score),
         best: comparisonMetricSpecs()
@@ -3061,7 +3427,7 @@
     };
   }
 
-  function comparisonMarkdown(artifacts, pinnedArtifact, boundaryNotes) {
+  function comparisonMarkdown(artifacts, pinnedArtifact, boundaryNotes, focus) {
     const rows = artifacts
       .map((artifact) => {
         const summary = artifact.summary;
@@ -3099,20 +3465,98 @@
       .map((row) => `| ${row.map(markdownCell).join(" | ")} |`)
       .join("\n");
     const notes = boundaryNotes.map((note) => `- ${note}`).join("\n");
+    const recommendations = comparisonRecommendations(artifacts, focus)
+      .map(
+        (entry) =>
+          `- ${entry.group}: ${entry.artifact.summary.benchmark_name} (${formatNumber(entry.score)} focus score; ${entry.bestUse})`
+      )
+      .join("\n");
     return `# PhotonicBench Comparison Export
 
 Pinned reference: ${
       pinnedArtifact ? pinnedArtifact.summary.benchmark_name : "none"
     }
 
+Analysis focus: ${focus.label}
+
+Focus description: ${focus.description}
+
 | Benchmark | Kind | Source | Local pJ/op | System pJ/op | System profile | Profile overrides | Memory timing | Effective transfer | Shared clients | Arbitration eff. | Calibration overhead | Latency | Throughput | BW-limited throughput | Contention latency | Contention throughput | Interface traffic | Eq ops/byte | Movement share | Published reference | Source grade | Surrogate type | Provenance |
 | --- | --- | --- | ---: | ---: | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- |
 ${rows}
+
+## Recommendations
+
+${recommendations || "- n/a"}
 
 ## Boundary Notes
 
 ${notes}
 `;
+  }
+
+  function comparisonCsv(artifacts, focus, boundaryNotes) {
+    const headers = [
+      "analysis_focus",
+      "artifact_id",
+      "benchmark",
+      "kind",
+      "source",
+      "local_pj_per_op",
+      "system_pj_per_op",
+      "latency_ns",
+      "throughput_equivalent_ops_per_second",
+      "bandwidth_limited_throughput_equivalent_ops_per_second",
+      "contention_adjusted_latency_ns",
+      "contention_adjusted_throughput_equivalent_ops_per_second",
+      "interface_traffic_bytes",
+      "operational_intensity_ops_per_byte",
+      "movement_share",
+      "published_reference",
+      "source_grade",
+      "surrogate_type",
+      "system_profile",
+      "memory_timing_mode",
+      "boundary_tags",
+      "comparison_boundary_notes",
+      "provenance",
+    ];
+    const rows = artifacts.map((artifact) => {
+      const summary = artifact.summary;
+      return [
+        focus.key,
+        summary.id,
+        summary.benchmark_name,
+        kindLabel(summary.kind),
+        summary.source_path,
+        summary.energy_per_op_pj,
+        summary.system_energy_per_op_pj,
+        summary.latency_ns,
+        summary.throughput_equivalent_ops_per_second,
+        summary.bandwidth_limited_throughput_equivalent_ops_per_second,
+        summary.contention_adjusted_latency_ns,
+        summary.contention_adjusted_throughput_equivalent_ops_per_second,
+        summary.memory_traffic_bytes,
+        summary.operational_intensity_ops_per_byte,
+        summary.movement_energy_share,
+        summary.has_published_reference ? "yes" : "no",
+        summary.source_quality_grade || "",
+        summary.source_surrogate_type || "",
+        summary.system_profile || "",
+        summary.memory_timing_mode || "",
+        (summary.boundary_tags || []).join("; "),
+        boundaryNotes.join(" | "),
+        summary.provenance_status || "",
+      ];
+    });
+    return [headers, ...rows]
+      .map((row) => row.map(csvCell).join(","))
+      .join("\n") + "\n";
+  }
+
+  function csvCell(value) {
+    const text = String(value ?? "");
+    return `"${text.replaceAll('"', '""')}"`;
   }
 
   function markdownCell(value) {
@@ -3156,6 +3600,7 @@ ${notes}
     const hasPublished = artifacts.some(
       (artifact) => artifact.summary.has_published_reference
     );
+    const focus = activeComparisonFocus();
     const headers = [
       { label: "Metric" },
       ...artifacts.map((artifact) => ({
@@ -3176,12 +3621,20 @@ ${notes}
       "System movement energy is a local SRAM/intermediate/off-chip tier estimate added separately from photonic core compute/conversion energy.",
       "Contention metrics are local shared-bandwidth and calibration/control guardband assumptions, not paper-reported hardware claims.",
     ];
-    const exportObject = comparisonExport(artifacts, pinnedArtifact, boundaryNotes);
+    const exportObject = comparisonExport(
+      artifacts,
+      pinnedArtifact,
+      boundaryNotes,
+      focus
+    );
     const exportMarkdown = comparisonMarkdown(
       artifacts,
       pinnedArtifact,
-      boundaryNotes
+      boundaryNotes,
+      focus
     );
+    const exportCsv = comparisonCsv(artifacts, focus, boundaryNotes);
+    const focusOptions = comparisonFocusOptions();
 
     detail.innerHTML = `
       <section class="header-panel">
@@ -3195,6 +3648,22 @@ ${notes}
             </div>
             <h2>Artifact Comparison</h2>
             <div class="description">Schema-aware side-by-side summary plus grouped insights, deltas, percent deltas, and ratio analysis across selected PhotonicBench JSON artifacts.</div>
+            <div class="comparison-toolbar">
+              <label>
+                <span>Analysis focus</span>
+                <select id="analysis-focus" aria-label="Comparison analysis focus">
+                  ${Object.entries(focusOptions)
+                    .map(
+                      ([key, option]) =>
+                        `<option value="${escapeHtml(key)}"${
+                          key === state.analysisFocus ? " selected" : ""
+                        }>${escapeHtml(option.label)}</option>`
+                    )
+                    .join("")}
+                </select>
+              </label>
+              <div class="focus-description">${escapeHtml(focus.description)}</div>
+            </div>
             ${
               pinnedArtifact
                 ? `<div class="description"><strong>Reference:</strong> ${escapeHtml(pinnedArtifact.summary.benchmark_name)} (${escapeHtml(pinnedArtifact.summary.source_path)})</div>`
@@ -3204,20 +3673,23 @@ ${notes}
           <div class="actions">
             <button class="action-button primary" type="button" data-action="download-json">Download JSON</button>
             <button class="action-button" type="button" data-action="download-markdown">Download Markdown</button>
+            <button class="action-button" type="button" data-action="download-csv">Download CSV</button>
             <button class="action-button" type="button" data-action="copy-markdown">Copy Markdown</button>
             <button class="action-button" type="button" data-action="clear-compare">Clear comparison</button>
           </div>
         </div>
       </section>
+      ${renderComparisonWorkspace(artifacts, pinnedArtifact, focus)}
       ${renderComparisonBrief(artifacts)}
       ${renderContentionInsight(artifacts)}
-      ${renderDecisionScorecard(artifacts)}
+      ${renderComparisonRecommendations(artifacts, focus)}
+      ${renderDecisionScorecard(artifacts, focus)}
       ${renderParetoChart(artifacts)}
       <section class="panel">
         <h3>Comparison Matrix</h3>
         ${simpleTable(headers, comparisonSummaryRows(artifacts, pinnedArtifact), "comparison-table")}
       </section>
-      ${renderComparisonInsights(artifacts, pinnedArtifact)}
+      ${renderComparisonInsights(artifacts, pinnedArtifact, focus)}
       ${renderSchemaCompatibility(artifacts, pinnedArtifact)}
       <section class="panel">
         <h3>Grouped Same-Schema Analytics</h3>
@@ -3235,6 +3707,14 @@ ${notes}
         <textarea id="export-preview" class="export-preview" readonly>${escapeHtml(exportMarkdown)}</textarea>
       </section>
     `;
+
+    const focusSelect = detail.querySelector("#analysis-focus");
+    if (focusSelect) {
+      focusSelect.addEventListener("change", (event) => {
+        state.analysisFocus = event.target.value;
+        render();
+      });
+    }
 
     const paretoMode = detail.querySelector("#pareto-mode");
     if (paretoMode) {
@@ -3263,6 +3743,13 @@ ${notes}
           exportMarkdown,
           "text/markdown"
         );
+      }
+    );
+
+    detail.querySelector("[data-action='download-csv']").addEventListener(
+      "click",
+      () => {
+        downloadText(comparisonFilename("csv"), exportCsv, "text/csv");
       }
     );
 

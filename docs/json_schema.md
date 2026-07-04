@@ -537,6 +537,21 @@ Loaded external artifacts are labeled as `external/...`, can be selected for
 detail or comparison views, and remain browser-session state only; the generated
 `reports/visualizer/data/index.json` and payload files are not modified.
 
+## Visualizer Comparison Export
+
+The browser comparison dashboard exports a client-generated
+`photonic-bench-comparison-export-v1` JSON object. It is intentionally separate
+from the checked report schemas because it records an analyst's current browser
+view, not a regenerated benchmark artifact. The export includes selected
+artifact summaries, the pinned reference, active analysis focus, filter state,
+rail grouping, visible artifact IDs, same-schema recommendation cards, grouped
+best-metric analysis, provenance status, and modeling-boundary notes.
+
+The analysis focus and recommendation scores are local UI heuristics for
+triage. They preserve schema groups and must not be interpreted as measured
+hardware rankings or as conversions between per-matmul cards,
+transformer-layer aggregates, and transformer-model aggregates.
+
 ## Comparison Tables
 
 Comparison tables are generated from JSON cards:

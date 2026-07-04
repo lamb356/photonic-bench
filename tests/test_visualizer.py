@@ -223,11 +223,16 @@ def test_static_app_contains_comparison_and_boundary_labels() -> None:
     assert "Ratio vs pinned" in app_js
     assert "Comparison Insights" in app_js
     assert "Comparison Brief" in app_js
+    assert "Comparison Workspace" in app_js
+    assert "Comparison Recommendations" in app_js
     assert "Decision Scorecard" in app_js
     assert "decision_scorecard" in app_js
     assert "Download JSON" in app_js
     assert "Download Markdown" in app_js
+    assert "Download CSV" in app_js
     assert "Copy Markdown" in app_js
+    assert "analysis_focus" in app_js
+    assert "Source confidence" in app_js
     assert "comparison_presets" in app_js
     assert "Operational intensity" in app_js
     assert "Interface Memory Traffic" in app_js
@@ -272,8 +277,18 @@ def test_static_app_contains_comparison_and_boundary_labels() -> None:
     assert "unsupported schema_version" in app_js
     assert "external file" in app_js
     assert 'startsWith("<")' not in app_js
+    template = Path("photonic_bench/visualizer_assets/template.html").read_text(
+        encoding="utf-8"
+    )
+    assert "Filter by source quality" in template
+    assert "Group artifact list" in template
+    assert "Compare visible" in template
+    assert "Reset filters" in template
     assert ".comparison-table" in styles
     assert ".insight-grid" in styles
+    assert ".recommendation-grid" in styles
+    assert ".comparison-toolbar" in styles
+    assert ".filter-summary" in styles
     assert ".preset-panel" in styles
     assert ".external-panel" in styles
     assert ".export-preview" in styles

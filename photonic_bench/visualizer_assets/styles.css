@@ -264,7 +264,55 @@ h1 {
   padding: 9px 10px;
 }
 
+.filter-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
 .artifact-list {
+  display: grid;
+  gap: 8px;
+}
+
+.filter-summary {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--teal-soft);
+  color: var(--teal);
+  font-size: 0.78rem;
+  font-weight: 850;
+  padding: 8px 9px;
+  overflow-wrap: anywhere;
+}
+
+.artifact-group {
+  display: grid;
+  gap: 7px;
+}
+
+.artifact-group-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.artifact-group-heading strong {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--steel);
+  background: var(--panel);
+  min-width: 26px;
+  padding: 2px 7px;
+  text-align: center;
+}
+
+.artifact-group-list {
   display: grid;
   gap: 8px;
 }
@@ -756,6 +804,70 @@ th.num {
   flex-wrap: wrap;
 }
 
+.comparison-toolbar {
+  display: grid;
+  grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
+  gap: 10px;
+  align-items: end;
+  margin-top: 8px;
+}
+
+.comparison-toolbar label {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 850;
+}
+
+.comparison-toolbar select {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fbfcfa;
+  color: var(--ink);
+  padding: 8px 9px;
+  min-width: 0;
+}
+
+.focus-description {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fbfcfa;
+  color: var(--muted);
+  padding: 9px 10px;
+  font-size: 0.82rem;
+}
+
+.recommendation-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px;
+}
+
+.recommendation-card {
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--teal);
+  border-radius: 6px;
+  background: #fbfcfa;
+  padding: 12px;
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.recommendation-card strong,
+.recommendation-card span,
+.recommendation-card code {
+  overflow-wrap: anywhere;
+}
+
+.recommendation-kicker {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
 .action-button {
   border: 1px solid var(--line);
   border-radius: 6px;
@@ -855,6 +967,11 @@ code {
 
   .panel-heading {
     display: grid;
+  }
+
+  .comparison-toolbar,
+  .filter-actions {
+    grid-template-columns: 1fr;
   }
 
   .panel-heading select {

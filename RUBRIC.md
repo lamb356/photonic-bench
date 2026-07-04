@@ -1,102 +1,96 @@
-# PhotonicBench Autonomous Loop Rubric
+# PhotonicBench Advanced Visualizer Rubric
 
 Use this rubric for checklist completion decisions and the mandatory Hostile
 Senior Reviewer critique.
 
-## Merge Quality
+## URL State Quality
 
-- PR #4 is inspected before merge.
-- CI is confirmed green before merge.
-- The merge target is `master`.
-- Local `master` is synced after merge.
-- The worktree is clean before new feature work begins.
+- Shared URLs restore filters, focus mode, selected artifacts, pinned artifact,
+  Pareto mode, and custom score weights where relevant.
+- URL parameters are stable, compact, human-inspectable enough for review, and
+  backward-safe when artifacts are missing or renamed.
+- Browser history remains useful and does not receive noisy updates for every
+  minor keystroke.
 
-## Visualizer Quality
+## Visual Regression Quality
 
-- Comparison mode helps a daily user decide between cards, profiles, and model
-  assumptions quickly.
-- Deltas, ratios, pinned selections, grouping, saved presets, exports, Pareto
-  or frontier views, scorecards, stale-artifact handling, and mixed-schema
-  behavior remain coherent.
-- Source-reported metrics, local surrogate estimates, and local system-model
-  assumptions remain visibly separated.
-- The UI stays dense, work-focused, responsive, and free of overlapping text or
-  fragile layout shifts.
-- Browser smoke and JavaScript syntax checks cover changed visualizer behavior.
+- Desktop and mobile screenshots cover representative artifact list,
+  comparison dashboard, wide table, score explanation, and preset surfaces.
+- Screenshots are deterministic enough for local and CI review.
+- Failure output points to actual UI regressions rather than timing flake.
+- Documentation explains how to run and update baselines.
 
-## System Modeling Quality
+## Explainability And Weighting Quality
 
-- Contention, shared-bandwidth, calibration, overlap, and transfer timing
-  assumptions are explicit and auditable.
-- Memory hierarchy behavior remains clear across SRAM, intermediate/cache, and
-  off-chip tiers.
-- New metrics are useful for real comparison work, not merely extra fields.
-- Defaults are conservative and documented.
-- Invalid or inconsistent config fails with actionable errors.
-- JSON, Markdown reports, comparison output, and visualizer surfaces expose new
-  metrics without blurring measured paper claims and local model estimates.
+- Recommendation scores expose raw values, normalization direction, weights,
+  component contributions, and final score.
+- Custom weights update recommendation cards, scorecards, exports, URL state,
+  and score explanations consistently.
+- Defaults remain sensible for balanced, efficiency, throughput, contention,
+  and provenance analysis.
+- UI copy labels scores as local same-schema triage heuristics, not benchmark
+  claims.
 
-## Published-Card Quality
+## Selection And Wide-Table Quality
 
-- New cards are source-backed and cite the relevant paper, DOI, or stable
-  source.
-- Local surrogate labels and source-quality metadata are conservative.
-- Source-reported metric coverage is recorded.
-- Generated artifacts are reproducible and included.
-- The project does not overclaim that local estimates reproduce published
-  hardware measurements beyond documented calibration or surrogate assumptions.
+- Users can remove one selected artifact, clear a group, invert selection, and
+  compare top N visible without losing context.
+- Selection controls are dense, predictable, keyboard reachable, and compatible
+  with filters/grouping.
+- Wide comparison tables keep the header and first column available without
+  hiding important data or causing incoherent overlap.
 
-## CLI And Usability Quality
+## Export And Preset Quality
 
-- CLI improvements reduce real friction in common workflows.
-- Error messages identify the bad file, field, value, and likely fix where
-  feasible.
-- New options compose with existing commands and preserve backward
-  compatibility unless a breaking change is explicitly justified.
-- Tests and docs cover user-facing behavior.
+- `photonic-bench-comparison-export-v1` has a formal JSON schema.
+- Browser JSON exports validate against the schema.
+- Export payloads include enough state to reproduce the comparison context.
+- Browser-local preset import validates shape and gives clear errors.
+- Browser-local preset export is deterministic and does not corrupt generated
+  presets.
+
+## Accessibility Quality
+
+- Keyboard users can reach and operate rail controls, comparison controls,
+  selection controls, score drilldowns, and preset import/export.
+- Interactive controls have meaningful labels, roles, and focus states.
+- Reduced-motion preferences are honored.
+- Contrast remains usable in dense dashboard areas.
+
+## Modeling Boundary Quality
+
+- Published-reference metrics remain visibly separate from local estimates.
+- Local surrogate labels, source-quality grades, system-profile assumptions,
+  interface-traffic estimates, transformer aggregate timing/noise semantics,
+  and contention assumptions remain visible.
+- No UI copy suggests that local heuristics, local system movement estimates,
+  or scorecard rankings are measured hardware results.
 
 ## Documentation And Artifact Quality
 
-- README examples stay runnable.
-- Model docs explain formulas and assumptions.
-- Schema docs and JSON schemas stay aligned with generated JSON.
-- Visualizer docs explain changed comparison, preset, export, import, and
-  boundary-label behavior.
+- README visualizer documentation explains changed controls and exports.
+- JSON schema documentation covers the comparison export schema.
+- Generated `reports/visualizer/` assets reflect source asset changes.
 - Artifact freshness verification passes after regeneration.
 
 ## Verification Quality
 
-- Focused tests cover new system, visualizer, card, and CLI behavior.
-- Full `python -m ruff check` passes.
-- Full `python -m pytest -q` passes.
+- Focused visualizer tests cover changed static UI strings and source behavior.
+- Browser smoke covers representative interaction paths.
+- Visual regression tests cover desktop and mobile.
+- `node --check photonic_bench\visualizer_assets\app.js` passes.
+- Relevant focused pytest tests pass.
+- Full `python -m ruff check` and `python -m pytest -q` pass before final
+  closeout.
 - `python -m photonic_bench.cli verify-artifacts` passes.
-- `node --check photonic_bench\visualizer_assets\app.js` passes after JS
-  changes.
-- Browser smoke passes after visualizer behavior changes.
-- JSON schemas and generated JSON parse.
-- `git diff --check` passes before final commit.
+- `git diff --check` passes before completion.
 
 ## Review Readiness
 
 - All checklist DONE items include proof.
 - State files are current.
+- A pull request is open against `master`.
 - The mandatory Hostile Senior Reviewer critique is recorded in `PROGRESS.md`.
 - Important critique findings are fixed before completion or explicitly
   justified.
 - Remaining risks are named plainly.
-
-## Final Closeout Status
-
-- Complete.
-- PR #4 was merged into `master` after green CI.
-- Follow-up improvements landed in visualizer analytics, contention-aware
-  system modeling, new published-card surrogates, and CLI workflow usability.
-- Documentation, schemas, checked generated artifacts, tests, and visualizer
-  payloads were refreshed.
-- Mandatory Hostile Senior Reviewer critique was completed and all recorded
-  findings were fixed.
-- Final local gates passed: Ruff, pytest, artifact freshness, JavaScript
-  syntax, browser smoke, JSON/schema validation, and `git diff --check`.
-- Implementation commit `9c96ac6` was pushed to
-  `origin/codex/pr4-followup-improvements`; closeout state is committed and
-  pushed afterward.

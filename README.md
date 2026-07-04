@@ -554,17 +554,25 @@ references, aggregate semantics, assumptions, exclusions, and provenance.
 
 The Compare view lets you select multiple artifacts from the rail, pin one as
 the reference, and inspect a side-by-side matrix, comparison brief, comparison
-insights, Pareto trade-off chart, schema compatibility, and grouped same-schema
-analytics. Compatible rows show the value, absolute delta, percent delta, and
-ratio against the pinned reference. The insights panel ranks lowest local energy
-per op, lowest system energy per op, lowest latency, highest throughput, highest
-bandwidth-limited throughput, and highest operational intensity inside each
-schema group only. Mixed per-matmul, transformer-layer, and transformer-model
-comparison is allowed, but labeled as mixed-schema comparison; incompatible
-cross-schema deltas stay `n/a` so serial timing, non-additive aggregate noise,
-exclusions, local estimates, system movement estimates, interface traffic
-estimates, and published references are not flattened into one false hardware
-model.
+insights, recommendation cards, Pareto trade-off chart, schema compatibility,
+and grouped same-schema analytics. The rail includes search, schema, boundary,
+source-quality, sort, and group controls. `Compare visible` replaces the
+comparison set with the current filtered slice, and `Reset filters` returns the
+rail to the default all-artifact/schema-grouped view. Grouping can organize the
+rail by schema, source grade, system profile, boundary tag, or a flat ungrouped
+list.
+
+The comparison dashboard has an `Analysis focus` selector. `Balanced`,
+`Efficiency`, `Throughput`, `Contention`, and `Provenance` focus modes change
+the recommendation cards, insights, and decision scorecards without changing
+the underlying reports. Scores are same-schema local UI heuristics for triage;
+they are not benchmark claims. Compatible rows show the value, absolute delta,
+percent delta, and ratio against the pinned reference. Mixed per-matmul,
+transformer-layer, and transformer-model comparison is allowed, but labeled as
+mixed-schema comparison; incompatible cross-schema deltas stay `n/a` so serial
+timing, non-additive aggregate noise, exclusions, local estimates, system
+movement estimates, interface traffic estimates, contention assumptions, and
+published references are not flattened into one false hardware model.
 
 The Pareto chart has three modes:
 
@@ -598,9 +606,13 @@ guardband assumptions, not paper-reported hardware claims.
 
 Comparison results are exportable from the browser. `Download JSON` writes a
 `photonic-bench-comparison-export-v1` object with selected artifact summaries,
-grouped best-metric analysis, provenance status, and modeling-boundary notes.
-`Download Markdown` and `Copy Markdown` produce a human-readable table suitable
-for reviews or notes.
+analysis focus, active filter/grouping state, visible artifact IDs,
+schema-grouped recommendations, grouped best-metric analysis, provenance status,
+and modeling-boundary notes. `Download Markdown` and `Copy Markdown` produce a
+human-readable table suitable for reviews or notes. `Download CSV` writes a
+spreadsheet-friendly selected-artifact table with focus, energy, timing,
+throughput, movement, provenance, source-quality, system-profile, and boundary
+tag columns plus comparison-level boundary notes.
 
 The visualizer can load external local JSON reports. Use
 `Load external JSON reports` to select one or more PhotonicBench JSON files in
