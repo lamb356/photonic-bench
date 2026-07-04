@@ -41,10 +41,16 @@ def test_render_markdown_exposes_assumptions_and_totals() -> None:
     assert "| Shared bandwidth clients | 1 |" in markdown
     assert "| Total movement energy | 572.320 pJ |" in markdown
     assert "| Total system energy | 593.568 pJ |" in markdown
+    assert "| Total hierarchy traffic | 168 bytes |" in markdown
+    assert "| Off-chip traffic share | 33.33% |" in markdown
+    assert "| Contention bandwidth derate | 1 |" in markdown
+    assert "| Effective loaded hierarchy bandwidth | 48.000 bytes/ns |" in markdown
     assert "| Bandwidth-limited tier | compute |" in markdown
     assert "| Bandwidth-limited batch latency | 5.000 ns |" in markdown
+    assert "| Bandwidth pressure ratio | 1 |" in markdown
     assert "| Contention-limited tier | compute |" in markdown
     assert "| Contention-adjusted batch latency | 5.000 ns |" in markdown
+    assert "| Contention pressure ratio | 1 |" in markdown
     assert "## Assumptions" in markdown
     assert "optical MAC energy" in markdown
     assert "laser wall-plug efficiency" in markdown

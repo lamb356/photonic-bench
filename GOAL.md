@@ -1,7 +1,8 @@
 # PhotonicBench Goal
 
 Date started: 2026-07-04
-Implementation status: active.
+Implementation status: implemented locally; final PR CI verification runs after
+the closeout commit is pushed.
 
 ## Objective
 

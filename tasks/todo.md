@@ -337,7 +337,7 @@
 - [x] Task 10: Run final quality gates, close state files, and inspect final
       repository status.
 
-## Active Goal: Commit PR, macOS Visual Baselines, Visualizer, Modeling, Cards, CLI
+## Completed Goal: Commit PR, macOS Visual Baselines, Visualizer, Modeling, Cards, CLI
 
 - [x] Task 0: Roll state files forward and create the prioritized checklist.
       Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
@@ -345,25 +345,41 @@
       post-PR5 GBrain note; searched local memory; read commit/GitHub
       publish/frontend/review guidance; confirmed branch
       `codex/post-pr5-visual-a11y`.
-- [ ] Task 1: Run quick validation, commit the current branch work, push
+- [x] Task 1: Run quick validation, commit the current branch work, push
       `codex/post-pr5-visual-a11y`, and open a pull request to `master`.
-- [ ] Task 2: Fix macOS visual baseline workflow issues without fabricating
-      macOS screenshots or weakening Linux/Windows checks.
-- [ ] Task 3: Improve visualizer interaction polish, dashboard clarity,
+      Initial protected commit `582408af` was pushed and PR #7 was opened.
+      The follow-up closeout commit is pushed after this state update.
+- [x] Task 2: Fix macOS visual baseline workflow issues without fabricating
+      macOS screenshots or weakening Linux/Windows checks. Added the
+      `macOS visual baseline capture` CI job and documented reviewed artifact
+      promotion.
+- [x] Task 3: Improve visualizer interaction polish, dashboard clarity,
       analytical features, and daily usability while preserving boundary
-      labels.
-- [ ] Task 4: Deepen system modeling around contention calibration, realistic
-      memory hierarchy behavior, and related metrics.
-- [ ] Task 5: Add 3-5 high-quality source-backed published photonic
-      accelerator cards with clear surrogate labeling.
-- [ ] Task 6: Improve CLI and workflow usability, especially validation and
-      full transformer-model analysis workflows.
-- [ ] Task 7: Update documentation, regenerate checked artifacts, and run
-      focused plus full verification.
-- [ ] Task 8: Run mandatory Hostile Senior Reviewer critique and fix important
-      findings.
-- [ ] Task 9: Close final state files, update durable notes, verify PR/CI/git
-      status, and report remaining risks.
+      labels. Added hierarchy, loaded-bandwidth, transfer-overhead, derate, and
+      pressure diagnostics to comparison, detail, insight, and export surfaces.
+- [x] Task 4: Deepen system modeling around contention calibration, realistic
+      memory hierarchy behavior, and related metrics. Added derived hierarchy
+      and contention metrics to matmul and transformer aggregate reports,
+      schemas, docs, tests, and generated artifacts.
+- [x] Task 5: Add 3-5 high-quality source-backed published photonic
+      accelerator cards with clear surrogate labeling. Added Meyer 2026, Xie
+      2025, and Wu 2026 surrogate cards with generated reports and visualizer
+      payloads.
+- [x] Task 6: Improve CLI and workflow usability, especially validation and
+      full transformer-model analysis workflows. Added `list-examples` table
+      and JSON inventory output with tests and README documentation.
+- [x] Task 7: Update documentation, regenerate checked artifacts, and run
+      focused plus full verification. Regenerated 238 checked artifacts; local
+      Ruff, full pytest, build, JS syntax, artifact freshness, accessibility,
+      root visual regression, WSL2 `github-linux` visual regression, and diff
+      hygiene passed.
+- [x] Task 8: Run mandatory Hostile Senior Reviewer critique and fix important
+      findings. Fixed missing transformer aggregate diagnostic exposure and
+      clamped overhead helper semantics to match schema/docs.
+- [x] Task 9: Close final state files, update durable notes, verify PR/CI/git
+      status, and report remaining risks. State files are closed here; final
+      post-push CI, macOS artifact verification, durable note, and git status
+      are reported in the final response.
 
 ## Explicitly Not Active In This Goal
 

@@ -7,9 +7,10 @@
 - Current branch: `codex/post-pr5-visual-a11y`
 - Base branch: `master`
 - Remote: `https://github.com/lamb356/photonic-bench.git`
-- Current branch contains the completed post-PR5 visual regression,
-  accessibility, release-note, and baseline work, but it is not yet committed
-  or pushed at the start of this loop.
+- Current branch now contains the protected post-PR5 visual regression and
+  accessibility work, plus the follow-up macOS capture workflow, visualizer,
+  system-modeling, published-card, CLI, generated-artifact, and state closeout
+  changes for PR #7.
 
 ## Carry-Forward Post-PR5 Work To Protect
 

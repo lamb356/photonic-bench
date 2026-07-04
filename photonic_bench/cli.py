@@ -65,6 +65,8 @@ def main(argv: list[str] | None = None) -> int:
             )
         if args.command == "inspect-config":
             return _inspect_config(args.config, args.kind, args.json)
+        if args.command == "list-examples":
+            return _list_examples(args.examples_dir, args.json)
         if args.command == "system-profiles":
             return _system_profiles(args.json)
         if args.command == "verify-artifacts":
@@ -226,6 +228,21 @@ def _build_parser() -> argparse.ArgumentParser:
         "--json",
         action="store_true",
         help="Emit machine-readable profile data instead of a Markdown table",
+    )
+    examples = subparsers.add_parser(
+        "list-examples",
+        help="Inventory example YAML configs and their workflow metadata",
+    )
+    examples.add_argument(
+        "--examples-dir",
+        type=Path,
+        default=Path("examples"),
+        help="Directory containing example YAML configs",
+    )
+    examples.add_argument(
+        "--json",
+        action="store_true",
+        help="Emit machine-readable example inventory data",
     )
     inspect = subparsers.add_parser(
         "inspect-config",
@@ -489,6 +506,61 @@ def _inspect_config(config_path: Path, kind: str, json_output: bool) -> int:
     return 0
 
 
+def _list_examples(examples_dir: Path, json_output: bool) -> int:
+    if not examples_dir.exists():
+        raise ValueError(f"{examples_dir} does not exist")
+    if not examples_dir.is_dir():
+        raise ValueError(f"{examples_dir} must be a directory")
+
+    rows = []
+    for path in sorted(examples_dir.glob("*.yaml")):
+        try:
+            inspection = _load_config_for_inspection(path, "auto")
+        except ValueError as exc:
+            rows.append(
+                {
+                    "path": str(path),
+                    "status": "error",
+                    "error": str(exc),
+                }
+            )
+            continue
+        rows.append({"status": "ok", **inspection})
+
+    if json_output:
+        print(json.dumps({"examples": rows}, indent=2))
+        return 0
+
+    print("# PhotonicBench Example Inventory")
+    print()
+    print(
+        "| Path | Kind | Benchmark | Workload | System profile | Published reference | "
+        "Source grade | Surrogate type | Status |"
+    )
+    print("| --- | --- | --- | --- | --- | --- | --- | --- | --- |")
+    for row in rows:
+        if row["status"] != "ok":
+            print(
+                "| "
+                f"{row['path']} | n/a | n/a | n/a | n/a | n/a | n/a | n/a | "
+                f"error: {row['error']} |"
+            )
+            continue
+        print(
+            "| "
+            f"{row['path']} | "
+            f"{row['kind']} | "
+            f"{row['benchmark']} | "
+            f"{row['workload']} | "
+            f"{row['system']['profile']} | "
+            f"{'yes' if row['has_published_reference'] else 'no'} | "
+            f"{row['source_quality_grade'] or 'n/a'} | "
+            f"{row['local_surrogate_type'] or 'n/a'} | "
+            "ok |"
+        )
+    return 0
+
+
 def _load_config_for_inspection(config_path: Path, kind: str) -> dict[str, object]:
     loaders = [
         ("matmul", load_config),
@@ -516,12 +588,22 @@ def _load_config_for_inspection(config_path: Path, kind: str) -> dict[str, objec
 
 
 def _inspection_payload(config_path: Path, kind: str, config) -> dict[str, object]:
+    published_calibration = getattr(config, "published_calibration", None)
+    source_quality = getattr(config, "source_quality", None)
     return {
         "path": str(config_path),
         "kind": kind,
         "benchmark": config.benchmark.name,
         "workload": _inspection_workload(kind, config),
         "system": system_config_to_dict(config.system),
+        "has_published_reference": published_calibration is not None,
+        "source_quality_grade": (
+            source_quality.confidence_grade if source_quality is not None else None
+        ),
+        "local_surrogate_type": (
+            source_quality.local_surrogate_type if source_quality is not None else None
+        ),
+        "assumptions_count": len(config.assumptions),
     }
 
 

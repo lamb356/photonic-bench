@@ -161,9 +161,16 @@ def _local_model(result: BenchmarkResult) -> dict[str, Any]:
             "system_energy_per_mac_pj": result.system.system_energy_per_mac_pj,
             "system_energy_per_op_pj": result.system.system_energy_per_op_pj,
             "movement_energy_share": result.system.movement_energy_share,
+            "total_hierarchy_bytes": result.system.total_hierarchy_bytes,
+            "sram_traffic_share": result.system.sram_traffic_share,
+            "intermediate_traffic_share": result.system.intermediate_traffic_share,
+            "off_chip_traffic_share": result.system.off_chip_traffic_share,
             "max_transfer_time_ns": result.system.max_transfer_time_ns,
             "serial_transfer_time_ns": result.system.serial_transfer_time_ns,
             "effective_transfer_time_ns": result.system.effective_transfer_time_ns,
+            "contention_bandwidth_derate_factor": (
+                result.system.contention_bandwidth_derate_factor
+            ),
             "contention_adjusted_max_transfer_time_ns": (
                 result.system.contention_adjusted_max_transfer_time_ns
             ),
@@ -176,9 +183,25 @@ def _local_model(result: BenchmarkResult) -> dict[str, Any]:
             "calibration_adjusted_effective_transfer_time_ns": (
                 result.system.calibration_adjusted_effective_transfer_time_ns
             ),
+            "calibration_guardband_time_ns": (
+                result.system.calibration_guardband_time_ns
+            ),
+            "contention_transfer_overhead_fraction": (
+                result.system.contention_transfer_overhead_fraction
+            ),
+            "total_transfer_overhead_fraction": (
+                result.system.total_transfer_overhead_fraction
+            ),
+            "effective_loaded_bandwidth_bytes_per_ns": (
+                result.system.effective_loaded_bandwidth_bytes_per_ns
+            ),
+            "contention_adjusted_loaded_bandwidth_bytes_per_ns": (
+                result.system.contention_adjusted_loaded_bandwidth_bytes_per_ns
+            ),
             "bandwidth_limited_batch_latency_ns": (
                 result.system.bandwidth_limited_batch_latency_ns
             ),
+            "bandwidth_pressure_ratio": result.system.bandwidth_pressure_ratio,
             "bandwidth_limited_equivalent_ops_per_second": (
                 result.system.bandwidth_limited_equivalent_ops_per_second
             ),
@@ -186,6 +209,7 @@ def _local_model(result: BenchmarkResult) -> dict[str, Any]:
             "contention_adjusted_batch_latency_ns": (
                 result.system.contention_adjusted_batch_latency_ns
             ),
+            "contention_pressure_ratio": result.system.contention_pressure_ratio,
             "contention_adjusted_equivalent_ops_per_second": (
                 result.system.contention_adjusted_equivalent_ops_per_second
             ),

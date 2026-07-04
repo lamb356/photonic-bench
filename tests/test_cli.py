@@ -350,6 +350,53 @@ def test_cli_system_profiles_can_emit_json() -> None:
     ] == 2.0
 
 
+def test_cli_list_examples_summarizes_inventory() -> None:
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "photonic_bench.cli",
+            "list-examples",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    assert "PhotonicBench Example Inventory" in completed.stdout
+    assert "nature_pace_64x64.yaml" in completed.stdout
+    assert "| matmul |" in completed.stdout
+    assert "| yes | A | direct_64x64_matrix_vector_calibration |" in completed.stdout
+    assert "meyer_2026_reconfigurable_ptp_surrogate.yaml" in completed.stdout
+    assert "xie_2025_complex_mvm_surrogate.yaml" in completed.stdout
+    assert "wu_2026_high_order_tensor_surrogate.yaml" in completed.stdout
+    assert "bert_base_12layer_model.yaml" in completed.stdout
+    assert "| transformer-model |" in completed.stdout
+
+
+def test_cli_list_examples_can_emit_json() -> None:
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "photonic_bench.cli",
+            "list-examples",
+            "--json",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    payload = json.loads(completed.stdout)
+    examples = {Path(row["path"]).name: row for row in payload["examples"]}
+    assert examples["nature_pace_64x64.yaml"]["has_published_reference"] is True
+    assert examples["nature_pace_64x64.yaml"]["source_quality_grade"] == "A"
+    assert examples["bert_base_12layer_model.yaml"]["kind"] == "transformer-model"
+
+
 def test_cli_inspect_config_summarizes_matmul_config() -> None:
     completed = subprocess.run(
         [

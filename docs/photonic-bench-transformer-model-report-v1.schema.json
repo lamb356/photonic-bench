@@ -266,6 +266,18 @@
         "system_energy_per_mac_pj",
         "system_energy_per_op_pj",
         "movement_energy_share",
+        "total_hierarchy_bytes",
+        "sram_traffic_share",
+        "intermediate_traffic_share",
+        "off_chip_traffic_share",
+        "contention_bandwidth_derate_factor",
+        "calibration_guardband_time_ns",
+        "contention_transfer_overhead_fraction",
+        "total_transfer_overhead_fraction",
+        "effective_loaded_bandwidth_bytes_per_ns",
+        "contention_adjusted_loaded_bandwidth_bytes_per_ns",
+        "bandwidth_pressure_ratio",
+        "contention_pressure_ratio",
         "bandwidth_limited_serial_effective_macs_per_second",
         "bandwidth_limited_serial_effective_equivalent_ops_per_second",
         "contention_adjusted_serial_effective_macs_per_second",
@@ -314,6 +326,35 @@
         "system_energy_per_mac_pj": {"type": "number", "minimum": 0},
         "system_energy_per_op_pj": {"type": "number", "minimum": 0},
         "movement_energy_share": {"type": "number", "minimum": 0, "maximum": 1},
+        "total_hierarchy_bytes": {"type": "number", "minimum": 0},
+        "sram_traffic_share": {"type": "number", "minimum": 0, "maximum": 1},
+        "intermediate_traffic_share": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "off_chip_traffic_share": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "contention_bandwidth_derate_factor": {
+          "type": "number",
+          "minimum": 0
+        },
+        "calibration_guardband_time_ns": {"type": "number", "minimum": 0},
+        "contention_transfer_overhead_fraction": {"type": "number", "minimum": 0},
+        "total_transfer_overhead_fraction": {"type": "number", "minimum": 0},
+        "effective_loaded_bandwidth_bytes_per_ns": {
+          "type": "number",
+          "minimum": 0
+        },
+        "contention_adjusted_loaded_bandwidth_bytes_per_ns": {
+          "type": "number",
+          "minimum": 0
+        },
+        "bandwidth_pressure_ratio": {"type": "number", "minimum": 0},
+        "contention_pressure_ratio": {"type": "number", "minimum": 0},
         "bandwidth_limited_serial_effective_macs_per_second": {
           "type": "number",
           "minimum": 0

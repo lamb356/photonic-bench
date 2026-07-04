@@ -172,6 +172,11 @@ total_system_energy_pj =
 system_energy_per_mac_pj = total_system_energy_pj / macs
 system_energy_per_op_pj = total_system_energy_pj / equivalent_ops
 movement_energy_share = total_movement_energy_pj / total_system_energy_pj
+total_hierarchy_bytes =
+    sram_total_bytes + intermediate_total_bytes + off_chip_total_bytes
+sram_traffic_share = sram_total_bytes / total_hierarchy_bytes
+intermediate_traffic_share = intermediate_total_bytes / total_hierarchy_bytes
+off_chip_traffic_share = off_chip_total_bytes / total_hierarchy_bytes
 max_transfer_time_ns =
     max(sram_transfer_time_ns, intermediate_transfer_time_ns, off_chip_transfer_time_ns)
 serial_transfer_time_ns =
@@ -179,18 +184,35 @@ serial_transfer_time_ns =
 effective_transfer_time_ns =
     max_transfer_time_ns when memory_timing_mode == "overlapped"
     serial_transfer_time_ns when memory_timing_mode == "serialized"
+contention_bandwidth_derate_factor =
+    arbitration_efficiency / shared_bandwidth_clients
 contention_adjusted_effective_transfer_time_ns =
     max(contention_adjusted_tier_transfer_time_ns) when overlapped
     sum(contention_adjusted_tier_transfer_time_ns) when serialized
 calibration_adjusted_effective_transfer_time_ns =
     contention_adjusted_effective_transfer_time_ns
     * (1 + calibration_overhead_fraction)
+calibration_guardband_time_ns =
+    calibration_adjusted_effective_transfer_time_ns
+    - contention_adjusted_effective_transfer_time_ns
+contention_transfer_overhead_fraction =
+    max(contention_adjusted_effective_transfer_time_ns / effective_transfer_time_ns - 1, 0)
+total_transfer_overhead_fraction =
+    max(calibration_adjusted_effective_transfer_time_ns / effective_transfer_time_ns - 1, 0)
+effective_loaded_bandwidth_bytes_per_ns =
+    total_hierarchy_bytes / effective_transfer_time_ns
+contention_adjusted_loaded_bandwidth_bytes_per_ns =
+    total_hierarchy_bytes / calibration_adjusted_effective_transfer_time_ns
 bandwidth_limited_batch_latency_ns =
     max(batch_latency_ns, effective_transfer_time_ns)
+bandwidth_pressure_ratio =
+    bandwidth_limited_batch_latency_ns / batch_latency_ns
 bandwidth_limited_equivalent_ops_per_second =
     equivalent_ops / (bandwidth_limited_batch_latency_ns * 1e-9)
 contention_adjusted_batch_latency_ns =
     max(batch_latency_ns, calibration_adjusted_effective_transfer_time_ns)
+contention_pressure_ratio =
+    contention_adjusted_batch_latency_ns / batch_latency_ns
 contention_adjusted_equivalent_ops_per_second =
     equivalent_ops / (contention_adjusted_batch_latency_ns * 1e-9)
 ```
@@ -200,6 +222,12 @@ These fields live under `local_model.system` in JSON and under the
 paper-published measurements. They intentionally remain separate from
 `local_model.energy.total_pj`, which is the photonic compute/conversion estimate
 used by older cards and calibration flows.
+
+The hierarchy traffic and loaded-bandwidth fields are diagnostic summaries over
+the explicit tiers already declared in the config. They do not add a cache
+policy, memory scheduler, or packetized NoC model; they make locality,
+contention derate, calibration guardband, and memory pressure visible for
+cross-card comparisons.
 
 ## Noise Estimate
 

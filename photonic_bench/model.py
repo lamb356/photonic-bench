@@ -109,20 +109,32 @@ class SystemModelResult:
     system_energy_per_mac_pj: float
     system_energy_per_op_pj: float
     movement_energy_share: float
+    total_hierarchy_bytes: float
+    sram_traffic_share: float
+    intermediate_traffic_share: float
+    off_chip_traffic_share: float
     max_transfer_time_ns: float
     serial_transfer_time_ns: float
     effective_transfer_time_ns: float
     shared_bandwidth_clients: float
     bandwidth_arbitration_efficiency: float
     calibration_overhead_fraction: float
+    contention_bandwidth_derate_factor: float
     contention_adjusted_max_transfer_time_ns: float
     contention_adjusted_serial_transfer_time_ns: float
     contention_adjusted_effective_transfer_time_ns: float
     calibration_adjusted_effective_transfer_time_ns: float
+    calibration_guardband_time_ns: float
+    contention_transfer_overhead_fraction: float
+    total_transfer_overhead_fraction: float
+    effective_loaded_bandwidth_bytes_per_ns: float
+    contention_adjusted_loaded_bandwidth_bytes_per_ns: float
     bandwidth_limited_batch_latency_ns: float
+    bandwidth_pressure_ratio: float
     bandwidth_limited_equivalent_ops_per_second: float
     bandwidth_limited_tier: str
     contention_adjusted_batch_latency_ns: float
+    contention_pressure_ratio: float
     contention_adjusted_equivalent_ops_per_second: float
     contention_limited_tier: str
 
@@ -411,6 +423,7 @@ def _system_model(
         output_write_bytes=output_write_bytes,
     )
     tiers = (sram, intermediate, off_chip)
+    total_hierarchy_bytes = sum(tier.total_bytes for tier in tiers)
     total_movement_energy_pj = sum(tier.total_energy_pj for tier in tiers)
     total_system_energy_pj = energy.total_pj + total_movement_energy_pj
     max_transfer_time_ns = max(tier.transfer_time_ns for tier in tiers)
@@ -434,6 +447,10 @@ def _system_model(
     calibration_adjusted_effective_transfer_time_ns = (
         contention_adjusted_effective_transfer_time_ns
         * (1.0 + config.system.contention.calibration_overhead_fraction)
+    )
+    calibration_guardband_time_ns = (
+        calibration_adjusted_effective_transfer_time_ns
+        - contention_adjusted_effective_transfer_time_ns
     )
     bandwidth_limited_batch_latency_ns = max(
         timing.batch_latency_ns,
@@ -461,6 +478,18 @@ def _system_model(
         contention_limited_tier = "serialized_tier_path"
     else:
         contention_limited_tier = contention_slowest_tier.name
+    contention_derate = (
+        config.system.contention.arbitration_efficiency
+        / config.system.contention.shared_bandwidth_clients
+    )
+    effective_loaded_bandwidth = _safe_divide(
+        total_hierarchy_bytes,
+        effective_transfer_time_ns,
+    )
+    contention_adjusted_loaded_bandwidth = _safe_divide(
+        total_hierarchy_bytes,
+        calibration_adjusted_effective_transfer_time_ns,
+    )
     return SystemModelResult(
         sram=sram,
         intermediate=intermediate,
@@ -476,6 +505,16 @@ def _system_model(
             if total_system_energy_pj
             else 0.0
         ),
+        total_hierarchy_bytes=total_hierarchy_bytes,
+        sram_traffic_share=_safe_divide(sram.total_bytes, total_hierarchy_bytes),
+        intermediate_traffic_share=_safe_divide(
+            intermediate.total_bytes,
+            total_hierarchy_bytes,
+        ),
+        off_chip_traffic_share=_safe_divide(
+            off_chip.total_bytes,
+            total_hierarchy_bytes,
+        ),
         max_transfer_time_ns=max_transfer_time_ns,
         serial_transfer_time_ns=serial_transfer_time_ns,
         effective_transfer_time_ns=effective_transfer_time_ns,
@@ -486,6 +525,7 @@ def _system_model(
         calibration_overhead_fraction=(
             config.system.contention.calibration_overhead_fraction
         ),
+        contention_bandwidth_derate_factor=contention_derate,
         contention_adjusted_max_transfer_time_ns=(
             contention_adjusted_max_transfer_time_ns
         ),
@@ -498,7 +538,24 @@ def _system_model(
         calibration_adjusted_effective_transfer_time_ns=(
             calibration_adjusted_effective_transfer_time_ns
         ),
+        calibration_guardband_time_ns=calibration_guardband_time_ns,
+        contention_transfer_overhead_fraction=_safe_ratio_overhead(
+            contention_adjusted_effective_transfer_time_ns,
+            effective_transfer_time_ns,
+        ),
+        total_transfer_overhead_fraction=_safe_ratio_overhead(
+            calibration_adjusted_effective_transfer_time_ns,
+            effective_transfer_time_ns,
+        ),
+        effective_loaded_bandwidth_bytes_per_ns=effective_loaded_bandwidth,
+        contention_adjusted_loaded_bandwidth_bytes_per_ns=(
+            contention_adjusted_loaded_bandwidth
+        ),
         bandwidth_limited_batch_latency_ns=bandwidth_limited_batch_latency_ns,
+        bandwidth_pressure_ratio=_safe_divide(
+            bandwidth_limited_batch_latency_ns,
+            timing.batch_latency_ns,
+        ),
         bandwidth_limited_equivalent_ops_per_second=(
             equivalent_ops / (bandwidth_limited_batch_latency_ns * 1e-9)
             if bandwidth_limited_batch_latency_ns
@@ -506,6 +563,10 @@ def _system_model(
         ),
         bandwidth_limited_tier=bandwidth_limited_tier,
         contention_adjusted_batch_latency_ns=contention_adjusted_batch_latency_ns,
+        contention_pressure_ratio=_safe_divide(
+            contention_adjusted_batch_latency_ns,
+            timing.batch_latency_ns,
+        ),
         contention_adjusted_equivalent_ops_per_second=(
             equivalent_ops / (contention_adjusted_batch_latency_ns * 1e-9)
             if contention_adjusted_batch_latency_ns
@@ -513,6 +574,14 @@ def _system_model(
         ),
         contention_limited_tier=contention_limited_tier,
     )
+
+
+def _safe_divide(numerator: float, denominator: float) -> float:
+    return numerator / denominator if denominator else 0.0
+
+
+def _safe_ratio_overhead(adjusted: float, baseline: float) -> float:
+    return max(adjusted / baseline - 1.0, 0.0) if baseline else 0.0
 
 
 def _system_tier(
