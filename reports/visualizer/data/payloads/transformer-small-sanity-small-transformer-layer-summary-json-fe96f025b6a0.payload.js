@@ -73,7 +73,14 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
           "write_energy_pj": 10.24,
           "total_energy_pj": 29.44,
           "transfer_time_ns": 1.4375,
-          "contention_adjusted_transfer_time_ns": 1.4375
+          "contention_adjusted_transfer_time_ns": 1.4375,
+          "calibration_adjusted_transfer_time_ns": 1.4375,
+          "traffic_share": 0.3333333333333333,
+          "movement_energy_share": 0.0019569471624266144,
+          "nominal_transfer_share": 0.015625,
+          "contention_adjusted_transfer_share": 0.015625,
+          "nominal_transfer_pressure_ratio": 0.03343023255813953,
+          "contention_adjusted_transfer_pressure_ratio": 0.03343023255813953
         },
         "intermediate": {
           "name": "intermediate",
@@ -84,7 +91,14 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
           "write_energy_pj": 102.4,
           "total_energy_pj": 294.40000000000003,
           "transfer_time_ns": 5.75,
-          "contention_adjusted_transfer_time_ns": 5.75
+          "contention_adjusted_transfer_time_ns": 5.75,
+          "calibration_adjusted_transfer_time_ns": 5.75,
+          "traffic_share": 0.3333333333333333,
+          "movement_energy_share": 0.019569471624266147,
+          "nominal_transfer_share": 0.0625,
+          "contention_adjusted_transfer_share": 0.0625,
+          "nominal_transfer_pressure_ratio": 0.13372093023255813,
+          "contention_adjusted_transfer_pressure_ratio": 0.13372093023255813
         },
         "off_chip": {
           "name": "off_chip",
@@ -95,7 +109,14 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
           "write_energy_pj": 5120.0,
           "total_energy_pj": 14720.0,
           "transfer_time_ns": 92.0,
-          "contention_adjusted_transfer_time_ns": 92.0
+          "contention_adjusted_transfer_time_ns": 92.0,
+          "calibration_adjusted_transfer_time_ns": 92.0,
+          "traffic_share": 0.3333333333333333,
+          "movement_energy_share": 0.9784735812133072,
+          "nominal_transfer_share": 1.0,
+          "contention_adjusted_transfer_share": 1.0,
+          "nominal_transfer_pressure_ratio": 2.13953488372093,
+          "contention_adjusted_transfer_pressure_ratio": 2.13953488372093
         }
       },
       "serial_transfer_time_ns": 92.0,
@@ -123,6 +144,13 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
       "bandwidth_pressure_ratio": 2.13953488372093,
       "contention_adjusted_transfer_to_compute_time_ratio": 2.13953488372093,
       "contention_pressure_ratio": 2.13953488372093,
+      "dominant_traffic_tier": "sram",
+      "dominant_movement_energy_tier": "off_chip",
+      "nominal_memory_bottleneck_tier": "off_chip",
+      "contention_memory_bottleneck_tier": "off_chip",
+      "max_tier_nominal_transfer_pressure_ratio": 2.13953488372093,
+      "max_tier_contention_adjusted_transfer_pressure_ratio": 2.13953488372093,
+      "max_tier_movement_energy_share": 0.9784735812133072,
       "bandwidth_limited_serial_effective_macs_per_second": 44521739130.434784,
       "bandwidth_limited_serial_effective_equivalent_ops_per_second": 89043478260.86957,
       "contention_adjusted_serial_effective_macs_per_second": 44521739130.434784,
@@ -351,7 +379,14 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
               "transfer_time_ns": 0.4375,
               "contention_adjusted_transfer_time_ns": 0.4375,
               "read_fraction": 1.0,
-              "write_fraction": 1.0
+              "write_fraction": 1.0,
+              "calibration_adjusted_transfer_time_ns": 0.4375,
+              "traffic_share": 0.3333333333333333,
+              "movement_energy_share": 0.0019569471624266144,
+              "nominal_transfer_share": 0.015625,
+              "contention_adjusted_transfer_share": 0.015625,
+              "nominal_transfer_pressure_ratio": 0.0625,
+              "contention_adjusted_transfer_pressure_ratio": 0.0625
             },
             "intermediate": {
               "name": "intermediate",
@@ -366,7 +401,14 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
               "transfer_time_ns": 1.75,
               "contention_adjusted_transfer_time_ns": 1.75,
               "read_fraction": 1.0,
-              "write_fraction": 1.0
+              "write_fraction": 1.0,
+              "calibration_adjusted_transfer_time_ns": 1.75,
+              "traffic_share": 0.3333333333333333,
+              "movement_energy_share": 0.019569471624266144,
+              "nominal_transfer_share": 0.0625,
+              "contention_adjusted_transfer_share": 0.0625,
+              "nominal_transfer_pressure_ratio": 0.25,
+              "contention_adjusted_transfer_pressure_ratio": 0.25
             },
             "off_chip": {
               "name": "off_chip",
@@ -381,7 +423,14 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
               "transfer_time_ns": 28.0,
               "contention_adjusted_transfer_time_ns": 28.0,
               "read_fraction": 1.0,
-              "write_fraction": 1.0
+              "write_fraction": 1.0,
+              "calibration_adjusted_transfer_time_ns": 28.0,
+              "traffic_share": 0.3333333333333333,
+              "movement_energy_share": 0.9784735812133072,
+              "nominal_transfer_share": 1.0,
+              "contention_adjusted_transfer_share": 1.0,
+              "nominal_transfer_pressure_ratio": 4.0,
+              "contention_adjusted_transfer_pressure_ratio": 4.0
             }
           },
           "local_compute_and_conversion_energy_pj": 195.072,
@@ -396,6 +445,13 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
           "sram_traffic_share": 0.3333333333333333,
           "intermediate_traffic_share": 0.3333333333333333,
           "off_chip_traffic_share": 0.3333333333333333,
+          "dominant_traffic_tier": "sram",
+          "dominant_movement_energy_tier": "off_chip",
+          "nominal_memory_bottleneck_tier": "off_chip",
+          "contention_memory_bottleneck_tier": "off_chip",
+          "max_tier_nominal_transfer_pressure_ratio": 4.0,
+          "max_tier_contention_adjusted_transfer_pressure_ratio": 4.0,
+          "max_tier_movement_energy_share": 0.9784735812133072,
           "max_transfer_time_ns": 28.0,
           "serial_transfer_time_ns": 30.1875,
           "effective_transfer_time_ns": 28.0,
@@ -612,7 +668,14 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
               "transfer_time_ns": 0.1875,
               "contention_adjusted_transfer_time_ns": 0.1875,
               "read_fraction": 1.0,
-              "write_fraction": 1.0
+              "write_fraction": 1.0,
+              "calibration_adjusted_transfer_time_ns": 0.1875,
+              "traffic_share": 0.3333333333333333,
+              "movement_energy_share": 0.0019569471624266144,
+              "nominal_transfer_share": 0.015625,
+              "contention_adjusted_transfer_share": 0.015625,
+              "nominal_transfer_pressure_ratio": 0.017045454545454544,
+              "contention_adjusted_transfer_pressure_ratio": 0.017045454545454544
             },
             "intermediate": {
               "name": "intermediate",
@@ -627,7 +690,14 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
               "transfer_time_ns": 0.75,
               "contention_adjusted_transfer_time_ns": 0.75,
               "read_fraction": 1.0,
-              "write_fraction": 1.0
+              "write_fraction": 1.0,
+              "calibration_adjusted_transfer_time_ns": 0.75,
+              "traffic_share": 0.3333333333333333,
+              "movement_energy_share": 0.019569471624266147,
+              "nominal_transfer_share": 0.0625,
+              "contention_adjusted_transfer_share": 0.0625,
+              "nominal_transfer_pressure_ratio": 0.06818181818181818,
+              "contention_adjusted_transfer_pressure_ratio": 0.06818181818181818
             },
             "off_chip": {
               "name": "off_chip",
@@ -642,7 +712,14 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
               "transfer_time_ns": 12.0,
               "contention_adjusted_transfer_time_ns": 12.0,
               "read_fraction": 1.0,
-              "write_fraction": 1.0
+              "write_fraction": 1.0,
+              "calibration_adjusted_transfer_time_ns": 12.0,
+              "traffic_share": 0.3333333333333333,
+              "movement_energy_share": 0.9784735812133072,
+              "nominal_transfer_share": 1.0,
+              "contention_adjusted_transfer_share": 1.0,
+              "nominal_transfer_pressure_ratio": 1.0909090909090908,
+              "contention_adjusted_transfer_pressure_ratio": 1.0909090909090908
             }
           },
           "local_compute_and_conversion_energy_pj": 69.632,
@@ -657,6 +734,13 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
           "sram_traffic_share": 0.3333333333333333,
           "intermediate_traffic_share": 0.3333333333333333,
           "off_chip_traffic_share": 0.3333333333333333,
+          "dominant_traffic_tier": "sram",
+          "dominant_movement_energy_tier": "off_chip",
+          "nominal_memory_bottleneck_tier": "off_chip",
+          "contention_memory_bottleneck_tier": "off_chip",
+          "max_tier_nominal_transfer_pressure_ratio": 1.0909090909090908,
+          "max_tier_contention_adjusted_transfer_pressure_ratio": 1.0909090909090908,
+          "max_tier_movement_energy_share": 0.9784735812133072,
           "max_transfer_time_ns": 12.0,
           "serial_transfer_time_ns": 12.9375,
           "effective_transfer_time_ns": 12.0,
@@ -873,7 +957,14 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
               "transfer_time_ns": 0.1875,
               "contention_adjusted_transfer_time_ns": 0.1875,
               "read_fraction": 1.0,
-              "write_fraction": 1.0
+              "write_fraction": 1.0,
+              "calibration_adjusted_transfer_time_ns": 0.1875,
+              "traffic_share": 0.3333333333333333,
+              "movement_energy_share": 0.0019569471624266144,
+              "nominal_transfer_share": 0.015625,
+              "contention_adjusted_transfer_share": 0.015625,
+              "nominal_transfer_pressure_ratio": 0.017045454545454544,
+              "contention_adjusted_transfer_pressure_ratio": 0.017045454545454544
             },
             "intermediate": {
               "name": "intermediate",
@@ -888,7 +979,14 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
               "transfer_time_ns": 0.75,
               "contention_adjusted_transfer_time_ns": 0.75,
               "read_fraction": 1.0,
-              "write_fraction": 1.0
+              "write_fraction": 1.0,
+              "calibration_adjusted_transfer_time_ns": 0.75,
+              "traffic_share": 0.3333333333333333,
+              "movement_energy_share": 0.019569471624266147,
+              "nominal_transfer_share": 0.0625,
+              "contention_adjusted_transfer_share": 0.0625,
+              "nominal_transfer_pressure_ratio": 0.06818181818181818,
+              "contention_adjusted_transfer_pressure_ratio": 0.06818181818181818
             },
             "off_chip": {
               "name": "off_chip",
@@ -903,7 +1001,14 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
               "transfer_time_ns": 12.0,
               "contention_adjusted_transfer_time_ns": 12.0,
               "read_fraction": 1.0,
-              "write_fraction": 1.0
+              "write_fraction": 1.0,
+              "calibration_adjusted_transfer_time_ns": 12.0,
+              "traffic_share": 0.3333333333333333,
+              "movement_energy_share": 0.9784735812133072,
+              "nominal_transfer_share": 1.0,
+              "contention_adjusted_transfer_share": 1.0,
+              "nominal_transfer_pressure_ratio": 1.0909090909090908,
+              "contention_adjusted_transfer_pressure_ratio": 1.0909090909090908
             }
           },
           "local_compute_and_conversion_energy_pj": 69.632,
@@ -918,6 +1023,13 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
           "sram_traffic_share": 0.3333333333333333,
           "intermediate_traffic_share": 0.3333333333333333,
           "off_chip_traffic_share": 0.3333333333333333,
+          "dominant_traffic_tier": "sram",
+          "dominant_movement_energy_tier": "off_chip",
+          "nominal_memory_bottleneck_tier": "off_chip",
+          "contention_memory_bottleneck_tier": "off_chip",
+          "max_tier_nominal_transfer_pressure_ratio": 1.0909090909090908,
+          "max_tier_contention_adjusted_transfer_pressure_ratio": 1.0909090909090908,
+          "max_tier_movement_energy_share": 0.9784735812133072,
           "max_transfer_time_ns": 12.0,
           "serial_transfer_time_ns": 12.9375,
           "effective_transfer_time_ns": 12.0,
@@ -1134,7 +1246,14 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
               "transfer_time_ns": 0.3125,
               "contention_adjusted_transfer_time_ns": 0.3125,
               "read_fraction": 1.0,
-              "write_fraction": 1.0
+              "write_fraction": 1.0,
+              "calibration_adjusted_transfer_time_ns": 0.3125,
+              "traffic_share": 0.3333333333333333,
+              "movement_energy_share": 0.0019569471624266144,
+              "nominal_transfer_share": 0.015625,
+              "contention_adjusted_transfer_share": 0.015625,
+              "nominal_transfer_pressure_ratio": 0.044642857142857144,
+              "contention_adjusted_transfer_pressure_ratio": 0.044642857142857144
             },
             "intermediate": {
               "name": "intermediate",
@@ -1149,7 +1268,14 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
               "transfer_time_ns": 1.25,
               "contention_adjusted_transfer_time_ns": 1.25,
               "read_fraction": 1.0,
-              "write_fraction": 1.0
+              "write_fraction": 1.0,
+              "calibration_adjusted_transfer_time_ns": 1.25,
+              "traffic_share": 0.3333333333333333,
+              "movement_energy_share": 0.019569471624266144,
+              "nominal_transfer_share": 0.0625,
+              "contention_adjusted_transfer_share": 0.0625,
+              "nominal_transfer_pressure_ratio": 0.17857142857142858,
+              "contention_adjusted_transfer_pressure_ratio": 0.17857142857142858
             },
             "off_chip": {
               "name": "off_chip",
@@ -1164,7 +1290,14 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
               "transfer_time_ns": 20.0,
               "contention_adjusted_transfer_time_ns": 20.0,
               "read_fraction": 1.0,
-              "write_fraction": 1.0
+              "write_fraction": 1.0,
+              "calibration_adjusted_transfer_time_ns": 20.0,
+              "traffic_share": 0.3333333333333333,
+              "movement_energy_share": 0.9784735812133072,
+              "nominal_transfer_share": 1.0,
+              "contention_adjusted_transfer_share": 1.0,
+              "nominal_transfer_pressure_ratio": 2.857142857142857,
+              "contention_adjusted_transfer_pressure_ratio": 2.857142857142857
             }
           },
           "local_compute_and_conversion_energy_pj": 132.608,
@@ -1179,6 +1312,13 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
           "sram_traffic_share": 0.3333333333333333,
           "intermediate_traffic_share": 0.3333333333333333,
           "off_chip_traffic_share": 0.3333333333333333,
+          "dominant_traffic_tier": "sram",
+          "dominant_movement_energy_tier": "off_chip",
+          "nominal_memory_bottleneck_tier": "off_chip",
+          "contention_memory_bottleneck_tier": "off_chip",
+          "max_tier_nominal_transfer_pressure_ratio": 2.857142857142857,
+          "max_tier_contention_adjusted_transfer_pressure_ratio": 2.857142857142857,
+          "max_tier_movement_energy_share": 0.9784735812133072,
           "max_transfer_time_ns": 20.0,
           "serial_transfer_time_ns": 21.5625,
           "effective_transfer_time_ns": 20.0,
@@ -1395,7 +1535,14 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
               "transfer_time_ns": 0.3125,
               "contention_adjusted_transfer_time_ns": 0.3125,
               "read_fraction": 1.0,
-              "write_fraction": 1.0
+              "write_fraction": 1.0,
+              "calibration_adjusted_transfer_time_ns": 0.3125,
+              "traffic_share": 0.3333333333333333,
+              "movement_energy_share": 0.0019569471624266144,
+              "nominal_transfer_share": 0.015625,
+              "contention_adjusted_transfer_share": 0.015625,
+              "nominal_transfer_pressure_ratio": 0.044642857142857144,
+              "contention_adjusted_transfer_pressure_ratio": 0.044642857142857144
             },
             "intermediate": {
               "name": "intermediate",
@@ -1410,7 +1557,14 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
               "transfer_time_ns": 1.25,
               "contention_adjusted_transfer_time_ns": 1.25,
               "read_fraction": 1.0,
-              "write_fraction": 1.0
+              "write_fraction": 1.0,
+              "calibration_adjusted_transfer_time_ns": 1.25,
+              "traffic_share": 0.3333333333333333,
+              "movement_energy_share": 0.019569471624266144,
+              "nominal_transfer_share": 0.0625,
+              "contention_adjusted_transfer_share": 0.0625,
+              "nominal_transfer_pressure_ratio": 0.17857142857142858,
+              "contention_adjusted_transfer_pressure_ratio": 0.17857142857142858
             },
             "off_chip": {
               "name": "off_chip",
@@ -1425,7 +1579,14 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
               "transfer_time_ns": 20.0,
               "contention_adjusted_transfer_time_ns": 20.0,
               "read_fraction": 1.0,
-              "write_fraction": 1.0
+              "write_fraction": 1.0,
+              "calibration_adjusted_transfer_time_ns": 20.0,
+              "traffic_share": 0.3333333333333333,
+              "movement_energy_share": 0.9784735812133072,
+              "nominal_transfer_share": 1.0,
+              "contention_adjusted_transfer_share": 1.0,
+              "nominal_transfer_pressure_ratio": 2.857142857142857,
+              "contention_adjusted_transfer_pressure_ratio": 2.857142857142857
             }
           },
           "local_compute_and_conversion_energy_pj": 107.64800000000001,
@@ -1440,6 +1601,13 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
           "sram_traffic_share": 0.3333333333333333,
           "intermediate_traffic_share": 0.3333333333333333,
           "off_chip_traffic_share": 0.3333333333333333,
+          "dominant_traffic_tier": "sram",
+          "dominant_movement_energy_tier": "off_chip",
+          "nominal_memory_bottleneck_tier": "off_chip",
+          "contention_memory_bottleneck_tier": "off_chip",
+          "max_tier_nominal_transfer_pressure_ratio": 2.857142857142857,
+          "max_tier_contention_adjusted_transfer_pressure_ratio": 2.857142857142857,
+          "max_tier_movement_energy_share": 0.9784735812133072,
           "max_transfer_time_ns": 20.0,
           "serial_transfer_time_ns": 21.5625,
           "effective_transfer_time_ns": 20.0,

@@ -57,11 +57,11 @@ photonic core/converter model. SRAM, intermediate, and off-chip traffic are
 cumulative tier movements, not published measurements and not a cache
 simulator.
 
-| Tier | Read bytes | Write bytes | Movement energy | Transfer time | Contention-adjusted transfer | Effective bandwidth |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| SRAM | 3145728 bytes | 3145728 bytes | 125829.120 pJ | 6144.000 ns | 6144.000 ns | 1024.000 bytes/ns |
-| Intermediate/cache | 3145728 bytes | 3145728 bytes | 1258291.200 pJ | 24576.000 ns | 24576.000 ns | 256.000 bytes/ns |
-| Off-chip/DRAM | 3145728 bytes | 3145728 bytes | 62914560.000 pJ | 393216.000 ns | 393216.000 ns | 16.000 bytes/ns |
+| Tier | Read bytes | Write bytes | Movement energy | Traffic share | Movement share | Transfer time | Guardbanded transfer | Tier pressure | Effective bandwidth |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| SRAM | 3145728 bytes | 3145728 bytes | 125829.120 pJ | 33.33% | 0.20% | 6144.000 ns | 6144.000 ns | 1228.8 | 1024.000 bytes/ns |
+| Intermediate/cache | 3145728 bytes | 3145728 bytes | 1258291.200 pJ | 33.33% | 1.96% | 24576.000 ns | 24576.000 ns | 4915.2 | 256.000 bytes/ns |
+| Off-chip/DRAM | 3145728 bytes | 3145728 bytes | 62914560.000 pJ | 33.33% | 97.85% | 393216.000 ns | 393216.000 ns | 78643.2 | 16.000 bytes/ns |
 
 | Metric | Value |
 | --- | ---: |
@@ -83,6 +83,13 @@ simulator.
 | SRAM traffic share | 33.33% |
 | Intermediate/cache traffic share | 33.33% |
 | Off-chip traffic share | 33.33% |
+| Dominant traffic tier | sram |
+| Dominant movement-energy tier | off_chip |
+| Nominal memory bottleneck tier | off_chip |
+| Contention memory bottleneck tier | off_chip |
+| Max tier nominal pressure ratio | 78643.2 |
+| Max tier contention pressure ratio | 78643.2 |
+| Max tier movement-energy share | 97.85% |
 | Max transfer time | 393216.000 ns |
 | Serialized transfer time | 423936.000 ns |
 | Effective transfer time | 393216.000 ns |

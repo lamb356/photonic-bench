@@ -77,7 +77,14 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/bert_base_12layer_m
           "write_energy_pj": 667960.32,
           "total_energy_pj": 3010452.48,
           "transfer_time_ns": 146994.75,
-          "contention_adjusted_transfer_time_ns": 146994.75
+          "contention_adjusted_transfer_time_ns": 146994.75,
+          "calibration_adjusted_transfer_time_ns": 146994.75,
+          "traffic_share": 0.3333333333333333,
+          "movement_energy_share": 0.0019569471624266144,
+          "nominal_transfer_share": 0.015625,
+          "contention_adjusted_transfer_share": 0.015625,
+          "nominal_transfer_pressure_ratio": 176.46428571428572,
+          "contention_adjusted_transfer_pressure_ratio": 176.46428571428572
         },
         "intermediate": {
           "name": "intermediate",
@@ -88,7 +95,14 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/bert_base_12layer_m
           "write_energy_pj": 6679603.200000001,
           "total_energy_pj": 30104524.8,
           "transfer_time_ns": 587979.0,
-          "contention_adjusted_transfer_time_ns": 587979.0
+          "contention_adjusted_transfer_time_ns": 587979.0,
+          "calibration_adjusted_transfer_time_ns": 587979.0,
+          "traffic_share": 0.3333333333333333,
+          "movement_energy_share": 0.019569471624266147,
+          "nominal_transfer_share": 0.0625,
+          "contention_adjusted_transfer_share": 0.0625,
+          "nominal_transfer_pressure_ratio": 705.8571428571429,
+          "contention_adjusted_transfer_pressure_ratio": 705.8571428571429
         },
         "off_chip": {
           "name": "off_chip",
@@ -99,7 +113,14 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/bert_base_12layer_m
           "write_energy_pj": 333980160.0,
           "total_energy_pj": 1505226240.0,
           "transfer_time_ns": 9407664.0,
-          "contention_adjusted_transfer_time_ns": 9407664.0
+          "contention_adjusted_transfer_time_ns": 9407664.0,
+          "calibration_adjusted_transfer_time_ns": 9407664.0,
+          "traffic_share": 0.3333333333333333,
+          "movement_energy_share": 0.9784735812133073,
+          "nominal_transfer_share": 1.0,
+          "contention_adjusted_transfer_share": 1.0,
+          "nominal_transfer_pressure_ratio": 11293.714285714286,
+          "contention_adjusted_transfer_pressure_ratio": 11293.714285714286
         }
       },
       "serial_transfer_time_ns": 9407664.0,
@@ -127,6 +148,13 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/bert_base_12layer_m
       "bandwidth_pressure_ratio": 11293.714285714286,
       "contention_adjusted_transfer_to_compute_time_ratio": 11293.714285714286,
       "contention_pressure_ratio": 11293.714285714286,
+      "dominant_traffic_tier": "sram",
+      "dominant_movement_energy_tier": "off_chip",
+      "nominal_memory_bottleneck_tier": "off_chip",
+      "contention_memory_bottleneck_tier": "off_chip",
+      "max_tier_nominal_transfer_pressure_ratio": 11293.714285714286,
+      "max_tier_contention_adjusted_transfer_pressure_ratio": 11293.714285714286,
+      "max_tier_movement_energy_share": 0.9784735812133073,
       "bandwidth_limited_serial_effective_macs_per_second": 1410349145122.5298,
       "bandwidth_limited_serial_effective_equivalent_ops_per_second": 2820698290245.0596,
       "contention_adjusted_serial_effective_macs_per_second": 1410349145122.5298,
@@ -235,7 +263,14 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/bert_base_12layer_m
               "transfer_time_ns": 26802.75,
               "contention_adjusted_transfer_time_ns": 26802.75,
               "read_fraction": 1.0,
-              "write_fraction": 1.0
+              "write_fraction": 1.0,
+              "calibration_adjusted_transfer_time_ns": 26802.75,
+              "traffic_share": 0.3333333333333333,
+              "movement_energy_share": 0.001956947162426615,
+              "nominal_transfer_share": 0.015625,
+              "contention_adjusted_transfer_share": 0.015625,
+              "nominal_transfer_pressure_ratio": 5360.55,
+              "contention_adjusted_transfer_pressure_ratio": 5360.55
             },
             "intermediate": {
               "name": "intermediate",
@@ -250,7 +285,14 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/bert_base_12layer_m
               "transfer_time_ns": 107211.0,
               "contention_adjusted_transfer_time_ns": 107211.0,
               "read_fraction": 1.0,
-              "write_fraction": 1.0
+              "write_fraction": 1.0,
+              "calibration_adjusted_transfer_time_ns": 107211.0,
+              "traffic_share": 0.3333333333333333,
+              "movement_energy_share": 0.019569471624266147,
+              "nominal_transfer_share": 0.0625,
+              "contention_adjusted_transfer_share": 0.0625,
+              "nominal_transfer_pressure_ratio": 21442.2,
+              "contention_adjusted_transfer_pressure_ratio": 21442.2
             },
             "off_chip": {
               "name": "off_chip",
@@ -265,7 +307,14 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/bert_base_12layer_m
               "transfer_time_ns": 1715376.0,
               "contention_adjusted_transfer_time_ns": 1715376.0,
               "read_fraction": 1.0,
-              "write_fraction": 1.0
+              "write_fraction": 1.0,
+              "calibration_adjusted_transfer_time_ns": 1715376.0,
+              "traffic_share": 0.3333333333333333,
+              "movement_energy_share": 0.9784735812133073,
+              "nominal_transfer_share": 1.0,
+              "contention_adjusted_transfer_share": 1.0,
+              "nominal_transfer_pressure_ratio": 343075.2,
+              "contention_adjusted_transfer_pressure_ratio": 343075.2
             }
           },
           "local_compute_and_conversion_energy_pj": 18553545.216000002,
@@ -280,6 +329,13 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/bert_base_12layer_m
           "sram_traffic_share": 0.3333333333333333,
           "intermediate_traffic_share": 0.3333333333333333,
           "off_chip_traffic_share": 0.3333333333333333,
+          "dominant_traffic_tier": "sram",
+          "dominant_movement_energy_tier": "off_chip",
+          "nominal_memory_bottleneck_tier": "off_chip",
+          "contention_memory_bottleneck_tier": "off_chip",
+          "max_tier_nominal_transfer_pressure_ratio": 343075.2,
+          "max_tier_contention_adjusted_transfer_pressure_ratio": 343075.2,
+          "max_tier_movement_energy_share": 0.9784735812133073,
           "max_transfer_time_ns": 1715376.0,
           "serial_transfer_time_ns": 1849389.75,
           "effective_transfer_time_ns": 1715376.0,
@@ -462,7 +518,14 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/bert_base_12layer_m
               "write_energy_pj": 21626.879999999997,
               "total_energy_pj": 173015.04,
               "transfer_time_ns": 8448.0,
-              "contention_adjusted_transfer_time_ns": 8448.0
+              "contention_adjusted_transfer_time_ns": 8448.0,
+              "calibration_adjusted_transfer_time_ns": 8448.0,
+              "traffic_share": 0.3333333333333333,
+              "movement_energy_share": 0.001956947162426615,
+              "nominal_transfer_share": 0.015625,
+              "contention_adjusted_transfer_share": 0.015625,
+              "nominal_transfer_pressure_ratio": 122.43478260869566,
+              "contention_adjusted_transfer_pressure_ratio": 122.43478260869566
             },
             "intermediate": {
               "name": "intermediate",
@@ -473,7 +536,14 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/bert_base_12layer_m
               "write_energy_pj": 216268.80000000002,
               "total_energy_pj": 1730150.4000000001,
               "transfer_time_ns": 33792.0,
-              "contention_adjusted_transfer_time_ns": 33792.0
+              "contention_adjusted_transfer_time_ns": 33792.0,
+              "calibration_adjusted_transfer_time_ns": 33792.0,
+              "traffic_share": 0.3333333333333333,
+              "movement_energy_share": 0.019569471624266147,
+              "nominal_transfer_share": 0.0625,
+              "contention_adjusted_transfer_share": 0.0625,
+              "nominal_transfer_pressure_ratio": 489.7391304347826,
+              "contention_adjusted_transfer_pressure_ratio": 489.7391304347826
             },
             "off_chip": {
               "name": "off_chip",
@@ -484,7 +554,14 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/bert_base_12layer_m
               "write_energy_pj": 10813440.0,
               "total_energy_pj": 86507520.0,
               "transfer_time_ns": 540672.0,
-              "contention_adjusted_transfer_time_ns": 540672.0
+              "contention_adjusted_transfer_time_ns": 540672.0,
+              "calibration_adjusted_transfer_time_ns": 540672.0,
+              "traffic_share": 0.3333333333333333,
+              "movement_energy_share": 0.9784735812133073,
+              "nominal_transfer_share": 1.0,
+              "contention_adjusted_transfer_share": 1.0,
+              "nominal_transfer_pressure_ratio": 7835.826086956522,
+              "contention_adjusted_transfer_pressure_ratio": 7835.826086956522
             }
           },
           "serial_transfer_time_ns": 540672.0,
@@ -512,6 +589,13 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/bert_base_12layer_m
           "bandwidth_pressure_ratio": 7835.826086956522,
           "contention_adjusted_transfer_to_compute_time_ratio": 7835.826086956522,
           "contention_pressure_ratio": 7835.826086956522,
+          "dominant_traffic_tier": "sram",
+          "dominant_movement_energy_tier": "off_chip",
+          "nominal_memory_bottleneck_tier": "off_chip",
+          "contention_memory_bottleneck_tier": "off_chip",
+          "max_tier_nominal_transfer_pressure_ratio": 7835.826086956522,
+          "max_tier_contention_adjusted_transfer_pressure_ratio": 7835.826086956522,
+          "max_tier_movement_energy_share": 0.9784735812133073,
           "bandwidth_limited_serial_effective_macs_per_second": 1582545454545.4543,
           "bandwidth_limited_serial_effective_equivalent_ops_per_second": 3165090909090.9087,
           "contention_adjusted_serial_effective_macs_per_second": 1582545454545.4543,

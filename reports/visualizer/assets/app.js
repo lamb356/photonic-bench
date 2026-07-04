@@ -1594,6 +1594,48 @@
         "system",
         "off_chip_traffic_share"
       ),
+      dominant_traffic_tier: optionalString(
+        localModel,
+        sourcePath,
+        "system",
+        "dominant_traffic_tier"
+      ),
+      dominant_movement_energy_tier: optionalString(
+        localModel,
+        sourcePath,
+        "system",
+        "dominant_movement_energy_tier"
+      ),
+      nominal_memory_bottleneck_tier: optionalString(
+        localModel,
+        sourcePath,
+        "system",
+        "nominal_memory_bottleneck_tier"
+      ),
+      contention_memory_bottleneck_tier: optionalString(
+        localModel,
+        sourcePath,
+        "system",
+        "contention_memory_bottleneck_tier"
+      ),
+      max_tier_nominal_transfer_pressure_ratio: optionalNumber(
+        localModel,
+        sourcePath,
+        "system",
+        "max_tier_nominal_transfer_pressure_ratio"
+      ),
+      max_tier_contention_adjusted_transfer_pressure_ratio: optionalNumber(
+        localModel,
+        sourcePath,
+        "system",
+        "max_tier_contention_adjusted_transfer_pressure_ratio"
+      ),
+      max_tier_movement_energy_share: optionalNumber(
+        localModel,
+        sourcePath,
+        "system",
+        "max_tier_movement_energy_share"
+      ),
       system_profile: optionalString(localModel, sourcePath, "system", "profile"),
       system_profile_overrides: optionalStringArray(
         localModel,
@@ -2130,8 +2172,18 @@
           escapeHtml(formatBytes(tier.read_bytes)),
           escapeHtml(formatBytes(tier.write_bytes)),
           escapeHtml(formatPj(tier.total_energy_pj)),
+          escapeHtml(formatPercent(tier.traffic_share)),
+          escapeHtml(formatPercent(tier.movement_energy_share)),
           escapeHtml(formatNs(tier.transfer_time_ns)),
-          escapeHtml(formatNs(tier.contention_adjusted_transfer_time_ns)),
+          escapeHtml(
+            formatNs(
+              tier.calibration_adjusted_transfer_time_ns ??
+                tier.contention_adjusted_transfer_time_ns
+            )
+          ),
+          escapeHtml(
+            formatNumber(tier.contention_adjusted_transfer_pressure_ratio)
+          ),
           escapeHtml(
             formatBytesPerNs(
               tier.effective_bandwidth_bytes_per_ns ?? tier.bandwidth_bytes_per_ns
@@ -2165,6 +2217,34 @@
         formatPj(system.movement_energy_per_hierarchy_byte_pj),
       ],
       ["Off-chip traffic share", formatPercent(system.off_chip_traffic_share)],
+      [
+        "Dominant traffic tier",
+        systemTierLabel(system.dominant_traffic_tier || "n/a"),
+      ],
+      [
+        "Dominant movement-energy tier",
+        systemTierLabel(system.dominant_movement_energy_tier || "n/a"),
+      ],
+      [
+        "Nominal memory bottleneck tier",
+        systemTierLabel(system.nominal_memory_bottleneck_tier || "n/a"),
+      ],
+      [
+        "Contention memory bottleneck tier",
+        systemTierLabel(system.contention_memory_bottleneck_tier || "n/a"),
+      ],
+      [
+        "Worst tier nominal pressure",
+        formatNumber(system.max_tier_nominal_transfer_pressure_ratio),
+      ],
+      [
+        "Worst tier contention pressure",
+        formatNumber(system.max_tier_contention_adjusted_transfer_pressure_ratio),
+      ],
+      [
+        "Largest tier movement share",
+        formatPercent(system.max_tier_movement_energy_share),
+      ],
       ["Max transfer time", formatNs(system.max_transfer_time_ns ?? system.serial_transfer_time_ns)],
       ["Serialized transfer time", formatNs(system.serial_transfer_time_ns)],
       ["Effective transfer time", formatNs(system.effective_transfer_time_ns ?? system.serial_transfer_time_ns)],
@@ -2240,8 +2320,11 @@
             { label: "Read bytes", num: true },
             { label: "Write bytes", num: true },
             { label: "Movement energy", num: true },
+            { label: "Traffic share", num: true },
+            { label: "Movement share", num: true },
             { label: "Transfer time", num: true },
-            { label: "Adjusted transfer", num: true },
+            { label: "Guardbanded transfer", num: true },
+            { label: "Tier pressure", num: true },
             { label: "Effective bandwidth", num: true },
           ],
           tierRows,
@@ -2827,6 +2910,29 @@
         (summary) => formatPj(summary.movement_energy_per_hierarchy_byte_pj),
       ],
       [
+        "Dominant traffic tier",
+        (summary) => systemTierLabel(summary.dominant_traffic_tier || "n/a"),
+      ],
+      [
+        "Dominant movement tier",
+        (summary) =>
+          systemTierLabel(summary.dominant_movement_energy_tier || "n/a"),
+      ],
+      [
+        "Memory bottleneck tier",
+        (summary) =>
+          systemTierLabel(summary.contention_memory_bottleneck_tier || "n/a"),
+      ],
+      [
+        "Worst tier pressure",
+        (summary) =>
+          formatNumber(summary.max_tier_contention_adjusted_transfer_pressure_ratio),
+      ],
+      [
+        "Largest tier movement share",
+        (summary) => formatPercent(summary.max_tier_movement_energy_share),
+      ],
+      [
         "Off-chip traffic share",
         (summary) => formatPercent(summary.off_chip_traffic_share),
       ],
@@ -2963,6 +3069,19 @@
         label: "Movement pJ/hierarchy byte",
         get: (summary) => summary.movement_energy_per_hierarchy_byte_pj,
         format: formatPj,
+        direction: "lower",
+      },
+      {
+        label: "Worst tier pressure",
+        get: (summary) =>
+          summary.max_tier_contention_adjusted_transfer_pressure_ratio,
+        format: formatNumber,
+        direction: "lower",
+      },
+      {
+        label: "Largest tier movement share",
+        get: (summary) => summary.max_tier_movement_energy_share,
+        format: formatPercent,
         direction: "lower",
       },
       {
@@ -3181,6 +3300,7 @@
           "System energy per op",
           "Movement share",
           "Hierarchy equivalent ops/byte",
+          "Worst tier pressure",
           "Latency",
           "Bandwidth-limited throughput",
           "Contention-adjusted throughput",
@@ -3197,6 +3317,7 @@
           "System energy per op",
           "Movement share",
           "Movement pJ/hierarchy byte",
+          "Largest tier movement share",
           "Interface traffic",
           "Hierarchy equivalent ops/byte",
           "Operational intensity",
@@ -3221,6 +3342,7 @@
         metricLabels: [
           "Contention-adjusted latency",
           "Contention transfer/compute ratio",
+          "Worst tier pressure",
           "Transfer/compute time ratio",
           "Contention-adjusted throughput",
           "Shared bandwidth clients",
@@ -3260,6 +3382,7 @@
           "System energy per op": 2,
           "Movement share": 1.5,
           "Movement pJ/hierarchy byte": 1.25,
+          "Largest tier movement share": 1.15,
           "Interface traffic": 1.25,
           "Hierarchy equivalent ops/byte": 1.5,
           "Operational intensity": 1.25,
@@ -3286,6 +3409,7 @@
         weights: {
           "Contention-adjusted latency": 1.75,
           "Contention transfer/compute ratio": 1.75,
+          "Worst tier pressure": 1.5,
           "Transfer/compute time ratio": 1.25,
           "Contention-adjusted throughput": 2,
           "Shared bandwidth clients": 1.25,
@@ -4253,6 +4377,79 @@
     `;
   }
 
+  function mostCommonTierLabel(artifacts, field) {
+    const counts = new Map();
+    artifacts.forEach((artifact) => {
+      const tier = artifact.summary[field];
+      if (!tier) return;
+      counts.set(tier, (counts.get(tier) || 0) + 1);
+    });
+    const [tier, count] =
+      Array.from(counts.entries()).sort((left, right) => right[1] - left[1])[0] ||
+      [];
+    return tier ? `${systemTierLabel(tier)} (${count})` : "n/a";
+  }
+
+  function renderBottleneckStack(artifacts) {
+    const ranked = artifacts
+      .filter((artifact) =>
+        Number.isFinite(
+          Number(
+            artifact.summary.max_tier_contention_adjusted_transfer_pressure_ratio
+          )
+        )
+      )
+      .sort(
+        (left, right) =>
+          Number(
+            right.summary.max_tier_contention_adjusted_transfer_pressure_ratio
+          ) -
+          Number(left.summary.max_tier_contention_adjusted_transfer_pressure_ratio)
+      )
+      .slice(0, 8);
+    if (!ranked.length) {
+      return "";
+    }
+    const rows = ranked.map((artifact) => {
+      const summary = artifact.summary;
+      return [
+        escapeHtml(summary.benchmark_name),
+        escapeHtml(systemTierLabel(summary.contention_memory_bottleneck_tier || "n/a")),
+        escapeHtml(
+          formatNumber(
+            summary.max_tier_contention_adjusted_transfer_pressure_ratio
+          )
+        ),
+        escapeHtml(systemTierLabel(summary.dominant_movement_energy_tier || "n/a")),
+        escapeHtml(formatPercent(summary.max_tier_movement_energy_share)),
+        escapeHtml(systemTierLabel(summary.dominant_traffic_tier || "n/a")),
+      ];
+    });
+    return `
+      <section class="panel">
+        <h3>Bottleneck Stack</h3>
+        <div class="metric-grid">
+          ${metric("Common bottleneck", mostCommonTierLabel(artifacts, "contention_memory_bottleneck_tier"), "selected artifacts")}
+          ${metric("Common movement tier", mostCommonTierLabel(artifacts, "dominant_movement_energy_tier"), "movement-energy share")}
+          ${metric("Common traffic tier", mostCommonTierLabel(artifacts, "dominant_traffic_tier"), "hierarchy bytes")}
+        </div>
+        ${simpleTable(
+          [
+            { label: "Artifact" },
+            { label: "Bottleneck tier" },
+            { label: "Worst pressure", num: true },
+            { label: "Movement tier" },
+            { label: "Movement share", num: true },
+            { label: "Traffic tier" },
+          ],
+          rows,
+          "comparison-table"
+        )}
+        <div class="notes"><p>Bottleneck stack fields are local tier-attribution diagnostics derived from modeled SRAM/intermediate/off-chip traffic, contention, and calibration guardband assumptions; they are not paper-reported hardware measurements.</p></div>
+      </section>
+    `;
+  }
+
   function reviewQueueEntry(artifacts, label, spec, note) {
     const artifact = bestArtifactForSpec(artifacts, spec);
     if (!artifact) {
@@ -4284,6 +4481,18 @@
           direction: "higher",
         },
         "transfer path most exposed after local contention and guardband"
+      ),
+      reviewQueueEntry(
+        artifacts,
+        "Highest tier-local pressure",
+        {
+          label: "Worst tier pressure",
+          get: (summary) =>
+            summary.max_tier_contention_adjusted_transfer_pressure_ratio,
+          format: formatNumber,
+          direction: "higher",
+        },
+        "single modeled tier most exposed relative to compute latency"
       ),
       reviewQueueEntry(
         artifacts,
@@ -4507,6 +4716,19 @@
           artifact.summary.hierarchy_equivalent_ops_per_byte,
         movement_energy_per_hierarchy_byte_pj:
           artifact.summary.movement_energy_per_hierarchy_byte_pj,
+        dominant_traffic_tier: artifact.summary.dominant_traffic_tier,
+        dominant_movement_energy_tier:
+          artifact.summary.dominant_movement_energy_tier,
+        nominal_memory_bottleneck_tier:
+          artifact.summary.nominal_memory_bottleneck_tier,
+        contention_memory_bottleneck_tier:
+          artifact.summary.contention_memory_bottleneck_tier,
+        max_tier_nominal_transfer_pressure_ratio:
+          artifact.summary.max_tier_nominal_transfer_pressure_ratio,
+        max_tier_contention_adjusted_transfer_pressure_ratio:
+          artifact.summary.max_tier_contention_adjusted_transfer_pressure_ratio,
+        max_tier_movement_energy_share:
+          artifact.summary.max_tier_movement_energy_share,
         off_chip_traffic_share: artifact.summary.off_chip_traffic_share,
         contention_bandwidth_derate_factor:
           artifact.summary.contention_bandwidth_derate_factor,
@@ -4603,6 +4825,11 @@
           formatBytesPerNs(summary.contention_adjusted_loaded_bandwidth_bytes_per_ns),
           formatOpsPerByte(summary.hierarchy_equivalent_ops_per_byte),
           formatPj(summary.movement_energy_per_hierarchy_byte_pj),
+          systemTierLabel(summary.dominant_traffic_tier || "n/a"),
+          systemTierLabel(summary.dominant_movement_energy_tier || "n/a"),
+          systemTierLabel(summary.contention_memory_bottleneck_tier || "n/a"),
+          formatNumber(summary.max_tier_contention_adjusted_transfer_pressure_ratio),
+          formatPercent(summary.max_tier_movement_energy_share),
           formatPercent(summary.off_chip_traffic_share),
           formatNumber(summary.contention_bandwidth_derate_factor),
           formatPercent(summary.total_transfer_overhead_fraction),
@@ -4657,8 +4884,8 @@ Score profile: ${activeScoreProfileSummary(focus).label}
 
 Score weights: ${weightSummary || "n/a"}
 
-| Benchmark | Kind | Source | Local pJ/op | System pJ/op | System profile | Profile overrides | Memory timing | Effective transfer | Loaded BW | Hierarchy eq ops/byte | Movement pJ/hierarchy byte | Off-chip share | Derate | Transfer overhead | Transfer/compute | Shared clients | Arbitration eff. | Calibration overhead | Latency | Throughput | BW-limited throughput | BW pressure | Contention latency | Contention transfer/compute | Contention pressure | Contention throughput | Interface traffic | Eq ops/byte | Movement share | Published reference | Source grade | Surrogate type | Provenance |
-| --- | --- | --- | ---: | ---: | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- |
+| Benchmark | Kind | Source | Local pJ/op | System pJ/op | System profile | Profile overrides | Memory timing | Effective transfer | Loaded BW | Hierarchy eq ops/byte | Movement pJ/hierarchy byte | Dominant traffic tier | Dominant movement tier | Memory bottleneck tier | Worst tier pressure | Largest tier movement share | Off-chip share | Derate | Transfer overhead | Transfer/compute | Shared clients | Arbitration eff. | Calibration overhead | Latency | Throughput | BW-limited throughput | BW pressure | Contention latency | Contention transfer/compute | Contention pressure | Contention throughput | Interface traffic | Eq ops/byte | Movement share | Published reference | Source grade | Surrogate type | Provenance |
+| --- | --- | --- | ---: | ---: | --- | --- | --- | ---: | ---: | ---: | ---: | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- |
 ${rows}
 
 ## Recommendations
@@ -4685,6 +4912,11 @@ ${notes}
       "loaded_hierarchy_bandwidth_bytes_per_ns",
       "hierarchy_equivalent_ops_per_byte",
       "movement_energy_per_hierarchy_byte_pj",
+      "dominant_traffic_tier",
+      "dominant_movement_energy_tier",
+      "contention_memory_bottleneck_tier",
+      "max_tier_contention_adjusted_transfer_pressure_ratio",
+      "max_tier_movement_energy_share",
       "off_chip_traffic_share",
       "contention_bandwidth_derate_factor",
       "total_transfer_overhead_fraction",
@@ -4726,6 +4958,11 @@ ${notes}
         summary.contention_adjusted_loaded_bandwidth_bytes_per_ns,
         summary.hierarchy_equivalent_ops_per_byte,
         summary.movement_energy_per_hierarchy_byte_pj,
+        summary.dominant_traffic_tier,
+        summary.dominant_movement_energy_tier,
+        summary.contention_memory_bottleneck_tier,
+        summary.max_tier_contention_adjusted_transfer_pressure_ratio,
+        summary.max_tier_movement_energy_share,
         summary.off_chip_traffic_share,
         summary.contention_bandwidth_derate_factor,
         summary.total_transfer_overhead_fraction,
@@ -4888,6 +5125,7 @@ ${notes}
       ${renderSelectionDrawer(artifacts)}
       ${renderComparisonBrief(artifacts)}
       ${renderContentionInsight(artifacts)}
+      ${renderBottleneckStack(artifacts)}
       ${renderReviewQueue(artifacts)}
       ${renderComparisonRecommendations(artifacts, focus)}
       ${renderDecisionScorecard(artifacts, focus)}
