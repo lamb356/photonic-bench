@@ -276,3 +276,66 @@
 - Because the goal explicitly says to keep the repository private, the only
   compatible resolution is enabling a GitHub plan that supports private-repo
   branch protection.
+
+## 2026-07-04 Cycle 5: Repeated Branch Protection Blocker Audit
+
+### State Re-Read
+
+- Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
+  `RUBRIC.md` at the start of the cycle.
+- Checked `git status --short --branch`:
+  - clean and synchronized before this state update.
+- Checked recent git log:
+  - latest commit was `096b782 Record branch protection plan blocker`.
+
+### Current Remote Evidence
+
+- Ran `gh repo view lamb356/photonic-bench --json
+  isPrivate,visibility,defaultBranchRef,nameWithOwner,url`:
+  - repository is still `PRIVATE`;
+  - default branch is still `master`.
+- Ran `gh run list --repo lamb356/photonic-bench --workflow CI --branch master
+  --limit 3`:
+  - latest CI run is `28694933630`;
+  - conclusion is success.
+- Ran `gh run view 28694933630 --repo lamb356/photonic-bench --json
+  conclusion,url,jobs`:
+  - job `Ruff, package, and pytest` passed;
+  - steps `Run Ruff`, `Build package`, and `Run pytest` passed.
+- Ran `gh api repos/lamb356/photonic-bench/actions/workflows/ci.yml`:
+  - workflow `CI` is active;
+  - workflow path is `.github/workflows/ci.yml`;
+  - GitHub reports badge URL
+    `https://github.com/lamb356/photonic-bench/workflows/CI/badge.svg`.
+- Ran `gh pr list --repo lamb356/photonic-bench --state open --limit 20
+  --json number,title,author,headRefName,baseRefName,url`:
+  - no open PRs.
+
+### Repeated Branch Protection Attempt
+
+- Re-attempted branch protection with `gh api --method PUT
+  repos/lamb356/photonic-bench/branches/master/protection`.
+- Requested:
+  - strict required status checks;
+  - required context `Ruff, package, and pytest`;
+  - force pushes disabled;
+  - deletions disabled.
+- GitHub again returned HTTP 403:
+  - `Upgrade to GitHub Pro or make this repository public to enable this
+    feature.`
+- Re-checked repository rulesets:
+  - `gh api repos/lamb356/photonic-bench/rulesets`;
+  - same HTTP 403 plan-gate message.
+- Re-checked branch protection readback:
+  - `gh api repos/lamb356/photonic-bench/branches/master/protection`;
+  - same HTTP 403 plan-gate message.
+
+### Blocker Audit State
+
+- This is the second consecutive goal turn with the same branch-protection
+  blocker.
+- The goal remains active because the strict blocked threshold requires the
+  same blocker to repeat for at least three consecutive goal turns.
+- No permitted repo-local workaround was found:
+  - public visibility is explicitly disallowed;
+  - private-repo branch protection and rulesets are both plan-gated by GitHub.

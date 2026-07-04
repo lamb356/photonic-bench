@@ -14,8 +14,8 @@
 - Latest pushed automation-hardening commit:
   - `0829c96924f7dcf6ba0d177c696c2c242304125d`
 - Latest verified CI run for this phase:
-  - `28694842190`
-  - URL: `https://github.com/lamb356/photonic-bench/actions/runs/28694842190`
+  - `28694933630`
+  - URL: `https://github.com/lamb356/photonic-bench/actions/runs/28694933630`
   - result: passed
   - required status check context candidate: `Ruff, package, and pytest`
 - Repository visibility:
@@ -73,6 +73,8 @@
   - GitHub returned HTTP 403 for branch protection and repository rulesets:
     `Upgrade to GitHub Pro or make this repository public to enable this
     feature.`
+  - The same HTTP 403 blocker repeated in Cycle 5 for branch protection update,
+    rulesets readback, and branch protection readback.
   - The user explicitly required the repository to remain private, so making it
     public is not an allowed workaround.
 

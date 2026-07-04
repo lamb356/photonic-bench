@@ -170,6 +170,9 @@ Status key:
     - Verified repository visibility remains `PRIVATE`.
     - This task cannot be completed while both constraints hold:
       keep the repository private and do not upgrade the GitHub account plan.
+    - Repeated the branch protection, ruleset, and branch-protection readback
+      calls in Cycle 5; all returned the same HTTP 403 plan-gate message while
+      the repository remained `PRIVATE`.
 
 ## Task 6: Mandatory Hostile Senior Reviewer Critique
 
@@ -223,3 +226,5 @@ Status key:
       blocked by GitHub's private-repo branch-protection plan gate.
     - State files record the completed local automation work, passed pushed CI,
       Dependabot validation, and branch-protection blocker.
+    - Cycle 5 repeated the blocker audit; this is the second consecutive goal
+      turn with the same blocker, below the strict blocked-status threshold.
