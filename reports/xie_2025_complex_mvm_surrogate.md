@@ -104,11 +104,11 @@ photonic core/converter model. SRAM, intermediate, and off-chip traffic are
 cumulative tier movements, not published measurements and not a cache
 simulator.
 
-| Tier | Read bytes | Write bytes | Movement energy | Traffic share | Movement share | Transfer time | Guardbanded transfer | Tier pressure | Effective bandwidth |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| SRAM | 272 bytes | 16 bytes | 5.760 pJ | 33.33% | 0.20% | 0.281 ns | 0.281 ns | 0.28125 | 1024.000 bytes/ns |
-| Intermediate/cache | 272 bytes | 16 bytes | 57.600 pJ | 33.33% | 1.96% | 1.125 ns | 1.125 ns | 1.125 | 256.000 bytes/ns |
-| Off-chip/DRAM | 272 bytes | 16 bytes | 2880.000 pJ | 33.33% | 97.85% | 18.000 ns | 18.000 ns | 18 | 16.000 bytes/ns |
+| Tier | Read bytes | Write bytes | Movement energy | Traffic share | Movement share | Transfer time | Guardbanded transfer | Tier pressure | Effective bandwidth | Required bandwidth | Utilization | Headroom |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| SRAM | 272 bytes | 16 bytes | 5.760 pJ | 33.33% | 0.20% | 0.281 ns | 0.281 ns | 0.28125 | 1024.000 bytes/ns | 288.000 bytes/ns | 0.28125 | 736.000 bytes/ns |
+| Intermediate/cache | 272 bytes | 16 bytes | 57.600 pJ | 33.33% | 1.96% | 1.125 ns | 1.125 ns | 1.125 | 256.000 bytes/ns | 288.000 bytes/ns | 1.125 | -32.000 bytes/ns |
+| Off-chip/DRAM | 272 bytes | 16 bytes | 2880.000 pJ | 33.33% | 97.85% | 18.000 ns | 18.000 ns | 18 | 16.000 bytes/ns | 288.000 bytes/ns | 18 | -272.000 bytes/ns |
 
 | Metric | Value |
 | --- | ---: |
@@ -137,6 +137,9 @@ simulator.
 | Max tier nominal pressure ratio | 18 |
 | Max tier contention pressure ratio | 18 |
 | Max tier movement-energy share | 97.85% |
+| Contention bandwidth saturation tier | off_chip |
+| Max tier contention bandwidth utilization | 18 |
+| Min tier contention bandwidth headroom ratio | 0.0555556 |
 | Max transfer time | 18.000 ns |
 | Serialized transfer time | 19.406 ns |
 | Effective transfer time | 18.000 ns |

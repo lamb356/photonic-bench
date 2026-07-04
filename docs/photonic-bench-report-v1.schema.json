@@ -474,6 +474,9 @@
         "max_tier_nominal_transfer_pressure_ratio",
         "max_tier_contention_adjusted_transfer_pressure_ratio",
         "max_tier_movement_energy_share",
+        "contention_bandwidth_saturation_tier",
+        "max_tier_contention_bandwidth_utilization",
+        "min_tier_contention_bandwidth_headroom_ratio",
         "max_transfer_time_ns",
         "serial_transfer_time_ns",
         "effective_transfer_time_ns",
@@ -558,6 +561,15 @@
           "minimum": 0,
           "maximum": 1
         },
+        "contention_bandwidth_saturation_tier": {"type": "string"},
+        "max_tier_contention_bandwidth_utilization": {
+          "type": "number",
+          "minimum": 0
+        },
+        "min_tier_contention_bandwidth_headroom_ratio": {
+          "type": "number",
+          "minimum": 0
+        },
         "max_transfer_time_ns": {"type": "number", "minimum": 0},
         "serial_transfer_time_ns": {"type": "number", "minimum": 0},
         "effective_transfer_time_ns": {"type": "number", "minimum": 0},
@@ -639,7 +651,11 @@
         "nominal_transfer_share",
         "contention_adjusted_transfer_share",
         "nominal_transfer_pressure_ratio",
-        "contention_adjusted_transfer_pressure_ratio"
+        "contention_adjusted_transfer_pressure_ratio",
+        "compute_window_required_bandwidth_bytes_per_ns",
+        "contention_bandwidth_utilization",
+        "contention_bandwidth_headroom_bytes_per_ns",
+        "contention_bandwidth_headroom_ratio"
       ],
       "additionalProperties": false,
       "properties": {
@@ -672,6 +688,21 @@
         "contention_adjusted_transfer_share": {"type": "number", "minimum": 0},
         "nominal_transfer_pressure_ratio": {"type": "number", "minimum": 0},
         "contention_adjusted_transfer_pressure_ratio": {
+          "type": "number",
+          "minimum": 0
+        },
+        "compute_window_required_bandwidth_bytes_per_ns": {
+          "type": "number",
+          "minimum": 0
+        },
+        "contention_bandwidth_utilization": {
+          "type": "number",
+          "minimum": 0
+        },
+        "contention_bandwidth_headroom_bytes_per_ns": {
+          "type": "number"
+        },
+        "contention_bandwidth_headroom_ratio": {
           "type": "number",
           "minimum": 0
         }

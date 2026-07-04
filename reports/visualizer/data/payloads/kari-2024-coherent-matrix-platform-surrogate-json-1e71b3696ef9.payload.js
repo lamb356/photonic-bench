@@ -136,7 +136,11 @@ window.PhotonicBenchPayloadRegistry["kari_2024_coherent_matrix_platform_surrogat
           "nominal_transfer_share": 0.015625,
           "contention_adjusted_transfer_share": 0.015625,
           "nominal_transfer_pressure_ratio": 0.046875,
-          "contention_adjusted_transfer_pressure_ratio": 0.046875
+          "contention_adjusted_transfer_pressure_ratio": 0.046875,
+          "compute_window_required_bandwidth_bytes_per_ns": 48.0,
+          "contention_bandwidth_utilization": 0.046875,
+          "contention_bandwidth_headroom_bytes_per_ns": 976.0,
+          "contention_bandwidth_headroom_ratio": 21.333333333333332
         },
         "intermediate": {
           "name": "intermediate",
@@ -158,7 +162,11 @@ window.PhotonicBenchPayloadRegistry["kari_2024_coherent_matrix_platform_surrogat
           "nominal_transfer_share": 0.0625,
           "contention_adjusted_transfer_share": 0.0625,
           "nominal_transfer_pressure_ratio": 0.1875,
-          "contention_adjusted_transfer_pressure_ratio": 0.1875
+          "contention_adjusted_transfer_pressure_ratio": 0.1875,
+          "compute_window_required_bandwidth_bytes_per_ns": 48.0,
+          "contention_bandwidth_utilization": 0.1875,
+          "contention_bandwidth_headroom_bytes_per_ns": 208.0,
+          "contention_bandwidth_headroom_ratio": 5.333333333333333
         },
         "off_chip": {
           "name": "off_chip",
@@ -180,7 +188,11 @@ window.PhotonicBenchPayloadRegistry["kari_2024_coherent_matrix_platform_surrogat
           "nominal_transfer_share": 1.0,
           "contention_adjusted_transfer_share": 1.0,
           "nominal_transfer_pressure_ratio": 3.0,
-          "contention_adjusted_transfer_pressure_ratio": 3.0
+          "contention_adjusted_transfer_pressure_ratio": 3.0,
+          "compute_window_required_bandwidth_bytes_per_ns": 48.0,
+          "contention_bandwidth_utilization": 3.0,
+          "contention_bandwidth_headroom_bytes_per_ns": -32.0,
+          "contention_bandwidth_headroom_ratio": 0.3333333333333333
         }
       },
       "local_compute_and_conversion_energy_pj": 14.688,
@@ -202,6 +214,9 @@ window.PhotonicBenchPayloadRegistry["kari_2024_coherent_matrix_platform_surrogat
       "max_tier_nominal_transfer_pressure_ratio": 3.0,
       "max_tier_contention_adjusted_transfer_pressure_ratio": 3.0,
       "max_tier_movement_energy_share": 0.9784735812133072,
+      "contention_bandwidth_saturation_tier": "off_chip",
+      "max_tier_contention_bandwidth_utilization": 3.0,
+      "min_tier_contention_bandwidth_headroom_ratio": 0.3333333333333333,
       "max_transfer_time_ns": 3.0,
       "serial_transfer_time_ns": 3.234375,
       "effective_transfer_time_ns": 3.0,

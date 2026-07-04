@@ -136,7 +136,11 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
           "nominal_transfer_share": 0.015625,
           "contention_adjusted_transfer_share": 0.015625,
           "nominal_transfer_pressure_ratio": 0.0625,
-          "contention_adjusted_transfer_pressure_ratio": 0.0625
+          "contention_adjusted_transfer_pressure_ratio": 0.0625,
+          "compute_window_required_bandwidth_bytes_per_ns": 64.0,
+          "contention_bandwidth_utilization": 0.0625,
+          "contention_bandwidth_headroom_bytes_per_ns": 960.0,
+          "contention_bandwidth_headroom_ratio": 16.0
         },
         "intermediate": {
           "name": "intermediate",
@@ -158,7 +162,11 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
           "nominal_transfer_share": 0.0625,
           "contention_adjusted_transfer_share": 0.0625,
           "nominal_transfer_pressure_ratio": 0.25,
-          "contention_adjusted_transfer_pressure_ratio": 0.25
+          "contention_adjusted_transfer_pressure_ratio": 0.25,
+          "compute_window_required_bandwidth_bytes_per_ns": 64.0,
+          "contention_bandwidth_utilization": 0.25,
+          "contention_bandwidth_headroom_bytes_per_ns": 192.0,
+          "contention_bandwidth_headroom_ratio": 4.0
         },
         "off_chip": {
           "name": "off_chip",
@@ -180,7 +188,11 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
           "nominal_transfer_share": 1.0,
           "contention_adjusted_transfer_share": 1.0,
           "nominal_transfer_pressure_ratio": 4.0,
-          "contention_adjusted_transfer_pressure_ratio": 4.0
+          "contention_adjusted_transfer_pressure_ratio": 4.0,
+          "compute_window_required_bandwidth_bytes_per_ns": 64.0,
+          "contention_bandwidth_utilization": 4.0,
+          "contention_bandwidth_headroom_bytes_per_ns": -48.0,
+          "contention_bandwidth_headroom_ratio": 0.25
         }
       },
       "local_compute_and_conversion_energy_pj": 195.072,
@@ -202,6 +214,9 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
       "max_tier_nominal_transfer_pressure_ratio": 4.0,
       "max_tier_contention_adjusted_transfer_pressure_ratio": 4.0,
       "max_tier_movement_energy_share": 0.9784735812133072,
+      "contention_bandwidth_saturation_tier": "off_chip",
+      "max_tier_contention_bandwidth_utilization": 4.0,
+      "min_tier_contention_bandwidth_headroom_ratio": 0.25,
       "max_transfer_time_ns": 28.0,
       "serial_transfer_time_ns": 30.1875,
       "effective_transfer_time_ns": 28.0,

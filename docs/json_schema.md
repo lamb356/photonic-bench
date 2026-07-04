@@ -107,7 +107,9 @@ hardware metrics unless a future measured-system schema says so explicitly.
 `local_model.system.tiers.sram`, `local_model.system.tiers.intermediate`, and
 `local_model.system.tiers.off_chip` report the tier read bytes, write bytes,
 movement energy, nominal bandwidth, effective bandwidth under contention,
-nominal transfer time, and contention-adjusted transfer time.
+nominal transfer time, contention-adjusted transfer time, compute-window
+required bandwidth, contention bandwidth utilization, bandwidth headroom in
+bytes/ns, and bandwidth headroom ratio.
 `local_model.system.total_movement_energy_pj` is added to
 `local_model.system.local_compute_and_conversion_energy_pj` to produce
 `local_model.system.total_system_energy_pj`. The legacy
@@ -128,7 +130,11 @@ summarizes those tier fields with `dominant_traffic_tier`,
 `contention_memory_bottleneck_tier`,
 `max_tier_nominal_transfer_pressure_ratio`,
 `max_tier_contention_adjusted_transfer_pressure_ratio`, and
-`max_tier_movement_energy_share`.
+`max_tier_movement_energy_share`. It also reports
+`contention_bandwidth_saturation_tier`,
+`max_tier_contention_bandwidth_utilization`, and
+`min_tier_contention_bandwidth_headroom_ratio` as local compute-window
+bandwidth diagnostics.
 
 Bandwidth-limited fields are local estimates. For per-card reports,
 `local_model.system.effective_transfer_time_ns` is either the slowest tier
@@ -226,8 +232,11 @@ workload totals, and reports
 bandwidth-limited batch latencies. It also reports
 `contention_adjusted_serial_batch_latency_ns` and
 `contention_adjusted_serial_effective_equivalent_ops_per_second` as serial sums
-of the decomposed local contention-adjusted card timing. This is a serial
-accounting artifact, not a fused memory scheduler or complete memory hierarchy.
+of the decomposed local contention-adjusted card timing. Aggregate tier
+bandwidth utilization and headroom compare each tier's summed bytes per serial
+batch-latency window against the minimum positive effective bandwidth inherited
+from the contributing cards. This is a serial accounting artifact, not a fused
+memory scheduler or complete memory hierarchy.
 
 Timing fields are explicitly serial summaries. `serial_batch_latency_ns` sums
 the per-matmul `batch_latency_ns` values. The effective layer throughputs divide
@@ -419,6 +428,10 @@ transformer_model:
 | `local_model.system.tiers.*.effective_bandwidth_bytes_per_ns` | bytes/ns |
 | `local_model.system.tiers.*.transfer_time_ns` | ns |
 | `local_model.system.tiers.*.contention_adjusted_transfer_time_ns` | ns |
+| `local_model.system.tiers.*.compute_window_required_bandwidth_bytes_per_ns` | bytes/ns |
+| `local_model.system.tiers.*.contention_bandwidth_utilization` | required bandwidth / effective bandwidth |
+| `local_model.system.tiers.*.contention_bandwidth_headroom_bytes_per_ns` | bytes/ns |
+| `local_model.system.tiers.*.contention_bandwidth_headroom_ratio` | effective bandwidth / required bandwidth |
 | `local_model.system.total_movement_energy_pj` | pJ |
 | `local_model.system.total_system_energy_pj` | pJ |
 | `local_model.system.system_energy_per_mac_pj` | pJ/MAC |
@@ -429,6 +442,9 @@ transformer_model:
 | `local_model.system.transfer_to_compute_time_ratio` | transfer time / compute batch latency |
 | `local_model.system.bandwidth_limited_batch_latency_ns` | ns |
 | `local_model.system.bandwidth_limited_equivalent_ops_per_second` | equivalent ops/second |
+| `local_model.system.contention_bandwidth_saturation_tier` | tier name |
+| `local_model.system.max_tier_contention_bandwidth_utilization` | required bandwidth / effective bandwidth |
+| `local_model.system.min_tier_contention_bandwidth_headroom_ratio` | effective bandwidth / required bandwidth |
 | `local_model.system.contention_adjusted_transfer_to_compute_time_ratio` | adjusted transfer time / compute batch latency |
 | `local_model.system.contention_adjusted_batch_latency_ns` | ns |
 | `local_model.system.contention_adjusted_equivalent_ops_per_second` | equivalent ops/second |
@@ -579,7 +595,9 @@ and modeling-boundary notes. Selected artifact summaries also carry the local
 hierarchy-intensity, movement-per-hierarchy-byte, transfer/compute, and
 contention-adjusted transfer/compute fields when those metrics are available.
 Newer exports also carry dominant traffic/movement tiers, memory bottleneck
-tier, worst tier pressure, and largest tier movement share when present.
+tier, worst tier pressure, largest tier movement share, bandwidth saturation
+tier, maximum bandwidth utilization, and minimum bandwidth headroom when
+present.
 
 | Field | Meaning |
 | --- | --- |
@@ -594,6 +612,9 @@ tier, worst tier pressure, and largest tier movement share when present.
 | `artifacts[].contention_memory_bottleneck_tier` | Memory tier with the largest guardbanded transfer time, or `null`. |
 | `artifacts[].max_tier_contention_adjusted_transfer_pressure_ratio` | Largest guardbanded tier transfer divided by compute batch latency, or `null`. |
 | `artifacts[].max_tier_movement_energy_share` | Largest single-tier movement-energy share, or `null`. |
+| `artifacts[].contention_bandwidth_saturation_tier` | Tier with the highest compute-window bandwidth utilization, or `null`. |
+| `artifacts[].max_tier_contention_bandwidth_utilization` | Largest required-bandwidth divided by effective-bandwidth ratio, or `null`. |
+| `artifacts[].min_tier_contention_bandwidth_headroom_ratio` | Smallest effective-bandwidth divided by required-bandwidth ratio among modeled traffic tiers, or `null`. |
 | `artifacts[].transfer_to_compute_time_ratio` | Local effective transfer time divided by compute batch latency, or `null`. |
 | `artifacts[].contention_adjusted_transfer_to_compute_time_ratio` | Local contention-adjusted transfer time divided by compute batch latency, or `null`. |
 | `recommendations[].score_explanation` | Raw metric values, normalized scores, weights, contributions, and final weighted score. |

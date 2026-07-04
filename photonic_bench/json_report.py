@@ -190,6 +190,15 @@ def _local_model(result: BenchmarkResult) -> dict[str, Any]:
             "max_tier_movement_energy_share": (
                 result.system.max_tier_movement_energy_share
             ),
+            "contention_bandwidth_saturation_tier": (
+                result.system.contention_bandwidth_saturation_tier
+            ),
+            "max_tier_contention_bandwidth_utilization": (
+                result.system.max_tier_contention_bandwidth_utilization
+            ),
+            "min_tier_contention_bandwidth_headroom_ratio": (
+                result.system.min_tier_contention_bandwidth_headroom_ratio
+            ),
             "max_transfer_time_ns": result.system.max_transfer_time_ns,
             "serial_transfer_time_ns": result.system.serial_transfer_time_ns,
             "effective_transfer_time_ns": result.system.effective_transfer_time_ns,
@@ -318,6 +327,16 @@ def _system_tier_result(tier) -> dict[str, float | str]:
         "nominal_transfer_pressure_ratio": tier.nominal_transfer_pressure_ratio,
         "contention_adjusted_transfer_pressure_ratio": (
             tier.contention_adjusted_transfer_pressure_ratio
+        ),
+        "compute_window_required_bandwidth_bytes_per_ns": (
+            tier.compute_window_required_bandwidth_bytes_per_ns
+        ),
+        "contention_bandwidth_utilization": tier.contention_bandwidth_utilization,
+        "contention_bandwidth_headroom_bytes_per_ns": (
+            tier.contention_bandwidth_headroom_bytes_per_ns
+        ),
+        "contention_bandwidth_headroom_ratio": (
+            tier.contention_bandwidth_headroom_ratio
         ),
     }
 

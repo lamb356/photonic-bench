@@ -57,11 +57,11 @@ photonic core/converter model. SRAM, intermediate, and off-chip traffic are
 cumulative tier movements, not published measurements and not a cache
 simulator.
 
-| Tier | Read bytes | Write bytes | Movement energy | Traffic share | Movement share | Transfer time | Guardbanded transfer | Tier pressure | Effective bandwidth |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| SRAM | 1770240 bytes | 2304 bytes | 35450.880 pJ | 33.33% | 0.20% | 1731.000 ns | 1731.000 ns | 346.2 | 1024.000 bytes/ns |
-| Intermediate/cache | 1770240 bytes | 2304 bytes | 354508.800 pJ | 33.33% | 1.96% | 6924.000 ns | 6924.000 ns | 1384.8 | 256.000 bytes/ns |
-| Off-chip/DRAM | 1770240 bytes | 2304 bytes | 17725440.000 pJ | 33.33% | 97.85% | 110784.000 ns | 110784.000 ns | 22156.8 | 16.000 bytes/ns |
+| Tier | Read bytes | Write bytes | Movement energy | Traffic share | Movement share | Transfer time | Guardbanded transfer | Tier pressure | Effective bandwidth | Required bandwidth | Utilization | Headroom |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| SRAM | 1770240 bytes | 2304 bytes | 35450.880 pJ | 33.33% | 0.20% | 1731.000 ns | 1731.000 ns | 346.2 | 1024.000 bytes/ns | 354508.800 bytes/ns | 346.2 | -353484.800 bytes/ns |
+| Intermediate/cache | 1770240 bytes | 2304 bytes | 354508.800 pJ | 33.33% | 1.96% | 6924.000 ns | 6924.000 ns | 1384.8 | 256.000 bytes/ns | 354508.800 bytes/ns | 1384.8 | -354252.800 bytes/ns |
+| Off-chip/DRAM | 1770240 bytes | 2304 bytes | 17725440.000 pJ | 33.33% | 97.85% | 110784.000 ns | 110784.000 ns | 22156.8 | 16.000 bytes/ns | 354508.800 bytes/ns | 22156.8 | -354492.800 bytes/ns |
 
 | Metric | Value |
 | --- | ---: |
@@ -90,6 +90,9 @@ simulator.
 | Max tier nominal pressure ratio | 22156.8 |
 | Max tier contention pressure ratio | 22156.8 |
 | Max tier movement-energy share | 97.85% |
+| Contention bandwidth saturation tier | off_chip |
+| Max tier contention bandwidth utilization | 22156.8 |
+| Min tier contention bandwidth headroom ratio | 4.51329e-05 |
 | Max transfer time | 110784.000 ns |
 | Serialized transfer time | 119439.000 ns |
 | Effective transfer time | 110784.000 ns |

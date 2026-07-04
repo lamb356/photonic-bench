@@ -29,6 +29,9 @@ Dense BERT-base style full encoder model summary with 12 identical encoder layer
 | Bandwidth-limited equivalent ops/s | 2.8207e+12 |
 | Contention-adjusted serial latency (ns) | 9.40766e+06 |
 | Contention-adjusted equivalent ops/s | 2.8207e+12 |
+| Bandwidth saturation tier | off_chip |
+| Max tier bandwidth utilization | 11293.7 |
+| Min tier bandwidth headroom ratio | 8.85448e-05 |
 
 ## Model Components
 

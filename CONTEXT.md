@@ -8,11 +8,39 @@
 - Base branch: `master`
 - Remote: `https://github.com/lamb356/photonic-bench.git`
 - GitHub CLI auth: account `lamb356`; token has `repo` and `workflow` scopes.
+- Active PR: `https://github.com/lamb356/photonic-bench/pull/9`
+  - base: `master`;
+  - head: `codex/pr8-followup-improvements`;
+  - state: open, non-draft, mergeable;
+  - head commit after protected publish: `50fe226`.
 - Existing branch state before this cycle:
   - Large verified dirty worktree on `codex/pr8-followup-improvements`.
   - Work was previously verified locally but deliberately left unpublished.
   - GBrain note:
     `photonicbench-pr8-merge-bottleneck-stack-2026-07-04`.
+- Protected publish commits:
+  - `6e80186 Add tier bottleneck diagnostics and visualizer stack`;
+  - `50fe226 Refresh bottleneck diagnostic artifacts`.
+
+## Follow-Up Work Implemented After PR Publication
+
+- Visualizer:
+  - Bandwidth utilization/headroom metrics in Contention Insight.
+  - Bandwidth saturation/utilization/headroom columns in Bottleneck Stack.
+  - Bandwidth utilization/headroom checks in Review Queue.
+  - Comparison summary rows, scoring, JSON export, Markdown export, and CSV
+    export fields for bandwidth saturation tier, maximum utilization, and
+    minimum headroom.
+  - Hostile-review fix for missing legacy/external bandwidth-utilization
+    values in Contention Insight.
+- System model:
+  - Per-tier compute-window required bandwidth.
+  - Per-tier contention bandwidth utilization.
+  - Per-tier bandwidth headroom in bytes/ns and headroom ratio.
+  - Top-level contention bandwidth saturation tier, maximum tier utilization,
+    and minimum traffic-tier headroom ratio.
+  - Exposure in per-card reports, transformer aggregate reports, comparison
+    reports, strict schemas, docs, tests, and generated artifacts.
 
 ## Current Unpublished Work To Protect First
 

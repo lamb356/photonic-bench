@@ -136,7 +136,11 @@ window.PhotonicBenchPayloadRegistry["kovaios_2025_wdm_1tops_tensor_core_surrogat
           "nominal_transfer_share": 0.015625,
           "contention_adjusted_transfer_share": 0.015625,
           "nominal_transfer_pressure_ratio": 0.013671875,
-          "contention_adjusted_transfer_pressure_ratio": 0.013671875
+          "contention_adjusted_transfer_pressure_ratio": 0.013671875,
+          "compute_window_required_bandwidth_bytes_per_ns": 14.0,
+          "contention_bandwidth_utilization": 0.013671875,
+          "contention_bandwidth_headroom_bytes_per_ns": 1010.0,
+          "contention_bandwidth_headroom_ratio": 73.14285714285714
         },
         "intermediate": {
           "name": "intermediate",
@@ -158,7 +162,11 @@ window.PhotonicBenchPayloadRegistry["kovaios_2025_wdm_1tops_tensor_core_surrogat
           "nominal_transfer_share": 0.0625,
           "contention_adjusted_transfer_share": 0.0625,
           "nominal_transfer_pressure_ratio": 0.0546875,
-          "contention_adjusted_transfer_pressure_ratio": 0.0546875
+          "contention_adjusted_transfer_pressure_ratio": 0.0546875,
+          "compute_window_required_bandwidth_bytes_per_ns": 14.0,
+          "contention_bandwidth_utilization": 0.0546875,
+          "contention_bandwidth_headroom_bytes_per_ns": 242.0,
+          "contention_bandwidth_headroom_ratio": 18.285714285714285
         },
         "off_chip": {
           "name": "off_chip",
@@ -180,7 +188,11 @@ window.PhotonicBenchPayloadRegistry["kovaios_2025_wdm_1tops_tensor_core_surrogat
           "nominal_transfer_share": 1.0,
           "contention_adjusted_transfer_share": 1.0,
           "nominal_transfer_pressure_ratio": 0.875,
-          "contention_adjusted_transfer_pressure_ratio": 0.875
+          "contention_adjusted_transfer_pressure_ratio": 0.875,
+          "compute_window_required_bandwidth_bytes_per_ns": 14.0,
+          "contention_bandwidth_utilization": 0.875,
+          "contention_bandwidth_headroom_bytes_per_ns": 2.0,
+          "contention_bandwidth_headroom_ratio": 1.1428571428571428
         }
       },
       "local_compute_and_conversion_energy_pj": 4.056,
@@ -202,6 +214,9 @@ window.PhotonicBenchPayloadRegistry["kovaios_2025_wdm_1tops_tensor_core_surrogat
       "max_tier_nominal_transfer_pressure_ratio": 0.875,
       "max_tier_contention_adjusted_transfer_pressure_ratio": 0.875,
       "max_tier_movement_energy_share": 0.9784735812133072,
+      "contention_bandwidth_saturation_tier": "off_chip",
+      "max_tier_contention_bandwidth_utilization": 0.875,
+      "min_tier_contention_bandwidth_headroom_ratio": 1.1428571428571428,
       "max_transfer_time_ns": 0.875,
       "serial_transfer_time_ns": 0.943359375,
       "effective_transfer_time_ns": 0.875,

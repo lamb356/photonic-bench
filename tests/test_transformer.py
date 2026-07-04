@@ -289,6 +289,34 @@ def test_transformer_layer_report_to_dict_aggregates_decomposed_json_cards() -> 
             )
         )
     )
+    assert system["contention_bandwidth_saturation_tier"] == "off_chip"
+    assert system["max_tier_contention_bandwidth_utilization"] == pytest.approx(
+        max(
+            tier["contention_bandwidth_utilization"]
+            for tier in system["tiers"].values()
+        )
+    )
+    assert system["min_tier_contention_bandwidth_headroom_ratio"] == pytest.approx(
+        min(
+            tier["contention_bandwidth_headroom_ratio"]
+            for tier in system["tiers"].values()
+            if tier["total_bytes"] > 0
+        )
+    )
+    assert system["tiers"]["off_chip"][
+        "compute_window_required_bandwidth_bytes_per_ns"
+    ] == pytest.approx(
+        system["tiers"]["off_chip"]["total_bytes"]
+        / payload["local_model"]["timing"]["serial_batch_latency_ns"]
+    )
+    assert system["tiers"]["off_chip"][
+        "contention_bandwidth_utilization"
+    ] == pytest.approx(
+        system["tiers"]["off_chip"][
+            "compute_window_required_bandwidth_bytes_per_ns"
+        ]
+        / system["tiers"]["off_chip"]["effective_bandwidth_bytes_per_ns"]
+    )
     assert system["contention_bandwidth_derate_factor"] == pytest.approx(1.0)
     assert system["effective_loaded_bandwidth_bytes_per_ns"] == pytest.approx(
         system["total_hierarchy_bytes"] / system["serial_transfer_time_ns"]
@@ -398,6 +426,20 @@ def test_transformer_model_report_to_dict_weights_layer_counts() -> None:
                 tier["contention_adjusted_transfer_pressure_ratio"]
                 for tier in system["tiers"].values()
             )
+        )
+    )
+    assert system["contention_bandwidth_saturation_tier"] == "off_chip"
+    assert system["max_tier_contention_bandwidth_utilization"] == pytest.approx(
+        max(
+            tier["contention_bandwidth_utilization"]
+            for tier in system["tiers"].values()
+        )
+    )
+    assert system["min_tier_contention_bandwidth_headroom_ratio"] == pytest.approx(
+        min(
+            tier["contention_bandwidth_headroom_ratio"]
+            for tier in system["tiers"].values()
+            if tier["total_bytes"] > 0
         )
     )
     assert system["contention_bandwidth_derate_factor"] == pytest.approx(1.0)

@@ -2189,6 +2189,13 @@
               tier.effective_bandwidth_bytes_per_ns ?? tier.bandwidth_bytes_per_ns
             )
           ),
+          escapeHtml(
+            formatBytesPerNs(tier.compute_window_required_bandwidth_bytes_per_ns)
+          ),
+          escapeHtml(formatNumber(tier.contention_bandwidth_utilization)),
+          escapeHtml(
+            formatBytesPerNs(tier.contention_bandwidth_headroom_bytes_per_ns)
+          ),
         ];
       });
     const contention = system.contention || {};
@@ -2244,6 +2251,18 @@
       [
         "Largest tier movement share",
         formatPercent(system.max_tier_movement_energy_share),
+      ],
+      [
+        "Bandwidth saturation tier",
+        systemTierLabel(system.contention_bandwidth_saturation_tier || "n/a"),
+      ],
+      [
+        "Max bandwidth utilization",
+        formatNumber(system.max_tier_contention_bandwidth_utilization),
+      ],
+      [
+        "Min bandwidth headroom",
+        formatNumber(system.min_tier_contention_bandwidth_headroom_ratio),
       ],
       ["Max transfer time", formatNs(system.max_transfer_time_ns ?? system.serial_transfer_time_ns)],
       ["Serialized transfer time", formatNs(system.serial_transfer_time_ns)],
@@ -2326,6 +2345,9 @@
             { label: "Guardbanded transfer", num: true },
             { label: "Tier pressure", num: true },
             { label: "Effective bandwidth", num: true },
+            { label: "Required bandwidth", num: true },
+            { label: "Utilization", num: true },
+            { label: "Headroom", num: true },
           ],
           tierRows,
           "comparison-table"
@@ -2929,6 +2951,21 @@
           formatNumber(summary.max_tier_contention_adjusted_transfer_pressure_ratio),
       ],
       [
+        "Bandwidth saturation tier",
+        (summary) =>
+          systemTierLabel(summary.contention_bandwidth_saturation_tier || "n/a"),
+      ],
+      [
+        "Bandwidth utilization",
+        (summary) =>
+          formatNumber(summary.max_tier_contention_bandwidth_utilization),
+      ],
+      [
+        "Bandwidth headroom",
+        (summary) =>
+          formatNumber(summary.min_tier_contention_bandwidth_headroom_ratio),
+      ],
+      [
         "Largest tier movement share",
         (summary) => formatPercent(summary.max_tier_movement_energy_share),
       ],
@@ -3077,6 +3114,18 @@
           summary.max_tier_contention_adjusted_transfer_pressure_ratio,
         format: formatNumber,
         direction: "lower",
+      },
+      {
+        label: "Bandwidth utilization",
+        get: (summary) => summary.max_tier_contention_bandwidth_utilization,
+        format: formatNumber,
+        direction: "lower",
+      },
+      {
+        label: "Bandwidth headroom",
+        get: (summary) => summary.min_tier_contention_bandwidth_headroom_ratio,
+        format: formatNumber,
+        direction: "higher",
       },
       {
         label: "Largest tier movement share",
@@ -3343,6 +3392,8 @@
           "Contention-adjusted latency",
           "Contention transfer/compute ratio",
           "Worst tier pressure",
+          "Bandwidth utilization",
+          "Bandwidth headroom",
           "Transfer/compute time ratio",
           "Contention-adjusted throughput",
           "Shared bandwidth clients",
@@ -3410,6 +3461,8 @@
           "Contention-adjusted latency": 1.75,
           "Contention transfer/compute ratio": 1.75,
           "Worst tier pressure": 1.5,
+          "Bandwidth utilization": 1.5,
+          "Bandwidth headroom": 1.25,
           "Transfer/compute time ratio": 1.25,
           "Contention-adjusted throughput": 2,
           "Shared bandwidth clients": 1.25,
@@ -4313,6 +4366,18 @@
         Number(right.summary.contention_pressure_ratio || 0) -
         Number(left.summary.contention_pressure_ratio || 0)
     )[0];
+    const highestUtilization = bestArtifactForSpec(withAdjusted, {
+      label: "Bandwidth utilization",
+      get: (summary) => summary.max_tier_contention_bandwidth_utilization,
+      format: formatNumber,
+      direction: "higher",
+    });
+    const lowestHeadroom = bestArtifactForSpec(withAdjusted, {
+      label: "Bandwidth headroom",
+      get: (summary) => summary.min_tier_contention_bandwidth_headroom_ratio,
+      format: formatNumber,
+      direction: "lower",
+    });
     const bestLoadedBandwidth = bestArtifactForSpec(withAdjusted, {
       label: "Loaded hierarchy bandwidth",
       get: (summary) => summary.contention_adjusted_loaded_bandwidth_bytes_per_ns,
@@ -4362,6 +4427,26 @@
               : ""
           )}
           ${metric(
+            "Highest BW utilization",
+            highestUtilization ? highestUtilization.summary.benchmark_name : "n/a",
+            highestUtilization
+              ? formatNumber(
+                  highestUtilization.summary
+                    .max_tier_contention_bandwidth_utilization
+                )
+              : ""
+          )}
+          ${metric(
+            "Lowest BW headroom",
+            lowestHeadroom ? lowestHeadroom.summary.benchmark_name : "n/a",
+            lowestHeadroom
+              ? formatNumber(
+                  lowestHeadroom.summary
+                    .min_tier_contention_bandwidth_headroom_ratio
+                )
+              : ""
+          )}
+          ${metric(
             "Best loaded bandwidth",
             bestLoadedBandwidth ? bestLoadedBandwidth.summary.benchmark_name : "n/a",
             bestLoadedBandwidth
@@ -4372,7 +4457,7 @@
               : ""
           )}
         </div>
-        <div class="notes"><p>Contention metrics are local shared-link assumptions: nominal tier bandwidth is reduced by client count and arbitration efficiency, calibration/control guardband is applied to transfer timing, and pressure ratios compare the adjusted local system latency against the compute-only batch latency.</p></div>
+        <div class="notes"><p>Contention metrics are local shared-link assumptions: nominal tier bandwidth is reduced by client count and arbitration efficiency, calibration/control guardband is applied to transfer timing, pressure ratios compare the adjusted local system latency against the compute-only batch latency, and bandwidth utilization/headroom compare compute-window bytes against contention-adjusted effective bandwidth.</p></div>
       </section>
     `;
   }
@@ -4392,19 +4477,40 @@
 
   function renderBottleneckStack(artifacts) {
     const ranked = artifacts
-      .filter((artifact) =>
-        Number.isFinite(
-          Number(
-            artifact.summary.max_tier_contention_adjusted_transfer_pressure_ratio
-          )
-        )
-      )
+      .filter((artifact) => {
+        const pressure = Number(
+          artifact.summary.max_tier_contention_adjusted_transfer_pressure_ratio
+        );
+        const utilization = Number(
+          artifact.summary.max_tier_contention_bandwidth_utilization
+        );
+        return Number.isFinite(pressure) || Number.isFinite(utilization);
+      })
       .sort(
-        (left, right) =>
-          Number(
+        (left, right) => {
+          const leftPressure = Number(
+            left.summary.max_tier_contention_adjusted_transfer_pressure_ratio
+          );
+          const rightPressure = Number(
             right.summary.max_tier_contention_adjusted_transfer_pressure_ratio
-          ) -
-          Number(left.summary.max_tier_contention_adjusted_transfer_pressure_ratio)
+          );
+          const pressureDelta =
+            (Number.isFinite(rightPressure) ? rightPressure : 0) -
+            (Number.isFinite(leftPressure) ? leftPressure : 0);
+          if (pressureDelta !== 0) {
+            return pressureDelta;
+          }
+          const leftUtilization = Number(
+            left.summary.max_tier_contention_bandwidth_utilization
+          );
+          const rightUtilization = Number(
+            right.summary.max_tier_contention_bandwidth_utilization
+          );
+          return (
+            (Number.isFinite(rightUtilization) ? rightUtilization : 0) -
+            (Number.isFinite(leftUtilization) ? leftUtilization : 0)
+          );
+        }
       )
       .slice(0, 8);
     if (!ranked.length) {
@@ -4420,6 +4526,9 @@
             summary.max_tier_contention_adjusted_transfer_pressure_ratio
           )
         ),
+        escapeHtml(systemTierLabel(summary.contention_bandwidth_saturation_tier || "n/a")),
+        escapeHtml(formatNumber(summary.max_tier_contention_bandwidth_utilization)),
+        escapeHtml(formatNumber(summary.min_tier_contention_bandwidth_headroom_ratio)),
         escapeHtml(systemTierLabel(summary.dominant_movement_energy_tier || "n/a")),
         escapeHtml(formatPercent(summary.max_tier_movement_energy_share)),
         escapeHtml(systemTierLabel(summary.dominant_traffic_tier || "n/a")),
@@ -4430,6 +4539,7 @@
         <h3>Bottleneck Stack</h3>
         <div class="metric-grid">
           ${metric("Common bottleneck", mostCommonTierLabel(artifacts, "contention_memory_bottleneck_tier"), "selected artifacts")}
+          ${metric("Common saturation tier", mostCommonTierLabel(artifacts, "contention_bandwidth_saturation_tier"), "compute-window utilization")}
           ${metric("Common movement tier", mostCommonTierLabel(artifacts, "dominant_movement_energy_tier"), "movement-energy share")}
           ${metric("Common traffic tier", mostCommonTierLabel(artifacts, "dominant_traffic_tier"), "hierarchy bytes")}
         </div>
@@ -4438,6 +4548,9 @@
             { label: "Artifact" },
             { label: "Bottleneck tier" },
             { label: "Worst pressure", num: true },
+            { label: "Saturation tier" },
+            { label: "BW utilization", num: true },
+            { label: "BW headroom", num: true },
             { label: "Movement tier" },
             { label: "Movement share", num: true },
             { label: "Traffic tier" },
@@ -4493,6 +4606,28 @@
           direction: "higher",
         },
         "single modeled tier most exposed relative to compute latency"
+      ),
+      reviewQueueEntry(
+        artifacts,
+        "Highest bandwidth utilization",
+        {
+          label: "Bandwidth utilization",
+          get: (summary) => summary.max_tier_contention_bandwidth_utilization,
+          format: formatNumber,
+          direction: "higher",
+        },
+        "tier capacity most consumed by the compute-latency window"
+      ),
+      reviewQueueEntry(
+        artifacts,
+        "Lowest bandwidth headroom",
+        {
+          label: "Bandwidth headroom",
+          get: (summary) => summary.min_tier_contention_bandwidth_headroom_ratio,
+          format: formatNumber,
+          direction: "lower",
+        },
+        "smallest effective bandwidth margin before local saturation"
       ),
       reviewQueueEntry(
         artifacts,
@@ -4729,6 +4864,12 @@
           artifact.summary.max_tier_contention_adjusted_transfer_pressure_ratio,
         max_tier_movement_energy_share:
           artifact.summary.max_tier_movement_energy_share,
+        contention_bandwidth_saturation_tier:
+          artifact.summary.contention_bandwidth_saturation_tier,
+        max_tier_contention_bandwidth_utilization:
+          artifact.summary.max_tier_contention_bandwidth_utilization,
+        min_tier_contention_bandwidth_headroom_ratio:
+          artifact.summary.min_tier_contention_bandwidth_headroom_ratio,
         off_chip_traffic_share: artifact.summary.off_chip_traffic_share,
         contention_bandwidth_derate_factor:
           artifact.summary.contention_bandwidth_derate_factor,
@@ -4829,6 +4970,9 @@
           systemTierLabel(summary.dominant_movement_energy_tier || "n/a"),
           systemTierLabel(summary.contention_memory_bottleneck_tier || "n/a"),
           formatNumber(summary.max_tier_contention_adjusted_transfer_pressure_ratio),
+          systemTierLabel(summary.contention_bandwidth_saturation_tier || "n/a"),
+          formatNumber(summary.max_tier_contention_bandwidth_utilization),
+          formatNumber(summary.min_tier_contention_bandwidth_headroom_ratio),
           formatPercent(summary.max_tier_movement_energy_share),
           formatPercent(summary.off_chip_traffic_share),
           formatNumber(summary.contention_bandwidth_derate_factor),
@@ -4884,8 +5028,8 @@ Score profile: ${activeScoreProfileSummary(focus).label}
 
 Score weights: ${weightSummary || "n/a"}
 
-| Benchmark | Kind | Source | Local pJ/op | System pJ/op | System profile | Profile overrides | Memory timing | Effective transfer | Loaded BW | Hierarchy eq ops/byte | Movement pJ/hierarchy byte | Dominant traffic tier | Dominant movement tier | Memory bottleneck tier | Worst tier pressure | Largest tier movement share | Off-chip share | Derate | Transfer overhead | Transfer/compute | Shared clients | Arbitration eff. | Calibration overhead | Latency | Throughput | BW-limited throughput | BW pressure | Contention latency | Contention transfer/compute | Contention pressure | Contention throughput | Interface traffic | Eq ops/byte | Movement share | Published reference | Source grade | Surrogate type | Provenance |
-| --- | --- | --- | ---: | ---: | --- | --- | --- | ---: | ---: | ---: | ---: | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- |
+| Benchmark | Kind | Source | Local pJ/op | System pJ/op | System profile | Profile overrides | Memory timing | Effective transfer | Loaded BW | Hierarchy eq ops/byte | Movement pJ/hierarchy byte | Dominant traffic tier | Dominant movement tier | Memory bottleneck tier | Worst tier pressure | Bandwidth saturation tier | Max bandwidth utilization | Min bandwidth headroom | Largest tier movement share | Off-chip share | Derate | Transfer overhead | Transfer/compute | Shared clients | Arbitration eff. | Calibration overhead | Latency | Throughput | BW-limited throughput | BW pressure | Contention latency | Contention transfer/compute | Contention pressure | Contention throughput | Interface traffic | Eq ops/byte | Movement share | Published reference | Source grade | Surrogate type | Provenance |
+| --- | --- | --- | ---: | ---: | --- | --- | --- | ---: | ---: | ---: | ---: | --- | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- |
 ${rows}
 
 ## Recommendations
@@ -4916,6 +5060,9 @@ ${notes}
       "dominant_movement_energy_tier",
       "contention_memory_bottleneck_tier",
       "max_tier_contention_adjusted_transfer_pressure_ratio",
+      "contention_bandwidth_saturation_tier",
+      "max_tier_contention_bandwidth_utilization",
+      "min_tier_contention_bandwidth_headroom_ratio",
       "max_tier_movement_energy_share",
       "off_chip_traffic_share",
       "contention_bandwidth_derate_factor",
@@ -4962,6 +5109,9 @@ ${notes}
         summary.dominant_movement_energy_tier,
         summary.contention_memory_bottleneck_tier,
         summary.max_tier_contention_adjusted_transfer_pressure_ratio,
+        summary.contention_bandwidth_saturation_tier,
+        summary.max_tier_contention_bandwidth_utilization,
+        summary.min_tier_contention_bandwidth_headroom_ratio,
         summary.max_tier_movement_energy_share,
         summary.off_chip_traffic_share,
         summary.contention_bandwidth_derate_factor,

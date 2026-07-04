@@ -136,7 +136,11 @@ window.PhotonicBenchPayloadRegistry["nature_pace_64x64_calibrated.json"] = {
           "nominal_transfer_share": 0.015625,
           "contention_adjusted_transfer_share": 0.015625,
           "nominal_transfer_pressure_ratio": 0.825,
-          "contention_adjusted_transfer_pressure_ratio": 0.825
+          "contention_adjusted_transfer_pressure_ratio": 0.825,
+          "compute_window_required_bandwidth_bytes_per_ns": 844.8,
+          "contention_bandwidth_utilization": 0.825,
+          "contention_bandwidth_headroom_bytes_per_ns": 179.20000000000005,
+          "contention_bandwidth_headroom_ratio": 1.2121212121212122
         },
         "intermediate": {
           "name": "intermediate",
@@ -158,7 +162,11 @@ window.PhotonicBenchPayloadRegistry["nature_pace_64x64_calibrated.json"] = {
           "nominal_transfer_share": 0.0625,
           "contention_adjusted_transfer_share": 0.0625,
           "nominal_transfer_pressure_ratio": 3.3,
-          "contention_adjusted_transfer_pressure_ratio": 3.3
+          "contention_adjusted_transfer_pressure_ratio": 3.3,
+          "compute_window_required_bandwidth_bytes_per_ns": 844.8,
+          "contention_bandwidth_utilization": 3.3,
+          "contention_bandwidth_headroom_bytes_per_ns": -588.8,
+          "contention_bandwidth_headroom_ratio": 0.30303030303030304
         },
         "off_chip": {
           "name": "off_chip",
@@ -180,7 +188,11 @@ window.PhotonicBenchPayloadRegistry["nature_pace_64x64_calibrated.json"] = {
           "nominal_transfer_share": 1.0,
           "contention_adjusted_transfer_share": 1.0,
           "nominal_transfer_pressure_ratio": 52.8,
-          "contention_adjusted_transfer_pressure_ratio": 52.8
+          "contention_adjusted_transfer_pressure_ratio": 52.8,
+          "compute_window_required_bandwidth_bytes_per_ns": 844.8,
+          "contention_bandwidth_utilization": 52.8,
+          "contention_bandwidth_headroom_bytes_per_ns": -828.8,
+          "contention_bandwidth_headroom_ratio": 0.01893939393939394
         }
       },
       "local_compute_and_conversion_energy_pj": 872.832,
@@ -202,6 +214,9 @@ window.PhotonicBenchPayloadRegistry["nature_pace_64x64_calibrated.json"] = {
       "max_tier_nominal_transfer_pressure_ratio": 52.8,
       "max_tier_contention_adjusted_transfer_pressure_ratio": 52.8,
       "max_tier_movement_energy_share": 0.9784735812133073,
+      "contention_bandwidth_saturation_tier": "off_chip",
+      "max_tier_contention_bandwidth_utilization": 52.8,
+      "min_tier_contention_bandwidth_headroom_ratio": 0.01893939393939394,
       "max_transfer_time_ns": 264.0,
       "serial_transfer_time_ns": 284.625,
       "effective_transfer_time_ns": 264.0,

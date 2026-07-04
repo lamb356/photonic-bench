@@ -252,6 +252,18 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
                 "max_tier_contention_adjusted_transfer_pressure_ratio"
                 in export_json["artifacts"][0]
             )
+            assert (
+                "contention_bandwidth_saturation_tier"
+                in export_json["artifacts"][0]
+            )
+            assert (
+                "max_tier_contention_bandwidth_utilization"
+                in export_json["artifacts"][0]
+            )
+            assert (
+                "min_tier_contention_bandwidth_headroom_ratio"
+                in export_json["artifacts"][0]
+            )
             assert "max_tier_movement_energy_share" in export_json["artifacts"][0]
             assert "transfer_to_compute_time_ratio" in export_json["artifacts"][0]
             assert (

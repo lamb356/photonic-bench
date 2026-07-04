@@ -136,7 +136,11 @@ window.PhotonicBenchPayloadRegistry["dong_2023_continuous_time_tensor_core_surro
           "nominal_transfer_share": 0.015625,
           "contention_adjusted_transfer_share": 0.015625,
           "nominal_transfer_pressure_ratio": 0.5947265625,
-          "contention_adjusted_transfer_pressure_ratio": 0.5947265625
+          "contention_adjusted_transfer_pressure_ratio": 0.5947265625,
+          "compute_window_required_bandwidth_bytes_per_ns": 609.0,
+          "contention_bandwidth_utilization": 0.5947265625,
+          "contention_bandwidth_headroom_bytes_per_ns": 415.0,
+          "contention_bandwidth_headroom_ratio": 1.6814449917898193
         },
         "intermediate": {
           "name": "intermediate",
@@ -158,7 +162,11 @@ window.PhotonicBenchPayloadRegistry["dong_2023_continuous_time_tensor_core_surro
           "nominal_transfer_share": 0.0625,
           "contention_adjusted_transfer_share": 0.0625,
           "nominal_transfer_pressure_ratio": 2.37890625,
-          "contention_adjusted_transfer_pressure_ratio": 2.37890625
+          "contention_adjusted_transfer_pressure_ratio": 2.37890625,
+          "compute_window_required_bandwidth_bytes_per_ns": 609.0,
+          "contention_bandwidth_utilization": 2.37890625,
+          "contention_bandwidth_headroom_bytes_per_ns": -353.0,
+          "contention_bandwidth_headroom_ratio": 0.42036124794745483
         },
         "off_chip": {
           "name": "off_chip",
@@ -180,7 +188,11 @@ window.PhotonicBenchPayloadRegistry["dong_2023_continuous_time_tensor_core_surro
           "nominal_transfer_share": 1.0,
           "contention_adjusted_transfer_share": 1.0,
           "nominal_transfer_pressure_ratio": 38.0625,
-          "contention_adjusted_transfer_pressure_ratio": 38.0625
+          "contention_adjusted_transfer_pressure_ratio": 38.0625,
+          "compute_window_required_bandwidth_bytes_per_ns": 609.0,
+          "contention_bandwidth_utilization": 38.0625,
+          "contention_bandwidth_headroom_bytes_per_ns": -593.0,
+          "contention_bandwidth_headroom_ratio": 0.026272577996715927
         }
       },
       "local_compute_and_conversion_energy_pj": 216.60000000000002,
@@ -202,6 +214,9 @@ window.PhotonicBenchPayloadRegistry["dong_2023_continuous_time_tensor_core_surro
       "max_tier_nominal_transfer_pressure_ratio": 38.0625,
       "max_tier_contention_adjusted_transfer_pressure_ratio": 38.0625,
       "max_tier_movement_energy_share": 0.9784735812133073,
+      "contention_bandwidth_saturation_tier": "off_chip",
+      "max_tier_contention_bandwidth_utilization": 38.0625,
+      "min_tier_contention_bandwidth_headroom_ratio": 0.026272577996715927,
       "max_transfer_time_ns": 38.0625,
       "serial_transfer_time_ns": 41.0361328125,
       "effective_transfer_time_ns": 38.0625,

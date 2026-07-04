@@ -136,7 +136,11 @@ window.PhotonicBenchPayloadRegistry["pappas_2025_awgr_262tops_surrogate.json"] =
           "nominal_transfer_share": 0.015625,
           "contention_adjusted_transfer_share": 0.015625,
           "nominal_transfer_pressure_ratio": 24.0,
-          "contention_adjusted_transfer_pressure_ratio": 24.0
+          "contention_adjusted_transfer_pressure_ratio": 24.0,
+          "compute_window_required_bandwidth_bytes_per_ns": 24576.0,
+          "contention_bandwidth_utilization": 24.0,
+          "contention_bandwidth_headroom_bytes_per_ns": -23552.0,
+          "contention_bandwidth_headroom_ratio": 0.041666666666666664
         },
         "intermediate": {
           "name": "intermediate",
@@ -158,7 +162,11 @@ window.PhotonicBenchPayloadRegistry["pappas_2025_awgr_262tops_surrogate.json"] =
           "nominal_transfer_share": 0.0625,
           "contention_adjusted_transfer_share": 0.0625,
           "nominal_transfer_pressure_ratio": 96.0,
-          "contention_adjusted_transfer_pressure_ratio": 96.0
+          "contention_adjusted_transfer_pressure_ratio": 96.0,
+          "compute_window_required_bandwidth_bytes_per_ns": 24576.0,
+          "contention_bandwidth_utilization": 96.0,
+          "contention_bandwidth_headroom_bytes_per_ns": -24320.0,
+          "contention_bandwidth_headroom_ratio": 0.010416666666666666
         },
         "off_chip": {
           "name": "off_chip",
@@ -180,7 +188,11 @@ window.PhotonicBenchPayloadRegistry["pappas_2025_awgr_262tops_surrogate.json"] =
           "nominal_transfer_share": 1.0,
           "contention_adjusted_transfer_share": 1.0,
           "nominal_transfer_pressure_ratio": 1536.0,
-          "contention_adjusted_transfer_pressure_ratio": 1536.0
+          "contention_adjusted_transfer_pressure_ratio": 1536.0,
+          "compute_window_required_bandwidth_bytes_per_ns": 24576.0,
+          "contention_bandwidth_utilization": 1536.0,
+          "contention_bandwidth_headroom_bytes_per_ns": -24560.0,
+          "contention_bandwidth_headroom_ratio": 0.0006510416666666666
         }
       },
       "local_compute_and_conversion_energy_pj": 241.15200000000002,
@@ -202,6 +214,9 @@ window.PhotonicBenchPayloadRegistry["pappas_2025_awgr_262tops_surrogate.json"] =
       "max_tier_nominal_transfer_pressure_ratio": 1536.0,
       "max_tier_contention_adjusted_transfer_pressure_ratio": 1536.0,
       "max_tier_movement_energy_share": 0.9784735812133072,
+      "contention_bandwidth_saturation_tier": "off_chip",
+      "max_tier_contention_bandwidth_utilization": 1536.0,
+      "min_tier_contention_bandwidth_headroom_ratio": 0.0006510416666666666,
       "max_transfer_time_ns": 48.0,
       "serial_transfer_time_ns": 51.75,
       "effective_transfer_time_ns": 48.0,

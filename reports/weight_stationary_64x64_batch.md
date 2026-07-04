@@ -57,11 +57,11 @@ photonic core/converter model. SRAM, intermediate, and off-chip traffic are
 cumulative tier movements, not published measurements and not a cache
 simulator.
 
-| Tier | Read bytes | Write bytes | Movement energy | Traffic share | Movement share | Transfer time | Guardbanded transfer | Tier pressure | Effective bandwidth |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| SRAM | 69632 bytes | 65536 bytes | 2703.360 pJ | 33.33% | 0.20% | 132.000 ns | 132.000 ns | 3.77143 | 1024.000 bytes/ns |
-| Intermediate/cache | 69632 bytes | 65536 bytes | 27033.600 pJ | 33.33% | 1.96% | 528.000 ns | 528.000 ns | 15.0857 | 256.000 bytes/ns |
-| Off-chip/DRAM | 69632 bytes | 65536 bytes | 1351680.000 pJ | 33.33% | 97.85% | 8448.000 ns | 8448.000 ns | 241.371 | 16.000 bytes/ns |
+| Tier | Read bytes | Write bytes | Movement energy | Traffic share | Movement share | Transfer time | Guardbanded transfer | Tier pressure | Effective bandwidth | Required bandwidth | Utilization | Headroom |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| SRAM | 69632 bytes | 65536 bytes | 2703.360 pJ | 33.33% | 0.20% | 132.000 ns | 132.000 ns | 3.77143 | 1024.000 bytes/ns | 3861.943 bytes/ns | 3.77143 | -2837.943 bytes/ns |
+| Intermediate/cache | 69632 bytes | 65536 bytes | 27033.600 pJ | 33.33% | 1.96% | 528.000 ns | 528.000 ns | 15.0857 | 256.000 bytes/ns | 3861.943 bytes/ns | 15.0857 | -3605.943 bytes/ns |
+| Off-chip/DRAM | 69632 bytes | 65536 bytes | 1351680.000 pJ | 33.33% | 97.85% | 8448.000 ns | 8448.000 ns | 241.371 | 16.000 bytes/ns | 3861.943 bytes/ns | 241.371 | -3845.943 bytes/ns |
 
 | Metric | Value |
 | --- | ---: |
@@ -90,6 +90,9 @@ simulator.
 | Max tier nominal pressure ratio | 241.371 |
 | Max tier contention pressure ratio | 241.371 |
 | Max tier movement-energy share | 97.85% |
+| Contention bandwidth saturation tier | off_chip |
+| Max tier contention bandwidth utilization | 241.371 |
+| Min tier contention bandwidth headroom ratio | 0.00414299 |
 | Max transfer time | 8448.000 ns |
 | Serialized transfer time | 9108.000 ns |
 | Effective transfer time | 8448.000 ns |

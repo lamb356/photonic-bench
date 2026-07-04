@@ -102,6 +102,20 @@ def test_evaluate_matmul_energy_accounting() -> None:
         56 / 16
     )
     assert (
+        result.system.off_chip.compute_window_required_bandwidth_bytes_per_ns
+        == pytest.approx(56 / 5)
+    )
+    assert result.system.off_chip.contention_bandwidth_utilization == pytest.approx(
+        (56 / 5) / 16
+    )
+    assert (
+        result.system.off_chip.contention_bandwidth_headroom_bytes_per_ns
+        == pytest.approx(16 - (56 / 5))
+    )
+    assert result.system.off_chip.contention_bandwidth_headroom_ratio == pytest.approx(
+        16 / (56 / 5)
+    )
+    assert (
         result.system.off_chip.contention_adjusted_transfer_pressure_ratio
         == pytest.approx((56 / 16) / 5)
     )
@@ -112,6 +126,13 @@ def test_evaluate_matmul_energy_accounting() -> None:
         pytest.approx((56 / 16) / 5)
     )
     assert result.system.max_tier_movement_energy_share == pytest.approx(560 / 572.32)
+    assert result.system.contention_bandwidth_saturation_tier == "off_chip"
+    assert result.system.max_tier_contention_bandwidth_utilization == pytest.approx(
+        (56 / 5) / 16
+    )
+    assert result.system.min_tier_contention_bandwidth_headroom_ratio == pytest.approx(
+        16 / (56 / 5)
+    )
     assert result.system.max_transfer_time_ns == pytest.approx(56 / 16)
     assert result.system.serial_transfer_time_ns == pytest.approx(
         (56 / 1024) + (56 / 256) + (56 / 16)
@@ -166,6 +187,16 @@ def test_evaluate_applies_shared_bandwidth_contention_and_calibration_guardband(
     assert result.system.off_chip.calibration_adjusted_transfer_time_ns == pytest.approx(
         (56 / 4) * 1.25
     )
+    assert result.system.off_chip.contention_bandwidth_utilization == pytest.approx(
+        (56 / 5) / 4
+    )
+    assert (
+        result.system.off_chip.contention_bandwidth_headroom_bytes_per_ns
+        == pytest.approx(4 - (56 / 5))
+    )
+    assert result.system.off_chip.contention_bandwidth_headroom_ratio == pytest.approx(
+        4 / (56 / 5)
+    )
     assert result.system.contention_adjusted_batch_latency_ns == pytest.approx(17.5)
     assert result.system.contention_adjusted_transfer_to_compute_time_ratio == (
         pytest.approx(17.5 / 5)
@@ -174,6 +205,13 @@ def test_evaluate_applies_shared_bandwidth_contention_and_calibration_guardband(
     assert result.system.contention_memory_bottleneck_tier == "off_chip"
     assert result.system.max_tier_contention_adjusted_transfer_pressure_ratio == (
         pytest.approx(17.5 / 5)
+    )
+    assert result.system.contention_bandwidth_saturation_tier == "off_chip"
+    assert result.system.max_tier_contention_bandwidth_utilization == pytest.approx(
+        (56 / 5) / 4
+    )
+    assert result.system.min_tier_contention_bandwidth_headroom_ratio == pytest.approx(
+        4 / (56 / 5)
     )
     assert result.system.contention_adjusted_equivalent_ops_per_second == pytest.approx(
         128 / (17.5e-9)

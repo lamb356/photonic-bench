@@ -136,7 +136,11 @@ window.PhotonicBenchPayloadRegistry["prapas_2025_tsw_pitc_surrogate.json"] = {
           "nominal_transfer_share": 0.015625,
           "contention_adjusted_transfer_share": 0.015625,
           "nominal_transfer_pressure_ratio": 0.1875,
-          "contention_adjusted_transfer_pressure_ratio": 0.1875
+          "contention_adjusted_transfer_pressure_ratio": 0.1875,
+          "compute_window_required_bandwidth_bytes_per_ns": 192.0,
+          "contention_bandwidth_utilization": 0.1875,
+          "contention_bandwidth_headroom_bytes_per_ns": 832.0,
+          "contention_bandwidth_headroom_ratio": 5.333333333333333
         },
         "intermediate": {
           "name": "intermediate",
@@ -158,7 +162,11 @@ window.PhotonicBenchPayloadRegistry["prapas_2025_tsw_pitc_surrogate.json"] = {
           "nominal_transfer_share": 0.0625,
           "contention_adjusted_transfer_share": 0.0625,
           "nominal_transfer_pressure_ratio": 0.75,
-          "contention_adjusted_transfer_pressure_ratio": 0.75
+          "contention_adjusted_transfer_pressure_ratio": 0.75,
+          "compute_window_required_bandwidth_bytes_per_ns": 192.0,
+          "contention_bandwidth_utilization": 0.75,
+          "contention_bandwidth_headroom_bytes_per_ns": 64.0,
+          "contention_bandwidth_headroom_ratio": 1.3333333333333333
         },
         "off_chip": {
           "name": "off_chip",
@@ -180,7 +188,11 @@ window.PhotonicBenchPayloadRegistry["prapas_2025_tsw_pitc_surrogate.json"] = {
           "nominal_transfer_share": 1.0,
           "contention_adjusted_transfer_share": 1.0,
           "nominal_transfer_pressure_ratio": 12.0,
-          "contention_adjusted_transfer_pressure_ratio": 12.0
+          "contention_adjusted_transfer_pressure_ratio": 12.0,
+          "compute_window_required_bandwidth_bytes_per_ns": 192.0,
+          "contention_bandwidth_utilization": 12.0,
+          "contention_bandwidth_headroom_bytes_per_ns": -176.0,
+          "contention_bandwidth_headroom_ratio": 0.08333333333333333
         }
       },
       "local_compute_and_conversion_energy_pj": 59.264,
@@ -202,6 +214,9 @@ window.PhotonicBenchPayloadRegistry["prapas_2025_tsw_pitc_surrogate.json"] = {
       "max_tier_nominal_transfer_pressure_ratio": 12.0,
       "max_tier_contention_adjusted_transfer_pressure_ratio": 12.0,
       "max_tier_movement_energy_share": 0.9784735812133072,
+      "contention_bandwidth_saturation_tier": "off_chip",
+      "max_tier_contention_bandwidth_utilization": 12.0,
+      "min_tier_contention_bandwidth_headroom_ratio": 0.08333333333333333,
       "max_transfer_time_ns": 12.0,
       "serial_transfer_time_ns": 12.9375,
       "effective_transfer_time_ns": 12.0,

@@ -136,7 +136,11 @@ window.PhotonicBenchPayloadRegistry["meyer_2026_reconfigurable_ptp_surrogate.jso
           "nominal_transfer_share": 0.015625,
           "contention_adjusted_transfer_share": 0.015625,
           "nominal_transfer_pressure_ratio": 0.0380859375,
-          "contention_adjusted_transfer_pressure_ratio": 0.0380859375
+          "contention_adjusted_transfer_pressure_ratio": 0.0380859375,
+          "compute_window_required_bandwidth_bytes_per_ns": 39.0,
+          "contention_bandwidth_utilization": 0.0380859375,
+          "contention_bandwidth_headroom_bytes_per_ns": 985.0,
+          "contention_bandwidth_headroom_ratio": 26.256410256410255
         },
         "intermediate": {
           "name": "intermediate",
@@ -158,7 +162,11 @@ window.PhotonicBenchPayloadRegistry["meyer_2026_reconfigurable_ptp_surrogate.jso
           "nominal_transfer_share": 0.0625,
           "contention_adjusted_transfer_share": 0.0625,
           "nominal_transfer_pressure_ratio": 0.15234375,
-          "contention_adjusted_transfer_pressure_ratio": 0.15234375
+          "contention_adjusted_transfer_pressure_ratio": 0.15234375,
+          "compute_window_required_bandwidth_bytes_per_ns": 39.0,
+          "contention_bandwidth_utilization": 0.15234375,
+          "contention_bandwidth_headroom_bytes_per_ns": 217.0,
+          "contention_bandwidth_headroom_ratio": 6.564102564102564
         },
         "off_chip": {
           "name": "off_chip",
@@ -180,7 +188,11 @@ window.PhotonicBenchPayloadRegistry["meyer_2026_reconfigurable_ptp_surrogate.jso
           "nominal_transfer_share": 1.0,
           "contention_adjusted_transfer_share": 1.0,
           "nominal_transfer_pressure_ratio": 2.4375,
-          "contention_adjusted_transfer_pressure_ratio": 2.4375
+          "contention_adjusted_transfer_pressure_ratio": 2.4375,
+          "compute_window_required_bandwidth_bytes_per_ns": 39.0,
+          "contention_bandwidth_utilization": 2.4375,
+          "contention_bandwidth_headroom_bytes_per_ns": -23.0,
+          "contention_bandwidth_headroom_ratio": 0.41025641025641024
         }
       },
       "local_compute_and_conversion_energy_pj": 8.784,
@@ -202,6 +214,9 @@ window.PhotonicBenchPayloadRegistry["meyer_2026_reconfigurable_ptp_surrogate.jso
       "max_tier_nominal_transfer_pressure_ratio": 2.4375,
       "max_tier_contention_adjusted_transfer_pressure_ratio": 2.4375,
       "max_tier_movement_energy_share": 0.9784735812133073,
+      "contention_bandwidth_saturation_tier": "off_chip",
+      "max_tier_contention_bandwidth_utilization": 2.4375,
+      "min_tier_contention_bandwidth_headroom_ratio": 0.41025641025641024,
       "max_transfer_time_ns": 2.4375,
       "serial_transfer_time_ns": 2.6279296875,
       "effective_transfer_time_ns": 2.4375,

@@ -66,6 +66,9 @@ class ArtifactSummary:
     max_tier_nominal_transfer_pressure_ratio: float | None
     max_tier_contention_adjusted_transfer_pressure_ratio: float | None
     max_tier_movement_energy_share: float | None
+    contention_bandwidth_saturation_tier: str | None
+    max_tier_contention_bandwidth_utilization: float | None
+    min_tier_contention_bandwidth_headroom_ratio: float | None
     bandwidth_limited_latency_ns: float | None
     bandwidth_pressure_ratio: float | None
     bandwidth_limited_throughput_equivalent_ops_per_second: float | None
@@ -594,6 +597,25 @@ def _load_matmul_artifact(
             "max_tier_movement_energy_share",
             source=source_path,
         ),
+        contention_bandwidth_saturation_tier=_optional_system_str(
+            payload,
+            "contention_bandwidth_saturation_tier",
+            source_path,
+        ),
+        max_tier_contention_bandwidth_utilization=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "max_tier_contention_bandwidth_utilization",
+            source=source_path,
+        ),
+        min_tier_contention_bandwidth_headroom_ratio=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "min_tier_contention_bandwidth_headroom_ratio",
+            source=source_path,
+        ),
         off_chip_traffic_share=_optional_number(
             payload,
             "local_model",
@@ -915,6 +937,25 @@ def _load_transformer_layer_artifact(
             "max_tier_movement_energy_share",
             source=source_path,
         ),
+        contention_bandwidth_saturation_tier=_optional_system_str(
+            payload,
+            "contention_bandwidth_saturation_tier",
+            source_path,
+        ),
+        max_tier_contention_bandwidth_utilization=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "max_tier_contention_bandwidth_utilization",
+            source=source_path,
+        ),
+        min_tier_contention_bandwidth_headroom_ratio=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "min_tier_contention_bandwidth_headroom_ratio",
+            source=source_path,
+        ),
         off_chip_traffic_share=_optional_number(
             payload,
             "local_model",
@@ -1234,6 +1275,25 @@ def _load_transformer_model_artifact(
             "local_model",
             "system",
             "max_tier_movement_energy_share",
+            source=source_path,
+        ),
+        contention_bandwidth_saturation_tier=_optional_system_str(
+            payload,
+            "contention_bandwidth_saturation_tier",
+            source_path,
+        ),
+        max_tier_contention_bandwidth_utilization=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "max_tier_contention_bandwidth_utilization",
+            source=source_path,
+        ),
+        min_tier_contention_bandwidth_headroom_ratio=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "min_tier_contention_bandwidth_headroom_ratio",
             source=source_path,
         ),
         off_chip_traffic_share=_optional_number(

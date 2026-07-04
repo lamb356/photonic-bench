@@ -135,7 +135,11 @@
           "nominal_transfer_share": 0.015625,
           "contention_adjusted_transfer_share": 0.015625,
           "nominal_transfer_pressure_ratio": 537.111328125,
-          "contention_adjusted_transfer_pressure_ratio": 537.111328125
+          "contention_adjusted_transfer_pressure_ratio": 537.111328125,
+          "compute_window_required_bandwidth_bytes_per_ns": 550002.0,
+          "contention_bandwidth_utilization": 537.111328125,
+          "contention_bandwidth_headroom_bytes_per_ns": -548978.0,
+          "contention_bandwidth_headroom_ratio": 0.001861811411594867
         },
         "intermediate": {
           "name": "intermediate",
@@ -157,7 +161,11 @@
           "nominal_transfer_share": 0.0625,
           "contention_adjusted_transfer_share": 0.0625,
           "nominal_transfer_pressure_ratio": 2148.4453125,
-          "contention_adjusted_transfer_pressure_ratio": 2148.4453125
+          "contention_adjusted_transfer_pressure_ratio": 2148.4453125,
+          "compute_window_required_bandwidth_bytes_per_ns": 550002.0,
+          "contention_bandwidth_utilization": 2148.4453125,
+          "contention_bandwidth_headroom_bytes_per_ns": -549746.0,
+          "contention_bandwidth_headroom_ratio": 0.00046545285289871676
         },
         "off_chip": {
           "name": "off_chip",
@@ -179,7 +187,11 @@
           "nominal_transfer_share": 1.0,
           "contention_adjusted_transfer_share": 1.0,
           "nominal_transfer_pressure_ratio": 34375.125,
-          "contention_adjusted_transfer_pressure_ratio": 34375.125
+          "contention_adjusted_transfer_pressure_ratio": 34375.125,
+          "compute_window_required_bandwidth_bytes_per_ns": 550002.0,
+          "contention_bandwidth_utilization": 34375.125,
+          "contention_bandwidth_headroom_bytes_per_ns": -549986.0,
+          "contention_bandwidth_headroom_ratio": 2.9090803306169797e-05
         }
       },
       "local_compute_and_conversion_energy_pj": 555005.1,
@@ -201,6 +213,9 @@
       "max_tier_nominal_transfer_pressure_ratio": 34375.125,
       "max_tier_contention_adjusted_transfer_pressure_ratio": 34375.125,
       "max_tier_movement_energy_share": 0.9784735812133073,
+      "contention_bandwidth_saturation_tier": "off_chip",
+      "max_tier_contention_bandwidth_utilization": 34375.125,
+      "min_tier_contention_bandwidth_headroom_ratio": 2.9090803306169797e-05,
       "max_transfer_time_ns": 171875.625,
       "serial_transfer_time_ns": 185303.408203125,
       "effective_transfer_time_ns": 171875.625,

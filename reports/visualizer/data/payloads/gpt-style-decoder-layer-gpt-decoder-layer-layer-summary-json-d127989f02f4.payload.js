@@ -75,12 +75,18 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_l
           "transfer_time_ns": 44736.0,
           "contention_adjusted_transfer_time_ns": 44736.0,
           "calibration_adjusted_transfer_time_ns": 44736.0,
+          "bandwidth_bytes_per_ns": 1024.0,
+          "effective_bandwidth_bytes_per_ns": 1024.0,
           "traffic_share": 0.3333333333333333,
           "movement_energy_share": 0.001956947162426615,
           "nominal_transfer_share": 0.015625,
           "contention_adjusted_transfer_share": 0.015625,
           "nominal_transfer_pressure_ratio": 648.3478260869565,
-          "contention_adjusted_transfer_pressure_ratio": 648.3478260869565
+          "contention_adjusted_transfer_pressure_ratio": 648.3478260869565,
+          "compute_window_required_bandwidth_bytes_per_ns": 663908.1739130435,
+          "contention_bandwidth_utilization": 648.3478260869565,
+          "contention_bandwidth_headroom_bytes_per_ns": -662884.1739130435,
+          "contention_bandwidth_headroom_ratio": 0.001542381974248927
         },
         "intermediate": {
           "name": "intermediate",
@@ -93,12 +99,18 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_l
           "transfer_time_ns": 178944.0,
           "contention_adjusted_transfer_time_ns": 178944.0,
           "calibration_adjusted_transfer_time_ns": 178944.0,
+          "bandwidth_bytes_per_ns": 256.0,
+          "effective_bandwidth_bytes_per_ns": 256.0,
           "traffic_share": 0.3333333333333333,
           "movement_energy_share": 0.019569471624266147,
           "nominal_transfer_share": 0.0625,
           "contention_adjusted_transfer_share": 0.0625,
           "nominal_transfer_pressure_ratio": 2593.391304347826,
-          "contention_adjusted_transfer_pressure_ratio": 2593.391304347826
+          "contention_adjusted_transfer_pressure_ratio": 2593.391304347826,
+          "compute_window_required_bandwidth_bytes_per_ns": 663908.1739130435,
+          "contention_bandwidth_utilization": 2593.391304347826,
+          "contention_bandwidth_headroom_bytes_per_ns": -663652.1739130435,
+          "contention_bandwidth_headroom_ratio": 0.00038559549356223174
         },
         "off_chip": {
           "name": "off_chip",
@@ -111,12 +123,18 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_l
           "transfer_time_ns": 2863104.0,
           "contention_adjusted_transfer_time_ns": 2863104.0,
           "calibration_adjusted_transfer_time_ns": 2863104.0,
+          "bandwidth_bytes_per_ns": 16.0,
+          "effective_bandwidth_bytes_per_ns": 16.0,
           "traffic_share": 0.3333333333333333,
           "movement_energy_share": 0.9784735812133073,
           "nominal_transfer_share": 1.0,
           "contention_adjusted_transfer_share": 1.0,
           "nominal_transfer_pressure_ratio": 41494.260869565216,
-          "contention_adjusted_transfer_pressure_ratio": 41494.260869565216
+          "contention_adjusted_transfer_pressure_ratio": 41494.260869565216,
+          "compute_window_required_bandwidth_bytes_per_ns": 663908.1739130435,
+          "contention_bandwidth_utilization": 41494.260869565216,
+          "contention_bandwidth_headroom_bytes_per_ns": -663892.1739130435,
+          "contention_bandwidth_headroom_ratio": 2.4099718347639484e-05
         }
       },
       "serial_transfer_time_ns": 2863104.0,
@@ -151,6 +169,9 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_l
       "max_tier_nominal_transfer_pressure_ratio": 41494.260869565216,
       "max_tier_contention_adjusted_transfer_pressure_ratio": 41494.260869565216,
       "max_tier_movement_energy_share": 0.9784735812133073,
+      "contention_bandwidth_saturation_tier": "off_chip",
+      "max_tier_contention_bandwidth_utilization": 41494.260869565216,
+      "min_tier_contention_bandwidth_headroom_ratio": 2.4099718347639484e-05,
       "bandwidth_limited_serial_effective_macs_per_second": 2883021459227.468,
       "bandwidth_limited_serial_effective_equivalent_ops_per_second": 5766042918454.936,
       "contention_adjusted_serial_effective_macs_per_second": 2883021459227.468,
@@ -386,7 +407,11 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_l
               "nominal_transfer_share": 0.015625,
               "contention_adjusted_transfer_share": 0.015625,
               "nominal_transfer_pressure_ratio": 960.0,
-              "contention_adjusted_transfer_pressure_ratio": 960.0
+              "contention_adjusted_transfer_pressure_ratio": 960.0,
+              "compute_window_required_bandwidth_bytes_per_ns": 983040.0,
+              "contention_bandwidth_utilization": 960.0,
+              "contention_bandwidth_headroom_bytes_per_ns": -982016.0,
+              "contention_bandwidth_headroom_ratio": 0.0010416666666666667
             },
             "intermediate": {
               "name": "intermediate",
@@ -408,7 +433,11 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_l
               "nominal_transfer_share": 0.0625,
               "contention_adjusted_transfer_share": 0.0625,
               "nominal_transfer_pressure_ratio": 3840.0,
-              "contention_adjusted_transfer_pressure_ratio": 3840.0
+              "contention_adjusted_transfer_pressure_ratio": 3840.0,
+              "compute_window_required_bandwidth_bytes_per_ns": 983040.0,
+              "contention_bandwidth_utilization": 3840.0,
+              "contention_bandwidth_headroom_bytes_per_ns": -982784.0,
+              "contention_bandwidth_headroom_ratio": 0.00026041666666666666
             },
             "off_chip": {
               "name": "off_chip",
@@ -430,7 +459,11 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_l
               "nominal_transfer_share": 1.0,
               "contention_adjusted_transfer_share": 1.0,
               "nominal_transfer_pressure_ratio": 61440.0,
-              "contention_adjusted_transfer_pressure_ratio": 61440.0
+              "contention_adjusted_transfer_pressure_ratio": 61440.0,
+              "compute_window_required_bandwidth_bytes_per_ns": 983040.0,
+              "contention_bandwidth_utilization": 61440.0,
+              "contention_bandwidth_headroom_bytes_per_ns": -983024.0,
+              "contention_bandwidth_headroom_ratio": 1.6276041666666666e-05
             }
           },
           "local_compute_and_conversion_energy_pj": 5717753.856000001,
@@ -452,6 +485,9 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_l
           "max_tier_nominal_transfer_pressure_ratio": 61440.0,
           "max_tier_contention_adjusted_transfer_pressure_ratio": 61440.0,
           "max_tier_movement_energy_share": 0.9784735812133072,
+          "contention_bandwidth_saturation_tier": "off_chip",
+          "max_tier_contention_bandwidth_utilization": 61440.0,
+          "min_tier_contention_bandwidth_headroom_ratio": 1.6276041666666666e-05,
           "max_transfer_time_ns": 307200.0,
           "serial_transfer_time_ns": 331200.0,
           "effective_transfer_time_ns": 307200.0,
@@ -676,7 +712,11 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_l
               "nominal_transfer_share": 0.015625,
               "contention_adjusted_transfer_share": 0.015625,
               "nominal_transfer_pressure_ratio": 512.0,
-              "contention_adjusted_transfer_pressure_ratio": 512.0
+              "contention_adjusted_transfer_pressure_ratio": 512.0,
+              "compute_window_required_bandwidth_bytes_per_ns": 524288.0,
+              "contention_bandwidth_utilization": 512.0,
+              "contention_bandwidth_headroom_bytes_per_ns": -523264.0,
+              "contention_bandwidth_headroom_ratio": 0.001953125
             },
             "intermediate": {
               "name": "intermediate",
@@ -698,7 +738,11 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_l
               "nominal_transfer_share": 0.0625,
               "contention_adjusted_transfer_share": 0.0625,
               "nominal_transfer_pressure_ratio": 2048.0,
-              "contention_adjusted_transfer_pressure_ratio": 2048.0
+              "contention_adjusted_transfer_pressure_ratio": 2048.0,
+              "compute_window_required_bandwidth_bytes_per_ns": 524288.0,
+              "contention_bandwidth_utilization": 2048.0,
+              "contention_bandwidth_headroom_bytes_per_ns": -524032.0,
+              "contention_bandwidth_headroom_ratio": 0.00048828125
             },
             "off_chip": {
               "name": "off_chip",
@@ -720,7 +764,11 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_l
               "nominal_transfer_share": 1.0,
               "contention_adjusted_transfer_share": 1.0,
               "nominal_transfer_pressure_ratio": 32768.0,
-              "contention_adjusted_transfer_pressure_ratio": 32768.0
+              "contention_adjusted_transfer_pressure_ratio": 32768.0,
+              "compute_window_required_bandwidth_bytes_per_ns": 524288.0,
+              "contention_bandwidth_utilization": 32768.0,
+              "contention_bandwidth_headroom_bytes_per_ns": -524272.0,
+              "contention_bandwidth_headroom_ratio": 3.0517578125e-05
             }
           },
           "local_compute_and_conversion_energy_pj": 8476164.096,
@@ -742,6 +790,9 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_l
           "max_tier_nominal_transfer_pressure_ratio": 32768.0,
           "max_tier_contention_adjusted_transfer_pressure_ratio": 32768.0,
           "max_tier_movement_energy_share": 0.9784735812133073,
+          "contention_bandwidth_saturation_tier": "off_chip",
+          "max_tier_contention_bandwidth_utilization": 32768.0,
+          "min_tier_contention_bandwidth_headroom_ratio": 3.0517578125e-05,
           "max_transfer_time_ns": 884736.0,
           "serial_transfer_time_ns": 953856.0,
           "effective_transfer_time_ns": 884736.0,
@@ -966,7 +1017,11 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_l
               "nominal_transfer_share": 0.015625,
               "contention_adjusted_transfer_share": 0.015625,
               "nominal_transfer_pressure_ratio": 512.0,
-              "contention_adjusted_transfer_pressure_ratio": 512.0
+              "contention_adjusted_transfer_pressure_ratio": 512.0,
+              "compute_window_required_bandwidth_bytes_per_ns": 524288.0,
+              "contention_bandwidth_utilization": 512.0,
+              "contention_bandwidth_headroom_bytes_per_ns": -523264.0,
+              "contention_bandwidth_headroom_ratio": 0.001953125
             },
             "intermediate": {
               "name": "intermediate",
@@ -988,7 +1043,11 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_l
               "nominal_transfer_share": 0.0625,
               "contention_adjusted_transfer_share": 0.0625,
               "nominal_transfer_pressure_ratio": 2048.0,
-              "contention_adjusted_transfer_pressure_ratio": 2048.0
+              "contention_adjusted_transfer_pressure_ratio": 2048.0,
+              "compute_window_required_bandwidth_bytes_per_ns": 524288.0,
+              "contention_bandwidth_utilization": 2048.0,
+              "contention_bandwidth_headroom_bytes_per_ns": -524032.0,
+              "contention_bandwidth_headroom_ratio": 0.00048828125
             },
             "off_chip": {
               "name": "off_chip",
@@ -1010,7 +1069,11 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_l
               "nominal_transfer_share": 1.0,
               "contention_adjusted_transfer_share": 1.0,
               "nominal_transfer_pressure_ratio": 32768.0,
-              "contention_adjusted_transfer_pressure_ratio": 32768.0
+              "contention_adjusted_transfer_pressure_ratio": 32768.0,
+              "compute_window_required_bandwidth_bytes_per_ns": 524288.0,
+              "contention_bandwidth_utilization": 32768.0,
+              "contention_bandwidth_headroom_bytes_per_ns": -524272.0,
+              "contention_bandwidth_headroom_ratio": 3.0517578125e-05
             }
           },
           "local_compute_and_conversion_energy_pj": 3875536.8959999997,
@@ -1032,6 +1095,9 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_l
           "max_tier_nominal_transfer_pressure_ratio": 32768.0,
           "max_tier_contention_adjusted_transfer_pressure_ratio": 32768.0,
           "max_tier_movement_energy_share": 0.9784735812133073,
+          "contention_bandwidth_saturation_tier": "off_chip",
+          "max_tier_contention_bandwidth_utilization": 32768.0,
+          "min_tier_contention_bandwidth_headroom_ratio": 3.0517578125e-05,
           "max_transfer_time_ns": 884736.0,
           "serial_transfer_time_ns": 953856.0,
           "effective_transfer_time_ns": 884736.0,
@@ -1256,7 +1322,11 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_l
               "nominal_transfer_share": 0.015625,
               "contention_adjusted_transfer_share": 0.015625,
               "nominal_transfer_pressure_ratio": 1228.8,
-              "contention_adjusted_transfer_pressure_ratio": 1228.8
+              "contention_adjusted_transfer_pressure_ratio": 1228.8,
+              "compute_window_required_bandwidth_bytes_per_ns": 1258291.2,
+              "contention_bandwidth_utilization": 1228.8,
+              "contention_bandwidth_headroom_bytes_per_ns": -1257267.2,
+              "contention_bandwidth_headroom_ratio": 0.0008138020833333334
             },
             "intermediate": {
               "name": "intermediate",
@@ -1278,7 +1348,11 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_l
               "nominal_transfer_share": 0.0625,
               "contention_adjusted_transfer_share": 0.0625,
               "nominal_transfer_pressure_ratio": 4915.2,
-              "contention_adjusted_transfer_pressure_ratio": 4915.2
+              "contention_adjusted_transfer_pressure_ratio": 4915.2,
+              "compute_window_required_bandwidth_bytes_per_ns": 1258291.2,
+              "contention_bandwidth_utilization": 4915.2,
+              "contention_bandwidth_headroom_bytes_per_ns": -1258035.2,
+              "contention_bandwidth_headroom_ratio": 0.00020345052083333334
             },
             "off_chip": {
               "name": "off_chip",
@@ -1300,7 +1374,11 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_l
               "nominal_transfer_share": 1.0,
               "contention_adjusted_transfer_share": 1.0,
               "nominal_transfer_pressure_ratio": 78643.2,
-              "contention_adjusted_transfer_pressure_ratio": 78643.2
+              "contention_adjusted_transfer_pressure_ratio": 78643.2,
+              "compute_window_required_bandwidth_bytes_per_ns": 1258291.2,
+              "contention_bandwidth_utilization": 78643.2,
+              "contention_bandwidth_headroom_bytes_per_ns": -1258275.2,
+              "contention_bandwidth_headroom_ratio": 1.2715657552083334e-05
             }
           },
           "local_compute_and_conversion_energy_pj": 7592214.528,
@@ -1322,6 +1400,9 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_l
           "max_tier_nominal_transfer_pressure_ratio": 78643.2,
           "max_tier_contention_adjusted_transfer_pressure_ratio": 78643.2,
           "max_tier_movement_energy_share": 0.9784735812133072,
+          "contention_bandwidth_saturation_tier": "off_chip",
+          "max_tier_contention_bandwidth_utilization": 78643.2,
+          "min_tier_contention_bandwidth_headroom_ratio": 1.2715657552083334e-05,
           "max_transfer_time_ns": 393216.0,
           "serial_transfer_time_ns": 423936.0,
           "effective_transfer_time_ns": 393216.0,
@@ -1546,7 +1627,11 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_l
               "nominal_transfer_share": 0.015625,
               "contention_adjusted_transfer_share": 0.015625,
               "nominal_transfer_pressure_ratio": 1228.8,
-              "contention_adjusted_transfer_pressure_ratio": 1228.8
+              "contention_adjusted_transfer_pressure_ratio": 1228.8,
+              "compute_window_required_bandwidth_bytes_per_ns": 1258291.2,
+              "contention_bandwidth_utilization": 1228.8,
+              "contention_bandwidth_headroom_bytes_per_ns": -1257267.2,
+              "contention_bandwidth_headroom_ratio": 0.0008138020833333334
             },
             "intermediate": {
               "name": "intermediate",
@@ -1568,7 +1653,11 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_l
               "nominal_transfer_share": 0.0625,
               "contention_adjusted_transfer_share": 0.0625,
               "nominal_transfer_pressure_ratio": 4915.2,
-              "contention_adjusted_transfer_pressure_ratio": 4915.2
+              "contention_adjusted_transfer_pressure_ratio": 4915.2,
+              "compute_window_required_bandwidth_bytes_per_ns": 1258291.2,
+              "contention_bandwidth_utilization": 4915.2,
+              "contention_bandwidth_headroom_bytes_per_ns": -1258035.2,
+              "contention_bandwidth_headroom_ratio": 0.00020345052083333334
             },
             "off_chip": {
               "name": "off_chip",
@@ -1590,7 +1679,11 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_l
               "nominal_transfer_share": 1.0,
               "contention_adjusted_transfer_share": 1.0,
               "nominal_transfer_pressure_ratio": 78643.2,
-              "contention_adjusted_transfer_pressure_ratio": 78643.2
+              "contention_adjusted_transfer_pressure_ratio": 78643.2,
+              "compute_window_required_bandwidth_bytes_per_ns": 1258291.2,
+              "contention_bandwidth_utilization": 78643.2,
+              "contention_bandwidth_headroom_bytes_per_ns": -1258275.2,
+              "contention_bandwidth_headroom_ratio": 1.2715657552083334e-05
             }
           },
           "local_compute_and_conversion_energy_pj": 6672089.0879999995,
@@ -1612,6 +1705,9 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_l
           "max_tier_nominal_transfer_pressure_ratio": 78643.2,
           "max_tier_contention_adjusted_transfer_pressure_ratio": 78643.2,
           "max_tier_movement_energy_share": 0.9784735812133072,
+          "contention_bandwidth_saturation_tier": "off_chip",
+          "max_tier_contention_bandwidth_utilization": 78643.2,
+          "min_tier_contention_bandwidth_headroom_ratio": 1.2715657552083334e-05,
           "max_transfer_time_ns": 393216.0,
           "serial_transfer_time_ns": 423936.0,
           "effective_transfer_time_ns": 393216.0,

@@ -108,11 +108,11 @@ photonic core/converter model. SRAM, intermediate, and off-chip traffic are
 cumulative tier movements, not published measurements and not a cache
 simulator.
 
-| Tier | Read bytes | Write bytes | Movement energy | Traffic share | Movement share | Transfer time | Guardbanded transfer | Tier pressure | Effective bandwidth |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| SRAM | 8192 bytes | 4096 bytes | 245.760 pJ | 33.33% | 0.20% | 12.000 ns | 12.000 ns | 12 | 1024.000 bytes/ns |
-| Intermediate/cache | 8192 bytes | 4096 bytes | 2457.600 pJ | 33.33% | 1.96% | 48.000 ns | 48.000 ns | 48 | 256.000 bytes/ns |
-| Off-chip/DRAM | 8192 bytes | 4096 bytes | 122880.000 pJ | 33.33% | 97.85% | 768.000 ns | 768.000 ns | 768 | 16.000 bytes/ns |
+| Tier | Read bytes | Write bytes | Movement energy | Traffic share | Movement share | Transfer time | Guardbanded transfer | Tier pressure | Effective bandwidth | Required bandwidth | Utilization | Headroom |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| SRAM | 8192 bytes | 4096 bytes | 245.760 pJ | 33.33% | 0.20% | 12.000 ns | 12.000 ns | 12 | 1024.000 bytes/ns | 12288.000 bytes/ns | 12 | -11264.000 bytes/ns |
+| Intermediate/cache | 8192 bytes | 4096 bytes | 2457.600 pJ | 33.33% | 1.96% | 48.000 ns | 48.000 ns | 48 | 256.000 bytes/ns | 12288.000 bytes/ns | 48 | -12032.000 bytes/ns |
+| Off-chip/DRAM | 8192 bytes | 4096 bytes | 122880.000 pJ | 33.33% | 97.85% | 768.000 ns | 768.000 ns | 768 | 16.000 bytes/ns | 12288.000 bytes/ns | 768 | -12272.000 bytes/ns |
 
 | Metric | Value |
 | --- | ---: |
@@ -141,6 +141,9 @@ simulator.
 | Max tier nominal pressure ratio | 768 |
 | Max tier contention pressure ratio | 768 |
 | Max tier movement-energy share | 97.85% |
+| Contention bandwidth saturation tier | off_chip |
+| Max tier contention bandwidth utilization | 768 |
+| Min tier contention bandwidth headroom ratio | 0.00130208 |
 | Max transfer time | 768.000 ns |
 | Serialized transfer time | 828.000 ns |
 | Effective transfer time | 768.000 ns |

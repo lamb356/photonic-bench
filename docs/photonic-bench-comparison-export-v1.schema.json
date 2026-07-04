@@ -327,6 +327,15 @@
         "max_tier_movement_energy_share": {
           "$ref": "#/$defs/nullableNumber"
         },
+        "contention_bandwidth_saturation_tier": {
+          "type": ["string", "null"]
+        },
+        "max_tier_contention_bandwidth_utilization": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "min_tier_contention_bandwidth_headroom_ratio": {
+          "$ref": "#/$defs/nullableNumber"
+        },
         "transfer_to_compute_time_ratio": {
           "$ref": "#/$defs/nullableNumber"
         },

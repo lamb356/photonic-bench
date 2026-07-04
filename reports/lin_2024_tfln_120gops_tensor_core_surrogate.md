@@ -104,11 +104,11 @@ photonic core/converter model. SRAM, intermediate, and off-chip traffic are
 cumulative tier movements, not published measurements and not a cache
 simulator.
 
-| Tier | Read bytes | Write bytes | Movement energy | Traffic share | Movement share | Transfer time | Guardbanded transfer | Tier pressure | Effective bandwidth |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| SRAM | 512 bytes | 256 bytes | 15.360 pJ | 33.33% | 0.20% | 0.750 ns | 0.750 ns | 0.75 | 1024.000 bytes/ns |
-| Intermediate/cache | 512 bytes | 256 bytes | 153.600 pJ | 33.33% | 1.96% | 3.000 ns | 3.000 ns | 3 | 256.000 bytes/ns |
-| Off-chip/DRAM | 512 bytes | 256 bytes | 7680.000 pJ | 33.33% | 97.85% | 48.000 ns | 48.000 ns | 48 | 16.000 bytes/ns |
+| Tier | Read bytes | Write bytes | Movement energy | Traffic share | Movement share | Transfer time | Guardbanded transfer | Tier pressure | Effective bandwidth | Required bandwidth | Utilization | Headroom |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| SRAM | 512 bytes | 256 bytes | 15.360 pJ | 33.33% | 0.20% | 0.750 ns | 0.750 ns | 0.75 | 1024.000 bytes/ns | 768.000 bytes/ns | 0.75 | 256.000 bytes/ns |
+| Intermediate/cache | 512 bytes | 256 bytes | 153.600 pJ | 33.33% | 1.96% | 3.000 ns | 3.000 ns | 3 | 256.000 bytes/ns | 768.000 bytes/ns | 3 | -512.000 bytes/ns |
+| Off-chip/DRAM | 512 bytes | 256 bytes | 7680.000 pJ | 33.33% | 97.85% | 48.000 ns | 48.000 ns | 48 | 16.000 bytes/ns | 768.000 bytes/ns | 48 | -752.000 bytes/ns |
 
 | Metric | Value |
 | --- | ---: |
@@ -137,6 +137,9 @@ simulator.
 | Max tier nominal pressure ratio | 48 |
 | Max tier contention pressure ratio | 48 |
 | Max tier movement-energy share | 97.85% |
+| Contention bandwidth saturation tier | off_chip |
+| Max tier contention bandwidth utilization | 48 |
+| Min tier contention bandwidth headroom ratio | 0.0208333 |
 | Max transfer time | 48.000 ns |
 | Serialized transfer time | 51.750 ns |
 | Effective transfer time | 48.000 ns |

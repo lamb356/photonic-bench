@@ -279,6 +279,9 @@
         "max_tier_nominal_transfer_pressure_ratio",
         "max_tier_contention_adjusted_transfer_pressure_ratio",
         "max_tier_movement_energy_share",
+        "contention_bandwidth_saturation_tier",
+        "max_tier_contention_bandwidth_utilization",
+        "min_tier_contention_bandwidth_headroom_ratio",
         "contention_bandwidth_derate_factor",
         "calibration_guardband_time_ns",
         "contention_transfer_overhead_fraction",
@@ -371,6 +374,15 @@
           "minimum": 0,
           "maximum": 1
         },
+        "contention_bandwidth_saturation_tier": {"type": "string"},
+        "max_tier_contention_bandwidth_utilization": {
+          "type": "number",
+          "minimum": 0
+        },
+        "min_tier_contention_bandwidth_headroom_ratio": {
+          "type": "number",
+          "minimum": 0
+        },
         "contention_bandwidth_derate_factor": {
           "type": "number",
           "minimum": 0
@@ -423,6 +435,8 @@
         "read_energy_pj",
         "write_energy_pj",
         "total_energy_pj",
+        "bandwidth_bytes_per_ns",
+        "effective_bandwidth_bytes_per_ns",
         "transfer_time_ns",
         "contention_adjusted_transfer_time_ns",
         "calibration_adjusted_transfer_time_ns",
@@ -431,7 +445,11 @@
         "nominal_transfer_share",
         "contention_adjusted_transfer_share",
         "nominal_transfer_pressure_ratio",
-        "contention_adjusted_transfer_pressure_ratio"
+        "contention_adjusted_transfer_pressure_ratio",
+        "compute_window_required_bandwidth_bytes_per_ns",
+        "contention_bandwidth_utilization",
+        "contention_bandwidth_headroom_bytes_per_ns",
+        "contention_bandwidth_headroom_ratio"
       ],
       "properties": {
         "name": {"type": "string"},
@@ -441,6 +459,11 @@
         "read_energy_pj": {"type": "number", "minimum": 0},
         "write_energy_pj": {"type": "number", "minimum": 0},
         "total_energy_pj": {"type": "number", "minimum": 0},
+        "bandwidth_bytes_per_ns": {"type": "number", "exclusiveMinimum": 0},
+        "effective_bandwidth_bytes_per_ns": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
         "transfer_time_ns": {"type": "number", "minimum": 0},
         "contention_adjusted_transfer_time_ns": {
           "type": "number",
@@ -456,6 +479,21 @@
         "contention_adjusted_transfer_share": {"type": "number", "minimum": 0},
         "nominal_transfer_pressure_ratio": {"type": "number", "minimum": 0},
         "contention_adjusted_transfer_pressure_ratio": {
+          "type": "number",
+          "minimum": 0
+        },
+        "compute_window_required_bandwidth_bytes_per_ns": {
+          "type": "number",
+          "minimum": 0
+        },
+        "contention_bandwidth_utilization": {
+          "type": "number",
+          "minimum": 0
+        },
+        "contention_bandwidth_headroom_bytes_per_ns": {
+          "type": "number"
+        },
+        "contention_bandwidth_headroom_ratio": {
           "type": "number",
           "minimum": 0
         }

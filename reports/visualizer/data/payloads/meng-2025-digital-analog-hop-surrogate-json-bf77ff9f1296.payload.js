@@ -136,7 +136,11 @@ window.PhotonicBenchPayloadRegistry["meng_2025_digital_analog_hop_surrogate.json
           "nominal_transfer_share": 0.015625,
           "contention_adjusted_transfer_share": 0.015625,
           "nominal_transfer_pressure_ratio": 0.0185546875,
-          "contention_adjusted_transfer_pressure_ratio": 0.0185546875
+          "contention_adjusted_transfer_pressure_ratio": 0.0185546875,
+          "compute_window_required_bandwidth_bytes_per_ns": 19.0,
+          "contention_bandwidth_utilization": 0.0185546875,
+          "contention_bandwidth_headroom_bytes_per_ns": 1005.0,
+          "contention_bandwidth_headroom_ratio": 53.89473684210526
         },
         "intermediate": {
           "name": "intermediate",
@@ -158,7 +162,11 @@ window.PhotonicBenchPayloadRegistry["meng_2025_digital_analog_hop_surrogate.json
           "nominal_transfer_share": 0.0625,
           "contention_adjusted_transfer_share": 0.0625,
           "nominal_transfer_pressure_ratio": 0.07421875,
-          "contention_adjusted_transfer_pressure_ratio": 0.07421875
+          "contention_adjusted_transfer_pressure_ratio": 0.07421875,
+          "compute_window_required_bandwidth_bytes_per_ns": 19.0,
+          "contention_bandwidth_utilization": 0.07421875,
+          "contention_bandwidth_headroom_bytes_per_ns": 237.0,
+          "contention_bandwidth_headroom_ratio": 13.473684210526315
         },
         "off_chip": {
           "name": "off_chip",
@@ -180,7 +188,11 @@ window.PhotonicBenchPayloadRegistry["meng_2025_digital_analog_hop_surrogate.json
           "nominal_transfer_share": 1.0,
           "contention_adjusted_transfer_share": 1.0,
           "nominal_transfer_pressure_ratio": 1.1875,
-          "contention_adjusted_transfer_pressure_ratio": 1.1875
+          "contention_adjusted_transfer_pressure_ratio": 1.1875,
+          "compute_window_required_bandwidth_bytes_per_ns": 19.0,
+          "contention_bandwidth_utilization": 1.1875,
+          "contention_bandwidth_headroom_bytes_per_ns": -3.0,
+          "contention_bandwidth_headroom_ratio": 0.8421052631578947
         }
       },
       "local_compute_and_conversion_energy_pj": 4.128,
@@ -202,6 +214,9 @@ window.PhotonicBenchPayloadRegistry["meng_2025_digital_analog_hop_surrogate.json
       "max_tier_nominal_transfer_pressure_ratio": 1.1875,
       "max_tier_contention_adjusted_transfer_pressure_ratio": 1.1875,
       "max_tier_movement_energy_share": 0.9784735812133072,
+      "contention_bandwidth_saturation_tier": "off_chip",
+      "max_tier_contention_bandwidth_utilization": 1.1875,
+      "min_tier_contention_bandwidth_headroom_ratio": 0.8421052631578947,
       "max_transfer_time_ns": 1.1875,
       "serial_transfer_time_ns": 1.2802734375,
       "effective_transfer_time_ns": 1.1875,

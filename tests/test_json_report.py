@@ -126,6 +126,18 @@ def test_report_to_dict_exposes_json_schema_sections() -> None:
     assert system["tiers"]["off_chip"][
         "calibration_adjusted_transfer_time_ns"
     ] == pytest.approx(56 / 16)
+    assert system["tiers"]["off_chip"][
+        "compute_window_required_bandwidth_bytes_per_ns"
+    ] == pytest.approx(56 / 5)
+    assert system["tiers"]["off_chip"][
+        "contention_bandwidth_utilization"
+    ] == pytest.approx((56 / 5) / 16)
+    assert system["tiers"]["off_chip"][
+        "contention_bandwidth_headroom_bytes_per_ns"
+    ] == pytest.approx(16 - (56 / 5))
+    assert system["tiers"]["off_chip"][
+        "contention_bandwidth_headroom_ratio"
+    ] == pytest.approx(16 / (56 / 5))
     assert system["tiers"]["off_chip"]["movement_energy_share"] == pytest.approx(
         560 / 572.32
     )
@@ -152,6 +164,13 @@ def test_report_to_dict_exposes_json_schema_sections() -> None:
         pytest.approx((56 / 16) / 5)
     )
     assert system["max_tier_movement_energy_share"] == pytest.approx(560 / 572.32)
+    assert system["contention_bandwidth_saturation_tier"] == "off_chip"
+    assert system["max_tier_contention_bandwidth_utilization"] == pytest.approx(
+        (56 / 5) / 16
+    )
+    assert system["min_tier_contention_bandwidth_headroom_ratio"] == pytest.approx(
+        16 / (56 / 5)
+    )
     assert system["serial_transfer_time_ns"] == pytest.approx(
         (56 / 1024) + (56 / 256) + (56 / 16)
     )

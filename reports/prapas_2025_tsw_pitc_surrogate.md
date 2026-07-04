@@ -106,11 +106,11 @@ photonic core/converter model. SRAM, intermediate, and off-chip traffic are
 cumulative tier movements, not published measurements and not a cache
 simulator.
 
-| Tier | Read bytes | Write bytes | Movement energy | Traffic share | Movement share | Transfer time | Guardbanded transfer | Tier pressure | Effective bandwidth |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| SRAM | 128 bytes | 64 bytes | 3.840 pJ | 33.33% | 0.20% | 0.188 ns | 0.188 ns | 0.1875 | 1024.000 bytes/ns |
-| Intermediate/cache | 128 bytes | 64 bytes | 38.400 pJ | 33.33% | 1.96% | 0.750 ns | 0.750 ns | 0.75 | 256.000 bytes/ns |
-| Off-chip/DRAM | 128 bytes | 64 bytes | 1920.000 pJ | 33.33% | 97.85% | 12.000 ns | 12.000 ns | 12 | 16.000 bytes/ns |
+| Tier | Read bytes | Write bytes | Movement energy | Traffic share | Movement share | Transfer time | Guardbanded transfer | Tier pressure | Effective bandwidth | Required bandwidth | Utilization | Headroom |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| SRAM | 128 bytes | 64 bytes | 3.840 pJ | 33.33% | 0.20% | 0.188 ns | 0.188 ns | 0.1875 | 1024.000 bytes/ns | 192.000 bytes/ns | 0.1875 | 832.000 bytes/ns |
+| Intermediate/cache | 128 bytes | 64 bytes | 38.400 pJ | 33.33% | 1.96% | 0.750 ns | 0.750 ns | 0.75 | 256.000 bytes/ns | 192.000 bytes/ns | 0.75 | 64.000 bytes/ns |
+| Off-chip/DRAM | 128 bytes | 64 bytes | 1920.000 pJ | 33.33% | 97.85% | 12.000 ns | 12.000 ns | 12 | 16.000 bytes/ns | 192.000 bytes/ns | 12 | -176.000 bytes/ns |
 
 | Metric | Value |
 | --- | ---: |
@@ -139,6 +139,9 @@ simulator.
 | Max tier nominal pressure ratio | 12 |
 | Max tier contention pressure ratio | 12 |
 | Max tier movement-energy share | 97.85% |
+| Contention bandwidth saturation tier | off_chip |
+| Max tier contention bandwidth utilization | 12 |
+| Min tier contention bandwidth headroom ratio | 0.0833333 |
 | Max transfer time | 12.000 ns |
 | Serialized transfer time | 12.938 ns |
 | Effective transfer time | 12.000 ns |

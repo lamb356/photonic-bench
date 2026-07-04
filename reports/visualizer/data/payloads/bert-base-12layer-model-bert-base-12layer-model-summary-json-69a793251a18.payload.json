@@ -78,12 +78,18 @@
           "transfer_time_ns": 146994.75,
           "contention_adjusted_transfer_time_ns": 146994.75,
           "calibration_adjusted_transfer_time_ns": 146994.75,
+          "bandwidth_bytes_per_ns": 1024.0,
+          "effective_bandwidth_bytes_per_ns": 1024.0,
           "traffic_share": 0.3333333333333333,
           "movement_energy_share": 0.0019569471624266144,
           "nominal_transfer_share": 0.015625,
           "contention_adjusted_transfer_share": 0.015625,
           "nominal_transfer_pressure_ratio": 176.46428571428572,
-          "contention_adjusted_transfer_pressure_ratio": 176.46428571428572
+          "contention_adjusted_transfer_pressure_ratio": 176.46428571428572,
+          "compute_window_required_bandwidth_bytes_per_ns": 180699.42857142858,
+          "contention_bandwidth_utilization": 176.46428571428572,
+          "contention_bandwidth_headroom_bytes_per_ns": -179675.42857142858,
+          "contention_bandwidth_headroom_ratio": 0.005666869054847197
         },
         "intermediate": {
           "name": "intermediate",
@@ -96,12 +102,18 @@
           "transfer_time_ns": 587979.0,
           "contention_adjusted_transfer_time_ns": 587979.0,
           "calibration_adjusted_transfer_time_ns": 587979.0,
+          "bandwidth_bytes_per_ns": 256.0,
+          "effective_bandwidth_bytes_per_ns": 256.0,
           "traffic_share": 0.3333333333333333,
           "movement_energy_share": 0.019569471624266147,
           "nominal_transfer_share": 0.0625,
           "contention_adjusted_transfer_share": 0.0625,
           "nominal_transfer_pressure_ratio": 705.8571428571429,
-          "contention_adjusted_transfer_pressure_ratio": 705.8571428571429
+          "contention_adjusted_transfer_pressure_ratio": 705.8571428571429,
+          "compute_window_required_bandwidth_bytes_per_ns": 180699.42857142858,
+          "contention_bandwidth_utilization": 705.8571428571429,
+          "contention_bandwidth_headroom_bytes_per_ns": -180443.42857142858,
+          "contention_bandwidth_headroom_ratio": 0.0014167172637117992
         },
         "off_chip": {
           "name": "off_chip",
@@ -114,12 +126,18 @@
           "transfer_time_ns": 9407664.0,
           "contention_adjusted_transfer_time_ns": 9407664.0,
           "calibration_adjusted_transfer_time_ns": 9407664.0,
+          "bandwidth_bytes_per_ns": 16.0,
+          "effective_bandwidth_bytes_per_ns": 16.0,
           "traffic_share": 0.3333333333333333,
           "movement_energy_share": 0.9784735812133073,
           "nominal_transfer_share": 1.0,
           "contention_adjusted_transfer_share": 1.0,
           "nominal_transfer_pressure_ratio": 11293.714285714286,
-          "contention_adjusted_transfer_pressure_ratio": 11293.714285714286
+          "contention_adjusted_transfer_pressure_ratio": 11293.714285714286,
+          "compute_window_required_bandwidth_bytes_per_ns": 180699.42857142858,
+          "contention_bandwidth_utilization": 11293.714285714286,
+          "contention_bandwidth_headroom_bytes_per_ns": -180683.42857142858,
+          "contention_bandwidth_headroom_ratio": 8.854482898198745e-05
         }
       },
       "serial_transfer_time_ns": 9407664.0,
@@ -154,6 +172,9 @@
       "max_tier_nominal_transfer_pressure_ratio": 11293.714285714286,
       "max_tier_contention_adjusted_transfer_pressure_ratio": 11293.714285714286,
       "max_tier_movement_energy_share": 0.9784735812133073,
+      "contention_bandwidth_saturation_tier": "off_chip",
+      "max_tier_contention_bandwidth_utilization": 11293.714285714286,
+      "min_tier_contention_bandwidth_headroom_ratio": 8.854482898198745e-05,
       "bandwidth_limited_serial_effective_macs_per_second": 1410349145122.5298,
       "bandwidth_limited_serial_effective_equivalent_ops_per_second": 2820698290245.0596,
       "contention_adjusted_serial_effective_macs_per_second": 1410349145122.5298,
@@ -269,7 +290,11 @@
               "nominal_transfer_share": 0.015625,
               "contention_adjusted_transfer_share": 0.015625,
               "nominal_transfer_pressure_ratio": 5360.55,
-              "contention_adjusted_transfer_pressure_ratio": 5360.55
+              "contention_adjusted_transfer_pressure_ratio": 5360.55,
+              "compute_window_required_bandwidth_bytes_per_ns": 5489203.2,
+              "contention_bandwidth_utilization": 5360.55,
+              "contention_bandwidth_headroom_bytes_per_ns": -5488179.2,
+              "contention_bandwidth_headroom_ratio": 0.00018654802212459543
             },
             "intermediate": {
               "name": "intermediate",
@@ -291,7 +316,11 @@
               "nominal_transfer_share": 0.0625,
               "contention_adjusted_transfer_share": 0.0625,
               "nominal_transfer_pressure_ratio": 21442.2,
-              "contention_adjusted_transfer_pressure_ratio": 21442.2
+              "contention_adjusted_transfer_pressure_ratio": 21442.2,
+              "compute_window_required_bandwidth_bytes_per_ns": 5489203.2,
+              "contention_bandwidth_utilization": 21442.2,
+              "contention_bandwidth_headroom_bytes_per_ns": -5488947.2,
+              "contention_bandwidth_headroom_ratio": 4.6637005531148857e-05
             },
             "off_chip": {
               "name": "off_chip",
@@ -313,7 +342,11 @@
               "nominal_transfer_share": 1.0,
               "contention_adjusted_transfer_share": 1.0,
               "nominal_transfer_pressure_ratio": 343075.2,
-              "contention_adjusted_transfer_pressure_ratio": 343075.2
+              "contention_adjusted_transfer_pressure_ratio": 343075.2,
+              "compute_window_required_bandwidth_bytes_per_ns": 5489203.2,
+              "contention_bandwidth_utilization": 343075.2,
+              "contention_bandwidth_headroom_bytes_per_ns": -5489187.2,
+              "contention_bandwidth_headroom_ratio": 2.9148128456968035e-06
             }
           },
           "local_compute_and_conversion_energy_pj": 18553545.216000002,
@@ -335,6 +368,9 @@
           "max_tier_nominal_transfer_pressure_ratio": 343075.2,
           "max_tier_contention_adjusted_transfer_pressure_ratio": 343075.2,
           "max_tier_movement_energy_share": 0.9784735812133073,
+          "contention_bandwidth_saturation_tier": "off_chip",
+          "max_tier_contention_bandwidth_utilization": 343075.2,
+          "min_tier_contention_bandwidth_headroom_ratio": 2.9148128456968035e-06,
           "max_transfer_time_ns": 1715376.0,
           "serial_transfer_time_ns": 1849389.75,
           "effective_transfer_time_ns": 1715376.0,
@@ -519,12 +555,18 @@
               "transfer_time_ns": 8448.0,
               "contention_adjusted_transfer_time_ns": 8448.0,
               "calibration_adjusted_transfer_time_ns": 8448.0,
+              "bandwidth_bytes_per_ns": 1024.0,
+              "effective_bandwidth_bytes_per_ns": 1024.0,
               "traffic_share": 0.3333333333333333,
               "movement_energy_share": 0.001956947162426615,
               "nominal_transfer_share": 0.015625,
               "contention_adjusted_transfer_share": 0.015625,
               "nominal_transfer_pressure_ratio": 122.43478260869566,
-              "contention_adjusted_transfer_pressure_ratio": 122.43478260869566
+              "contention_adjusted_transfer_pressure_ratio": 122.43478260869566,
+              "compute_window_required_bandwidth_bytes_per_ns": 125373.21739130435,
+              "contention_bandwidth_utilization": 122.43478260869566,
+              "contention_bandwidth_headroom_bytes_per_ns": -124349.21739130435,
+              "contention_bandwidth_headroom_ratio": 0.008167613636363636
             },
             "intermediate": {
               "name": "intermediate",
@@ -537,12 +579,18 @@
               "transfer_time_ns": 33792.0,
               "contention_adjusted_transfer_time_ns": 33792.0,
               "calibration_adjusted_transfer_time_ns": 33792.0,
+              "bandwidth_bytes_per_ns": 256.0,
+              "effective_bandwidth_bytes_per_ns": 256.0,
               "traffic_share": 0.3333333333333333,
               "movement_energy_share": 0.019569471624266147,
               "nominal_transfer_share": 0.0625,
               "contention_adjusted_transfer_share": 0.0625,
               "nominal_transfer_pressure_ratio": 489.7391304347826,
-              "contention_adjusted_transfer_pressure_ratio": 489.7391304347826
+              "contention_adjusted_transfer_pressure_ratio": 489.7391304347826,
+              "compute_window_required_bandwidth_bytes_per_ns": 125373.21739130435,
+              "contention_bandwidth_utilization": 489.7391304347826,
+              "contention_bandwidth_headroom_bytes_per_ns": -125117.21739130435,
+              "contention_bandwidth_headroom_ratio": 0.002041903409090909
             },
             "off_chip": {
               "name": "off_chip",
@@ -555,12 +603,18 @@
               "transfer_time_ns": 540672.0,
               "contention_adjusted_transfer_time_ns": 540672.0,
               "calibration_adjusted_transfer_time_ns": 540672.0,
+              "bandwidth_bytes_per_ns": 16.0,
+              "effective_bandwidth_bytes_per_ns": 16.0,
               "traffic_share": 0.3333333333333333,
               "movement_energy_share": 0.9784735812133073,
               "nominal_transfer_share": 1.0,
               "contention_adjusted_transfer_share": 1.0,
               "nominal_transfer_pressure_ratio": 7835.826086956522,
-              "contention_adjusted_transfer_pressure_ratio": 7835.826086956522
+              "contention_adjusted_transfer_pressure_ratio": 7835.826086956522,
+              "compute_window_required_bandwidth_bytes_per_ns": 125373.21739130435,
+              "contention_bandwidth_utilization": 7835.826086956522,
+              "contention_bandwidth_headroom_bytes_per_ns": -125357.21739130435,
+              "contention_bandwidth_headroom_ratio": 0.0001276189630681818
             }
           },
           "serial_transfer_time_ns": 540672.0,
@@ -595,6 +649,9 @@
           "max_tier_nominal_transfer_pressure_ratio": 7835.826086956522,
           "max_tier_contention_adjusted_transfer_pressure_ratio": 7835.826086956522,
           "max_tier_movement_energy_share": 0.9784735812133073,
+          "contention_bandwidth_saturation_tier": "off_chip",
+          "max_tier_contention_bandwidth_utilization": 7835.826086956522,
+          "min_tier_contention_bandwidth_headroom_ratio": 0.0001276189630681818,
           "bandwidth_limited_serial_effective_macs_per_second": 1582545454545.4543,
           "bandwidth_limited_serial_effective_equivalent_ops_per_second": 3165090909090.9087,
           "contention_adjusted_serial_effective_macs_per_second": 1582545454545.4543,

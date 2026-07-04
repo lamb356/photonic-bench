@@ -102,6 +102,10 @@ class SystemTierResult:
     contention_adjusted_transfer_share: float = 0.0
     nominal_transfer_pressure_ratio: float = 0.0
     contention_adjusted_transfer_pressure_ratio: float = 0.0
+    compute_window_required_bandwidth_bytes_per_ns: float = 0.0
+    contention_bandwidth_utilization: float = 0.0
+    contention_bandwidth_headroom_bytes_per_ns: float = 0.0
+    contention_bandwidth_headroom_ratio: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -155,6 +159,9 @@ class SystemModelResult:
     max_tier_nominal_transfer_pressure_ratio: float
     max_tier_contention_adjusted_transfer_pressure_ratio: float
     max_tier_movement_energy_share: float
+    contention_bandwidth_saturation_tier: str
+    max_tier_contention_bandwidth_utilization: float
+    min_tier_contention_bandwidth_headroom_ratio: float
 
 
 @dataclass(frozen=True)
@@ -504,6 +511,11 @@ def _system_model(
         tiers,
         key=lambda tier: tier.movement_energy_share,
     )
+    bandwidth_saturation_tier = max(
+        tiers,
+        key=lambda tier: tier.contention_bandwidth_utilization,
+    )
+    traffic_tiers = tuple(tier for tier in tiers if tier.total_bytes > 0)
     if timing.batch_latency_ns >= effective_transfer_time_ns:
         bandwidth_limited_tier = "compute"
     elif config.system.memory_timing_mode == "serialized":
@@ -639,6 +651,15 @@ def _system_model(
             tier.contention_adjusted_transfer_pressure_ratio for tier in tiers
         ),
         max_tier_movement_energy_share=dominant_movement_energy_tier.movement_energy_share,
+        contention_bandwidth_saturation_tier=bandwidth_saturation_tier.name,
+        max_tier_contention_bandwidth_utilization=(
+            bandwidth_saturation_tier.contention_bandwidth_utilization
+        ),
+        min_tier_contention_bandwidth_headroom_ratio=(
+            min(tier.contention_bandwidth_headroom_ratio for tier in traffic_tiers)
+            if traffic_tiers
+            else 0.0
+        ),
     )
 
 
@@ -654,6 +675,10 @@ def _annotate_system_tier(
 ) -> SystemTierResult:
     calibration_adjusted_transfer_time_ns = (
         tier.contention_adjusted_transfer_time_ns * calibration_factor
+    )
+    compute_window_required_bandwidth = _safe_divide(
+        tier.total_bytes,
+        batch_latency_ns,
     )
     return replace(
         tier,
@@ -678,6 +703,21 @@ def _annotate_system_tier(
         contention_adjusted_transfer_pressure_ratio=_safe_divide(
             calibration_adjusted_transfer_time_ns,
             batch_latency_ns,
+        ),
+        compute_window_required_bandwidth_bytes_per_ns=(
+            compute_window_required_bandwidth
+        ),
+        contention_bandwidth_utilization=_safe_divide(
+            compute_window_required_bandwidth,
+            tier.effective_bandwidth_bytes_per_ns,
+        ),
+        contention_bandwidth_headroom_bytes_per_ns=(
+            tier.effective_bandwidth_bytes_per_ns
+            - compute_window_required_bandwidth
+        ),
+        contention_bandwidth_headroom_ratio=_safe_divide(
+            tier.effective_bandwidth_bytes_per_ns,
+            compute_window_required_bandwidth,
         ),
     )
 

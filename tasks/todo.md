@@ -497,20 +497,41 @@
       searched local memory; read GitHub, commit, frontend-design, and review
       guidance; confirmed branch `codex/pr8-followup-improvements` has the
       expected verified dirty worktree.
-- [ ] Task 1: Review the current dirty worktree, run quality gates, create
+- [x] Task 1: Review the current dirty worktree, run quality gates, create
       clean logical commits, push `codex/pr8-followup-improvements`, and open a
       pull request to `master`.
-- [ ] Task 2: Further improve the web visualizer for interaction, dashboard
+      Pre-push gates passed: Ruff, full pytest with 130 tests,
+      `verify-artifacts` with 258 fresh files, source/generated JS syntax
+      checks, and package build. Created commits `6e80186` and `50fe226`,
+      pushed the branch, and opened PR #9:
+      `https://github.com/lamb356/photonic-bench/pull/9`.
+- [x] Task 2: Further improve the web visualizer for interaction, dashboard
       experience, analytical features, and daily usability while preserving
       modeling-boundary labels.
-- [ ] Task 3: Deepen system modeling around contention calibration, realistic
+      Added bandwidth utilization/headroom/saturation diagnostics to
+      Contention Insight, Bottleneck Stack, Review Queue, comparison rows,
+      scoring, JSON/Markdown/CSV exports, docs, generated payloads, and browser
+      smoke coverage.
+- [x] Task 3: Deepen system modeling around contention calibration, realistic
       memory hierarchy behavior, and related metrics; expose changes in
       reports, JSON, transformer aggregates, and the visualizer.
-- [ ] Task 4: Update documentation, regenerate checked artifacts, and run
+      Added per-tier compute-window required bandwidth, utilization, headroom
+      bytes/ns, headroom ratio, plus top-level bandwidth saturation tier,
+      maximum utilization, and minimum traffic-tier headroom ratio across
+      reports, schemas, transformer aggregates, docs, tests, and generated
+      artifacts.
+- [x] Task 4: Update documentation, regenerate checked artifacts, and run
       focused plus full verification.
-- [ ] Task 5: Run mandatory Hostile Senior Reviewer critique focused on
+      Regenerated 258 checked artifacts. Focused tests, Ruff, full pytest,
+      package build, artifact freshness, source/generated JS syntax, explicit
+      browser smoke/accessibility/visual-regression tests, and diff hygiene
+      passed.
+- [x] Task 5: Run mandatory Hostile Senior Reviewer critique focused on
       usability, modeling clarity, source boundaries, code quality, CI artifact
       usability, and visual regression portability; fix significant findings.
+      Fixed non-finite legacy/external payload handling for highest bandwidth
+      utilization and expanded the Contention Insight boundary note; post-fix
+      visualizer/browser tests and artifact freshness passed.
 - [ ] Task 6: Close final state files, update durable notes, verify final
       git/CI/artifact status, and report remaining risks.
 
