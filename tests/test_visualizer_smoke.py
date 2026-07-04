@@ -45,7 +45,10 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
             page.get_by_role("heading", name="Artifact Comparison").wait_for()
             page.get_by_text("Pinned reference").first.wait_for()
             page.get_by_text("Delta vs pinned").first.wait_for()
+            page.get_by_text("Percent vs pinned").first.wait_for()
             page.get_by_text("Ratio vs pinned").first.wait_for()
+            page.get_by_role("heading", name="Comparison Insights").wait_for()
+            page.get_by_role("heading", name="Schema Compatibility").wait_for()
             page.get_by_text("Mixed-schema comparison").first.wait_for()
         finally:
             browser.close()

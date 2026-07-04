@@ -284,13 +284,15 @@ diagnostics, aggregate semantics, formula audit rows, per-matmul breakdowns,
 assumptions, exclusions, and provenance.
 
 The Compare view lets you select multiple artifacts from the rail, pin one as
-the reference, and inspect both a side-by-side matrix and grouped same-schema
-analytics. Compatible rows show the value, absolute delta, and ratio against the
-pinned reference. Mixed per-matmul and transformer-layer comparison is allowed,
-but labeled as mixed-schema comparison; incompatible cross-schema deltas stay
-`n/a` so serial timing, non-additive aggregate noise, exclusions, local
-estimates, and published references are not flattened into one false hardware
-model.
+the reference, and inspect a side-by-side matrix, comparison insights, schema
+compatibility, and grouped same-schema analytics. Compatible rows show the
+value, absolute delta, percent delta, and ratio against the pinned reference.
+The insights panel ranks lowest energy per op, lowest latency, and highest
+throughput inside each schema group only. Mixed per-matmul and transformer-layer
+comparison is allowed, but labeled as mixed-schema comparison; incompatible
+cross-schema deltas stay `n/a` so serial timing, non-additive aggregate noise,
+exclusions, local estimates, and published references are not flattened into
+one false hardware model.
 
 Source layout for the visualizer:
 
@@ -314,6 +316,23 @@ The smoke test launches Chromium with Playwright, opens a generated visualizer,
 checks representative transformer and per-matmul detail flows, pins a comparison
 reference, and verifies delta/ratio comparison labels while failing on page or
 console errors.
+
+## MLCommons-Style Proposal Draft
+
+PhotonicBench now includes initial proposal foundation artifacts for a future
+MLCommons-style photonic benchmark discussion:
+
+- `docs/mlcommons_photonic_benchmark_proposal.md`: draft structure, scope,
+  workload classes, metrics, reproducibility expectations, current MLCommons
+  context links, PhotonicBench mapping, and open questions.
+- `docs/mlcommons_photonic_reproducibility_checklist.md`: proposed package
+  layout, manifest fields, artifact requirements, metric evidence, verification
+  commands, review checklist, and audit questions.
+
+These documents do not claim MLCommons acceptance or MLPerf result status. They
+define a concrete starting point for benchmark standardization work while
+preserving the existing separation between accounting artifacts, published
+references, calibration fits, and future measured-system submissions.
 
 ## Comparison Tables
 
@@ -363,6 +382,8 @@ The output records the target, target source, original value, fitted value, pre-
 - `photonic_bench/visualizer.py`: web visualizer discovery, schema-aware loading, template assembly, static asset writing, and local server routing.
 - `photonic_bench/visualizer_assets/`: source HTML, CSS, and JavaScript assets for the generated visualizer.
 - `tests/test_visualizer_smoke.py`: Playwright browser smoke test for the generated visualizer.
+- `docs/mlcommons_photonic_benchmark_proposal.md`: MLCommons-style photonic benchmark proposal foundation.
+- `docs/mlcommons_photonic_reproducibility_checklist.md`: proposal package and audit checklist.
 - `docs/photonic-bench-transformer-layer-report-v1.schema.json`: machine-readable aggregate transformer-layer JSON Schema.
 - `photonic_bench/cli.py`: command-line entry point.
 - `docs/json_schema.md`: JSON schema guide, units, nullability, and examples.

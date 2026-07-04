@@ -686,41 +686,49 @@
         label: "MACs",
         get: (summary) => summary.macs,
         format: formatNumber,
+        direction: "context",
       },
       {
         label: "Equivalent ops",
         get: (summary) => summary.equivalent_ops,
         format: formatNumber,
+        direction: "context",
       },
       {
         label: "Output elements",
         get: (summary) => summary.output_elements,
         format: formatNumber,
+        direction: "context",
       },
       {
         label: "Local total energy",
         get: (summary) => summary.total_energy_pj,
         format: formatPj,
+        direction: "lower",
       },
       {
         label: "Energy per op",
         get: (summary) => summary.energy_per_op_pj,
         format: formatPj,
+        direction: "lower",
       },
       {
         label: "Latency",
         get: (summary) => summary.latency_ns,
         format: formatNs,
+        direction: "lower",
       },
       {
         label: "Throughput",
         get: (summary) => summary.throughput_equivalent_ops_per_second,
         format: formatThroughput,
+        direction: "higher",
       },
       {
         label: "Assumption count",
         get: (summary) => summary.assumptions_count,
         format: formatNumber,
+        direction: "context",
       },
     ];
   }
@@ -737,6 +745,85 @@
     return Array.from(groups.entries());
   }
 
+  function renderComparisonInsights(artifacts, pinnedArtifact) {
+    const insightSpecs = comparisonMetricSpecs().filter((spec) =>
+      ["Energy per op", "Latency", "Throughput"].includes(spec.label)
+    );
+    return `
+      <section class="panel">
+        <h3>Comparison Insights</h3>
+        <div class="notes"><p>Ranking cues stay inside each schema group so per-matmul cards and transformer-layer aggregates are not treated as interchangeable hardware results.</p></div>
+        <div class="insight-grid">
+          ${groupArtifactsByKind(artifacts)
+            .map(([label, group]) => {
+              const compatiblePinned =
+                pinnedArtifact &&
+                pinnedArtifact.summary.kind === group[0].summary.kind;
+              const rows = insightSpecs
+                .map((spec) => {
+                  const best = bestArtifactForSpec(group, spec);
+                  if (!best) {
+                    return "";
+                  }
+                  return `
+                    <div class="insight-row">
+                      <span>${escapeHtml(insightLabel(spec))}</span>
+                      <strong>${escapeHtml(best.summary.benchmark_name)}</strong>
+                      <code>${escapeHtml(spec.format(spec.get(best.summary)))}</code>
+                    </div>
+                  `;
+                })
+                .join("");
+              return `
+                <div class="insight-card">
+                  <div class="insight-title">${escapeHtml(label)}</div>
+                  <div class="insight-meta">${group.length} selected · ${
+                    compatiblePinned
+                      ? "pinned deltas active"
+                      : "values only for this schema"
+                  }</div>
+                  ${rows}
+                </div>
+              `;
+            })
+            .join("")}
+        </div>
+      </section>
+    `;
+  }
+
+  function renderSchemaCompatibility(artifacts, pinnedArtifact) {
+    const rows = groupArtifactsByKind(artifacts).map(([label, group]) => {
+      const compatiblePinned =
+        pinnedArtifact && pinnedArtifact.summary.kind === group[0].summary.kind;
+      return [
+        escapeHtml(label),
+        escapeHtml(formatNumber(group.length)),
+        compatiblePinned
+          ? '<span class="badge layer">compatible pinned baseline</span>'
+          : '<span class="badge warn">no compatible pinned baseline</span>',
+        compatiblePinned
+          ? "Deltas, percent deltas, and ratios are computed against the pinned artifact."
+          : "Values are shown, but cross-schema deltas stay n/a to preserve artifact semantics.",
+      ];
+    });
+    return `
+      <section class="panel">
+        <h3>Schema Compatibility</h3>
+        ${simpleTable(
+          [
+            { label: "Group" },
+            { label: "Selected", num: true },
+            { label: "Pinned compatibility" },
+            { label: "Treatment" },
+          ],
+          rows,
+          "comparison-table"
+        )}
+      </section>
+    `;
+  }
+
   function renderGroupedAnalytics(artifacts, pinnedArtifact) {
     return groupArtifactsByKind(artifacts)
       .map(([label, group]) => {
@@ -746,7 +833,7 @@
             : null;
         const reference = compatiblePinned || group[0];
         const note = compatiblePinned
-          ? `Deltas and ratios use pinned reference: ${reference.summary.benchmark_name}.`
+          ? `Deltas, percent deltas, and ratios use pinned reference: ${reference.summary.benchmark_name}.`
           : "Pinned reference is a different schema, so this group shows values without cross-schema deltas.";
         return `
           <section class="panel">
@@ -758,6 +845,7 @@
                 { label: "Artifact" },
                 { label: "Value", num: true },
                 { label: "Delta vs pinned", num: true },
+                { label: "Percent vs pinned", num: true },
                 { label: "Ratio vs pinned", num: true },
               ],
               analyticsRows(group, reference, Boolean(compatiblePinned)),
@@ -777,17 +865,62 @@
         const referenceValue = Number(spec.get(reference.summary));
         const isReference =
           showDeltas && artifact.summary.id === reference.summary.id;
+        const best = bestArtifactForSpec(group, spec);
+        const isBest =
+          best &&
+          artifact.summary.id === best.summary.id &&
+          spec.direction !== "context";
         return [
           escapeHtml(spec.label),
           `${escapeHtml(artifact.summary.benchmark_name)}${
             isReference ? ' <span class="badge layer">reference</span>' : ""
+          }${
+            isBest
+              ? ` <span class="badge good">${escapeHtml(bestBadge(spec))}</span>`
+              : ""
           }`,
           escapeHtml(spec.format(value)),
           escapeHtml(showDeltas ? formatDelta(value, referenceValue, spec.format) : "n/a"),
+          escapeHtml(showDeltas ? formatPercentDelta(value, referenceValue) : "n/a"),
           escapeHtml(showDeltas ? formatRatio(value, referenceValue) : "n/a"),
         ];
       })
     );
+  }
+
+  function bestArtifactForSpec(group, spec) {
+    if (!["lower", "higher"].includes(spec.direction)) {
+      return null;
+    }
+    const finiteArtifacts = group
+      .map((artifact) => ({
+        artifact,
+        value: Number(spec.get(artifact.summary)),
+      }))
+      .filter((entry) => Number.isFinite(entry.value));
+    if (!finiteArtifacts.length) {
+      return null;
+    }
+    finiteArtifacts.sort((left, right) =>
+      spec.direction === "lower"
+        ? left.value - right.value
+        : right.value - left.value
+    );
+    return finiteArtifacts[0].artifact;
+  }
+
+  function insightLabel(spec) {
+    if (spec.direction === "lower") {
+      return `Lowest ${spec.label.toLowerCase()}`;
+    }
+    if (spec.direction === "higher") {
+      return `Highest ${spec.label.toLowerCase()}`;
+    }
+    return spec.label;
+  }
+
+  function bestBadge(spec) {
+    return spec.direction === "higher" ? "highest" : "lowest";
   }
 
   function formatDelta(value, referenceValue, formatter) {
@@ -797,6 +930,19 @@
     const delta = value - referenceValue;
     const prefix = delta > 0 ? "+" : "";
     return `${prefix}${formatter(delta)}`;
+  }
+
+  function formatPercentDelta(value, referenceValue) {
+    if (
+      !Number.isFinite(value) ||
+      !Number.isFinite(referenceValue) ||
+      referenceValue === 0
+    ) {
+      return "n/a";
+    }
+    const percent = ((value - referenceValue) / Math.abs(referenceValue)) * 100;
+    const prefix = percent > 0 ? "+" : "";
+    return `${prefix}${formatNumber(percent)}%`;
   }
 
   function formatRatio(value, referenceValue) {
@@ -857,7 +1003,7 @@
               ${kinds.size > 1 ? '<span class="badge warn">mixed schema</span>' : ""}
             </div>
             <h2>Artifact Comparison</h2>
-            <div class="description">Schema-aware side-by-side summary plus grouped delta and ratio analysis across selected PhotonicBench JSON artifacts.</div>
+            <div class="description">Schema-aware side-by-side summary plus grouped insights, deltas, percent deltas, and ratio analysis across selected PhotonicBench JSON artifacts.</div>
             ${
               pinnedArtifact
                 ? `<div class="description"><strong>Reference:</strong> ${escapeHtml(pinnedArtifact.summary.benchmark_name)} (${escapeHtml(pinnedArtifact.summary.source_path)})</div>`
@@ -873,9 +1019,11 @@
         <h3>Comparison Matrix</h3>
         ${simpleTable(headers, comparisonSummaryRows(artifacts, pinnedArtifact), "comparison-table")}
       </section>
+      ${renderComparisonInsights(artifacts, pinnedArtifact)}
+      ${renderSchemaCompatibility(artifacts, pinnedArtifact)}
       <section class="panel">
         <h3>Grouped Same-Schema Analytics</h3>
-        <div class="notes"><p>Compatible rows report value, absolute delta, and ratio against the pinned reference. Mixed-schema groups keep incompatible deltas as n/a.</p></div>
+        <div class="notes"><p>Compatible rows report value, absolute delta, percent delta, and ratio against the pinned reference. Mixed-schema groups keep incompatible deltas as n/a.</p></div>
       </section>
       ${renderGroupedAnalytics(artifacts, pinnedArtifact)}
       <section class="panel">

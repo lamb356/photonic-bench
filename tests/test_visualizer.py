@@ -113,7 +113,11 @@ def test_static_app_contains_comparison_and_boundary_labels() -> None:
     assert "Mixed-schema comparison" in app_js
     assert "Pinned reference" in app_js
     assert "Delta vs pinned" in app_js
+    assert "Percent vs pinned" in app_js
     assert "Ratio vs pinned" in app_js
+    assert "Comparison Insights" in app_js
+    assert "Schema Compatibility" in app_js
+    assert "compatible pinned baseline" in app_js
     assert "Grouped Same-Schema Analytics" in app_js
     assert "fetchPayloadJson" in app_js
     assert "Serial Timing" in app_js
@@ -122,6 +126,7 @@ def test_static_app_contains_comparison_and_boundary_labels() -> None:
     assert "Published references" in app_js
     assert 'startsWith("<")' not in app_js
     assert ".comparison-table" in styles
+    assert ".insight-grid" in styles
 
 
 def test_server_visualizer_site_uses_fetchable_payload_paths() -> None:

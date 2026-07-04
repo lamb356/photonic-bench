@@ -5,11 +5,18 @@
 - Workspace: `C:\Users\burba\OneDrive\Documents\Photonic Acceleration`
 - Package: `photonic_bench`
 - Branch: `master`
-- Current pre-goal working tree:
-  - contains the completed visualizer comparison, Playwright smoke, and local
-    `visualize --serve` scaling feature layer;
-  - has not yet been committed or pushed.
+- Current-state feature commit:
+  - `416f1f8 Add visualizer comparison smoke and server mode`
+- Remote status:
+  - no `git remote` is configured;
+  - `master` has no upstream;
+  - push is blocked until a remote URL/upstream is configured.
+- Current post-commit working tree:
+  - further visualizer comparison polish;
+  - MLCommons-style proposal artifacts;
+  - README, tests, generated visualizer assets, and state-file updates.
 - Recent commits:
+  - `416f1f8 Add visualizer comparison smoke and server mode`
   - `c5d9816 Evolve visualizer static workbench`
   - `ef731c9 Add initial web visualizer`
   - `a147736 Harden transformer layer aggregate reports`
@@ -42,6 +49,21 @@ Existing commands:
   - `reports/visualizer/data/payloads/*.payload.js`
 - Server mode serves the shell, static assets, index JSON/script, and
   per-artifact payload JSON on demand from discovered source report files.
+
+## Current Visualizer Polish Layer
+
+- Comparison mode now includes:
+  - pinned reference state;
+  - absolute deltas;
+  - percent deltas;
+  - ratios;
+  - grouped same-schema analytics;
+  - direction-aware `lowest` / `highest` badges;
+  - `Comparison Insights` cards;
+  - `Schema Compatibility` table;
+  - explicit mixed-schema caveats.
+- The checked-in visualizer example has been regenerated after JavaScript and
+  CSS changes.
 
 ## Data Contracts
 
@@ -85,22 +107,31 @@ presented as a hidden fused-layer hardware model.
 - Calibration fits and published references remain separate from local model
   outputs.
 
-## Proposal Direction
+## Proposal Artifacts
 
-The MLCommons-style proposal should be concrete enough to seed a real working
-draft while remaining honest about its status. It should define:
+- `docs/mlcommons_photonic_benchmark_proposal.md`
+  - source-grounded proposal draft;
+  - scope, workloads, metrics, divisions, reproducibility requirements, mapping,
+    open questions, and next work.
+- `docs/mlcommons_photonic_reproducibility_checklist.md`
+  - package layout, manifest fields, artifact requirements, metric
+    requirements, verification commands, review checklist, and audit questions.
+- `thoughts/plans/mlcommons_photonic_benchmark_proposal_plan.md`
+  - retained as the original planning note and now points to the docs above.
 
-- benchmark scope and non-goals;
-- workload classes and representative shapes;
-- required metrics and units;
-- accuracy/noise/quality guardrails;
-- reproducibility package expectations;
-- reference implementations and calibration evidence;
-- disclosure requirements for photonic hardware assumptions;
-- open governance and methodology questions.
+## Current Verification
 
-Use current official MLCommons materials for context before writing claims
-about process or submission expectations.
+- Focused visualizer tests and Playwright smoke:
+  - 9 passed.
+- Proposal doc test:
+  - 1 passed.
+- Full `python -m pytest`:
+  - 73 passed.
+- Full `python -m ruff check`:
+  - passed.
+- Extra Playwright viewport smoke:
+  - desktop and narrow comparison views passed with no page errors, no console
+    errors, and no page-level horizontal overflow.
 
 ## Constraints
 
@@ -112,3 +143,5 @@ about process or submission expectations.
   published-reference boundaries.
 - Do not push unless tests and ruff pass.
 - Do not treat the proposal as a completed MLCommons submission.
+- Do not mark the push tasks complete until a remote exists and `git push`
+  succeeds.

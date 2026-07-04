@@ -1,5 +1,15 @@
 # MLCommons-Style Photonic Benchmark Proposal Plan
 
+Status: superseded by concrete proposal draft artifacts.
+
+Primary artifacts:
+
+- `docs/mlcommons_photonic_benchmark_proposal.md`
+- `docs/mlcommons_photonic_reproducibility_checklist.md`
+
+This file remains as the original planning note. The docs above are now the
+active proposal foundation.
+
 ## Goal
 
 Prepare PhotonicBench for a future MLCommons-style photonic AI benchmark
