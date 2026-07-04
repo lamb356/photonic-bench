@@ -89,20 +89,24 @@ system:
     write_energy_pj_per_byte: 10.0
     bandwidth_bytes_per_ns: 16
   contention:
+    preset: single_client
     shared_bandwidth_clients: 1.0
     arbitration_efficiency: 1.0
     calibration_overhead_fraction: 0.0
+    overlap_model: profile_timing_mode
 ```
 
-Named profiles are local modeling presets, not measured hardware claims:
+Named profiles are local memory-scenario presets, not measured hardware claims:
 
 | Profile | Intent |
 | --- | --- |
 | `default` | SRAM plus intermediate/cache plus generic DDR-style off-chip defaults. |
+| `on_package_sram` | Keeps modeled converter-interface traffic on a high-bandwidth on-package SRAM path with no off-package movement. |
 | `on_chip_sram` | Keeps modeled converter-interface traffic on SRAM by setting intermediate and off-chip read/write fractions to zero. |
 | `hbm` | Uses an intermediate/cache tier plus a higher-bandwidth, lower-energy off-chip tier for HBM-style sensitivity checks. |
 | `ddr` | Uses the generic DDR-class off-chip tier with an intermediate/cache tier. |
 | `pcie_attached` | Uses a lower-bandwidth, higher-energy host/PCIe-attached tier and serialized memory timing. |
+| `optical_interconnect` | Uses high-bandwidth intermediate/off-chip movement paths to stress WDM, broadcast, and chiplet-style optical interconnect assumptions. |
 
 Profile selection can be combined with tier overrides:
 
@@ -119,8 +123,11 @@ Each tier can also set `read_fraction` and `write_fraction` between `0` and `1`.
 The optional `contention` block reduces nominal tier bandwidth by shared client
 count and arbitration efficiency, then applies a calibration/control overhead
 guardband to adjusted transfer timing. For example, the built-in
-`pcie_attached` profile uses two shared clients, `0.85` arbitration efficiency,
-and `0.05` calibration overhead. These are local system assumptions, not
+`pcie_attached` profile uses the `pcie_round_robin` contention preset: two
+shared clients, `0.85` arbitration efficiency, `0.05` calibration overhead,
+and the `serialized_host_link` overlap model. Other built-in contention presets
+include `single_client`, `shared_hbm_stack`, `ddr_controller`, and
+`optical_interconnect_broadcast`. These are local system assumptions, not
 paper-reported hardware measurements.
 Reports expose `local_model.system` with SRAM/intermediate/off-chip read bytes,
 write bytes, movement energy, transfer time, total movement energy, total system
@@ -128,7 +135,10 @@ energy, system energy per MAC/op, movement-energy share, selected profile
 metadata, memory timing mode, bandwidth-limited throughput,
 contention-adjusted latency/throughput, hierarchy traffic shares, loaded
 hierarchy bandwidth under contention, bandwidth derate, guardband overhead, and
-bandwidth/contention pressure ratios. Each tier also records traffic share,
+bandwidth/contention pressure ratios. The report also exposes the named memory
+scenario, contention preset, overlap model, effective usable bandwidth under
+load, guardbanded usable bandwidth under load, and energy by hierarchy level as
+first-class local outputs. Each tier also records traffic share,
 movement-energy share, guardbanded transfer time, transfer share, and tier-local
 pressure ratio. It also records the bandwidth required to move that tier's
 bytes inside the compute batch window, utilization of the contention-adjusted
@@ -142,7 +152,8 @@ PhotonicBench estimates and remain separate from paper-reported values and from
 the older `local_model.energy.total_pj` compute/conversion estimate.
 
 The checked examples include a profile sensitivity preset built from identical
-64x64 workloads under `on_chip_sram`, `hbm`, `ddr`, and `pcie_attached`.
+64x64 workloads under `on_chip_sram`, `on_package_sram`, `hbm`, `ddr`,
+`pcie_attached`, and `optical_interconnect`.
 Open the visualizer and choose `System profile sensitivity` from the comparison
 preset list to compare the movement-energy and bandwidth-limited effects.
 
@@ -360,7 +371,7 @@ The Xu 2021 example uses the Nature paper "11 TOPS photonic convolutional accele
 
 Because that source is a vector convolution accelerator, PhotonicBench labels the local workload as a dense matmul surrogate (`m=1`, `k=250000`, `n=10`). The card carries the paper numbers as published references, not as local model results.
 
-This repository also includes twenty-two additional source-backed published-card
+This repository also includes twenty-five additional source-backed published-card
 surrogates:
 
 - Feldmann et al., "Parallel convolutional processing using an integrated
@@ -434,6 +445,21 @@ surrogates:
   `10.1038/s41566-023-01313-x`. The card records the spatial/wavelength/RF
   tensor-core framing, parallelism of 100, RF/WDM dimensions, ECG workload, and
   reported accuracy while using a 3x3-by-3x100 dense local surrogate.
+- Shen et al., "Deep learning with coherent nanophotonic circuits", Nature
+  Photonics 11, 441-446 (2017), DOI: `10.1038/nphoton.2017.93`. The card
+  records the 4x4 coherent-mesh classifier, SU(4) primitive, and vowel
+  accuracy evidence while using an on-package-SRAM coherent-mesh local
+  surrogate.
+- Tait et al., "Neuromorphic photonic networks using silicon photonic weight
+  banks", Scientific Reports 7, 7430 (2017), DOI:
+  `10.1038/s41598-017-07754-z`. The card records the 24-node, 576-weight,
+  WDM broadcast-and-weight network plus power and acceleration estimates while
+  using an optical-interconnect matvec surrogate.
+- ChipAI, "A scalable chiplet-based accelerator for efficient DNN inference
+  using silicon photonics", Journal of Systems Architecture 158, 103308
+  (2025), DOI: `10.1016/j.sysarc.2024.103308`. The card records relative
+  inference-time and energy reductions plus hybrid optical-network behavior
+  while using a dense chiplet/off-chip movement surrogate.
 - Meyer et al., "Deep neural network inference on an integrated,
   reconfigurable photonic tensor processor", Nature Communications 17, 3396
   (2026), DOI: `10.1038/s41467-026-71599-2`. The card records the 9-input,
@@ -502,7 +528,9 @@ The JSON card includes:
 - model input assumptions
 - local component-model energy, timing, noise, and conversion-count outputs
 - local system movement, contention, effective bandwidth, and
-  contention-adjusted latency/throughput outputs
+  contention-adjusted latency/throughput outputs, including named memory
+  scenarios, contention presets, effective usable bandwidth under load, and
+  hierarchy energy breakdowns
 - optional published reference data, source quality, and provenance
 - a `calibration_fit` field reserved for fitted calibration results
 
@@ -532,6 +560,8 @@ Schema documentation:
 - Machine-readable JSON Schema: `docs/photonic-bench-report-v1.schema.json`
 - Machine-readable transformer layer schema: `docs/photonic-bench-transformer-layer-report-v1.schema.json`
 - Machine-readable transformer model schema: `docs/photonic-bench-transformer-model-report-v1.schema.json`
+- Machine-readable visualizer comparison export schema: `docs/photonic-bench-comparison-export-v1.schema.json`
+- Machine-readable visualizer decision packet schema: `docs/photonic-bench-decision-packet-v1.schema.json`
 - Programmatic loading example: `examples/load_report_json.py`
 
 ```powershell
@@ -664,11 +694,15 @@ comparisons readable while leaving the exact frontier table values unchanged.
 
 Comparison presets are static-friendly. Add or edit `reports/visualizer_presets.json`
 with schema version `photonic-bench-comparison-presets-v1`, a `presets` array,
-stable artifact IDs, and an optional `pinned_id`; the next `visualize` run
-validates the sidecar and embeds it into `data/index.json`. The browser UI can
-also save local presets into local storage for ad hoc daily comparisons. Stale
-sidecar artifact IDs are reported as index warnings and valid artifacts still
-load. Browser-local presets can also be exported as
+stable artifact IDs, an optional `pinned_id`, optional `analysis_intent`, and
+optional `reviewer_notes`; the next `visualize` run validates the sidecar and
+embeds it into `data/index.json`. `analysis_intent` can preserve the focus
+mode, score profile, filters, Pareto mode, and other review-workflow state.
+The browser UI can also save local presets into local storage for ad hoc daily
+comparisons. Browser-local presets save selected artifacts, pinned baseline,
+focus mode, score profile, score weights, filters, Pareto mode, and reviewer
+notes. Stale sidecar artifact IDs are reported as index warnings and valid
+artifacts still load. Browser-local presets can also be exported as
 `photonic-bench-comparison-presets-v1` JSON and imported back with validation;
 generated sidecar presets remain read-only.
 
@@ -683,11 +717,13 @@ assumptions, not paper-reported hardware claims.
 The Energy Stack panel ranks selected artifacts by movement-to-compute energy,
 dominant total-system energy component, compute/conversion share, movement
 share, and largest single-tier share of total local system energy. These are
-local decomposition diagnostics, not published energy-breakdown claims.
+local decomposition diagnostics, not published energy-breakdown claims. Its
+"why this card ranks here" text is local UI triage only.
 The Bottleneck Stack ranks selected artifacts by worst tier-local pressure,
 dominant movement-energy tier, dominant traffic tier, bandwidth saturation tier,
 bandwidth utilization, and bandwidth headroom so hierarchy problems are visible
-before opening individual payloads.
+before opening individual payloads. Its rank explanations are local UI triage,
+not benchmark claims.
 The Comparison Review Checklist converts the current selection into
 review-ready checks for pinned baseline availability, schema compatibility,
 published-reference and source-quality coverage, provenance coverage, system
@@ -711,12 +747,21 @@ provenance status, and modeling-boundary notes. Its formal schema is checked in 
 `Download CSV` writes a spreadsheet-friendly selected-artifact table with
 focus, score weights, energy, timing, throughput, movement, loaded hierarchy
 bandwidth split into contention-only and guardbanded phases, hierarchy
-intensity, movement energy per hierarchy byte, dominant traffic/movement/system
-energy tiers, memory bottleneck tier, worst tier pressure, largest tier movement
-and system-energy shares, transfer/compute ratios, off-chip traffic share,
+intensity, movement energy per hierarchy byte, memory scenario, contention
+preset, effective usable bandwidth under load, guardbanded usable bandwidth
+under load, dominant traffic/movement/system energy tiers, memory bottleneck
+tier, worst tier pressure, largest tier movement and system-energy shares,
+transfer/compute ratios, off-chip traffic share,
 pressure ratios, bandwidth saturation tier, bandwidth utilization, bandwidth
 headroom, provenance, source-quality, system-profile, and boundary tag columns
 plus comparison-level boundary notes.
+
+For review handoff, `Decision Packet JSON` and `Decision Packet Markdown`
+export a `photonic-bench-decision-packet-v1` packet. It includes selected
+artifacts, pinned baseline, score weights, checklist status, top tradeoffs,
+reviewer notes, modeling-boundary notes, and an embedded comparison export.
+Decision-packet rankings and "why this card ranks here" explanations are
+explicitly local UI triage aids; they are not published benchmark claims.
 
 The visualizer accessibility pass keeps controls keyboard-reachable, adds
 specific ARIA labels to comparison and pin controls, exposes mode button
@@ -755,11 +800,12 @@ python -m pytest tests/test_visualizer_accessibility.py
 ```
 
 The smoke test launches Chromium with Playwright, opens a generated visualizer,
-loads generated and browser-local presets, verifies URL-state restoration,
-custom score weights, score explanations, selection-drawer controls, comparison
-analytics, JSON/Markdown/CSV exports, representative transformer and
-per-matmul detail flows, comparison pinning, reduced-motion behavior, and
-delta/ratio labels while failing on page or console errors. The accessibility
+loads generated and browser-local full-intent presets, verifies URL-state
+restoration, custom score weights, score explanations, selection-drawer
+controls, comparison analytics, JSON/Markdown/CSV exports, decision-packet
+JSON/Markdown exports, representative transformer and per-matmul detail flows,
+comparison pinning, reduced-motion behavior, and delta/ratio labels while
+failing on page or console errors. The accessibility
 test uses axe-core through `axe-playwright-python` against representative
 detail and comparison states; any automatically detectable axe violation fails
 the test with affected targets listed in the assertion message.
@@ -788,7 +834,9 @@ Remove-Item Env:\UPDATE_VISUAL_BASELINES
 Remove-Item Env:\VISUAL_REGRESSION_BASELINE_PLATFORM
 ```
 
-Recent visualizer changes are summarized in `CHANGELOG.md`.
+Recent visualizer changes are summarized in `CHANGELOG.md`. Reviewer workflow
+guidance for artifact freshness, generated visualizer review, CI screenshot
+artifacts, and visual-baseline promotion is in `docs/reviewer_workflow.md`.
 
 ## Config Inspection
 
@@ -843,7 +891,9 @@ byte-compares the expected outputs against `reports/`. It covers per-card
 Markdown/JSON reports, transformer-layer and transformer-model artifacts,
 `reports/comparison.md`, and the static `reports/visualizer/` bundle. Failures
 list missing, unexpected, and stale paths with SHA-256 prefixes. CI runs this
-command after Ruff, package build, and pytest.
+command after Ruff, package build, and pytest. See
+`docs/reviewer_workflow.md` for the reviewer checklist that pairs this freshness
+gate with visual regression screenshots and checked visual baselines.
 
 ## MLCommons-Style Proposal Draft
 
@@ -918,6 +968,7 @@ The output records the target, target source, original value, fitted value, pre-
 - `photonic_bench/visualizer.py`: web visualizer discovery, schema-aware loading, template assembly, static asset writing, and local server routing.
 - `photonic_bench/visualizer_assets/`: source HTML, CSS, and JavaScript assets for the generated visualizer.
 - `tests/test_visualizer_smoke.py`: Playwright browser smoke test for the generated visualizer.
+- `docs/reviewer_workflow.md`: PR reviewer checklist for artifact freshness, visual regression, screenshots, and decision packets.
 - `docs/mlcommons_photonic_benchmark_proposal.md`: MLCommons-style photonic benchmark proposal foundation.
 - `docs/mlcommons_photonic_reproducibility_checklist.md`: proposal package and audit checklist.
 - `docs/photonic-bench-transformer-layer-report-v1.schema.json`: machine-readable aggregate transformer-layer JSON Schema.

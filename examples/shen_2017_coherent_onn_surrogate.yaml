@@ -1,0 +1,73 @@
+benchmark:
+  name: Shen 2017 coherent ONN surrogate
+  description: Source-backed card for the Nature Photonics 2017 coherent nanophotonic neural-network experiment. The local workload is a 4x4 dense coherent-mesh surrogate; published accuracy and mesh facts remain separate.
+workload:
+  type: matmul
+  m: 4
+  n: 4
+  k: 4
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 8
+    energy_pj_per_conversion: 0.5
+  vector_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+  weight_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+execution:
+  batch_size: 1
+  vector_reuse_factor: 1
+  weight_reuse_factor: 1
+  weight_stationary: true
+  pipeline:
+    stages: 1
+system:
+  profile: on_package_sram
+timing:
+  optical_latency_ns: 1
+  adc_latency_ns: 0
+  dac_latency_ns: 0
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 1
+provenance:
+  source_title: Deep learning with coherent nanophotonic circuits
+  source_url: https://doi.org/10.1038/nphoton.2017.93
+  doi: 10.1038/nphoton.2017.93
+  venue: Nature Photonics 11, 441-446 (2017)
+  claim_status: paper-reported coherent-mesh accuracy and scaling discussion; 4x4 local dense surrogate
+published_calibration:
+  architecture: Coherent nanophotonic neural-network mesh
+  additional_metrics:
+    matrix_dimension: 4
+    output_classes: 4
+    programmable_unitary: SU(4)
+    experimental_vowel_accuracy_percent: 76.7
+    simulated_vowel_accuracy_percent: 91.7
+    source_energy_scaling_note: Source discusses optical matrix-multiplication energy scaling under idealized assumptions; PhotonicBench does not claim measured energy from this paper.
+    surrogate_mapping: m=4, k=4, n=4 follows the demonstrated four-dimensional coherent optical classifier, not a full neural-network training reproduction.
+source_quality:
+  reported_metrics:
+    - accuracy
+    - mesh_dimension
+    - scaling_discussion
+  local_surrogate_type: coherent_mesh_4x4_surrogate
+  coverage:
+    throughput: derived
+    energy: derived
+    accuracy: reported
+    area: not_reported
+    precision: not_reported
+  confidence_grade: B
+  notes:
+    - The source strongly anchors the coherent 4x4 optical primitive and vowel-classification accuracy, but the local energy and hierarchy model are PhotonicBench assumptions.
+assumptions:
+  - Published coherent-mesh and accuracy values remain under published_calibration.
+  - Local timing, converter, energy, noise, and on-package SRAM scenario settings are PhotonicBench assumptions for comparison only.
+  - Weight-stationary mode approximates programmed coherent mesh weights during one local inference tile.

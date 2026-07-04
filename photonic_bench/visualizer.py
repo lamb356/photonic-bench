@@ -89,9 +89,14 @@ class ArtifactSummary:
     transfer_to_compute_time_ratio: float | None
     contention_adjusted_transfer_to_compute_time_ratio: float | None
     system_profile: str | None
+    memory_scenario: str | None
     system_profile_overrides: tuple[str, ...]
     memory_timing_mode: str | None
+    contention_preset: str | None
+    contention_overlap_model: str | None
     effective_transfer_time_ns: float | None
+    effective_usable_bandwidth_under_load_bytes_per_ns: float | None
+    guardbanded_usable_bandwidth_under_load_bytes_per_ns: float | None
     provenance_status: str
     has_published_reference: bool
     source_quality_grade: str | None
@@ -109,6 +114,8 @@ class ComparisonPreset:
     description: str
     artifact_ids: tuple[str, ...]
     pinned_id: str | None
+    analysis_intent: dict[str, Any]
+    reviewer_notes: str
     source_path: str
 
 
@@ -768,6 +775,14 @@ def _load_matmul_artifact(
             source=source_path,
             field="local_model.system.profile",
         ),
+        memory_scenario=_optional_str(
+            _dict_or_empty(
+                _get_optional(payload, "local_model", "system", "memory_scenario")
+            ),
+            "name",
+            source=source_path,
+            field="local_model.system.memory_scenario.name",
+        ),
         system_profile_overrides=_system_profile_overrides(payload, source_path),
         memory_timing_mode=_optional_str(
             _dict_or_empty(_get_optional(payload, "local_model", "system")),
@@ -775,11 +790,37 @@ def _load_matmul_artifact(
             source=source_path,
             field="local_model.system.memory_timing_mode",
         ),
+        contention_preset=_optional_str(
+            _dict_or_empty(_get_optional(payload, "local_model", "system")),
+            "contention_preset",
+            source=source_path,
+            field="local_model.system.contention_preset",
+        ),
+        contention_overlap_model=_optional_str(
+            _dict_or_empty(_get_optional(payload, "local_model", "system")),
+            "contention_overlap_model",
+            source=source_path,
+            field="local_model.system.contention_overlap_model",
+        ),
         effective_transfer_time_ns=_optional_number(
             payload,
             "local_model",
             "system",
             "effective_transfer_time_ns",
+            source=source_path,
+        ),
+        effective_usable_bandwidth_under_load_bytes_per_ns=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "effective_usable_bandwidth_under_load_bytes_per_ns",
+            source=source_path,
+        ),
+        guardbanded_usable_bandwidth_under_load_bytes_per_ns=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "guardbanded_usable_bandwidth_under_load_bytes_per_ns",
             source=source_path,
         ),
         provenance_status=_provenance_status(payload),
@@ -1141,6 +1182,14 @@ def _load_transformer_layer_artifact(
             source=source_path,
             field="local_model.system.profile",
         ),
+        memory_scenario=_optional_str(
+            _dict_or_empty(
+                _get_optional(payload, "local_model", "system", "memory_scenario")
+            ),
+            "name",
+            source=source_path,
+            field="local_model.system.memory_scenario.name",
+        ),
         system_profile_overrides=_system_profile_overrides(payload, source_path),
         memory_timing_mode=_optional_str(
             _dict_or_empty(_get_optional(payload, "local_model", "system")),
@@ -1148,11 +1197,37 @@ def _load_transformer_layer_artifact(
             source=source_path,
             field="local_model.system.memory_timing_mode",
         ),
+        contention_preset=_optional_str(
+            _dict_or_empty(_get_optional(payload, "local_model", "system")),
+            "contention_preset",
+            source=source_path,
+            field="local_model.system.contention_preset",
+        ),
+        contention_overlap_model=_optional_str(
+            _dict_or_empty(_get_optional(payload, "local_model", "system")),
+            "contention_overlap_model",
+            source=source_path,
+            field="local_model.system.contention_overlap_model",
+        ),
         effective_transfer_time_ns=_optional_number(
             payload,
             "local_model",
             "system",
             "serial_transfer_time_ns",
+            source=source_path,
+        ),
+        effective_usable_bandwidth_under_load_bytes_per_ns=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "effective_usable_bandwidth_under_load_bytes_per_ns",
+            source=source_path,
+        ),
+        guardbanded_usable_bandwidth_under_load_bytes_per_ns=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "guardbanded_usable_bandwidth_under_load_bytes_per_ns",
             source=source_path,
         ),
         provenance_status=provenance_status,
@@ -1514,6 +1589,14 @@ def _load_transformer_model_artifact(
             source=source_path,
             field="local_model.system.profile",
         ),
+        memory_scenario=_optional_str(
+            _dict_or_empty(
+                _get_optional(payload, "local_model", "system", "memory_scenario")
+            ),
+            "name",
+            source=source_path,
+            field="local_model.system.memory_scenario.name",
+        ),
         system_profile_overrides=_system_profile_overrides(payload, source_path),
         memory_timing_mode=_optional_str(
             _dict_or_empty(_get_optional(payload, "local_model", "system")),
@@ -1521,11 +1604,37 @@ def _load_transformer_model_artifact(
             source=source_path,
             field="local_model.system.memory_timing_mode",
         ),
+        contention_preset=_optional_str(
+            _dict_or_empty(_get_optional(payload, "local_model", "system")),
+            "contention_preset",
+            source=source_path,
+            field="local_model.system.contention_preset",
+        ),
+        contention_overlap_model=_optional_str(
+            _dict_or_empty(_get_optional(payload, "local_model", "system")),
+            "contention_overlap_model",
+            source=source_path,
+            field="local_model.system.contention_overlap_model",
+        ),
         effective_transfer_time_ns=_optional_number(
             payload,
             "local_model",
             "system",
             "serial_transfer_time_ns",
+            source=source_path,
+        ),
+        effective_usable_bandwidth_under_load_bytes_per_ns=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "effective_usable_bandwidth_under_load_bytes_per_ns",
+            source=source_path,
+        ),
+        guardbanded_usable_bandwidth_under_load_bytes_per_ns=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "guardbanded_usable_bandwidth_under_load_bytes_per_ns",
             source=source_path,
         ),
         provenance_status=provenance_status,
@@ -1590,6 +1699,17 @@ def _load_comparison_presets(
                 source=source_path,
                 field=f"presets[{index}].pinned_id",
             )
+            analysis_intent = raw_preset.get("analysis_intent", {})
+            if not isinstance(analysis_intent, dict):
+                raise ValueError(
+                    f"{source_path}: presets[{index}].analysis_intent must be an object"
+                )
+            reviewer_notes = _optional_str(
+                raw_preset,
+                "reviewer_notes",
+                source=source_path,
+                field=f"presets[{index}].reviewer_notes",
+            )
             stale_ids = [
                 artifact_id for artifact_id in artifact_ids if artifact_id not in known_ids
             ]
@@ -1617,6 +1737,8 @@ def _load_comparison_presets(
                     description=description or "",
                     artifact_ids=tuple(artifact_ids),
                     pinned_id=pinned_id,
+                    analysis_intent=analysis_intent,
+                    reviewer_notes=reviewer_notes or "",
                     source_path=source_path,
                 )
             )

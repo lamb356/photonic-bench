@@ -57,12 +57,52 @@
     "system": {
       "profile": "default",
       "profile_overrides": [],
+      "memory_scenario": {
+        "name": "default",
+        "description": "PhotonicBench baseline: local SRAM plus a conservative generic off-chip/DRAM tier matching the historical defaults.",
+        "profile_overrides": [],
+        "memory_timing_mode": "overlapped",
+        "contention_preset": "single_client",
+        "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+        "overlap_model": "profile_timing_mode",
+        "assumptions": {
+          "shared_bandwidth_clients": 1.0,
+          "arbitration_efficiency": 1.0,
+          "calibration_overhead_fraction": 0.0,
+          "sram": {
+            "read_energy_pj_per_byte": 0.02,
+            "write_energy_pj_per_byte": 0.02,
+            "bandwidth_bytes_per_ns": 1024.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "intermediate": {
+            "read_energy_pj_per_byte": 0.2,
+            "write_energy_pj_per_byte": 0.2,
+            "bandwidth_bytes_per_ns": 256.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "off_chip": {
+            "read_energy_pj_per_byte": 10.0,
+            "write_energy_pj_per_byte": 10.0,
+            "bandwidth_bytes_per_ns": 16.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          }
+        },
+        "note": "Memory scenario fields are local modeling assumptions for review and sensitivity analysis; they are not paper-published hardware measurements unless a card states otherwise."
+      },
       "memory_timing_mode": "overlapped",
       "contention": {
+        "preset": "single_client",
         "shared_bandwidth_clients": 1.0,
         "arbitration_efficiency": 1.0,
-        "calibration_overhead_fraction": 0.0
+        "calibration_overhead_fraction": 0.0,
+        "overlap_model": "profile_timing_mode"
       },
+      "contention_preset": "single_client",
+      "contention_overlap_model": "profile_timing_mode",
       "local_compute_and_conversion_energy_pj": 83077931.52,
       "total_movement_energy_pj": 1538341217.28,
       "total_system_energy_pj": 1621419148.8000002,
@@ -167,6 +207,33 @@
       "effective_loaded_bandwidth_bytes_per_ns": 48.0,
       "contention_only_loaded_bandwidth_bytes_per_ns": 48.0,
       "contention_adjusted_loaded_bandwidth_bytes_per_ns": 48.0,
+      "effective_usable_bandwidth_under_load_bytes_per_ns": 48.0,
+      "guardbanded_usable_bandwidth_under_load_bytes_per_ns": 48.0,
+      "hierarchy_energy_breakdown": {
+        "local_compute_and_conversion": {
+          "energy_pj": 83077931.52,
+          "share": 0.0512377885641016
+        },
+        "sram": {
+          "energy_pj": 3010452.48,
+          "share": 0.0018566775174870807
+        },
+        "intermediate": {
+          "energy_pj": 30104524.8,
+          "share": 0.01856677517487081
+        },
+        "off_chip": {
+          "energy_pj": 1505226240.0,
+          "share": 0.9283387587435404
+        },
+        "movement_total": {
+          "energy_pj": 1538341217.28,
+          "share": 0.9487622114358982
+        },
+        "total_system_energy_pj": 1621419148.8000002,
+        "dominant_component": "off_chip",
+        "note": "Aggregate hierarchy energy is a local serial decomposition over decomposed cards and modeled movement tiers; it is not a published hardware energy breakdown."
+      },
       "transfer_to_compute_time_ratio": 11293.714285714286,
       "bandwidth_pressure_ratio": 11293.714285714286,
       "contention_adjusted_transfer_to_compute_time_ratio": 11293.714285714286,
@@ -271,12 +338,52 @@
         "system": {
           "profile": "default",
           "profile_overrides": [],
+          "memory_scenario": {
+            "name": "default",
+            "description": "PhotonicBench baseline: local SRAM plus a conservative generic off-chip/DRAM tier matching the historical defaults.",
+            "profile_overrides": [],
+            "memory_timing_mode": "overlapped",
+            "contention_preset": "single_client",
+            "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+            "overlap_model": "profile_timing_mode",
+            "assumptions": {
+              "shared_bandwidth_clients": 1.0,
+              "arbitration_efficiency": 1.0,
+              "calibration_overhead_fraction": 0.0,
+              "sram": {
+                "read_energy_pj_per_byte": 0.02,
+                "write_energy_pj_per_byte": 0.02,
+                "bandwidth_bytes_per_ns": 1024.0,
+                "read_fraction": 1.0,
+                "write_fraction": 1.0
+              },
+              "intermediate": {
+                "read_energy_pj_per_byte": 0.2,
+                "write_energy_pj_per_byte": 0.2,
+                "bandwidth_bytes_per_ns": 256.0,
+                "read_fraction": 1.0,
+                "write_fraction": 1.0
+              },
+              "off_chip": {
+                "read_energy_pj_per_byte": 10.0,
+                "write_energy_pj_per_byte": 10.0,
+                "bandwidth_bytes_per_ns": 16.0,
+                "read_fraction": 1.0,
+                "write_fraction": 1.0
+              }
+            },
+            "note": "Memory scenario fields are local modeling assumptions for review and sensitivity analysis; they are not paper-published hardware measurements unless a card states otherwise."
+          },
           "memory_timing_mode": "overlapped",
           "contention": {
+            "preset": "single_client",
             "shared_bandwidth_clients": 1.0,
             "arbitration_efficiency": 1.0,
-            "calibration_overhead_fraction": 0.0
+            "calibration_overhead_fraction": 0.0,
+            "overlap_model": "profile_timing_mode"
           },
+          "contention_preset": "single_client",
+          "contention_overlap_model": "profile_timing_mode",
           "tiers": {
             "sram": {
               "name": "sram",
@@ -365,6 +472,31 @@
           "total_system_energy_pj": 299051828.736,
           "system_energy_per_mac_pj": 0.09966950119995413,
           "system_energy_per_op_pj": 0.049834750599977065,
+          "hierarchy_energy_breakdown": {
+            "local_compute_and_conversion": {
+              "energy_pj": 18553545.216000002,
+              "share": 0.062041236445268114
+            },
+            "sram": {
+              "energy_pj": 548920.3200000001,
+              "share": 0.0018355357408116086
+            },
+            "intermediate": {
+              "energy_pj": 5489203.2,
+              "share": 0.018355357408116085
+            },
+            "off_chip": {
+              "energy_pj": 274460160.0,
+              "share": 0.9177678704058042
+            },
+            "movement_total": {
+              "energy_pj": 280498283.52,
+              "share": 0.9379587635547318
+            },
+            "total_system_energy_pj": 299051828.736,
+            "dominant_component": "off_chip",
+            "note": "Hierarchy energy is a local decomposition of compute/conversion energy plus modeled movement energy by tier; it is not a published hardware energy breakdown."
+          },
           "local_compute_and_conversion_energy_share": 0.062041236445268114,
           "movement_energy_share": 0.9379587635547318,
           "movement_to_compute_energy_ratio": 15.118311905053432,
@@ -400,6 +532,8 @@
           "effective_loaded_bandwidth_bytes_per_ns": 48.0,
           "contention_only_loaded_bandwidth_bytes_per_ns": 48.0,
           "contention_adjusted_loaded_bandwidth_bytes_per_ns": 48.0,
+          "effective_usable_bandwidth_under_load_bytes_per_ns": 48.0,
+          "guardbanded_usable_bandwidth_under_load_bytes_per_ns": 48.0,
           "transfer_to_compute_time_ratio": 343075.2,
           "bandwidth_limited_batch_latency_ns": 1715376.0,
           "bandwidth_pressure_ratio": 343075.2,
@@ -464,7 +598,8 @@
         "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
         "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.",
         "The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.",
-        "System contention fields model shared bandwidth clients, arbitration efficiency, and calibration/control guardband as local assumptions; they are not inferred from published hardware unless a card says so."
+        "System contention fields model shared bandwidth clients, arbitration efficiency, and calibration/control guardband as local assumptions; they are not inferred from published hardware unless a card says so.",
+        "Memory scenario and contention preset names describe local review assumptions, including the overlap model used to interpret transfer timing; they are not benchmark claims."
       ],
       "note": "Output projection is included in transformer-model totals as a local matmul estimate, not as a source-paper measurement."
     },
@@ -550,12 +685,52 @@
         "system": {
           "profile": "default",
           "profile_overrides": [],
+          "memory_scenario": {
+            "name": "default",
+            "description": "PhotonicBench baseline: local SRAM plus a conservative generic off-chip/DRAM tier matching the historical defaults.",
+            "profile_overrides": [],
+            "memory_timing_mode": "overlapped",
+            "contention_preset": "single_client",
+            "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+            "overlap_model": "profile_timing_mode",
+            "assumptions": {
+              "shared_bandwidth_clients": 1.0,
+              "arbitration_efficiency": 1.0,
+              "calibration_overhead_fraction": 0.0,
+              "sram": {
+                "read_energy_pj_per_byte": 0.02,
+                "write_energy_pj_per_byte": 0.02,
+                "bandwidth_bytes_per_ns": 1024.0,
+                "read_fraction": 1.0,
+                "write_fraction": 1.0
+              },
+              "intermediate": {
+                "read_energy_pj_per_byte": 0.2,
+                "write_energy_pj_per_byte": 0.2,
+                "bandwidth_bytes_per_ns": 256.0,
+                "read_fraction": 1.0,
+                "write_fraction": 1.0
+              },
+              "off_chip": {
+                "read_energy_pj_per_byte": 10.0,
+                "write_energy_pj_per_byte": 10.0,
+                "bandwidth_bytes_per_ns": 16.0,
+                "read_fraction": 1.0,
+                "write_fraction": 1.0
+              }
+            },
+            "note": "Memory scenario fields are local modeling assumptions for review and sensitivity analysis; they are not paper-published hardware measurements unless a card states otherwise."
+          },
           "memory_timing_mode": "overlapped",
           "contention": {
+            "preset": "single_client",
             "shared_bandwidth_clients": 1.0,
             "arbitration_efficiency": 1.0,
-            "calibration_overhead_fraction": 0.0
+            "calibration_overhead_fraction": 0.0,
+            "overlap_model": "profile_timing_mode"
           },
+          "contention_preset": "single_client",
+          "contention_overlap_model": "profile_timing_mode",
           "local_compute_and_conversion_energy_pj": 5377032.192,
           "total_movement_energy_pj": 88410685.44,
           "total_system_energy_pj": 93787717.632,
@@ -660,6 +835,33 @@
           "effective_loaded_bandwidth_bytes_per_ns": 48.0,
           "contention_only_loaded_bandwidth_bytes_per_ns": 48.0,
           "contention_adjusted_loaded_bandwidth_bytes_per_ns": 48.0,
+          "effective_usable_bandwidth_under_load_bytes_per_ns": 48.0,
+          "guardbanded_usable_bandwidth_under_load_bytes_per_ns": 48.0,
+          "hierarchy_energy_breakdown": {
+            "local_compute_and_conversion": {
+              "energy_pj": 5377032.192,
+              "share": 0.057331944179494325
+            },
+            "sram": {
+              "energy_pj": 173015.04,
+              "share": 0.0018447515769481522
+            },
+            "intermediate": {
+              "energy_pj": 1730150.4000000001,
+              "share": 0.01844751576948152
+            },
+            "off_chip": {
+              "energy_pj": 86507520.0,
+              "share": 0.922375788474076
+            },
+            "movement_total": {
+              "energy_pj": 88410685.44,
+              "share": 0.9426680558205056
+            },
+            "total_system_energy_pj": 93787717.632,
+            "dominant_component": "off_chip",
+            "note": "Aggregate hierarchy energy is a local serial decomposition over decomposed cards and modeled movement tiers; it is not a published hardware energy breakdown."
+          },
           "transfer_to_compute_time_ratio": 7835.826086956522,
           "bandwidth_pressure_ratio": 7835.826086956522,
           "contention_adjusted_transfer_to_compute_time_ratio": 7835.826086956522,

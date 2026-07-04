@@ -63,10 +63,23 @@ def test_report_to_dict_exposes_json_schema_sections() -> None:
     assert payload["model_inputs"]["system"]["profile_overrides"] == []
     assert payload["model_inputs"]["system"]["memory_timing_mode"] == "overlapped"
     assert payload["model_inputs"]["system"]["contention"] == {
+        "preset": "single_client",
         "shared_bandwidth_clients": 1.0,
         "arbitration_efficiency": 1.0,
         "calibration_overhead_fraction": 0.0,
+        "overlap_model": "profile_timing_mode",
     }
+    assert payload["model_inputs"]["system"]["scenario"]["name"] == "default"
+    assert (
+        payload["model_inputs"]["system"]["scenario"]["contention_preset"]
+        == "single_client"
+    )
+    assert (
+        payload["model_inputs"]["system"]["scenario"]["assumptions"][
+            "shared_bandwidth_clients"
+        ]
+        == pytest.approx(1.0)
+    )
     assert payload["model_inputs"]["system"]["intermediate"] == {
         "read_energy_pj_per_byte": 0.2,
         "write_energy_pj_per_byte": 0.2,
@@ -104,10 +117,15 @@ def test_report_to_dict_exposes_json_schema_sections() -> None:
     assert system["profile_overrides"] == []
     assert system["memory_timing_mode"] == "overlapped"
     assert system["contention"] == {
+        "preset": "single_client",
         "shared_bandwidth_clients": 1.0,
         "arbitration_efficiency": 1.0,
         "calibration_overhead_fraction": 0.0,
+        "overlap_model": "profile_timing_mode",
     }
+    assert system["memory_scenario"]["name"] == "default"
+    assert system["contention_preset"] == "single_client"
+    assert system["contention_overlap_model"] == "profile_timing_mode"
     assert system["tiers"]["sram"]["read_bytes"] == pytest.approx(24)
     assert system["tiers"]["sram"]["effective_bandwidth_bytes_per_ns"] == pytest.approx(
         1024
@@ -151,6 +169,13 @@ def test_report_to_dict_exposes_json_schema_sections() -> None:
     assert system["total_movement_energy_pj"] == pytest.approx(572.32)
     assert system["total_system_energy_pj"] == pytest.approx(593.568)
     assert system["system_energy_per_op_pj"] == pytest.approx(593.568 / 128)
+    assert system["hierarchy_energy_breakdown"]["off_chip"]["energy_pj"] == (
+        pytest.approx(560)
+    )
+    assert system["hierarchy_energy_breakdown"]["off_chip"]["share"] == pytest.approx(
+        560 / 593.568
+    )
+    assert system["hierarchy_energy_breakdown"]["dominant_component"] == "off_chip"
     assert system["local_compute_and_conversion_energy_share"] == pytest.approx(
         21.248 / 593.568
     )
@@ -205,6 +230,12 @@ def test_report_to_dict_exposes_json_schema_sections() -> None:
         48
     )
     assert system["contention_only_loaded_bandwidth_bytes_per_ns"] == pytest.approx(48)
+    assert system[
+        "effective_usable_bandwidth_under_load_bytes_per_ns"
+    ] == pytest.approx(48)
+    assert system[
+        "guardbanded_usable_bandwidth_under_load_bytes_per_ns"
+    ] == pytest.approx(48)
     assert system["transfer_to_compute_time_ratio"] == pytest.approx((56 / 16) / 5)
     assert system["bandwidth_limited_batch_latency_ns"] == pytest.approx(5.0)
     assert system["bandwidth_pressure_ratio"] == pytest.approx(1.0)

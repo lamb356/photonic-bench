@@ -56,9 +56,14 @@ def test_discover_visualizer_data_loads_root_and_nested_reports() -> None:
     assert layer.max_tier_contention_bandwidth_utilization is not None
     assert layer.min_tier_contention_bandwidth_headroom_ratio is not None
     assert layer.contention_only_loaded_bandwidth_bytes_per_ns is not None
+    assert layer.effective_usable_bandwidth_under_load_bytes_per_ns is not None
+    assert layer.guardbanded_usable_bandwidth_under_load_bytes_per_ns is not None
     assert layer.bandwidth_limited_latency_ns is not None
     assert layer.bandwidth_limited_throughput_equivalent_ops_per_second is not None
     assert layer.system_profile == "default"
+    assert layer.memory_scenario == "default"
+    assert layer.contention_preset == "single_client"
+    assert layer.contention_overlap_model == "profile_timing_mode"
     assert layer.system_profile_overrides == ()
     model = summaries["bert_base_12layer_model/bert_base_12layer_model_summary.json"]
     assert model.kind == "transformer_model"
@@ -79,6 +84,11 @@ def test_discover_visualizer_data_loads_root_and_nested_reports() -> None:
     profile = summaries["profile_sensitivity_64x64_hbm.json"]
     assert profile.kind == "matmul_card"
     assert profile.system_profile == "hbm"
+    assert profile.memory_scenario == "hbm"
+    assert profile.contention_preset == "shared_hbm_stack"
+    optical_profile = summaries["profile_sensitivity_64x64_optical_interconnect.json"]
+    assert optical_profile.system_profile == "optical_interconnect"
+    assert optical_profile.contention_preset == "optical_interconnect_broadcast"
 
     assert [preset.name for preset in data.comparison_presets] == [
         "Published reference surrogate cards",
@@ -102,12 +112,19 @@ def test_discover_visualizer_data_loads_root_and_nested_reports() -> None:
         "bandyopadhyay_2024_single_chip_dnn_surrogate.json",
         "kari_2024_coherent_matrix_platform_surrogate.json",
         "dong_2023_continuous_time_tensor_core_surrogate.json",
+        "shen_2017_coherent_onn_surrogate.json",
+        "tait_2017_microring_weight_bank_surrogate.json",
+        "chipai_2025_photonic_chiplet_surrogate.json",
     )
+    assert data.comparison_presets[0].analysis_intent["analysis_focus"] == "provenance"
+    assert "local UI triage" in data.comparison_presets[0].reviewer_notes
     assert data.comparison_presets[2].artifact_ids == (
         "profile_sensitivity_64x64_on_chip_sram.json",
+        "profile_sensitivity_64x64_on_package_sram.json",
         "profile_sensitivity_64x64_hbm.json",
         "profile_sensitivity_64x64_ddr.json",
         "profile_sensitivity_64x64_pcie_attached.json",
+        "profile_sensitivity_64x64_optical_interconnect.json",
     )
     assert (
         data.comparison_presets[2].pinned_id
@@ -209,6 +226,14 @@ def test_write_visualizer_emits_index_payloads_and_static_assets(
         ]
         is not None
     )
+    assert index["artifacts"][0]["summary"]["memory_scenario"] is not None
+    assert index["artifacts"][0]["summary"]["contention_preset"] is not None
+    assert (
+        index["artifacts"][0]["summary"][
+            "effective_usable_bandwidth_under_load_bytes_per_ns"
+        ]
+        is not None
+    )
 
     layer = next(
         artifact
@@ -254,6 +279,11 @@ def test_static_app_contains_comparison_and_boundary_labels() -> None:
     assert "Download JSON" in app_js
     assert "Download Markdown" in app_js
     assert "Download CSV" in app_js
+    assert "Decision Packet JSON" in app_js
+    assert "Decision Packet Markdown" in app_js
+    assert "photonic-bench-decision-packet-v1" in app_js
+    assert "reviewer_notes" in app_js
+    assert "Why this card ranks here" in app_js
     assert "Copy Markdown" in app_js
     assert "Copy state link" in app_js
     assert "Explain score" in app_js
@@ -274,6 +304,9 @@ def test_static_app_contains_comparison_and_boundary_labels() -> None:
     assert "Interface Memory Traffic" in app_js
     assert "Multi-Tier System Model" in app_js
     assert "System profile" in app_js
+    assert "Memory scenario" in app_js
+    assert "Contention preset" in app_js
+    assert "Contention overlap model" in app_js
     assert "Profile tier overrides" in app_js
     assert "System energy per op" in app_js
     assert "Movement share" in app_js
@@ -288,6 +321,9 @@ def test_static_app_contains_comparison_and_boundary_labels() -> None:
     assert "Contention-adjusted throughput" in app_js
     assert "Guardbanded loaded bandwidth" in app_js
     assert "Contention-only loaded bandwidth" in app_js
+    assert "Effective usable bandwidth under load" in app_js
+    assert "Guardbanded usable bandwidth under load" in app_js
+    assert "hierarchy_energy_breakdown" in app_js
     assert "Dominant system energy" in app_js
     assert "Largest tier system share" in app_js
     assert "Off-chip traffic share" in app_js

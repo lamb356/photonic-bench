@@ -146,11 +146,41 @@ class MemoryTierConfig:
     write_fraction: float = 1.0
 
 
+SYSTEM_CONTENTION_OVERLAP_MODELS = (
+    "profile_timing_mode",
+    "overlapped_compute_window",
+    "serialized_tier_path",
+    "serialized_host_link",
+    "wavelength_broadcast_overlap",
+)
+
+
 @dataclass(frozen=True)
 class SystemContentionConfig:
+    preset: str = "single_client"
     shared_bandwidth_clients: float = 1.0
     arbitration_efficiency: float = 1.0
     calibration_overhead_fraction: float = 0.0
+    overlap_model: str = "profile_timing_mode"
+
+
+@dataclass(frozen=True)
+class SystemContentionPreset:
+    name: str
+    description: str
+    shared_bandwidth_clients: float
+    arbitration_efficiency: float
+    calibration_overhead_fraction: float
+    overlap_model: str
+
+    def to_contention_config(self) -> SystemContentionConfig:
+        return SystemContentionConfig(
+            preset=self.name,
+            shared_bandwidth_clients=self.shared_bandwidth_clients,
+            arbitration_efficiency=self.arbitration_efficiency,
+            calibration_overhead_fraction=self.calibration_overhead_fraction,
+            overlap_model=self.overlap_model,
+        )
 
 
 @dataclass(frozen=True)
@@ -208,6 +238,67 @@ class SystemProfile:
         )
 
 
+SYSTEM_CONTENTION_PRESETS: dict[str, SystemContentionPreset] = {
+    "single_client": SystemContentionPreset(
+        name="single_client",
+        description=(
+            "Dedicated memory path: one modeled client, no arbitration loss, "
+            "and no calibration/control guardband."
+        ),
+        shared_bandwidth_clients=1.0,
+        arbitration_efficiency=1.0,
+        calibration_overhead_fraction=0.0,
+        overlap_model="profile_timing_mode",
+    ),
+    "shared_hbm_stack": SystemContentionPreset(
+        name="shared_hbm_stack",
+        description=(
+            "HBM-like shared stack: several clients share the loaded tier "
+            "bandwidth with modest arbitration loss and a small control "
+            "guardband."
+        ),
+        shared_bandwidth_clients=2.0,
+        arbitration_efficiency=0.92,
+        calibration_overhead_fraction=0.02,
+        overlap_model="overlapped_compute_window",
+    ),
+    "ddr_controller": SystemContentionPreset(
+        name="ddr_controller",
+        description=(
+            "DDR/controller-style sharing: multiple clients and controller "
+            "turnaround reduce usable bandwidth and add a larger guardband."
+        ),
+        shared_bandwidth_clients=4.0,
+        arbitration_efficiency=0.75,
+        calibration_overhead_fraction=0.08,
+        overlap_model="serialized_tier_path",
+    ),
+    "pcie_round_robin": SystemContentionPreset(
+        name="pcie_round_robin",
+        description=(
+            "Host/PCIe-attached path: two clients share a serialized host link "
+            "with round-robin arbitration and explicit protocol guardband."
+        ),
+        shared_bandwidth_clients=2.0,
+        arbitration_efficiency=0.85,
+        calibration_overhead_fraction=0.05,
+        overlap_model="serialized_host_link",
+    ),
+    "optical_interconnect_broadcast": SystemContentionPreset(
+        name="optical_interconnect_broadcast",
+        description=(
+            "Optical interconnect/broadcast path: wavelength fanout reduces "
+            "loaded-client contention, but arbitration and control guardband "
+            "remain explicit local assumptions."
+        ),
+        shared_bandwidth_clients=1.5,
+        arbitration_efficiency=0.92,
+        calibration_overhead_fraction=0.02,
+        overlap_model="wavelength_broadcast_overlap",
+    ),
+}
+
+
 SYSTEM_PROFILES: dict[str, SystemProfile] = {
     "default": SystemProfile(
         name="default",
@@ -230,6 +321,34 @@ SYSTEM_PROFILES: dict[str, SystemProfile] = {
             write_energy_pj_per_byte=10.0,
             bandwidth_bytes_per_ns=16.0,
         ),
+    ),
+    "on_package_sram": SystemProfile(
+        name="on_package_sram",
+        description=(
+            "On-package SRAM scenario: converter-interface traffic is kept on "
+            "a high-bandwidth local SRAM path with no modeled off-package "
+            "movement."
+        ),
+        sram=MemoryTierConfig(
+            read_energy_pj_per_byte=0.018,
+            write_energy_pj_per_byte=0.018,
+            bandwidth_bytes_per_ns=4096.0,
+        ),
+        intermediate=MemoryTierConfig(
+            read_energy_pj_per_byte=0.2,
+            write_energy_pj_per_byte=0.2,
+            bandwidth_bytes_per_ns=256.0,
+            read_fraction=0.0,
+            write_fraction=0.0,
+        ),
+        off_chip=MemoryTierConfig(
+            read_energy_pj_per_byte=10.0,
+            write_energy_pj_per_byte=10.0,
+            bandwidth_bytes_per_ns=16.0,
+            read_fraction=0.0,
+            write_fraction=0.0,
+        ),
+        contention=SYSTEM_CONTENTION_PRESETS["single_client"].to_contention_config(),
     ),
     "on_chip_sram": SystemProfile(
         name="on_chip_sram",
@@ -256,6 +375,7 @@ SYSTEM_PROFILES: dict[str, SystemProfile] = {
             read_fraction=0.0,
             write_fraction=0.0,
         ),
+        contention=SYSTEM_CONTENTION_PRESETS["single_client"].to_contention_config(),
     ),
     "hbm": SystemProfile(
         name="hbm",
@@ -278,6 +398,7 @@ SYSTEM_PROFILES: dict[str, SystemProfile] = {
             write_energy_pj_per_byte=3.0,
             bandwidth_bytes_per_ns=512.0,
         ),
+        contention=SYSTEM_CONTENTION_PRESETS["shared_hbm_stack"].to_contention_config(),
     ),
     "ddr": SystemProfile(
         name="ddr",
@@ -300,6 +421,7 @@ SYSTEM_PROFILES: dict[str, SystemProfile] = {
             write_energy_pj_per_byte=10.0,
             bandwidth_bytes_per_ns=16.0,
         ),
+        contention=SYSTEM_CONTENTION_PRESETS["ddr_controller"].to_contention_config(),
     ),
     "pcie_attached": SystemProfile(
         name="pcie_attached",
@@ -323,11 +445,40 @@ SYSTEM_PROFILES: dict[str, SystemProfile] = {
             bandwidth_bytes_per_ns=8.0,
         ),
         memory_timing_mode="serialized",
-        contention=SystemContentionConfig(
-            shared_bandwidth_clients=2.0,
-            arbitration_efficiency=0.85,
-            calibration_overhead_fraction=0.05,
+        contention=SYSTEM_CONTENTION_PRESETS["pcie_round_robin"].to_contention_config(),
+    ),
+    "optical_interconnect": SystemProfile(
+        name="optical_interconnect",
+        description=(
+            "Optical interconnect scenario: local SRAM is paired with high "
+            "bandwidth intermediate and off-chip optical movement paths to "
+            "stress WDM/broadcast-like data movement separately from core "
+            "photonic compute."
         ),
+        sram=MemoryTierConfig(
+            read_energy_pj_per_byte=0.02,
+            write_energy_pj_per_byte=0.02,
+            bandwidth_bytes_per_ns=2048.0,
+            read_fraction=1.0,
+            write_fraction=1.0,
+        ),
+        intermediate=MemoryTierConfig(
+            read_energy_pj_per_byte=0.08,
+            write_energy_pj_per_byte=0.08,
+            bandwidth_bytes_per_ns=1024.0,
+            read_fraction=0.75,
+            write_fraction=0.75,
+        ),
+        off_chip=MemoryTierConfig(
+            read_energy_pj_per_byte=1.2,
+            write_energy_pj_per_byte=1.5,
+            bandwidth_bytes_per_ns=768.0,
+            read_fraction=0.25,
+            write_fraction=0.25,
+        ),
+        contention=SYSTEM_CONTENTION_PRESETS[
+            "optical_interconnect_broadcast"
+        ].to_contention_config(),
     ),
 }
 
@@ -336,6 +487,7 @@ def system_config_to_dict(system: SystemConfig) -> dict[str, Any]:
     return {
         "profile": system.profile,
         "profile_overrides": list(system.profile_overrides),
+        "scenario": system_memory_scenario_to_dict(system),
         "memory_timing_mode": system.memory_timing_mode,
         "contention": system_contention_config_to_dict(system.contention),
         "sram": memory_tier_config_to_dict(system.sram),
@@ -344,13 +496,65 @@ def system_config_to_dict(system: SystemConfig) -> dict[str, Any]:
     }
 
 
+def system_memory_scenario_to_dict(system: SystemConfig) -> dict[str, Any]:
+    profile = SYSTEM_PROFILES.get(system.profile)
+    contention_preset = SYSTEM_CONTENTION_PRESETS.get(system.contention.preset)
+    return {
+        "name": system.profile,
+        "description": (
+            profile.description
+            if profile is not None
+            else "Manual system scenario assembled from explicit tier settings."
+        ),
+        "profile_overrides": list(system.profile_overrides),
+        "memory_timing_mode": system.memory_timing_mode,
+        "contention_preset": system.contention.preset,
+        "contention_preset_description": _contention_preset_description(
+            system.contention,
+            contention_preset,
+        ),
+        "overlap_model": system.contention.overlap_model,
+        "assumptions": {
+            "shared_bandwidth_clients": system.contention.shared_bandwidth_clients,
+            "arbitration_efficiency": system.contention.arbitration_efficiency,
+            "calibration_overhead_fraction": (
+                system.contention.calibration_overhead_fraction
+            ),
+            "sram": memory_tier_config_to_dict(system.sram),
+            "intermediate": memory_tier_config_to_dict(system.intermediate),
+            "off_chip": memory_tier_config_to_dict(system.off_chip),
+        },
+        "note": (
+            "Memory scenario fields are local modeling assumptions for review "
+            "and sensitivity analysis; they are not paper-published hardware "
+            "measurements unless a card states otherwise."
+        ),
+    }
+
+
+def _contention_preset_description(
+    contention: SystemContentionConfig,
+    preset: SystemContentionPreset | None,
+) -> str:
+    if preset is None:
+        return "Custom contention calibration preset."
+    if contention == preset.to_contention_config():
+        return preset.description
+    return (
+        f"Custom overrides applied to {preset.name}: {preset.description} "
+        "Numeric contention assumptions in this scenario are authoritative."
+    )
+
+
 def system_contention_config_to_dict(
     contention: SystemContentionConfig,
-) -> dict[str, float]:
+) -> dict[str, float | str]:
     return {
+        "preset": contention.preset,
         "shared_bandwidth_clients": contention.shared_bandwidth_clients,
         "arbitration_efficiency": contention.arbitration_efficiency,
         "calibration_overhead_fraction": contention.calibration_overhead_fraction,
+        "overlap_model": contention.overlap_model,
     }
 
 
@@ -1258,6 +1462,44 @@ def _optional_memory_timing_mode(
     return mode
 
 
+def _contention_preset_with_default(
+    raw: dict[str, Any],
+    dotted_key: str,
+    *,
+    default: str,
+) -> str:
+    key = dotted_key.rsplit(".", 1)[-1]
+    if key not in raw:
+        return default
+    value = raw[key]
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{dotted_key} must be a non-empty string")
+    preset = value.strip()
+    if preset not in SYSTEM_CONTENTION_PRESETS:
+        choices = ", ".join(sorted(SYSTEM_CONTENTION_PRESETS))
+        raise ValueError(f"{dotted_key} must be one of: {choices}")
+    return preset
+
+
+def _contention_overlap_model_with_default(
+    raw: dict[str, Any],
+    dotted_key: str,
+    *,
+    default: str,
+) -> str:
+    key = dotted_key.rsplit(".", 1)[-1]
+    if key not in raw:
+        return default
+    value = raw[key]
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{dotted_key} must be a non-empty string")
+    overlap_model = value.strip()
+    if overlap_model not in SYSTEM_CONTENTION_OVERLAP_MODELS:
+        choices = ", ".join(SYSTEM_CONTENTION_OVERLAP_MODELS)
+        raise ValueError(f"{dotted_key} must be one of: {choices}")
+    return overlap_model
+
+
 def _system_contention_config(
     raw: dict[str, Any] | None,
     section: str,
@@ -1267,21 +1509,37 @@ def _system_contention_config(
     if raw is None:
         return default
 
+    preset = _contention_preset_with_default(
+        raw,
+        f"{section}.preset",
+        default=default.preset,
+    )
+    base = (
+        SYSTEM_CONTENTION_PRESETS[preset].to_contention_config()
+        if preset != default.preset
+        else default
+    )
     return SystemContentionConfig(
+        preset=preset,
         shared_bandwidth_clients=_positive_float_with_default(
             raw,
             f"{section}.shared_bandwidth_clients",
-            default=default.shared_bandwidth_clients,
+            default=base.shared_bandwidth_clients,
         ),
         arbitration_efficiency=_efficiency_with_default(
             raw,
             f"{section}.arbitration_efficiency",
-            default=default.arbitration_efficiency,
+            default=base.arbitration_efficiency,
         ),
         calibration_overhead_fraction=_non_negative_float_with_default(
             raw,
             f"{section}.calibration_overhead_fraction",
-            default=default.calibration_overhead_fraction,
+            default=base.calibration_overhead_fraction,
+        ),
+        overlap_model=_contention_overlap_model_with_default(
+            raw,
+            f"{section}.overlap_model",
+            default=base.overlap_model,
         ),
     )
 

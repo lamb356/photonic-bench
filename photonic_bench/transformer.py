@@ -17,6 +17,7 @@ from photonic_bench.config import (
     TransformerModelLayerConfig,
     WorkloadConfig,
     system_config_to_dict,
+    system_memory_scenario_to_dict,
 )
 from photonic_bench.json_report import REPORT_SCHEMA_VERSION, report_to_dict
 from photonic_bench.model import evaluate
@@ -410,6 +411,9 @@ def render_transformer_model_markdown(
 
 | Metric | Value |
 | --- | ---: |
+| Memory scenario | {system["memory_scenario"]["name"]} |
+| Contention preset | {system["contention_preset"]} |
+| Contention overlap model | {system["contention_overlap_model"]} |
 | Compute/conversion energy (pJ) | {_format_metric(system["local_compute_and_conversion_energy_pj"])} |
 | Movement energy (pJ) | {_format_metric(system["total_movement_energy_pj"])} |
 | Total system energy (pJ) | {_format_metric(system["total_system_energy_pj"])} |
@@ -426,11 +430,16 @@ def render_transformer_model_markdown(
 | Contention-adjusted serial latency (ns) | {_format_metric(system["contention_adjusted_serial_batch_latency_ns"])} |
 | Contention-adjusted equivalent ops/s | {_format_metric(system["contention_adjusted_serial_effective_equivalent_ops_per_second"])} |
 | Contention-only loaded bandwidth (bytes/ns) | {_format_metric(system["contention_only_loaded_bandwidth_bytes_per_ns"])} |
+| Effective usable bandwidth under load (bytes/ns) | {_format_metric(system["effective_usable_bandwidth_under_load_bytes_per_ns"])} |
+| Guardbanded usable bandwidth under load (bytes/ns) | {_format_metric(system["guardbanded_usable_bandwidth_under_load_bytes_per_ns"])} |
 | Bandwidth saturation tier | {system["contention_bandwidth_saturation_tier"]} |
 | Max tier bandwidth utilization | {_format_metric(system["max_tier_contention_bandwidth_utilization"])} |
 | Min tier bandwidth headroom ratio | {_format_metric(system["min_tier_contention_bandwidth_headroom_ratio"])} |
 | Dominant system energy component | {system["dominant_system_energy_component"]} |
 | Max tier system energy share | {_format_metric(system["max_tier_system_energy_share"])} |
+| SRAM system-energy share | {_format_metric(system["hierarchy_energy_breakdown"]["sram"]["share"])} |
+| Intermediate system-energy share | {_format_metric(system["hierarchy_energy_breakdown"]["intermediate"]["share"])} |
+| Off-chip system-energy share | {_format_metric(system["hierarchy_energy_breakdown"]["off_chip"]["share"])} |
 
 ## Model Components
 
@@ -587,8 +596,11 @@ def transformer_layer_report_to_dict(
             "system": {
                 "profile": config.system.profile,
                 "profile_overrides": list(config.system.profile_overrides),
+                "memory_scenario": system_memory_scenario_to_dict(config.system),
                 "memory_timing_mode": config.system.memory_timing_mode,
                 "contention": system_config_to_dict(config.system)["contention"],
+                "contention_preset": config.system.contention.preset,
+                "contention_overlap_model": config.system.contention.overlap_model,
                 **{field: _sum_local_system(audits, field) for field in _SYSTEM_SUM_FIELDS},
                 "tiers": aggregate_tiers,
                 "serial_transfer_time_ns": serial_transfer_time_ns,
@@ -922,8 +934,11 @@ def transformer_model_report_to_dict(
             "system": {
                 "profile": config.system.profile,
                 "profile_overrides": list(config.system.profile_overrides),
+                "memory_scenario": system_memory_scenario_to_dict(config.system),
                 "memory_timing_mode": config.system.memory_timing_mode,
                 "contention": system_config_to_dict(config.system)["contention"],
+                "contention_preset": config.system.contention.preset,
+                "contention_overlap_model": config.system.contention.overlap_model,
                 **{
                     field: (
                         _weighted_layer_number(
@@ -2155,6 +2170,56 @@ def _aggregate_system_derived_metrics(
             total_hierarchy_bytes,
             contention_adjusted_serial_transfer_time_ns,
         ),
+        "effective_usable_bandwidth_under_load_bytes_per_ns": _safe_divide(
+            total_hierarchy_bytes,
+            contention_only_transfer_time_ns,
+        ),
+        "guardbanded_usable_bandwidth_under_load_bytes_per_ns": _safe_divide(
+            total_hierarchy_bytes,
+            contention_adjusted_serial_transfer_time_ns,
+        ),
+        "hierarchy_energy_breakdown": {
+            "local_compute_and_conversion": {
+                "energy_pj": local_compute_and_conversion_energy_pj,
+                "share": _safe_divide(
+                    local_compute_and_conversion_energy_pj,
+                    total_system_energy_pj,
+                ),
+            },
+            "sram": {
+                "energy_pj": float(tiers["sram"]["total_energy_pj"]),
+                "share": float(tiers["sram"].get("system_energy_share") or 0.0),
+            },
+            "intermediate": {
+                "energy_pj": float(tiers["intermediate"]["total_energy_pj"]),
+                "share": float(
+                    tiers["intermediate"].get("system_energy_share") or 0.0
+                ),
+            },
+            "off_chip": {
+                "energy_pj": float(tiers["off_chip"]["total_energy_pj"]),
+                "share": float(tiers["off_chip"].get("system_energy_share") or 0.0),
+            },
+            "movement_total": {
+                "energy_pj": total_movement_energy_pj,
+                "share": _safe_divide(
+                    total_movement_energy_pj,
+                    total_system_energy_pj,
+                ),
+            },
+            "total_system_energy_pj": total_system_energy_pj,
+            "dominant_component": (
+                "local_compute_and_conversion"
+                if local_compute_and_conversion_energy_pj
+                >= float(dominant_system_energy_tier.get("total_energy_pj") or 0.0)
+                else str(dominant_system_energy_tier.get("name") or "tier")
+            ),
+            "note": (
+                "Aggregate hierarchy energy is a local serial decomposition "
+                "over decomposed cards and modeled movement tiers; it is not "
+                "a published hardware energy breakdown."
+            ),
+        },
         "transfer_to_compute_time_ratio": _safe_divide(
             serial_transfer_time_ns,
             serial_batch_latency_ns,

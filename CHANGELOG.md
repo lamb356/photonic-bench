@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-07-04 - Decision Packets, Calibrated Scenarios, And Release Hygiene
+
+- Documented the PR #9 and PR #10 modeling/visualizer sequence as the baseline
+  for this follow-up: bandwidth headroom, Energy Stack, review checklist, and
+  guardbanded versus contention-only bandwidth split are now part of the
+  decision-grade workflow.
+- Added visualizer decision packets in JSON and Markdown. A packet bundles
+  selected artifacts, pinned baseline, analysis intent, score weights, review
+  checklist status, top tradeoffs, reviewer notes, boundary notes, and the
+  embedded comparison export while labeling rankings as local UI triage.
+- Upgraded generated and browser-local presets so they preserve full analysis
+  intent: selected artifacts, pinned baseline, focus mode, score profile,
+  score weights, filters, Pareto mode, and reviewer notes.
+- Promoted named memory scenarios and contention calibration presets into
+  report, JSON, transformer aggregate, comparison, schema, and visualizer
+  surfaces. Effective usable bandwidth under load and hierarchy energy
+  breakdowns are first-class local outputs.
+- Added source-backed surrogate cards for Shen 2017 coherent ONN, Tait 2017
+  microring/WDM weight-bank, and ChipAI 2025 photonic chiplet architectures to
+  stress on-package SRAM, WDM/broadcast, and chiplet/off-chip movement cases.
+- Updated CI screenshot artifact uploads to `actions/upload-artifact@v6` to
+  remove the GitHub Actions Node 20 deprecation warning without weakening Ruff,
+  package build, pytest, artifact freshness, or visual regression coverage.
+- Added reviewer workflow documentation for artifact freshness, generated
+  visualizer review, visual regression screenshots, and baseline promotion.
+
 ## 2026-07-04 - PR9 Merge, Energy Stack, And Bandwidth Phase Split
 
 - Merged PR #9 into `master`, verified post-merge master CI, ran local pytest

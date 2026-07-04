@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from photonic_bench.config import system_memory_scenario_to_dict
 from photonic_bench.model import BenchmarkResult
 
 
@@ -23,6 +24,7 @@ def render_markdown(result: BenchmarkResult) -> str:
     system = result.system
     workload = config.workload
     execution = config.execution
+    scenario = system_memory_scenario_to_dict(config.system)
 
     description = config.benchmark.description or "No description provided."
     peripheral_percent = energy.peripheral_share * 100
@@ -94,11 +96,29 @@ simulator.
 | Intermediate/cache | {_bytes(system.intermediate.read_bytes)} | {_bytes(system.intermediate.write_bytes)} | {_pj(system.intermediate.total_energy_pj)} | {system.intermediate.traffic_share * 100:.2f}% | {system.intermediate.movement_energy_share * 100:.2f}% | {system.intermediate.system_energy_share * 100:.2f}% | {_ns(system.intermediate.transfer_time_ns)} | {_ns(system.intermediate.calibration_adjusted_transfer_time_ns)} | {system.intermediate.contention_adjusted_transfer_pressure_ratio:.6g} | {_bytes_per_ns(system.intermediate.effective_bandwidth_bytes_per_ns)} | {_bytes_per_ns(system.intermediate.compute_window_required_bandwidth_bytes_per_ns)} | {system.intermediate.contention_bandwidth_utilization:.6g} | {_bytes_per_ns(system.intermediate.contention_bandwidth_headroom_bytes_per_ns)} |
 | Off-chip/DRAM | {_bytes(system.off_chip.read_bytes)} | {_bytes(system.off_chip.write_bytes)} | {_pj(system.off_chip.total_energy_pj)} | {system.off_chip.traffic_share * 100:.2f}% | {system.off_chip.movement_energy_share * 100:.2f}% | {system.off_chip.system_energy_share * 100:.2f}% | {_ns(system.off_chip.transfer_time_ns)} | {_ns(system.off_chip.calibration_adjusted_transfer_time_ns)} | {system.off_chip.contention_adjusted_transfer_pressure_ratio:.6g} | {_bytes_per_ns(system.off_chip.effective_bandwidth_bytes_per_ns)} | {_bytes_per_ns(system.off_chip.compute_window_required_bandwidth_bytes_per_ns)} | {system.off_chip.contention_bandwidth_utilization:.6g} | {_bytes_per_ns(system.off_chip.contention_bandwidth_headroom_bytes_per_ns)} |
 
+### Hierarchy Energy Breakdown
+
+This table is a local system-energy decomposition by hierarchy level. It is
+not a published hardware energy breakdown.
+
+| Component | Energy | System share |
+| --- | ---: | ---: |
+| Local compute/conversion | {_pj(system.local_compute_and_conversion_energy_pj)} | {system.local_compute_and_conversion_energy_share * 100:.2f}% |
+| SRAM movement | {_pj(system.sram.total_energy_pj)} | {system.sram.system_energy_share * 100:.2f}% |
+| Intermediate/cache movement | {_pj(system.intermediate.total_energy_pj)} | {system.intermediate.system_energy_share * 100:.2f}% |
+| Off-chip/DRAM movement | {_pj(system.off_chip.total_energy_pj)} | {system.off_chip.system_energy_share * 100:.2f}% |
+| Total movement | {_pj(system.total_movement_energy_pj)} | {system.movement_energy_share * 100:.2f}% |
+
 | Metric | Value |
 | --- | ---: |
 | System profile | {config.system.profile} |
 | Profile tier overrides | {_profile_overrides(config.system.profile_overrides)} |
+| Memory scenario | {scenario["name"]} |
+| Scenario description | {scenario["description"]} |
 | Memory timing mode | {system.memory_timing_mode} |
+| Contention preset | {system.contention_preset} |
+| Contention preset description | {scenario["contention_preset_description"]} |
+| Contention overlap model | {system.contention_overlap_model} |
 | Shared bandwidth clients | {system.shared_bandwidth_clients:.6g} |
 | Arbitration efficiency | {system.bandwidth_arbitration_efficiency:.6g} |
 | Calibration/control overhead | {system.calibration_overhead_fraction:.6g} |
@@ -140,6 +160,8 @@ simulator.
 | Effective loaded hierarchy bandwidth | {_bytes_per_ns(system.effective_loaded_bandwidth_bytes_per_ns)} |
 | Contention-only loaded hierarchy bandwidth | {_bytes_per_ns(system.contention_only_loaded_bandwidth_bytes_per_ns)} |
 | Contention-adjusted loaded hierarchy bandwidth | {_bytes_per_ns(system.contention_adjusted_loaded_bandwidth_bytes_per_ns)} |
+| Effective usable bandwidth under load | {_bytes_per_ns(system.effective_usable_bandwidth_under_load_bytes_per_ns)} |
+| Guardbanded usable bandwidth under load | {_bytes_per_ns(system.guardbanded_usable_bandwidth_under_load_bytes_per_ns)} |
 | Transfer-to-compute time ratio | {system.transfer_to_compute_time_ratio:.6g} |
 | Bandwidth-limited tier | {system.bandwidth_limited_tier} |
 | Bandwidth-limited batch latency | {_ns(system.bandwidth_limited_batch_latency_ns)} |
@@ -445,6 +467,11 @@ def result_assumptions(result: BenchmarkResult) -> tuple[str, ...]:
             "System contention fields model shared bandwidth clients, arbitration "
             "efficiency, and calibration/control guardband as local assumptions; "
             "they are not inferred from published hardware unless a card says so."
+        ),
+        (
+            "Memory scenario and contention preset names describe local review "
+            "assumptions, including the overlap model used to interpret transfer "
+            "timing; they are not benchmark claims."
         ),
     )
 

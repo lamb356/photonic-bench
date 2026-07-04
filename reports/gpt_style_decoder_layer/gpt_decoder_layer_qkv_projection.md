@@ -63,11 +63,29 @@ simulator.
 | Intermediate/cache | 2555904 bytes | 2359296 bytes | 983040.000 pJ | 33.33% | 1.96% | 1.76% | 19200.000 ns | 19200.000 ns | 3840 | 256.000 bytes/ns | 983040.000 bytes/ns | 3840 | -982784.000 bytes/ns |
 | Off-chip/DRAM | 2555904 bytes | 2359296 bytes | 49152000.000 pJ | 33.33% | 97.85% | 87.85% | 307200.000 ns | 307200.000 ns | 61440 | 16.000 bytes/ns | 983040.000 bytes/ns | 61440 | -983024.000 bytes/ns |
 
+### Hierarchy Energy Breakdown
+
+This table is a local system-energy decomposition by hierarchy level. It is
+not a published hardware energy breakdown.
+
+| Component | Energy | System share |
+| --- | ---: | ---: |
+| Local compute/conversion | 5717753.856 pJ | 10.22% |
+| SRAM movement | 98304.000 pJ | 0.18% |
+| Intermediate/cache movement | 983040.000 pJ | 1.76% |
+| Off-chip/DRAM movement | 49152000.000 pJ | 87.85% |
+| Total movement | 50233344.000 pJ | 89.78% |
+
 | Metric | Value |
 | --- | ---: |
 | System profile | default |
 | Profile tier overrides | none |
+| Memory scenario | default |
+| Scenario description | PhotonicBench baseline: local SRAM plus a conservative generic off-chip/DRAM tier matching the historical defaults. |
 | Memory timing mode | overlapped |
+| Contention preset | single_client |
+| Contention preset description | Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband. |
+| Contention overlap model | profile_timing_mode |
 | Shared bandwidth clients | 1 |
 | Arbitration efficiency | 1 |
 | Calibration/control overhead | 0 |
@@ -109,6 +127,8 @@ simulator.
 | Effective loaded hierarchy bandwidth | 48.000 bytes/ns |
 | Contention-only loaded hierarchy bandwidth | 48.000 bytes/ns |
 | Contention-adjusted loaded hierarchy bandwidth | 48.000 bytes/ns |
+| Effective usable bandwidth under load | 48.000 bytes/ns |
+| Guardbanded usable bandwidth under load | 48.000 bytes/ns |
 | Transfer-to-compute time ratio | 61440 |
 | Bandwidth-limited tier | off_chip |
 | Bandwidth-limited batch latency | 307200.000 ns |
@@ -184,3 +204,4 @@ simulator.
 - Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.
 - The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.
 - System contention fields model shared bandwidth clients, arbitration efficiency, and calibration/control guardband as local assumptions; they are not inferred from published hardware unless a card says so.
+- Memory scenario and contention preset names describe local review assumptions, including the overlap model used to interpret transfer timing; they are not benchmark claims.

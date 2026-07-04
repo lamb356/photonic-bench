@@ -20,9 +20,26 @@
         "luan_2026_single_shot_mmm_surrogate.json",
         "bandyopadhyay_2024_single_chip_dnn_surrogate.json",
         "kari_2024_coherent_matrix_platform_surrogate.json",
-        "dong_2023_continuous_time_tensor_core_surrogate.json"
+        "dong_2023_continuous_time_tensor_core_surrogate.json",
+        "shen_2017_coherent_onn_surrogate.json",
+        "tait_2017_microring_weight_bank_surrogate.json",
+        "chipai_2025_photonic_chiplet_surrogate.json"
       ],
-      "pinned_id": "nature_pace_64x64.json"
+      "pinned_id": "nature_pace_64x64.json",
+      "analysis_intent": {
+        "analysis_focus": "provenance",
+        "score_profile": "provenance",
+        "pareto_mode": "energy-throughput",
+        "filters": {
+          "kind": "all",
+          "boundary": "all",
+          "quality": "all",
+          "sort": "name",
+          "grouping": "schema",
+          "search": ""
+        }
+      },
+      "reviewer_notes": "Generated preset for source-backed surrogate card review; ranking explanations are local UI triage only."
     },
     {
       "name": "Local reuse sensitivity",
@@ -31,18 +48,48 @@
         "matmul_64x64.json",
         "weight_stationary_64x64_batch.json"
       ],
-      "pinned_id": "matmul_64x64.json"
+      "pinned_id": "matmul_64x64.json",
+      "analysis_intent": {
+        "analysis_focus": "efficiency",
+        "score_profile": "efficiency",
+        "pareto_mode": "energy-throughput",
+        "filters": {
+          "kind": "matmul_card",
+          "boundary": "all",
+          "quality": "all",
+          "sort": "energy",
+          "grouping": "schema",
+          "search": "64x64"
+        }
+      },
+      "reviewer_notes": "Generated preset for local reuse sensitivity review."
     },
     {
       "name": "System profile sensitivity",
       "description": "Same 64x64 workload and photonic component assumptions under on-chip SRAM, HBM, DDR, and PCIe-attached system profiles.",
       "artifact_ids": [
         "profile_sensitivity_64x64_on_chip_sram.json",
+        "profile_sensitivity_64x64_on_package_sram.json",
         "profile_sensitivity_64x64_hbm.json",
         "profile_sensitivity_64x64_ddr.json",
-        "profile_sensitivity_64x64_pcie_attached.json"
+        "profile_sensitivity_64x64_pcie_attached.json",
+        "profile_sensitivity_64x64_optical_interconnect.json"
       ],
-      "pinned_id": "profile_sensitivity_64x64_ddr.json"
+      "pinned_id": "profile_sensitivity_64x64_ddr.json",
+      "analysis_intent": {
+        "analysis_focus": "contention",
+        "score_profile": "contention",
+        "pareto_mode": "contention-throughput",
+        "filters": {
+          "kind": "matmul_card",
+          "boundary": "all",
+          "quality": "all",
+          "sort": "latency",
+          "grouping": "system-profile",
+          "search": "profile sensitivity"
+        }
+      },
+      "reviewer_notes": "Generated preset for calibrated memory-scenario and contention review."
     }
   ]
 }

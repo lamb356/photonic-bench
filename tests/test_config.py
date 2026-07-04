@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from photonic_bench.config import load_config
+from photonic_bench.config import load_config, system_memory_scenario_to_dict
 
 
 def test_load_config_requires_expected_sections(tmp_path: Path) -> None:
@@ -416,9 +416,18 @@ noise:
         "contention",
     )
     assert config.system.memory_timing_mode == "serialized"
+    assert config.system.contention.preset == "single_client"
     assert config.system.contention.shared_bandwidth_clients == 3
     assert config.system.contention.arbitration_efficiency == 0.8
     assert config.system.contention.calibration_overhead_fraction == 0.1
+    assert config.system.contention.overlap_model == "profile_timing_mode"
+    scenario = system_memory_scenario_to_dict(config.system)
+    assert "Custom overrides applied to single_client" in (
+        scenario["contention_preset_description"]
+    )
+    assert "Numeric contention assumptions" in (
+        scenario["contention_preset_description"]
+    )
     assert config.system.sram.read_energy_pj_per_byte == 0.03
     assert config.system.sram.write_energy_pj_per_byte == 0.04
     assert config.system.sram.bandwidth_bytes_per_ns == 512
@@ -479,6 +488,11 @@ noise:
 
     assert config.system.profile == "hbm"
     assert config.system.profile_overrides == ("off_chip",)
+    assert config.system.contention.preset == "shared_hbm_stack"
+    assert config.system.contention.shared_bandwidth_clients == 2.0
+    assert config.system.contention.arbitration_efficiency == 0.92
+    assert config.system.contention.calibration_overhead_fraction == 0.02
+    assert config.system.contention.overlap_model == "overlapped_compute_window"
     assert config.system.sram.bandwidth_bytes_per_ns == 1024
     assert config.system.intermediate.bandwidth_bytes_per_ns == 256
     assert config.system.off_chip.read_energy_pj_per_byte == 3.0
@@ -486,6 +500,60 @@ noise:
     assert config.system.off_chip.bandwidth_bytes_per_ns == 256
     assert config.system.off_chip.read_fraction == 0.5
     assert config.system.off_chip.write_fraction == 1.0
+
+
+def test_load_config_supports_optical_interconnect_scenario_and_preset_override(
+    tmp_path: Path,
+) -> None:
+    config_path = tmp_path / "optical_interconnect.yaml"
+    config_path.write_text(
+        """
+benchmark:
+  name: optical interconnect scenario matmul
+workload:
+  type: matmul
+  m: 4
+  n: 8
+  k: 2
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 6
+    energy_pj_per_conversion: 0.5
+  dac:
+    bits: 6
+    energy_pj_per_conversion: 0.2
+system:
+  profile: optical_interconnect
+  contention:
+    preset: optical_interconnect_broadcast
+    shared_bandwidth_clients: 2
+    calibration_overhead_fraction: 0.03
+timing:
+  optical_latency_ns: 3
+  adc_latency_ns: 1
+  dac_latency_ns: 1
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 3
+""".strip(),
+        encoding="utf-8",
+    )
+
+    config = load_config(config_path)
+
+    assert config.system.profile == "optical_interconnect"
+    assert config.system.profile_overrides == ("contention",)
+    assert config.system.intermediate.read_fraction == 0.75
+    assert config.system.off_chip.read_energy_pj_per_byte == 1.2
+    assert config.system.contention.preset == "optical_interconnect_broadcast"
+    assert config.system.contention.shared_bandwidth_clients == 2
+    assert config.system.contention.arbitration_efficiency == 0.92
+    assert config.system.contention.calibration_overhead_fraction == 0.03
+    assert config.system.contention.overlap_model == "wavelength_broadcast_overlap"
 
 
 def test_load_config_rejects_unknown_system_profile(tmp_path: Path) -> None:
@@ -721,6 +789,102 @@ noise:
 
     assert "system.contention.calibration_overhead_fraction" in message
     assert "must be non-negative" in message
+
+
+def test_load_config_rejects_unknown_contention_preset(tmp_path: Path) -> None:
+    config_path = tmp_path / "bad_contention_preset.yaml"
+    config_path.write_text(
+        """
+benchmark:
+  name: bad contention preset
+workload:
+  type: matmul
+  m: 4
+  n: 8
+  k: 2
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 6
+    energy_pj_per_conversion: 0.5
+  dac:
+    bits: 6
+    energy_pj_per_conversion: 0.2
+system:
+  contention:
+    preset: made_up_fabric
+timing:
+  optical_latency_ns: 3
+  adc_latency_ns: 1
+  dac_latency_ns: 1
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 3
+""".strip(),
+        encoding="utf-8",
+    )
+
+    try:
+        load_config(config_path)
+    except ValueError as exc:
+        message = str(exc)
+    else:
+        raise AssertionError("load_config should reject unknown contention presets")
+
+    assert "system.contention.preset" in message
+    assert "single_client" in message
+    assert "optical_interconnect_broadcast" in message
+
+
+def test_load_config_rejects_unknown_contention_overlap_model(tmp_path: Path) -> None:
+    config_path = tmp_path / "bad_contention_overlap.yaml"
+    config_path.write_text(
+        """
+benchmark:
+  name: bad contention overlap
+workload:
+  type: matmul
+  m: 4
+  n: 8
+  k: 2
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 6
+    energy_pj_per_conversion: 0.5
+  dac:
+    bits: 6
+    energy_pj_per_conversion: 0.2
+system:
+  contention:
+    overlap_model: impossible_overlap
+timing:
+  optical_latency_ns: 3
+  adc_latency_ns: 1
+  dac_latency_ns: 1
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 3
+""".strip(),
+        encoding="utf-8",
+    )
+
+    try:
+        load_config(config_path)
+    except ValueError as exc:
+        message = str(exc)
+    else:
+        raise AssertionError("load_config should reject unknown overlap models")
+
+    assert "system.contention.overlap_model" in message
+    assert "profile_timing_mode" in message
+    assert "wavelength_broadcast_overlap" in message
 
 
 def test_load_config_rejects_invalid_memory_timing_mode(tmp_path: Path) -> None:

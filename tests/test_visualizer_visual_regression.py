@@ -139,6 +139,10 @@ def test_visualizer_screenshot_regression(
             page.emulate_media(reduced_motion="reduce")
             page.goto(output_path.resolve().as_uri())
             setup(page, tmp_path)
+            page_horizontal_overflow = page.evaluate(
+                "() => document.documentElement.scrollWidth - window.innerWidth"
+            )
+            assert page_horizontal_overflow <= 1
             page.screenshot(
                 path=actual_path,
                 full_page=False,

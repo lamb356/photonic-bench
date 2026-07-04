@@ -59,18 +59,36 @@ simulator.
 
 | Tier | Read bytes | Write bytes | Movement energy | Traffic share | Movement share | System share | Transfer time | Guardbanded transfer | Tier pressure | Effective bandwidth | Required bandwidth | Utilization | Headroom |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| SRAM | 8192 bytes | 4096 bytes | 245.760 pJ | 33.33% | 0.62% | 0.56% | 12.000 ns | 12.000 ns | 2.4 | 1024.000 bytes/ns | 2457.600 bytes/ns | 2.4 | -1433.600 bytes/ns |
-| Intermediate/cache | 8192 bytes | 4096 bytes | 2457.600 pJ | 33.33% | 6.21% | 5.61% | 48.000 ns | 48.000 ns | 9.6 | 256.000 bytes/ns | 2457.600 bytes/ns | 9.6 | -2201.600 bytes/ns |
-| Off-chip/DRAM | 8192 bytes | 4096 bytes | 36864.000 pJ | 33.33% | 93.17% | 84.13% | 24.000 ns | 24.000 ns | 4.8 | 512.000 bytes/ns | 2457.600 bytes/ns | 4.8 | -1945.600 bytes/ns |
+| SRAM | 8192 bytes | 4096 bytes | 245.760 pJ | 33.33% | 0.62% | 0.56% | 12.000 ns | 26.609 ns | 5.32174 | 471.040 bytes/ns | 2457.600 bytes/ns | 5.21739 | -1986.560 bytes/ns |
+| Intermediate/cache | 8192 bytes | 4096 bytes | 2457.600 pJ | 33.33% | 6.21% | 5.61% | 48.000 ns | 106.435 ns | 21.287 | 117.760 bytes/ns | 2457.600 bytes/ns | 20.8696 | -2339.840 bytes/ns |
+| Off-chip/DRAM | 8192 bytes | 4096 bytes | 36864.000 pJ | 33.33% | 93.17% | 84.13% | 24.000 ns | 53.217 ns | 10.6435 | 235.520 bytes/ns | 2457.600 bytes/ns | 10.4348 | -2222.080 bytes/ns |
+
+### Hierarchy Energy Breakdown
+
+This table is a local system-energy decomposition by hierarchy level. It is
+not a published hardware energy breakdown.
+
+| Component | Energy | System share |
+| --- | ---: | ---: |
+| Local compute/conversion | 4251.648 pJ | 9.70% |
+| SRAM movement | 245.760 pJ | 0.56% |
+| Intermediate/cache movement | 2457.600 pJ | 5.61% |
+| Off-chip/DRAM movement | 36864.000 pJ | 84.13% |
+| Total movement | 39567.360 pJ | 90.30% |
 
 | Metric | Value |
 | --- | ---: |
 | System profile | hbm |
 | Profile tier overrides | none |
+| Memory scenario | hbm |
+| Scenario description | Local SRAM plus a high-bandwidth-memory style off-chip tier with higher bandwidth and lower movement energy than generic DDR. |
 | Memory timing mode | overlapped |
-| Shared bandwidth clients | 1 |
-| Arbitration efficiency | 1 |
-| Calibration/control overhead | 0 |
+| Contention preset | shared_hbm_stack |
+| Contention preset description | HBM-like shared stack: several clients share the loaded tier bandwidth with modest arbitration loss and a small control guardband. |
+| Contention overlap model | overlapped_compute_window |
+| Shared bandwidth clients | 2 |
+| Arbitration efficiency | 0.92 |
+| Calibration/control overhead | 0.02 |
 | Local compute/conversion energy | 4251.648 pJ |
 | Total movement energy | 39567.360 pJ |
 | Total system energy | 43819.008 pJ |
@@ -91,34 +109,36 @@ simulator.
 | Nominal memory bottleneck tier | intermediate |
 | Contention memory bottleneck tier | intermediate |
 | Max tier nominal pressure ratio | 9.6 |
-| Max tier contention pressure ratio | 9.6 |
+| Max tier contention pressure ratio | 21.287 |
 | Max tier movement-energy share | 93.17% |
 | Max tier system energy share | 84.13% |
 | Contention bandwidth saturation tier | intermediate |
-| Max tier contention bandwidth utilization | 9.6 |
-| Min tier contention bandwidth headroom ratio | 0.104167 |
+| Max tier contention bandwidth utilization | 20.8696 |
+| Min tier contention bandwidth headroom ratio | 0.0479167 |
 | Max transfer time | 48.000 ns |
 | Serialized transfer time | 84.000 ns |
 | Effective transfer time | 48.000 ns |
-| Contention bandwidth derate | 1 |
-| Contention-adjusted effective transfer | 48.000 ns |
-| Calibration-adjusted effective transfer | 48.000 ns |
-| Calibration guardband time | 0.000 ns |
-| Contention transfer overhead | 0.00% |
-| Total transfer overhead | 0.00% |
+| Contention bandwidth derate | 0.46 |
+| Contention-adjusted effective transfer | 104.348 ns |
+| Calibration-adjusted effective transfer | 106.435 ns |
+| Calibration guardband time | 2.087 ns |
+| Contention transfer overhead | 117.39% |
+| Total transfer overhead | 121.74% |
 | Effective loaded hierarchy bandwidth | 768.000 bytes/ns |
-| Contention-only loaded hierarchy bandwidth | 768.000 bytes/ns |
-| Contention-adjusted loaded hierarchy bandwidth | 768.000 bytes/ns |
+| Contention-only loaded hierarchy bandwidth | 353.280 bytes/ns |
+| Contention-adjusted loaded hierarchy bandwidth | 346.353 bytes/ns |
+| Effective usable bandwidth under load | 353.280 bytes/ns |
+| Guardbanded usable bandwidth under load | 346.353 bytes/ns |
 | Transfer-to-compute time ratio | 9.6 |
 | Bandwidth-limited tier | intermediate |
 | Bandwidth-limited batch latency | 48.000 ns |
 | Bandwidth pressure ratio | 9.6 |
 | Bandwidth-limited equivalent ops/s | 10922666666666.666 |
 | Contention-limited tier | intermediate |
-| Contention-adjusted batch latency | 48.000 ns |
-| Contention-adjusted transfer-to-compute time ratio | 9.6 |
-| Contention pressure ratio | 9.6 |
-| Contention-adjusted equivalent ops/s | 10922666666666.666 |
+| Contention-adjusted batch latency | 106.435 ns |
+| Contention-adjusted transfer-to-compute time ratio | 21.287 |
+| Contention pressure ratio | 21.287 |
+| Contention-adjusted equivalent ops/s | 4925908496732.026 |
 
 ## Energy
 
@@ -177,3 +197,4 @@ simulator.
 - Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.
 - The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.
 - System contention fields model shared bandwidth clients, arbitration efficiency, and calibration/control guardband as local assumptions; they are not inferred from published hardware unless a card says so.
+- Memory scenario and contention preset names describe local review assumptions, including the overlap model used to interpret transfer timing; they are not benchmark claims.

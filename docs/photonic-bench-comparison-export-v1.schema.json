@@ -334,7 +334,22 @@
         "movement_to_compute_energy_ratio": {
           "$ref": "#/$defs/nullableNumber"
         },
+        "memory_scenario": {
+          "type": ["string", "null"]
+        },
+        "contention_preset": {
+          "type": ["string", "null"]
+        },
+        "contention_overlap_model": {
+          "type": ["string", "null"]
+        },
         "contention_only_loaded_bandwidth_bytes_per_ns": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "effective_usable_bandwidth_under_load_bytes_per_ns": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "guardbanded_usable_bandwidth_under_load_bytes_per_ns": {
           "$ref": "#/$defs/nullableNumber"
         },
         "guardbanded_loaded_hierarchy_bandwidth_bytes_per_ns": {

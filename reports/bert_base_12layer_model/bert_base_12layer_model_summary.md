@@ -16,6 +16,9 @@ Dense BERT-base style full encoder model summary with 12 identical encoder layer
 
 | Metric | Value |
 | --- | ---: |
+| Memory scenario | default |
+| Contention preset | single_client |
+| Contention overlap model | profile_timing_mode |
 | Compute/conversion energy (pJ) | 8.30779e+07 |
 | Movement energy (pJ) | 1.53834e+09 |
 | Total system energy (pJ) | 1.62142e+09 |
@@ -32,11 +35,16 @@ Dense BERT-base style full encoder model summary with 12 identical encoder layer
 | Contention-adjusted serial latency (ns) | 9.40766e+06 |
 | Contention-adjusted equivalent ops/s | 2.8207e+12 |
 | Contention-only loaded bandwidth (bytes/ns) | 48 |
+| Effective usable bandwidth under load (bytes/ns) | 48 |
+| Guardbanded usable bandwidth under load (bytes/ns) | 48 |
 | Bandwidth saturation tier | off_chip |
 | Max tier bandwidth utilization | 11293.7 |
 | Min tier bandwidth headroom ratio | 8.85448e-05 |
 | Dominant system energy component | off_chip |
 | Max tier system energy share | 0.928339 |
+| SRAM system-energy share | 0.00185668 |
+| Intermediate system-energy share | 0.0185668 |
+| Off-chip system-energy share | 0.928339 |
 
 ## Model Components
 

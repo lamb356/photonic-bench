@@ -58,8 +58,9 @@ conservative `A` through `D` confidence grade, and grading notes.
 ## Per-Card System Model Fields
 
 Per-card reports include `model_inputs.system` with the selected profile,
-profile override list, memory timing mode, and explicit `sram`,
-`intermediate`, and `off_chip` tier assumptions:
+profile override list, machine-readable scenario object, memory timing mode,
+contention preset, and explicit `sram`, `intermediate`, and `off_chip` tier
+assumptions:
 
 ```yaml
 system:
@@ -84,25 +85,30 @@ system:
     read_fraction: 1.0
     write_fraction: 1.0
   contention:
+    preset: single_client
     shared_bandwidth_clients: 1.0
     arbitration_efficiency: 1.0
     calibration_overhead_fraction: 0.0
+    overlap_model: profile_timing_mode
 ```
 
-Supported profile names are `default`, `on_chip_sram`, `hbm`, `ddr`, and
-`pcie_attached`. Profile names are local modeling presets, not measured hardware
-claims. A config can select a profile and override selected tier fields; those
-overridden tier names or timing-mode names appear in
+Supported profile names are `default`, `on_package_sram`, `on_chip_sram`,
+`hbm`, `ddr`, `pcie_attached`, and `optical_interconnect`. Profile names are
+local modeling presets, not measured hardware claims. A config can select a
+profile and override selected tier or contention fields; those overridden tier
+names, timing-mode names, or contention names appear in
 `model_inputs.system.profile_overrides` and
 `local_model.system.profile_overrides`.
 
 `model_inputs.system.contention` records local shared-link assumptions:
-`shared_bandwidth_clients` divides nominal tier bandwidth by the number of
-active clients, `arbitration_efficiency` multiplies the remaining bandwidth by
-an arbitration efficiency in `(0, 1]`, and
-`calibration_overhead_fraction` applies a final guardband to adjusted transfer
-time. These values are local modeling assumptions and are not paper-reported
-hardware metrics unless a future measured-system schema says so explicitly.
+`preset` names the local calibration preset, `shared_bandwidth_clients` divides
+nominal tier bandwidth by the number of active clients,
+`arbitration_efficiency` multiplies the remaining bandwidth by an arbitration
+efficiency in `(0, 1]`, `calibration_overhead_fraction` applies a final
+guardband to adjusted transfer time, and `overlap_model` records the local
+transfer/compute overlap assumption. These values are local modeling
+assumptions and are not paper-reported hardware metrics unless a future
+measured-system schema says so explicitly.
 
 `local_model.system.tiers.sram`, `local_model.system.tiers.intermediate`, and
 `local_model.system.tiers.off_chip` report the tier read bytes, write bytes,
@@ -139,6 +145,13 @@ summarizes those tier fields with `dominant_traffic_tier`,
 `max_tier_contention_bandwidth_utilization`, and
 `min_tier_contention_bandwidth_headroom_ratio` as local compute-window
 bandwidth diagnostics.
+`local_model.system.memory_scenario` and `model_inputs.system.scenario`
+describe the named local scenario, tier assumptions, contention preset, and
+overlap model used for the run. These scenario fields are local review and
+sensitivity assumptions, not paper-published hardware measurements.
+`local_model.system.hierarchy_energy_breakdown` makes local compute/conversion
+energy and SRAM/intermediate/off-chip movement energy first-class by hierarchy
+level.
 
 Bandwidth-limited fields are local estimates. For per-card reports,
 `local_model.system.effective_transfer_time_ns` is either the slowest tier
@@ -160,6 +173,10 @@ hierarchy bytes by the contention-only transfer time before the guardband.
 `local_model.system.contention_adjusted_loaded_bandwidth_bytes_per_ns` keeps
 its existing guardbanded meaning and divides hierarchy bytes by the
 calibration-adjusted transfer time.
+`local_model.system.effective_usable_bandwidth_under_load_bytes_per_ns` is the
+same contention-only loaded bandwidth with a review-oriented name.
+`local_model.system.guardbanded_usable_bandwidth_under_load_bytes_per_ns` is the
+same guardbanded usable bandwidth after calibration/control overhead.
 `local_model.system.contention_adjusted_transfer_to_compute_time_ratio` divides
 that guardbanded transfer time by compute-only batch latency.
 `local_model.system.contention_adjusted_batch_latency_ns` is the maximum of the
@@ -414,9 +431,12 @@ transformer_model:
 | `model_inputs.device.*dac.energy_pj_per_conversion` | pJ/conversion |
 | `model_inputs.system.profile` | profile name |
 | `model_inputs.system.profile_overrides[]` | overridden tier names |
+| `model_inputs.system.scenario` | object |
+| `model_inputs.system.contention.preset` | local preset name |
 | `model_inputs.system.contention.shared_bandwidth_clients` | count |
 | `model_inputs.system.contention.arbitration_efficiency` | unitless fraction |
 | `model_inputs.system.contention.calibration_overhead_fraction` | unitless fraction |
+| `model_inputs.system.contention.overlap_model` | local overlap model name |
 | `model_inputs.system.*.read_energy_pj_per_byte` | pJ/byte |
 | `model_inputs.system.*.write_energy_pj_per_byte` | pJ/byte |
 | `model_inputs.system.*.bandwidth_bytes_per_ns` | bytes/ns |
@@ -434,6 +454,9 @@ transformer_model:
 | `local_model.memory_traffic.equivalent_ops_per_byte` | equivalent ops/byte |
 | `local_model.system.profile` | profile name |
 | `local_model.system.profile_overrides[]` | overridden tier names |
+| `local_model.system.memory_scenario` | object |
+| `local_model.system.contention_preset` | local preset name |
+| `local_model.system.contention_overlap_model` | local overlap model name |
 | `local_model.system.tiers.*.*_bytes` | bytes |
 | `local_model.system.tiers.*.*_energy_pj` | pJ |
 | `local_model.system.tiers.*.bandwidth_bytes_per_ns` | bytes/ns |
@@ -449,6 +472,7 @@ transformer_model:
 | `local_model.system.total_system_energy_pj` | pJ |
 | `local_model.system.system_energy_per_mac_pj` | pJ/MAC |
 | `local_model.system.system_energy_per_op_pj` | pJ/equivalent op |
+| `local_model.system.hierarchy_energy_breakdown` | object |
 | `local_model.system.local_compute_and_conversion_energy_share` | compute/conversion energy / total system energy |
 | `local_model.system.movement_energy_share` | unitless fraction |
 | `local_model.system.movement_to_compute_energy_ratio` | movement energy / compute-conversion energy |
@@ -463,6 +487,8 @@ transformer_model:
 | `local_model.system.max_tier_system_energy_share` | largest tier movement energy / total system energy |
 | `local_model.system.contention_only_loaded_bandwidth_bytes_per_ns` | hierarchy bytes / contention-only transfer time |
 | `local_model.system.contention_adjusted_loaded_bandwidth_bytes_per_ns` | hierarchy bytes / guardbanded transfer time |
+| `local_model.system.effective_usable_bandwidth_under_load_bytes_per_ns` | bytes/ns |
+| `local_model.system.guardbanded_usable_bandwidth_under_load_bytes_per_ns` | bytes/ns |
 | `local_model.system.contention_adjusted_transfer_to_compute_time_ratio` | adjusted transfer time / compute batch latency |
 | `local_model.system.contention_adjusted_batch_latency_ns` | ns |
 | `local_model.system.contention_adjusted_equivalent_ops_per_second` | equivalent ops/second |
@@ -617,7 +643,9 @@ Newer exports also carry dominant traffic/movement/system-energy tiers, memory
 bottleneck tier, worst tier pressure, largest tier movement and system-energy
 shares, bandwidth saturation tier, maximum bandwidth utilization, minimum
 bandwidth headroom, and contention-only versus guardbanded loaded bandwidth
-when present.
+when present. Scenario-aware exports also carry the local memory scenario,
+contention preset, overlap model, effective usable bandwidth under load, and
+guardbanded usable bandwidth under load.
 
 | Field | Meaning |
 | --- | --- |
@@ -628,7 +656,12 @@ when present.
 | `review_checklist[]` | Local reviewer triage checks for pinned baseline, schema compatibility, source/provenance coverage, system metric coverage, energy split coverage, bandwidth phase coverage, transformer boundaries, and external payloads. |
 | `artifacts[].local_compute_and_conversion_energy_share` | Local compute/conversion share of total system energy, or `null`. |
 | `artifacts[].movement_to_compute_energy_ratio` | Local movement energy divided by local compute/conversion energy, or `null`. |
+| `artifacts[].memory_scenario` | Local memory scenario name, or `null`. |
+| `artifacts[].contention_preset` | Local contention preset name, or `null`. |
+| `artifacts[].contention_overlap_model` | Local overlap-model label, or `null`. |
 | `artifacts[].contention_only_loaded_bandwidth_bytes_per_ns` | Local hierarchy bytes divided by contention-only transfer time before calibration guardband, or `null`. |
+| `artifacts[].effective_usable_bandwidth_under_load_bytes_per_ns` | Review-oriented alias for contention-only usable bandwidth under load, or `null`. |
+| `artifacts[].guardbanded_usable_bandwidth_under_load_bytes_per_ns` | Review-oriented alias for guardbanded usable bandwidth under load, or `null`. |
 | `artifacts[].guardbanded_loaded_hierarchy_bandwidth_bytes_per_ns` | Local hierarchy bytes divided by guardbanded transfer time, or `null`. |
 | `artifacts[].loaded_hierarchy_bandwidth_bytes_per_ns` | Backward-compatible alias for `artifacts[].guardbanded_loaded_hierarchy_bandwidth_bytes_per_ns`. |
 | `artifacts[].hierarchy_equivalent_ops_per_byte` | Local hierarchy equivalent ops per modeled hierarchy byte, or `null` for legacy/external artifacts that omit it. |
@@ -652,6 +685,30 @@ The analysis focus and recommendation scores are local UI heuristics for
 triage. They preserve schema groups and must not be interpreted as measured
 hardware rankings or as conversions between per-matmul cards,
 transformer-layer aggregates, and transformer-model aggregates.
+
+## Visualizer Decision Packet
+
+Decision packet schema:
+`docs/photonic-bench-decision-packet-v1.schema.json`
+
+The browser comparison workspace can export a
+`photonic-bench-decision-packet-v1` JSON or Markdown packet. The packet bundles
+the selected artifacts, pinned baseline, full analysis intent, score weights,
+review checklist status, top tradeoffs, reviewer notes, and modeling-boundary
+notes into one review handoff artifact. The packet embeds the comparison export
+for machine-readable replay context, but its rankings and explanations are
+explicitly local UI triage aids, not benchmark claims.
+
+| Field | Meaning |
+| --- | --- |
+| `analysis_intent` | Focus mode, score profile, score weights, filters, Pareto mode, and URL state. |
+| `reviewer_notes` | Free-form reviewer notes saved with the packet and full-intent presets. |
+| `checklist_status[]` | Local review checklist entries with status, value, and note. |
+| `top_tradeoffs.recommendations[]` | Same-schema recommendation entries with score explanation and `why_ranked_here`. |
+| `top_tradeoffs.energy_stack[]` | Local UI triage ranking for energy-stack pressure. |
+| `top_tradeoffs.bottleneck_stack[]` | Local UI triage ranking for bottleneck pressure. |
+| `selected_artifacts[]` | Compact selected-card summaries including memory scenario, contention preset, overlap model, and key local triage metrics. |
+| `comparison_export` | Embedded `photonic-bench-comparison-export-v1` object. |
 
 ## Comparison Tables
 

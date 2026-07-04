@@ -1,0 +1,72 @@
+benchmark:
+  name: ChipAI 2025 photonic chiplet surrogate
+  description: Source-backed card for the Journal of Systems Architecture 2025 ChipAI photonic chiplet accelerator. The local workload is a dense 128x128 surrogate chosen to stress chiplet/off-chip movement while paper-reported relative latency and energy reductions remain separate.
+workload:
+  type: matmul
+  m: 128
+  n: 128
+  k: 128
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 8
+    energy_pj_per_conversion: 0.5
+  vector_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+  weight_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+execution:
+  batch_size: 4
+  vector_reuse_factor: 2
+  weight_reuse_factor: 8
+  weight_stationary: true
+  pipeline:
+    stages: 1
+system:
+  profile: optical_interconnect
+timing:
+  optical_latency_ns: 1
+  adc_latency_ns: 0
+  dac_latency_ns: 0
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 1
+provenance:
+  source_title: A scalable chiplet-based accelerator for efficient DNN inference using silicon photonics
+  source_url: https://doi.org/10.1016/j.sysarc.2024.103308
+  doi: 10.1016/j.sysarc.2024.103308
+  venue: Journal of Systems Architecture 158, 103308 (2025)
+  claim_status: paper-reported relative inference-time and energy reductions; dense chiplet/off-chip surrogate
+published_calibration:
+  architecture: ChipAI silicon-photonic chiplet accelerator with hybrid optical network
+  additional_metrics:
+    inference_time_reduction_percent_up_to: 82
+    energy_reduction_percent_up_to: 79
+    hybrid_optical_network: true
+    inter_chiplet_data_sharing: true
+    intra_chiplet_data_sharing: true
+    surrogate_mapping: m=128, k=128, n=128 with batch/reuse settings stresses off-chip/chiplet movement; it is not a reproduction of the ChipAI simulator.
+source_quality:
+  reported_metrics:
+    - relative_latency_reduction
+    - relative_energy_reduction
+    - photonic_interconnect_architecture
+  local_surrogate_type: photonic_chiplet_dense_movement_surrogate
+  coverage:
+    throughput: reported
+    energy: reported
+    accuracy: not_applicable
+    area: not_reported
+    precision: not_reported
+  confidence_grade: B
+  notes:
+    - The paper-reported relative reductions and hybrid optical-network behavior are kept as published references; local absolute energy, timing, and hierarchy metrics are PhotonicBench estimates.
+assumptions:
+  - The dense local workload intentionally stresses chiplet/off-chip movement and reuse rather than matching a specific DNN layer from the ChipAI paper.
+  - The optical_interconnect scenario is used as a local calibrated movement assumption for the chiplet interconnect sensitivity.
+  - Published relative latency and energy reductions remain under published_calibration and are not converted into absolute local model claims.

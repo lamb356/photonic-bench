@@ -1,0 +1,176 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PhotonicBench visualizer decision packet v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "triage_scope",
+    "reports_dir",
+    "reviewer_notes",
+    "selected_artifact_ids",
+    "pinned_baseline",
+    "analysis_intent",
+    "checklist_status",
+    "top_tradeoffs",
+    "boundary_notes",
+    "selected_artifacts",
+    "comparison_export"
+  ],
+  "properties": {
+    "schema_version": {"const": "photonic-bench-decision-packet-v1"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "triage_scope": {"type": "string"},
+    "reports_dir": {"type": "string"},
+    "reviewer_notes": {"type": "string"},
+    "selected_artifact_ids": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "pinned_baseline": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["artifact_id", "benchmark_name", "source_path"],
+      "properties": {
+        "artifact_id": {"type": "string"},
+        "benchmark_name": {"type": "string"},
+        "source_path": {"type": "string"}
+      }
+    },
+    "analysis_intent": {"$ref": "#/$defs/analysisIntent"},
+    "checklist_status": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/checklistEntry"}
+    },
+    "top_tradeoffs": {"$ref": "#/$defs/topTradeoffs"},
+    "boundary_notes": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "selected_artifacts": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/selectedArtifact"}
+    },
+    "comparison_export": {
+      "type": "object",
+      "required": ["schema_version"],
+      "properties": {
+        "schema_version": {"const": "photonic-bench-comparison-export-v1"}
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "analysisIntent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "analysis_focus",
+        "score_profile",
+        "score_weights",
+        "pareto_mode",
+        "filters",
+        "url_state"
+      ],
+      "properties": {
+        "analysis_focus": {"type": "string"},
+        "score_profile": {"type": "string"},
+        "score_weights": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/scoreWeight"}
+        },
+        "pareto_mode": {"type": "string"},
+        "filters": {"type": "object", "additionalProperties": true},
+        "url_state": {"type": "string"}
+      }
+    },
+    "scoreWeight": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["metric", "weight"],
+      "properties": {
+        "metric": {"type": "string"},
+        "weight": {"type": "number"}
+      }
+    },
+    "checklistEntry": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["label", "status", "value", "note"],
+      "properties": {
+        "label": {"type": "string"},
+        "status": {"type": "string"},
+        "value": {"type": "string"},
+        "note": {"type": "string"}
+      }
+    },
+    "topTradeoffs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["recommendations", "energy_stack", "bottleneck_stack"],
+      "properties": {
+        "recommendations": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/tradeoffEntry"}
+        },
+        "energy_stack": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/tradeoffEntry"}
+        },
+        "bottleneck_stack": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/tradeoffEntry"}
+        }
+      }
+    },
+    "tradeoffEntry": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["artifact_id", "benchmark_name", "why_ranked_here"],
+      "properties": {
+        "group": {"type": "string"},
+        "artifact_id": {"type": "string"},
+        "benchmark_name": {"type": "string"},
+        "score": {"type": "number"},
+        "best_use": {"type": "string"},
+        "why_ranked_here": {"type": "string"}
+      }
+    },
+    "selectedArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_id",
+        "benchmark_name",
+        "kind",
+        "source_path",
+        "system_profile",
+        "memory_scenario",
+        "memory_timing_mode",
+        "contention_preset",
+        "contention_overlap_model",
+        "has_published_reference",
+        "source_quality_grade",
+        "local_triage_metrics"
+      ],
+      "properties": {
+        "artifact_id": {"type": "string"},
+        "benchmark_name": {"type": "string"},
+        "kind": {"type": "string"},
+        "source_path": {"type": "string"},
+        "system_profile": {"type": ["string", "null"]},
+        "memory_scenario": {"type": ["string", "null"]},
+        "memory_timing_mode": {"type": ["string", "null"]},
+        "contention_preset": {"type": ["string", "null"]},
+        "contention_overlap_model": {"type": ["string", "null"]},
+        "has_published_reference": {"type": "boolean"},
+        "source_quality_grade": {"type": ["string", "null"]},
+        "local_triage_metrics": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    }
+  }
+}

@@ -108,21 +108,39 @@ system:
     read_fraction: 1.0
     write_fraction: 1.0
   contention:
+    preset: single_client
     shared_bandwidth_clients: 1.0
     arbitration_efficiency: 1.0
     calibration_overhead_fraction: 0.0
+    overlap_model: profile_timing_mode
 ```
 
-The named profiles are convenience presets for sensitivity analysis. They are
-local assumptions, not measured hardware:
+The named profiles are convenience memory-scenario presets for sensitivity
+analysis. They are local assumptions, not measured hardware:
 
-| Profile | SRAM pJ/byte read/write | Intermediate pJ/byte read/write | Off-chip pJ/byte read/write | Timing mode | Shared clients | Arbitration | Calibration overhead |
-| --- | ---: | ---: | ---: | --- | ---: | ---: | ---: |
-| `default` | 0.02 / 0.02 | 0.2 / 0.2 | 10 / 10 | `overlapped` | 1.0 | 1.0 | 0.0 |
-| `on_chip_sram` | 0.02 / 0.02 | 0.2 / 0.2 with zero fractions | 10 / 10 with zero fractions | `overlapped` | 1.0 | 1.0 | 0.0 |
-| `hbm` | 0.02 / 0.02 | 0.2 / 0.2 | 3 / 3 | `overlapped` | 1.0 | 1.0 | 0.0 |
-| `ddr` | 0.02 / 0.02 | 0.2 / 0.2 | 10 / 10 | `overlapped` | 1.0 | 1.0 | 0.0 |
-| `pcie_attached` | 0.02 / 0.02 | 0.2 / 0.2 | 50 / 50 | `serialized` | 2.0 | 0.85 | 0.05 |
+| Profile | Scenario intent | SRAM pJ/byte read/write | Intermediate pJ/byte read/write | Off-chip pJ/byte read/write | Timing mode | Contention preset |
+| --- | --- | ---: | ---: | ---: | --- | --- |
+| `default` | Historical SRAM/cache/DDR-style baseline. | 0.02 / 0.02 | 0.2 / 0.2 | 10 / 10 | `overlapped` | `single_client` |
+| `on_package_sram` | High-bandwidth on-package SRAM with no modeled off-package movement. | 0.018 / 0.018 | 0.2 / 0.2 with zero fractions | 10 / 10 with zero fractions | `overlapped` | `single_client` |
+| `on_chip_sram` | Local SRAM-only sensitivity case. | 0.02 / 0.02 | 0.2 / 0.2 with zero fractions | 10 / 10 with zero fractions | `overlapped` | `single_client` |
+| `hbm` | HBM-style high-bandwidth, lower-energy off-chip tier. | 0.02 / 0.02 | 0.2 / 0.2 | 3 / 3 | `overlapped` | `shared_hbm_stack` |
+| `ddr` | Generic DDR-class off-chip tier. | 0.02 / 0.02 | 0.2 / 0.2 | 10 / 10 | `overlapped` | `ddr_controller` |
+| `pcie_attached` | Host/PCIe-attached movement path. | 0.02 / 0.02 | 0.2 / 0.2 | 50 / 50 | `serialized` | `pcie_round_robin` |
+| `optical_interconnect` | WDM/broadcast/chiplet-style optical movement sensitivity. | 0.02 / 0.02 | 0.08 / 0.08 | 1.2 / 1.5 | `overlapped` | `optical_interconnect_broadcast` |
+
+The built-in contention presets are auditable local calibration assumptions:
+
+| Preset | Clients | Arbitration | Guardband | Overlap model |
+| --- | ---: | ---: | ---: | --- |
+| `single_client` | 1.0 | 1.0 | 0.0 | `profile_timing_mode` |
+| `shared_hbm_stack` | 2.0 | 0.92 | 0.02 | `overlapped_compute_window` |
+| `ddr_controller` | 4.0 | 0.75 | 0.08 | `serialized_tier_path` |
+| `pcie_round_robin` | 2.0 | 0.85 | 0.05 | `serialized_host_link` |
+| `optical_interconnect_broadcast` | 1.5 | 0.92 | 0.02 | `wavelength_broadcast_overlap` |
+
+If a config selects a preset but overrides clients, arbitration, guardband, or
+overlap values, the emitted scenario description calls out the custom override;
+the numeric assumptions in the JSON/report are authoritative.
 
 Configs can select a profile and optionally override tier fields:
 
@@ -134,16 +152,20 @@ system:
     bandwidth_bytes_per_ns: 256
     read_fraction: 0.5
   contention:
+    preset: pcie_round_robin
     shared_bandwidth_clients: 2
     arbitration_efficiency: 0.85
     calibration_overhead_fraction: 0.05
+    overlap_model: serialized_host_link
 ```
 
 When `system.profile` is omitted but explicit tier sections are present,
 PhotonicBench labels the report as `manual` and preserves the supplied tier
 values. Generated JSON records `profile`, `profile_overrides`, and
 `memory_timing_mode` under both `model_inputs.system` and
-`local_model.system`.
+`local_model.system`. It also records `model_inputs.system.scenario` and
+`local_model.system.memory_scenario`, including the profile description, timing
+mode, tier assumptions, contention preset, and overlap model.
 
 For each tier:
 
@@ -253,6 +275,13 @@ contention_only_loaded_bandwidth_bytes_per_ns =
     total_hierarchy_bytes / contention_adjusted_effective_transfer_time_ns
 contention_adjusted_loaded_bandwidth_bytes_per_ns =
     total_hierarchy_bytes / calibration_adjusted_effective_transfer_time_ns
+effective_usable_bandwidth_under_load_bytes_per_ns =
+    contention_only_loaded_bandwidth_bytes_per_ns
+guardbanded_usable_bandwidth_under_load_bytes_per_ns =
+    contention_adjusted_loaded_bandwidth_bytes_per_ns
+hierarchy_energy_breakdown =
+    local_compute_and_conversion, sram, intermediate, off_chip, and movement_total
+    pJ/share rows over total_system_energy_pj
 transfer_to_compute_time_ratio =
     effective_transfer_time_ns / batch_latency_ns
 bandwidth_limited_batch_latency_ns =
@@ -285,11 +314,16 @@ the config. A zero-traffic tier uses `0` for headroom ratio to keep JSON
 finite, and the top-level minimum headroom ratio only considers tiers with
 modeled traffic. The loaded-bandwidth fields intentionally separate nominal
 transfer bandwidth, contention-only bandwidth after shared-client arbitration,
-and guardbanded bandwidth after calibration/control overhead. These fields do
-not add a cache policy, memory scheduler, or packetized NoC model; they make
-locality, movement cost, system-energy dominance, bottleneck tier, contention
-derate, calibration guardband, and memory pressure visible for cross-card
-comparisons.
+and guardbanded bandwidth after calibration/control overhead. The
+`effective_usable_bandwidth_under_load_bytes_per_ns` alias names the
+contention-only loaded bandwidth, while
+`guardbanded_usable_bandwidth_under_load_bytes_per_ns` names the
+calibration-guardbanded loaded bandwidth. `hierarchy_energy_breakdown` makes
+local compute/conversion energy, each movement tier, and total movement energy
+explicit as pJ/share rows. These fields do not add a cache policy, memory
+scheduler, or packetized NoC model; they make locality, movement cost,
+system-energy dominance, bottleneck tier, contention derate, calibration
+guardband, and memory pressure visible for cross-card comparisons.
 
 ## Noise Estimate
 
