@@ -215,3 +215,17 @@
 - Final follow-up commit, push, PR CI, macOS artifact availability, and final
   git status are checked after this state update and reported in the final
   response.
+
+## 2026-07-04 Cycle 6: Post-Push CI Baseline Fix
+
+- Pushed follow-up commit `dba96c26d7793c6783a47d1a5eb3e98c3f4b3206`.
+- PR run `28710307598` produced:
+  - `macOS visual baseline capture`: passed;
+  - `Ruff, package, and pytest`: failed only on
+    `tests/test_visualizer_visual_regression.py::test_visualizer_screenshot_regression`
+    for `mobile-comparison`.
+- Downloaded the always-uploaded `visual-regression-screenshots` artifact from
+  run `28710307598`.
+- Promoted all five GitHub-rendered screenshots into
+  `tests/visual_baselines/github-linux/` so the checked Linux baselines match
+  the actual GitHub Actions Ubuntu renderer rather than the local WSL renderer.
