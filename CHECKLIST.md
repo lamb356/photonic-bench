@@ -253,13 +253,22 @@ Status key:
 
 ## Task 10: Release Candidate Tag Or Versioned Release Note
 
-- [ ] TODO: After the PR is merged, update local `master` and verify the merge
+- [x] DONE: After the PR is merged, update local `master` and verify the merge
       result.
-- [ ] TODO: Add a small release candidate tag or versioned release note that
+- [x] DONE: Add a small release candidate tag or versioned release note that
       identifies the production-ready review state.
-- [ ] TODO: Push the tag or release-note commit only after post-merge checks
+- [x] DONE: Push the tag or release-note commit only after post-merge checks
       pass.
-- [ ] TODO: Record final commit/tag, CI status, and remaining risks.
+- [x] DONE: Record final commit/tag, CI status, and remaining risks.
+  - Proof: PR #11 was marked ready and merged into `master` at merge commit
+    `98e980357ed20c5e51187623f44bfd194fd58b14`.
+  - Proof: Local `master` is at `98e9803` and tracks `origin/master`.
+  - Proof: Post-merge `master` CI run `28718374339` passed both `Ruff,
+    package, and pytest` and `macOS visual regression`.
+  - Proof: Created and pushed annotated release-candidate tag
+    `v0.1.0-rc.1` after post-merge CI passed. The tag message identifies PR
+    #11 as the production-ready decision-grade review workflow release
+    candidate.
 
 ## Task 11: Mandatory Hostile Senior Reviewer Critique
 
@@ -300,5 +309,16 @@ Status key:
     fresh), `python -m photonic_bench.cli validate-examples --json` (43 ok),
     source and generated `node --check`, workflow YAML parse, browser
     smoke/accessibility/visual-regression tests, and `git diff --check`.
-- [ ] TODO: Update final state files and write a durable GBrain closeout note.
-- [ ] TODO: Inspect final git, PR, CI, artifact, and release-candidate status.
+- [x] DONE: Update final state files and write a durable GBrain closeout note.
+  - Proof: Wrote durable GBrain note
+    `photonicbench-pr11-production-ready-review-closeout-2026-07-04`.
+  - Proof: Updated `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
+    `RUBRIC.md`, and `tasks/todo.md` for final closeout.
+- [x] DONE: Inspect final git, PR, CI, artifact, and release-candidate status.
+  - Proof: PR #11 is merged; final PR-head run `28718313756` passed; final
+    PR-head screenshot artifacts were downloaded and inspected from
+    `visual-regression-screenshots` and
+    `macos-visual-regression-screenshots`.
+  - Proof: Post-merge `master` run `28718374339` passed.
+  - Proof: Release-candidate tag `v0.1.0-rc.1` exists on the merge commit and
+    is pushed to `origin`.

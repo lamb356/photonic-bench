@@ -424,3 +424,77 @@
 - Push state-file updates after this critique.
 - Mark PR #11 ready when the final state commit is pushed and CI remains green.
 - Merge PR #11, then add the release-candidate tag or versioned release note.
+
+## 2026-07-04 Cycle 8: Merge, Release Candidate Tag, And Closeout
+
+### Final PR-Head CI And Artifact Inspection
+
+- Final PR-head run:
+  `https://github.com/lamb356/photonic-bench/actions/runs/28718313756`.
+- Head commit:
+  `86274fa95f97fc988a6fd4429879bf58ae36d9fc`.
+- `Ruff, package, and pytest`: passed.
+- `macOS visual regression`: passed.
+- Downloaded final PR-head screenshot artifacts:
+  - `visual-regression-screenshots`;
+  - `macos-visual-regression-screenshots`.
+- Inspected final PR-head Linux and macOS contact sheets under:
+  `C:\Users\burba\AppData\Local\Temp\photonicbench-pr11-artifacts-28718313756`.
+- Reviewed:
+  - `desktop-comparison.png`;
+  - `detail-published-reference.png`;
+  - `external-report-error.png`;
+  - `mobile-comparison.png`;
+  - `wide-transformer-comparison.png`.
+- Inspection result: no blank panels, missing assets, broken local-file path, or
+  mobile overflow.
+
+### PR Merge
+
+- Marked PR #11 ready for review.
+- Merged PR #11 into `master`:
+  `https://github.com/lamb356/photonic-bench/pull/11`.
+- Merge commit:
+  `98e980357ed20c5e51187623f44bfd194fd58b14`.
+- Local `master` is at `98e9803` and tracks `origin/master`.
+
+### Post-Merge CI
+
+- Post-merge `master` run:
+  `https://github.com/lamb356/photonic-bench/actions/runs/28718374339`.
+- Head commit:
+  `98e980357ed20c5e51187623f44bfd194fd58b14`.
+- `Ruff, package, and pytest`: passed.
+- `macOS visual regression`: passed.
+
+### Release Candidate
+
+- Created and pushed annotated tag `v0.1.0-rc.1`.
+- Tag message:
+  - `PhotonicBench v0.1.0-rc.1`;
+  - release candidate for the production-ready decision-grade review workflow
+    merged in PR #11;
+  - includes decision packet replay, scenario sensitivity, scenario provenance
+    packs, source audits, expanded memory-stressing cards, schema compatibility
+    policy, reviewer PR checklist gates, and regenerated review artifacts.
+
+### Durable Closeout
+
+- Wrote GBrain note:
+  `photonicbench-pr11-production-ready-review-closeout-2026-07-04`.
+- Updated final state files:
+  - `GOAL.md`;
+  - `CHECKLIST.md`;
+  - `CONTEXT.md`;
+  - `PROGRESS.md`;
+  - `RUBRIC.md`;
+  - `tasks/todo.md`.
+
+### Final Status
+
+- All user-required tasks 1-10 are DONE with proof.
+- Mandatory Hostile Senior Reviewer critique is complete and the important
+  reviewer-experience finding was fixed.
+- Local and remote verification passed.
+- PR #11 is merged.
+- Release-candidate tag `v0.1.0-rc.1` is pushed.

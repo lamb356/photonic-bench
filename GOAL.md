@@ -1,21 +1,20 @@
 # PhotonicBench Goal
 
 Date started: 2026-07-04
-Implementation status: active.
-Branch: `codex/decision-grade-analysis-tool`
+Implementation status: complete.
+Branch: `master`
 
 ## Objective
 
 Turn the recent PhotonicBench modeling and visualizer work into a
 production-ready, reviewable state.
 
-The current branch already contains the locally verified
-decision-grade-analysis implementation. This goal promotes that work into a PR,
-then adds the missing reviewability and production-readiness layers: scenario
+The decision-grade-analysis implementation has been promoted through PR #11 and
+merged into `master`. The production-readiness layers are complete: scenario
 provenance, sensitivity analysis, decision-packet replay, deeper card source
 audit metadata, additional memory-stressing cards, schema compatibility policy,
-reviewer checklist updates, remote CI artifact inspection, and a small release
-candidate note/tag after merge.
+reviewer checklist updates, remote CI artifact inspection, hostile review, and
+release-candidate tag `v0.1.0-rc.1`.
 
 ## Required Tasks
 

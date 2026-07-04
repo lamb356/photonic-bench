@@ -683,11 +683,11 @@
       and clear versioning rules.
 - [x] Task 9: Add PR-template checklist entries for artifact freshness, visual
       regression, decision packets, and schema changes.
-- [ ] Task 10: Add a small release candidate tag or versioned release note
+- [x] Task 10: Add a small release candidate tag or versioned release note
       after the work is merged.
 - [x] Task 11: Run mandatory Hostile Senior Reviewer critique and fix important
       findings.
-- [ ] Task 12: Run final local and remote verification, close state files,
+- [x] Task 12: Run final local and remote verification, close state files,
       write durable notes, and inspect final repo/PR/release status.
 
 ## Explicitly Not Active In This Goal
