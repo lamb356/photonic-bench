@@ -447,6 +447,14 @@
       Object.keys(paretoSpecs()),
       DEFAULT_STATE.paretoMode
     );
+    const profileKey = safeOption(
+      params.get("profile"),
+      Object.keys(scoreWeightProfiles()),
+      ""
+    );
+    if (profileKey) {
+      applyScoreProfileState(profileKey, false);
+    }
 
     const selectedIds = parseSelectedIds(params.get("selected"));
     state.compareIds = new Set(selectedIds);
@@ -463,10 +471,7 @@
     }
     const urlWeights = parseScoreWeightsParam(params.get("weights"));
     if (Object.keys(urlWeights).length) {
-      state.customScoreWeights = {
-        ...state.customScoreWeights,
-        ...urlWeights,
-      };
+      state.customScoreWeights = urlWeights;
       writeScoreWeights();
     }
     if (state.view === "compare" && !state.compareIds.size) {
@@ -523,6 +528,10 @@
     }
     if (state.paretoMode !== DEFAULT_STATE.paretoMode) {
       params.set("pareto", state.paretoMode);
+    }
+    const profileKey = matchedScoreProfileKey();
+    if (profileKey && profileKey !== "balanced") {
+      params.set("profile", profileKey);
     }
     const weights = encodeScoreWeightsParam(state.customScoreWeights);
     if (weights) params.set("weights", weights);
@@ -2930,8 +2939,8 @@
     );
   }
 
-  function scoreWeightForMetric(label) {
-    const weight = Number(state.customScoreWeights[label]);
+  function scoreWeightForMetric(label, weights = state.customScoreWeights) {
+    const weight = Number(weights[label]);
     return Number.isFinite(weight) && weight >= 0 ? weight : 1;
   }
 
@@ -2957,12 +2966,12 @@
     render();
   }
 
-  function activeScoreWeightSummary(focus) {
+  function activeScoreWeightSummary(focus, weights = state.customScoreWeights) {
     return specsForFocus(focus)
       .filter((spec) => ["lower", "higher"].includes(spec.direction))
       .map((spec) => ({
         metric: spec.label,
-        weight: scoreWeightForMetric(spec.label),
+        weight: scoreWeightForMetric(spec.label, weights),
       }));
   }
 
@@ -3030,6 +3039,183 @@
         ],
       },
     };
+  }
+
+  function scoreWeightProfiles() {
+    return {
+      balanced: {
+        label: "Balanced",
+        analysisFocus: "balanced",
+        description:
+          "Default review profile. Keeps energy, movement, timing, throughput, intensity, contention, and source confidence in view.",
+        weights: {},
+      },
+      efficiency: {
+        label: "Efficiency",
+        analysisFocus: "efficiency",
+        description:
+          "Use when the daily question is which card minimizes local and system energy without hiding data-movement cost.",
+        weights: {
+          "Energy per op": 1.5,
+          "System energy per op": 2,
+          "Movement share": 1.5,
+          "Interface traffic": 1.25,
+          "Operational intensity": 1.25,
+        },
+      },
+      throughput: {
+        label: "Throughput",
+        analysisFocus: "throughput",
+        description:
+          "Use when ranking is driven by latency and sustained equivalent-op throughput under local bandwidth limits.",
+        weights: {
+          Latency: 1.25,
+          Throughput: 1.25,
+          "Bandwidth-limited throughput": 2,
+          "Contention-adjusted latency": 1.25,
+          "Contention-adjusted throughput": 1.75,
+        },
+      },
+      contention: {
+        label: "Contention",
+        analysisFocus: "contention",
+        description:
+          "Use when shared bandwidth, calibration/control overhead, and adjusted throughput are the main operational risks.",
+        weights: {
+          "Contention-adjusted latency": 1.75,
+          "Contention-adjusted throughput": 2,
+          "Shared bandwidth clients": 1.25,
+          "Calibration/control overhead": 1.5,
+          "System energy per op": 1.1,
+        },
+      },
+      provenance: {
+        label: "Provenance",
+        analysisFocus: "provenance",
+        description:
+          "Use when source quality and published-reference confidence should dominate triage before local-model estimates.",
+        weights: {
+          "Source confidence": 2.5,
+          "System energy per op": 0.75,
+          "Operational intensity": 0.75,
+        },
+      },
+    };
+  }
+
+  function scoreProfileWeights(profile) {
+    return sanitizeScoreWeights(profile ? profile.weights : {});
+  }
+
+  function scoreWeightsEqual(left, right) {
+    const leftWeights = sanitizeScoreWeights(left);
+    const rightWeights = sanitizeScoreWeights(right);
+    const labels = new Set([
+      ...Object.keys(leftWeights),
+      ...Object.keys(rightWeights),
+    ]);
+    return Array.from(labels).every(
+      (label) =>
+        Math.abs(
+          scoreWeightForMetric(label, leftWeights) -
+            scoreWeightForMetric(label, rightWeights)
+        ) < 0.001
+    );
+  }
+
+  function matchedScoreProfileKey(
+    weights = state.customScoreWeights,
+    focusKey = state.analysisFocus
+  ) {
+    return (
+      Object.entries(scoreWeightProfiles()).find(
+        ([, profile]) =>
+          profile.analysisFocus === focusKey &&
+          scoreWeightsEqual(weights, scoreProfileWeights(profile))
+      ) || []
+    )[0] || null;
+  }
+
+  function focusForProfile(profile) {
+    const options = comparisonFocusOptions();
+    const focus = options[profile.analysisFocus] || options.balanced;
+    return {
+      key: profile.analysisFocus,
+      ...focus,
+    };
+  }
+
+  function activeScoreProfileSummary(focus = activeComparisonFocus()) {
+    const profileKey = matchedScoreProfileKey(state.customScoreWeights, focus.key);
+    if (profileKey) {
+      const profile = scoreWeightProfiles()[profileKey];
+      return {
+        key: profileKey,
+        label: profile.label,
+        description: profile.description,
+        is_builtin: true,
+      };
+    }
+    return {
+      key: "custom",
+      label: "Custom",
+      description:
+        "User-adjusted score weights for the current comparison context.",
+      is_builtin: false,
+    };
+  }
+
+  function applyScoreProfileState(profileKey, persist = true) {
+    const profile = scoreWeightProfiles()[profileKey];
+    if (!profile) {
+      return false;
+    }
+    state.analysisFocus = profile.analysisFocus;
+    state.customScoreWeights = scoreProfileWeights(profile);
+    if (persist) {
+      writeScoreWeights();
+    }
+    return true;
+  }
+
+  function applyScoreProfile(profileKey) {
+    const profile = scoreWeightProfiles()[profileKey];
+    if (!profile || !applyScoreProfileState(profileKey)) {
+      setPresetMessage("Select a valid score profile.", true);
+      return;
+    }
+    setPresetMessage(`Applied ${profile.label} score profile.`);
+    render();
+  }
+
+  function scoreProfileWeightSummary(profile) {
+    const focus = focusForProfile(profile);
+    const weights = scoreProfileWeights(profile);
+    return activeScoreWeightSummary(focus, weights)
+      .map((entry) => `${entry.metric} x${formatNumber(entry.weight)}`)
+      .join(", ");
+  }
+
+  function scoreProfilePreview(profile, artifacts) {
+    if (!artifacts.length) {
+      return "Select artifacts to preview profile winners.";
+    }
+    const focus = focusForProfile(profile);
+    const recommendations = comparisonRecommendations(
+      artifacts,
+      focus,
+      scoreProfileWeights(profile)
+    );
+    if (!recommendations.length) {
+      return "No same-schema score preview available for the current set.";
+    }
+    return recommendations
+      .slice(0, 2)
+      .map(
+        (entry) =>
+          `${entry.group}: ${entry.artifact.summary.benchmark_name} (${formatNumber(entry.score)})`
+      )
+      .join("; ");
   }
 
   function activeComparisonFocus() {
@@ -3349,7 +3535,11 @@
     return sections;
   }
 
-  function comparisonRecommendations(artifacts, focus) {
+  function comparisonRecommendations(
+    artifacts,
+    focus,
+    weights = state.customScoreWeights
+  ) {
     const scoreSpecs = specsForFocus(focus).filter((spec) =>
       ["lower", "higher"].includes(spec.direction)
     );
@@ -3358,7 +3548,12 @@
         const ranked = group
           .map((artifact) => ({
             artifact,
-            explanation: decisionScoreExplanation(artifact, group, scoreSpecs),
+            explanation: decisionScoreExplanation(
+              artifact,
+              group,
+              scoreSpecs,
+              weights
+            ),
           }))
           .filter((entry) => Number.isFinite(entry.explanation.score))
           .sort((left, right) => right.explanation.score - left.explanation.score);
@@ -3435,6 +3630,47 @@
     `;
   }
 
+  function renderScoreProfileGallery(artifacts, focus) {
+    const activeProfile = activeScoreProfileSummary(focus);
+    const profiles = Object.entries(scoreWeightProfiles());
+    return `
+      <section class="score-profile-gallery" aria-label="Score profile gallery">
+        <div class="profile-gallery-heading">
+          <div>
+            <strong>Score Profile Gallery</strong>
+            <span>Apply a named weighting stance without changing the selected artifacts or pinned reference.</span>
+          </div>
+          <code>${escapeHtml(activeProfile.label)} profile active</code>
+        </div>
+        <div class="profile-card-grid">
+          ${profiles
+            .map(([key, profile]) => {
+              const isActive = activeProfile.is_builtin && activeProfile.key === key;
+              const weightSummary = scoreProfileWeightSummary(profile);
+              return `
+                <article class="score-profile-card${isActive ? " active" : ""}">
+                  <div class="score-profile-card-head">
+                    <strong>${escapeHtml(profile.label)}</strong>
+                    <span>${escapeHtml(comparisonFocusOptions()[profile.analysisFocus].label)} focus</span>
+                  </div>
+                  <p>${escapeHtml(profile.description)}</p>
+                  <div class="profile-weight-summary">${escapeHtml(weightSummary)}</div>
+                  <div class="profile-preview">
+                    <span>Current set preview</span>
+                    <strong>${escapeHtml(scoreProfilePreview(profile, artifacts))}</strong>
+                  </div>
+                  <button class="action-button${isActive ? " primary" : ""}" type="button" data-score-profile="${escapeHtml(key)}" aria-label="Apply ${escapeHtml(profile.label)} score profile">
+                    ${isActive ? "Active" : "Apply profile"}
+                  </button>
+                </article>
+              `;
+            })
+            .join("")}
+        </div>
+      </section>
+    `;
+  }
+
   function renderSelectionDrawer(artifacts) {
     const groups = groupArtifactsByKind(artifacts);
     return `
@@ -3479,15 +3715,20 @@
     `;
   }
 
-  function decisionScore(artifact, group, specs) {
-    return decisionScoreExplanation(artifact, group, specs).score;
+  function decisionScore(artifact, group, specs, weights = state.customScoreWeights) {
+    return decisionScoreExplanation(artifact, group, specs, weights).score;
   }
 
-  function decisionScoreExplanation(artifact, group, specs) {
+  function decisionScoreExplanation(
+    artifact,
+    group,
+    specs,
+    weights = state.customScoreWeights
+  ) {
     const components = specs.map((spec) => {
       const rawValue = spec.get(artifact.summary);
       const normalizedScore = normalizedMetricScore(spec, rawValue, group);
-      const weight = scoreWeightForMetric(spec.label);
+      const weight = scoreWeightForMetric(spec.label, weights);
       const included = Number.isFinite(normalizedScore) && weight > 0;
       return {
         metric: spec.label,
@@ -3913,6 +4154,7 @@
         label: focus.label,
         description: focus.description,
         metric_labels: focus.metricLabels,
+        score_profile: activeScoreProfileSummary(focus),
         score_weights: activeScoreWeightSummary(focus),
       },
       filters: currentFilterState(),
@@ -4068,6 +4310,8 @@ Analysis focus: ${focus.label}
 
 Focus description: ${focus.description}
 
+Score profile: ${activeScoreProfileSummary(focus).label}
+
 Score weights: ${weightSummary || "n/a"}
 
 | Benchmark | Kind | Source | Local pJ/op | System pJ/op | System profile | Profile overrides | Memory timing | Effective transfer | Shared clients | Arbitration eff. | Calibration overhead | Latency | Throughput | BW-limited throughput | Contention latency | Contention throughput | Interface traffic | Eq ops/byte | Movement share | Published reference | Source grade | Surrogate type | Provenance |
@@ -4087,6 +4331,7 @@ ${notes}
   function comparisonCsv(artifacts, focus, boundaryNotes) {
     const headers = [
       "analysis_focus",
+      "score_profile",
       "score_weights",
       "artifact_id",
       "benchmark",
@@ -4115,6 +4360,7 @@ ${notes}
       const summary = artifact.summary;
       return [
         focus.key,
+        activeScoreProfileSummary(focus).label,
         activeScoreWeightSummary(focus)
           .map((entry) => `${entry.metric}=${entry.weight}`)
           .join("; "),
@@ -4257,6 +4503,7 @@ ${notes}
               </label>
               <div class="focus-description">${escapeHtml(focus.description)}</div>
             </div>
+            ${renderScoreProfileGallery(artifacts, focus)}
             ${renderScoreWeightControls(focus)}
             ${
               pinnedArtifact
@@ -4322,6 +4569,12 @@ ${notes}
     if (resetWeights) {
       resetWeights.addEventListener("click", () => resetFocusWeights(focus));
     }
+
+    detail.querySelectorAll("[data-score-profile]").forEach((button) => {
+      button.addEventListener("click", () => {
+        applyScoreProfile(button.dataset.scoreProfile);
+      });
+    });
 
     detail.querySelectorAll("[data-remove-selection]").forEach((button) => {
       button.addEventListener("click", () => {

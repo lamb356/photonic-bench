@@ -1,61 +1,40 @@
-# PhotonicBench Advanced Visualizer Rubric
+# PhotonicBench Merge And Preset Gallery Rubric
 
 Use this rubric for checklist completion decisions and the mandatory Hostile
 Senior Reviewer critique.
 
-## URL State Quality
+## PR Merge Quality
 
-- Shared URLs restore filters, focus mode, selected artifacts, pinned artifact,
-  Pareto mode, and custom score weights where relevant.
-- URL parameters are stable, compact, human-inspectable enough for review, and
-  backward-safe when artifacts are missing or renamed.
-- Browser history remains useful and does not receive noisy updates for every
-  minor keystroke.
+- PR #5 is verified open, non-draft, mergeable, and targeted at `master`
+  before merge.
+- PR #5 GitHub Actions is green before merge.
+- The merge lands on `master` without bypassing required checks.
+- Local `master` is updated after the merge.
+- `master` GitHub Actions is green after the merge.
+- Optional branch deletion does not remove any unmerged work.
 
-## Visual Regression Quality
+## Preset Gallery Quality
 
-- Desktop and mobile screenshots cover representative artifact list,
-  comparison dashboard, wide table, score explanation, and preset surfaces.
-- Screenshots are deterministic enough for local and CI review.
-- Failure output points to actual UI regressions rather than timing flake.
-- Documentation explains how to run and update baselines.
+- The gallery exposes named score-weight profiles for Balanced, Efficiency,
+  Throughput, Contention, and Provenance.
+- Each profile explains its analytical intent in concise, workbench-style copy.
+- Each profile shows enough weight detail for users to understand what will
+  change before applying it.
+- Applying a profile updates the same score-weight source used by
+  recommendations, scorecards, score explanations, exports, and URL state.
+- Applying a profile does not disturb selected artifacts, pinned reference,
+  filters, grouping, or detail context.
+- Users can distinguish built-in profiles, active profile state, default
+  weights, and custom tuned weights.
 
-## Explainability And Weighting Quality
+## Daily Analytical Value
 
-- Recommendation scores expose raw values, normalization direction, weights,
-  component contributions, and final score.
-- Custom weights update recommendation cards, scorecards, exports, URL state,
-  and score explanations consistently.
-- Defaults remain sensible for balanced, efficiency, throughput, contention,
-  and provenance analysis.
-- UI copy labels scores as local same-schema triage heuristics, not benchmark
-  claims.
-
-## Selection And Wide-Table Quality
-
-- Users can remove one selected artifact, clear a group, invert selection, and
-  compare top N visible without losing context.
-- Selection controls are dense, predictable, keyboard reachable, and compatible
-  with filters/grouping.
-- Wide comparison tables keep the header and first column available without
-  hiding important data or causing incoherent overlap.
-
-## Export And Preset Quality
-
-- `photonic-bench-comparison-export-v1` has a formal JSON schema.
-- Browser JSON exports validate against the schema.
-- Export payloads include enough state to reproduce the comparison context.
-- Browser-local preset import validates shape and gives clear errors.
-- Browser-local preset export is deterministic and does not corrupt generated
-  presets.
-
-## Accessibility Quality
-
-- Keyboard users can reach and operate rail controls, comparison controls,
-  selection controls, score drilldowns, and preset import/export.
-- Interactive controls have meaningful labels, roles, and focus states.
-- Reduced-motion preferences are honored.
-- Contrast remains usable in dense dashboard areas.
+- The new UI helps a repeated user answer comparison questions faster.
+- Controls are dense, predictable, keyboard reachable, and not hidden behind
+  marketing-style explanations.
+- Recommendation and comparison surfaces remain schema-aware.
+- Mixed-schema comparisons remain visibly labeled.
+- Same-schema score heuristics are not presented as benchmark truth.
 
 ## Modeling Boundary Quality
 
@@ -66,18 +45,39 @@ Senior Reviewer critique.
 - No UI copy suggests that local heuristics, local system movement estimates,
   or scorecard rankings are measured hardware results.
 
+## Export And Reproducibility Quality
+
+- Export payloads include enough profile/weight state to reproduce the
+  comparison context when gallery state affects scores.
+- JSON schema documentation is updated if exported shape changes.
+- Markdown and CSV exports remain human-readable and include relevant weight
+  context.
+- Shareable URL state continues to restore applied weights.
+
+## Accessibility And Layout Quality
+
+- Gallery cards or controls are keyboard reachable.
+- Buttons and selectors have meaningful labels and focus states.
+- Text fits within its parent elements on desktop and mobile.
+- The dense workbench layout remains scannable without overlapping controls.
+- Reduced-motion behavior and existing visual regression expectations are not
+  regressed.
+
 ## Documentation And Artifact Quality
 
-- README visualizer documentation explains changed controls and exports.
-- JSON schema documentation covers the comparison export schema.
+- README visualizer documentation explains the gallery and any adjacent
+  workflow changes.
+- JSON schema docs are updated if export fields change.
 - Generated `reports/visualizer/` assets reflect source asset changes.
 - Artifact freshness verification passes after regeneration.
 
 ## Verification Quality
 
 - Focused visualizer tests cover changed static UI strings and source behavior.
-- Browser smoke covers representative interaction paths.
-- Visual regression tests cover desktop and mobile.
+- Browser smoke covers applying at least one built-in profile and confirms
+  selected comparison context is preserved.
+- Visual regression tests pass for desktop and mobile, or any intentional
+  baseline changes are reviewed and regenerated.
 - `node --check photonic_bench\visualizer_assets\app.js` passes.
 - Relevant focused pytest tests pass.
 - Full `python -m ruff check` and `python -m pytest -q` pass before final
@@ -89,7 +89,6 @@ Senior Reviewer critique.
 
 - All checklist DONE items include proof.
 - State files are current.
-- A pull request is open against `master`.
 - The mandatory Hostile Senior Reviewer critique is recorded in `PROGRESS.md`.
 - Important critique findings are fixed before completion or explicitly
   justified.
@@ -98,18 +97,21 @@ Senior Reviewer critique.
 ## Final Closeout Status
 
 - Complete.
-- All ten required improvements landed with source, docs, generated artifacts,
-  and tests.
-- PR #5 is open and ready for review against `master`.
-- Mandatory Hostile Senior Reviewer critique completed with two non-critical
-  findings, both fixed.
-- Final gates passed: focused visualizer tests, browser smoke, visual
-  regression, JavaScript syntax, Ruff, full pytest, artifact freshness, and
-  `git diff --check`.
-- PR #5 GitHub Actions passed after the visual regression baselines were
-  refreshed from the GitHub runner.
-- Remaining risk: screenshot baselines are intentionally tied to Playwright
-  Chromium layout. The comparator prefers platform-specific checked baselines
-  when present and tolerates smaller cross-platform font rasterization
-  differences, but baselines should still be refreshed only after reviewed UI
-  changes.
+- PR #5 merged into `master`; post-merge `master` CI passed.
+- Score Profile Gallery implemented with Balanced, Efficiency, Throughput,
+  Contention, and Provenance profiles.
+- Gallery cards show profile intent, weight summaries, active/custom state,
+  and current-set same-schema previews.
+- Applying a profile updates the same scorer used by recommendations,
+  scorecards, score explanations, exports, and URL state without disturbing
+  selected artifacts or pinned reference.
+- JSON/Markdown/CSV exports include score-profile context.
+- Documentation, formal schema, tests, and checked generated visualizer assets
+  are updated.
+- Mandatory hostile review completed; the one non-blocking test-coverage
+  finding was fixed.
+- Local full gates passed: focused visualizer tests, browser smoke, visual
+  regression, JavaScript syntax, artifact freshness, Ruff, full pytest,
+  package build, and `git diff --check`.
+- Remaining risk: named score profiles are local same-schema triage stances,
+  not measured hardware rankings.

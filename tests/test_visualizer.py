@@ -234,6 +234,10 @@ def test_static_app_contains_comparison_and_boundary_labels() -> None:
     assert "Copy state link" in app_js
     assert "Explain score" in app_js
     assert "Score weights" in app_js
+    assert "Score Profile Gallery" in app_js
+    assert "scoreWeightProfiles" in app_js
+    assert 'aria-label="Apply ${escapeHtml(profile.label)} score profile"' in app_js
+    assert "score_profile" in app_js
     assert "Selection Drawer" in app_js
     assert "Compare top N visible" in app_js
     assert "Invert visible selection" in app_js
@@ -299,6 +303,8 @@ def test_static_app_contains_comparison_and_boundary_labels() -> None:
     assert ".recommendation-grid" in styles
     assert ".comparison-toolbar" in styles
     assert ".weight-panel" in styles
+    assert ".score-profile-gallery" in styles
+    assert ".score-profile-card" in styles
     assert ".selection-drawer" in styles
     assert "prefers-reduced-motion" in styles
     assert "focus-visible" in styles

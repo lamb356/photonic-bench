@@ -546,14 +546,16 @@ The browser comparison dashboard exports a client-generated
 `photonic-bench-comparison-export-v1` JSON object. It is intentionally separate
 from the checked report schemas because it records an analyst's current browser
 view, not a regenerated benchmark artifact. The export includes selected
-artifact summaries, the pinned reference, active analysis focus, score weights,
-filter state, rail grouping, the shareable `url_state`, visible artifact IDs,
-same-schema recommendation cards with `score_explanation` drilldowns, grouped
-best-metric analysis, provenance status, and modeling-boundary notes.
+artifact summaries, the pinned reference, active analysis focus, active score
+profile, score weights, filter state, rail grouping, the shareable
+`url_state`, visible artifact IDs, same-schema recommendation cards with
+`score_explanation` drilldowns, grouped best-metric analysis, provenance status,
+and modeling-boundary notes.
 
 | Field | Meaning |
 | --- | --- |
-| `analysis_focus` | Active focus mode, description, metric labels, and score weights. |
+| `analysis_focus` | Active focus mode, description, metric labels, score profile, and score weights. |
+| `analysis_focus.score_profile` | Built-in profile identity such as `balanced`, `efficiency`, `throughput`, `contention`, or `provenance`, or `custom` when the weights no longer match a built-in profile. |
 | `filters` | Search/schema/boundary/source-quality/sort/grouping state. |
 | `url_state` | Shareable browser URL that restores the comparison context. |
 | `recommendations[].score_explanation` | Raw metric values, normalized scores, weights, contributions, and final weighted score. |
