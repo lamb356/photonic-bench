@@ -230,7 +230,7 @@ python examples/load_report_json.py reports/nature_pace_64x64.json
 
 ## Web Visualizer
 
-Generate the local static visualizer from checked-in JSON reports:
+Generate the portable static visualizer from checked-in JSON reports:
 
 ```powershell
 python -m photonic_bench.cli visualize --reports-dir reports --output reports/visualizer/index.html
@@ -238,7 +238,7 @@ python -m photonic_bench.cli visualize --reports-dir reports --output reports/vi
 
 Then open `reports/visualizer/index.html` in a browser. The generated page is
 static and can be opened directly from disk without a backend server. The CLI
-writes a small visualizer bundle beside the HTML:
+writes a visualizer bundle beside the HTML:
 
 - `reports/visualizer/index.html`: shell page.
 - `reports/visualizer/assets/styles.css`: visualizer styling.
@@ -250,6 +250,19 @@ writes a small visualizer bundle beside the HTML:
   discovered artifact.
 - `reports/visualizer/data/payloads/*.payload.js`: disk-safe lazy-load wrappers
   for those payloads.
+
+For larger local report directories, use server mode instead:
+
+```powershell
+python -m photonic_bench.cli visualize --reports-dir reports --serve
+```
+
+By default this serves `http://127.0.0.1:8000/`; pass `--host` or `--port` to
+change the bind address. Server mode serves the same shell, CSS, JavaScript, and
+lightweight index, but it loads individual artifact payload JSON over HTTP on
+demand from the source reports. That avoids writing the duplicated
+`.payload.json` plus `.payload.js` static payload tree and is the better path
+when the report corpus grows. Press `Ctrl+C` to stop the local server.
 
 The visualizer discovers `.json` files recursively under `reports/`, branches on
 `schema_version`, and loads both supported contracts:
@@ -270,11 +283,14 @@ aggregate workload totals, local energy, serial timing, non-additive noise
 diagnostics, aggregate semantics, formula audit rows, per-matmul breakdowns,
 assumptions, exclusions, and provenance.
 
-The Compare view lets you select multiple artifacts from the rail and inspect a
-schema-aware side-by-side matrix. Mixed per-matmul and transformer-layer
-comparison is allowed, but labeled as mixed-schema comparison so serial timing,
-non-additive aggregate noise, exclusions, local estimates, and published
-references are not flattened into one false hardware model.
+The Compare view lets you select multiple artifacts from the rail, pin one as
+the reference, and inspect both a side-by-side matrix and grouped same-schema
+analytics. Compatible rows show the value, absolute delta, and ratio against the
+pinned reference. Mixed per-matmul and transformer-layer comparison is allowed,
+but labeled as mixed-schema comparison; incompatible cross-schema deltas stay
+`n/a` so serial timing, non-additive aggregate noise, exclusions, local
+estimates, and published references are not flattened into one false hardware
+model.
 
 Source layout for the visualizer:
 
@@ -284,6 +300,20 @@ Source layout for the visualizer:
 - `photonic_bench/visualizer_assets/styles.css`: workbench styling.
 - `photonic_bench/visualizer_assets/app.js`: browser navigation, lazy payload
   loading, detail views, and comparison mode.
+
+Browser smoke coverage is checked in with the tests. Install the development
+extras and run:
+
+```powershell
+python -m pip install -e ".[dev]"
+python -m playwright install chromium
+python -m pytest tests/test_visualizer_smoke.py
+```
+
+The smoke test launches Chromium with Playwright, opens a generated visualizer,
+checks representative transformer and per-matmul detail flows, pins a comparison
+reference, and verifies delta/ratio comparison labels while failing on page or
+console errors.
 
 ## Comparison Tables
 
@@ -330,8 +360,9 @@ The output records the target, target source, original value, fitted value, pre-
 - `photonic_bench/json_report.py`: machine-readable JSON card rendering.
 - `photonic_bench/comparison.py`: Markdown comparison table rendering from JSON cards.
 - `photonic_bench/transformer.py`: transformer-layer shape helpers and aggregate layer comparison rendering.
-- `photonic_bench/visualizer.py`: static web visualizer discovery, schema-aware loading, template assembly, and generated data asset writing.
+- `photonic_bench/visualizer.py`: web visualizer discovery, schema-aware loading, template assembly, static asset writing, and local server routing.
 - `photonic_bench/visualizer_assets/`: source HTML, CSS, and JavaScript assets for the generated visualizer.
+- `tests/test_visualizer_smoke.py`: Playwright browser smoke test for the generated visualizer.
 - `docs/photonic-bench-transformer-layer-report-v1.schema.json`: machine-readable aggregate transformer-layer JSON Schema.
 - `photonic_bench/cli.py`: command-line entry point.
 - `docs/json_schema.md`: JSON schema guide, units, nullability, and examples.

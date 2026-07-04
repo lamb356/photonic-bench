@@ -1,4 +1,4 @@
-# PhotonicBench Visualizer Comparison And Scaling Checklist
+# PhotonicBench Commit, Push, Visualizer Polish, And Proposal Checklist
 
 Status key:
 
@@ -11,106 +11,111 @@ Status key:
 - [x] DONE: Roll state files forward and create the prioritized checklist.
   - Done when:
     - `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and `RUBRIC.md`
-      describe the comparison, smoke-test, and scaling goal.
-    - `tasks/todo.md` marks Web Visualizer Evolution as complete and this goal
-      as active.
-    - The scaling implementation path is chosen.
+      describe the commit, push, visualizer polish, and MLCommons-style
+      proposal goal.
+    - `tasks/todo.md` marks the comparison/smoke/scaling goal as complete and
+      this new goal as active.
+    - The checklist covers all four user objectives in order, plus final
+      verification, critique, commit, and push.
   - Proof:
-    - Re-read all five state files and `tasks/todo.md` at the start of the
-      cycle.
-    - Inspected `git status --short --branch` and `git diff --stat`.
-    - Chose local `--serve` mode as the scaling implementation because it
-      avoids static payload duplication for large report directories while
-      keeping the existing `file://` path intact.
+    - Re-read all five required state files at the start of the cycle.
+    - Re-read `tasks/todo.md`.
+    - Inspected `git status --short --branch`.
+    - Confirmed the current working tree contains the completed visualizer
+      comparison, smoke-test, and `--serve` scaling layer awaiting commit.
 
-## Task 1: Current Visualizer Commit
+## Task 1: Commit Current State
 
-- [ ] TODO: Commit the current visualizer evolution work.
+- [ ] TODO: Verify and commit the current project state.
   - Done when:
-    - Git status and diff have been inspected.
-    - Current visualizer evolution files have been staged explicitly.
-    - A clean commit exists with a descriptive message.
-    - No push has been performed.
-    - The commit hash and verification notes are recorded in `PROGRESS.md`.
-  - Proof:
-    - Pending.
-
-## Task 2: Comparison Analytics
-
-- [ ] TODO: Upgrade comparison mode into a stronger analysis tool.
-  - Done when:
-    - Users can pin one selected artifact as the reference artifact.
-    - Comparison output shows absolute deltas and ratios against the pinned
-      reference where the metrics are compatible.
-    - Same-schema selections are grouped with richer metric rows.
-    - Mixed-schema selections remain allowed but are explicitly labeled and do
-      not imply false equivalence.
-    - The UI makes pinned state, selected state, and clear actions obvious.
-    - Tests and browser smoke cover the new comparison behaviors.
-  - Proof:
-    - Pending.
-
-## Task 3: Playwright Browser Smoke
-
-- [ ] TODO: Add Playwright as a dev dependency and check in a browser smoke test.
-  - Done when:
-    - Project dev dependencies include Playwright.
-    - A browser smoke test opens the generated visualizer in Chromium.
-    - The smoke test verifies representative detail and comparison flows.
-    - The smoke test fails on page errors or unexpected console errors.
-    - Documentation explains how to run it.
-  - Proof:
-    - Pending.
-
-## Task 4: Local Server Scaling Mode
-
-- [ ] TODO: Implement `visualize --serve` as the practical scaling path.
-  - Done when:
-    - The CLI exposes a simple server mode on the visualizer command.
-    - Server mode serves the visualizer shell, static assets, a lightweight
-      index, and per-artifact payload JSON on demand.
-    - Server mode does not write duplicated payload JSON/script assets.
-    - Static generation still works from `file://`.
-    - Tests cover server route behavior or route construction.
-    - Documentation explains when to use static output versus server mode.
-  - Proof:
-    - Pending.
-
-## Task 5: Documentation, Examples, And Verification
-
-- [ ] TODO: Update docs, regenerate examples, and run verification.
-  - Done when:
-    - README/docs describe improved comparison analytics, Playwright smoke, and
-      `--serve`.
-    - The checked-in static visualizer example is regenerated if source assets
-      changed.
-    - Focused visualizer tests pass.
+    - `git status --short --branch` and the relevant diff/stat have been
+      inspected.
     - `python -m pytest` passes.
     - `python -m ruff check` passes.
-    - The Playwright smoke test passes.
-  - Proof:
-    - Pending.
+    - Current working-tree files are staged explicitly.
+    - A clean descriptive commit exists for the current state.
+    - Commit hash and proof are recorded in `PROGRESS.md`.
+
+## Task 2: Push Current Commit
+
+- [ ] TODO: Push the verified current-state commit.
+  - Done when:
+    - The current-state commit is pushed to the configured remote branch.
+    - The push target and resulting branch state are recorded in `PROGRESS.md`.
+    - No push is attempted if tests or ruff fail.
+
+## Task 3: Further Visualizer Comparison Polish
+
+- [ ] TODO: Audit the current comparison implementation and UX.
+  - Done when:
+    - The comparison JavaScript, styling, generated assets, and tests have been
+      inspected.
+    - The next improvement layer is narrowed to high-value, maintainable
+      changes.
+
+- [ ] TODO: Implement stronger comparison analytics and mixed-schema handling.
+  - Done when:
+    - Pinned reference state is easier to understand and act on.
+    - Compatible metrics show values, absolute deltas, percent deltas, and
+      ratios where meaningful.
+    - Same-schema grouped views help users identify best/worst selected
+      artifacts by metric.
+    - Mixed-schema selections expose compatibility/caveat information without
+      implying false equivalence.
+    - The UI remains compact, readable, and usable at desktop and mobile-ish
+      widths.
+    - Unit or browser smoke coverage exercises the new behavior.
+
+- [ ] TODO: Regenerate visualizer examples and update docs for the polish layer.
+  - Done when:
+    - `reports/visualizer/index.html` and generated assets are updated if
+      source assets changed.
+    - README or docs explain the new comparison behavior.
+
+## Task 4: MLCommons-Style Photonic Benchmark Proposal
+
+- [ ] TODO: Ground the proposal in current official MLCommons context.
+  - Done when:
+    - Current official MLCommons materials relevant to benchmark process,
+      metrics, reproducibility, or submissions have been checked.
+    - Source links and takeaways are recorded in the proposal artifact or
+      progress log.
+
+- [ ] TODO: Produce substantive proposal foundation artifacts.
+  - Done when:
+    - A concrete proposal draft structure exists.
+    - Scope, workload classes, metrics, reproducibility requirements, artifact
+      requirements, and open questions are written down.
+    - The proposal explains how PhotonicBench artifacts could map into a
+      benchmark submission and what remains unresolved.
+
+## Task 5: Verification And Documentation
+
+- [ ] TODO: Run focused and full verification after implementation.
+  - Done when:
+    - Focused visualizer tests pass.
+    - The Playwright visualizer smoke test passes.
+    - `python -m pytest` passes.
+    - `python -m ruff check` passes.
+    - Documentation and state files reflect the completed work.
 
 ## Task 6: Mandatory Hostile Senior Reviewer Critique
 
-- [ ] TODO: Critique code quality, usability, scalability, and maintainability.
+- [ ] TODO: Critique the final visualizer and proposal changes, then fix major issues.
   - Done when:
-    - The five state files are re-read before the critique pass.
+    - The five required state files are re-read before the critique pass.
     - Findings are recorded in `PROGRESS.md`.
     - Significant issues are fixed or explicitly justified.
-    - The visualizer is regenerated after fixes when assets change.
-    - Final `python -m pytest`, `python -m ruff check`, and Playwright smoke
-      all pass.
-  - Proof:
-    - Pending.
+    - Any changed generated artifacts are regenerated.
+    - Post-fix tests, ruff, and Playwright smoke pass.
 
-## Task 7: Final State
+## Task 7: Final Commit And Push
 
-- [ ] TODO: Close the loop cleanly.
+- [ ] TODO: Commit and push the final visualizer polish and proposal work.
   - Done when:
-    - All required outcomes in `GOAL.md` are complete.
-    - `CHECKLIST.md`, `PROGRESS.md`, `CONTEXT.md`, `RUBRIC.md`, and
-      `tasks/todo.md` reflect the final state.
-    - Git status is inspected and reported.
-  - Proof:
-    - Pending.
+    - Final diff/status are inspected.
+    - Final verification is recorded.
+    - Files are staged explicitly.
+    - A clean descriptive final commit exists.
+    - The final commit is pushed to the configured remote branch.
+    - Final git status is inspected and recorded.

@@ -205,6 +205,10 @@ h1 {
   box-shadow: 0 0 0 2px var(--teal-soft);
 }
 
+.artifact-row.pinned {
+  border-left-color: var(--violet);
+}
+
 .artifact-main {
   border: 0;
   background: transparent;
@@ -219,6 +223,12 @@ h1 {
   outline-offset: 4px;
 }
 
+.compare-controls {
+  display: grid;
+  gap: 6px;
+  justify-items: end;
+}
+
 .compare-pick {
   display: flex;
   align-items: center;
@@ -228,6 +238,28 @@ h1 {
   font-weight: 800;
   white-space: nowrap;
   cursor: pointer;
+}
+
+.pin-button {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fbfcfa;
+  color: var(--steel);
+  cursor: pointer;
+  font-size: 0.74rem;
+  font-weight: 850;
+  padding: 4px 8px;
+}
+
+.pin-button.active {
+  background: var(--violet-soft);
+  border-color: var(--violet);
+  color: var(--violet);
+}
+
+.pin-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .artifact-title {
@@ -558,5 +590,9 @@ code {
 
   .artifact-row {
     grid-template-columns: 1fr;
+  }
+
+  .compare-controls {
+    justify-items: start;
   }
 }

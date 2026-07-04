@@ -56,23 +56,38 @@
 - [x] Task 7: Run hostile senior reviewer critique focused on maintainability,
       performance, and UX, then fix major findings.
 
-## Active Goal: Visualizer Comparison, Smoke, And Scaling
+## Completed Goal: Visualizer Comparison, Smoke, And Scaling
 
 - [x] Task 0: Roll state files forward and create prioritized checklist.
-- [ ] Task 1: Commit the current visualizer evolution work.
-- [ ] Task 2: Upgrade comparison mode with pinned selections, deltas, ratios,
+- [x] Task 1: Commit the current visualizer evolution work.
+- [x] Task 2: Upgrade comparison mode with pinned selections, deltas, ratios,
       and grouped or mixed-schema analysis.
-- [ ] Task 3: Add Playwright as a dev dependency and check in a browser smoke
+- [x] Task 3: Add Playwright as a dev dependency and check in a browser smoke
       test.
-- [ ] Task 4: Implement local `visualize --serve` scaling mode.
+- [x] Task 4: Implement local `visualize --serve` scaling mode.
+- [x] Task 5: Update documentation, regenerate examples, and run full
+      verification.
+- [x] Task 6: Run hostile senior reviewer critique and fix significant
+      findings.
+- [x] Task 7: Close final state files and inspect git status.
+
+## Active Goal: Commit, Push, Visualizer Polish, And MLCommons Proposal
+
+- [x] Task 0: Roll state files forward and create prioritized checklist.
+- [ ] Task 1: Verify and commit the current project state.
+- [ ] Task 2: Push the verified current-state commit.
+- [ ] Task 3: Further improve and polish visualizer comparison mode.
+- [ ] Task 4: Produce substantive MLCommons-style photonic benchmark proposal
+      artifacts.
 - [ ] Task 5: Update documentation, regenerate examples, and run full
       verification.
 - [ ] Task 6: Run hostile senior reviewer critique and fix significant
       findings.
-- [ ] Task 7: Close final state files and inspect git status.
+- [ ] Task 7: Commit and push the final visualizer polish and proposal work.
 
 ## Explicitly Not Active In This Goal
 
 - [ ] File upload workflow.
 - [ ] Hosted backend web service.
-- [ ] MLCommons-style proposal implementation.
+- [ ] Formal MLCommons submission.
+- [ ] Full benchmark-suite implementation beyond proposal foundation artifacts.

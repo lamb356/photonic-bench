@@ -5,13 +5,14 @@
 - Workspace: `C:\Users\burba\OneDrive\Documents\Photonic Acceleration`
 - Package: `photonic_bench`
 - Branch: `master`
-- Recent committed baseline:
-  - `a147736 Harden transformer layer aggregate reports`
+- Current pre-goal working tree:
+  - contains the completed visualizer comparison, Playwright smoke, and local
+    `visualize --serve` scaling feature layer;
+  - has not yet been committed or pushed.
+- Recent commits:
+  - `c5d9816 Evolve visualizer static workbench`
   - `ef731c9 Add initial web visualizer`
-- Current uncommitted baseline at this goal start:
-  - completed Web Visualizer Evolution work with split visualizer assets,
-    static index/payload separation, lazy payload loading, richer navigation,
-    schema-aware comparison, generated assets, docs, tests, and state files.
+  - `a147736 Harden transformer layer aggregate reports`
 
 ## CLI Commands
 
@@ -21,16 +22,13 @@ Existing commands:
 - `python -m photonic_bench.cli compare JSON... --report REPORT`
 - `python -m photonic_bench.cli transformer-layer CONFIG --output-dir DIR [--prefix PREFIX]`
 - `python -m photonic_bench.cli visualize [--reports-dir reports] [--output reports/visualizer/index.html]`
-
-Target addition:
-
 - `python -m photonic_bench.cli visualize --reports-dir reports --serve [--host 127.0.0.1] [--port PORT]`
 
-## Current Visualizer Architecture
+## Visualizer Architecture
 
 - `photonic_bench/visualizer.py` discovers JSON reports recursively and routes
   supported schemas through explicit adapters.
-- `photonic_bench/visualizer_assets/template.html` is the static shell.
+- `photonic_bench/visualizer_assets/template.html` is the shell.
 - `photonic_bench/visualizer_assets/styles.css` contains workbench styling.
 - `photonic_bench/visualizer_assets/app.js` contains browser navigation,
   filtering, lazy payload loading, detail views, and comparison mode.
@@ -42,13 +40,10 @@ Target addition:
   - `reports/visualizer/data/index.js`
   - `reports/visualizer/data/payloads/*.payload.json`
   - `reports/visualizer/data/payloads/*.payload.js`
+- Server mode serves the shell, static assets, index JSON/script, and
+  per-artifact payload JSON on demand from discovered source report files.
 
-The static path keeps direct `file://` viewing working by using script wrappers
-for lazy payloads. The new server path should keep the same UI but serve index
-and payload JSON over HTTP so large local corpora do not need duplicated
-generated payload assets.
-
-## Existing Data Contracts
+## Data Contracts
 
 The visualizer consumes JSON, not Markdown.
 
@@ -90,24 +85,30 @@ presented as a hidden fused-layer hardware model.
 - Calibration fits and published references remain separate from local model
   outputs.
 
-## Implementation Direction
+## Proposal Direction
 
-- Commit the current visualizer evolution state before adding the next feature
-  layer.
-- Keep vanilla browser JavaScript unless a dependency is truly needed.
-- Improve comparison by adding pinned reference state, compatible metric
-  deltas, ratios, grouped same-schema sections, and clear mixed-schema notes.
-- Add Playwright smoke as a project test asset, not an ad hoc verification
-  command.
-- Implement local server mode with on-demand JSON payload serving.
-- Preserve static generation and `file://` behavior.
-- Keep the UI compact, technical, and boundary-forward.
+The MLCommons-style proposal should be concrete enough to seed a real working
+draft while remaining honest about its status. It should define:
+
+- benchmark scope and non-goals;
+- workload classes and representative shapes;
+- required metrics and units;
+- accuracy/noise/quality guardrails;
+- reproducibility package expectations;
+- reference implementations and calibration evidence;
+- disclosure requirements for photonic hardware assumptions;
+- open governance and methodology questions.
+
+Use current official MLCommons materials for context before writing claims
+about process or submission expectations.
 
 ## Constraints
 
-- Do not scrape Markdown reports.
-- Do not claim parallel or fused transformer scheduling.
+- Do not scrape Markdown reports as the machine interface.
+- Do not claim parallel or fused transformer scheduling unless the JSON contract
+  explicitly models it.
 - Do not sum noise into a layer-level error.
 - Do not hide assumptions, exclusions, provenance, schema version, or
   published-reference boundaries.
-- Do not push unless a checklist explicitly instructs it.
+- Do not push unless tests and ruff pass.
+- Do not treat the proposal as a completed MLCommons submission.

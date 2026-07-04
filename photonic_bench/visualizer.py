@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, replace
 import hashlib
+from http import HTTPStatus
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from importlib import resources
 import json
 import math
@@ -9,6 +11,7 @@ import os
 from pathlib import Path
 import re
 from typing import Any, Iterable, Literal
+from urllib.parse import unquote, urlsplit
 
 from photonic_bench.json_report import REPORT_SCHEMA_VERSION
 from photonic_bench.transformer import TRANSFORMER_LAYER_REPORT_SCHEMA_VERSION
@@ -91,6 +94,12 @@ class VisualizerData:
                 "Transformer-layer exclusions are not modeled matmul costs.",
             ],
         }
+
+
+@dataclass(frozen=True)
+class VisualizerServerSite:
+    data: VisualizerData
+    payloads_by_path: dict[str, dict[str, Any]]
 
 
 def discover_visualizer_data(
@@ -177,6 +186,33 @@ def write_visualizer(reports_dir: Path, output_path: Path) -> VisualizerData:
     return data
 
 
+def build_server_visualizer_site(reports_dir: Path) -> VisualizerServerSite:
+    data = discover_visualizer_data(reports_dir)
+    data = _with_server_payload_paths(data)
+    payloads_by_path: dict[str, dict[str, Any]] = {}
+    for artifact in data.artifacts:
+        payloads_by_path[artifact.summary.payload_path] = artifact.payload
+        payloads_by_path[artifact.summary.browser_path] = artifact.payload
+    return VisualizerServerSite(
+        data=data,
+        payloads_by_path=payloads_by_path,
+    )
+
+
+def build_visualizer_http_server(
+    reports_dir: Path,
+    *,
+    host: str,
+    port: int,
+) -> tuple[ThreadingHTTPServer, VisualizerServerSite]:
+    site = build_server_visualizer_site(reports_dir)
+
+    class VisualizerHandler(_VisualizerRequestHandler):
+        server_site = site
+
+    return ThreadingHTTPServer((host, port), VisualizerHandler), site
+
+
 def render_visualizer_html(
     data: VisualizerData,
     *,
@@ -198,13 +234,28 @@ def render_visualizer_html(
 
 
 def _with_payload_asset_paths(data: VisualizerData) -> VisualizerData:
+    return _with_payload_paths(data, include_script_path=True)
+
+
+def _with_server_payload_paths(data: VisualizerData) -> VisualizerData:
+    return _with_payload_paths(data, include_script_path=False)
+
+
+def _with_payload_paths(
+    data: VisualizerData,
+    *,
+    include_script_path: bool,
+) -> VisualizerData:
     artifacts: list[VisualizerArtifact] = []
     for artifact in data.artifacts:
         stem = _payload_asset_stem(artifact.summary.source_path)
+        payload_path = f"{PAYLOAD_DIR_PATH}/{stem}.payload.json"
         summary = replace(
             artifact.summary,
-            payload_path=f"{PAYLOAD_DIR_PATH}/{stem}.payload.json",
-            payload_script_path=f"{PAYLOAD_DIR_PATH}/{stem}.payload.js",
+            payload_path=payload_path,
+            payload_script_path=(
+                f"{PAYLOAD_DIR_PATH}/{stem}.payload.js" if include_script_path else ""
+            ),
         )
         artifacts.append(VisualizerArtifact(summary=summary, payload=artifact.payload))
     return VisualizerData(
@@ -245,6 +296,62 @@ def _write_data_assets(output_root: Path, data: VisualizerData) -> None:
             f"[{json.dumps(artifact.summary.id)}] = {_json_dump(artifact.payload)};\n",
             encoding="utf-8",
         )
+
+
+class _VisualizerRequestHandler(BaseHTTPRequestHandler):
+    server_site: VisualizerServerSite
+
+    def do_GET(self) -> None:
+        route = _request_route(self.path)
+        if route in ("", "index.html"):
+            self._send_text(
+                render_visualizer_html(self.server_site.data),
+                content_type="text/html",
+            )
+            return
+        if route == STYLE_PATH:
+            self._send_text(_read_asset("styles.css"), content_type="text/css")
+            return
+        if route == APP_SCRIPT_PATH:
+            self._send_text(
+                _read_asset("app.js"),
+                content_type="text/javascript",
+            )
+            return
+        if route == INDEX_JSON_PATH:
+            self._send_json(self.server_site.data.to_index_dict())
+            return
+        if route == INDEX_SCRIPT_PATH:
+            self._send_text(
+                f"window.PhotonicBenchIndex = "
+                f"{_json_dump(self.server_site.data.to_index_dict())};\n",
+                content_type="text/javascript",
+            )
+            return
+        payload = self.server_site.payloads_by_path.get(route)
+        if payload is not None:
+            self._send_json(payload)
+            return
+        self.send_error(HTTPStatus.NOT_FOUND, "visualizer asset not found")
+
+    def log_message(self, format: str, *args: Any) -> None:
+        return
+
+    def _send_json(self, value: Any) -> None:
+        self._send_text(_json_dump(value), content_type="application/json")
+
+    def _send_text(self, text: str, *, content_type: str) -> None:
+        body = text.encode("utf-8")
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-Type", f"{content_type}; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(body)
+
+
+def _request_route(raw_path: str) -> str:
+    return unquote(urlsplit(raw_path).path).lstrip("/")
 
 
 def _remove_generated_payload_files(payload_dir: Path) -> None:

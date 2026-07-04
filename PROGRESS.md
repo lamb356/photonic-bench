@@ -1,28 +1,29 @@
 # PhotonicBench Progress
 
-## 2026-07-03 Completed Baselines
+## 2026-07-04 Pre-Goal Baseline
 
-Completed before this goal:
+Completed before this loop:
 
 - Hardened transformer-layer aggregate reports:
   - commit `a147736 Harden transformer layer aggregate reports`.
 - Initial web visualizer:
   - commit `ef731c9 Add initial web visualizer`.
-- Web Visualizer Evolution work is present in the working tree at this goal
-  start:
-  - split visualizer source into Python, HTML template, CSS, and JavaScript;
-  - separated lightweight index data from per-artifact payload files;
-  - added richer navigation, filters, labeling, and schema-aware comparison;
-  - preserved per-matmul and transformer aggregate detail views;
-  - updated README, tests, generated visualizer assets, and state files;
-  - recorded and fixed prior hostile-review findings.
+- Static workbench evolution:
+  - commit `c5d9816 Evolve visualizer static workbench`.
+- Visualizer comparison/smoke/scaling work is currently present in the working
+  tree and awaiting commit/push:
+  - pinned comparison references;
+  - compatible deltas and ratios;
+  - grouped same-schema and labeled mixed-schema comparisons;
+  - Playwright browser smoke test;
+  - local `visualize --serve` mode;
+  - README, tests, and generated visualizer asset updates.
 
-Latest recorded pre-goal verification for that working-tree state:
+Latest recorded verification for that working-tree feature layer:
 
-- `python -m pytest`: 69 passed.
+- `python -m pytest`: 72 passed.
 - `python -m ruff check`: passed.
-- Manual browser smoke from `file://` passed with 0 page errors and 0 console
-  errors.
+- Playwright static smoke and HTTP server smoke passed.
 
 ## 2026-07-04 Cycle 1: State Rollover
 
@@ -31,44 +32,33 @@ Latest recorded pre-goal verification for that working-tree state:
 - Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
   `RUBRIC.md` at the start of the cycle.
 - Re-read `tasks/todo.md`.
-- Read the commit, frontend-design, test, and review skill instructions because
-  this goal includes commits, frontend UI changes, full verification, and a
-  hostile review pass.
+- Read applicable commit, git-commit, frontend-design, and review skill
+  instructions.
 
 ### Repository Inspection
 
 - Ran `git status --short --branch`.
 - Current branch: `master`.
-- Worktree had modified visualizer evolution files plus new generated asset
-  directories:
-  - `CHECKLIST.md`
-  - `CONTEXT.md`
-  - `GOAL.md`
-  - `PROGRESS.md`
-  - `README.md`
-  - `RUBRIC.md`
-  - `photonic_bench/visualizer.py`
-  - `photonic_bench/visualizer_assets/`
-  - `pyproject.toml`
-  - `reports/visualizer/`
-  - `tasks/todo.md`
-  - `tests/test_visualizer.py`
-- Ran `git diff --stat` and confirmed the uncommitted work is the visualizer
-  evolution state that must be committed before the new implementation layer.
+- Current working tree contains modified state/docs/source/generated assets and
+  new `tests/test_visualizer_smoke.py`.
+- The current working tree corresponds to the prior visualizer comparison,
+  smoke-test, and scaling implementation layer, which must be verified,
+  committed, and pushed before new feature work.
 
 ### State File Update
 
-- Rolled the state files forward to the Visualizer Comparison, Smoke, and
-  Scaling goal.
-- Created the new checklist:
-  1. commit current visualizer evolution work;
-  2. upgrade comparison analytics with pinned selections, deltas, ratios, and
-     grouped or mixed-schema views;
-  3. add Playwright browser smoke as a dev dependency;
-  4. implement local `visualize --serve` scaling mode;
-  5. update docs, regenerate examples, and verify;
-  6. run hostile senior reviewer critique and fix significant findings;
-  7. close final state files and inspect git status.
-- Chose `--serve` as the scaling implementation path. Static `file://` output
-  remains supported; server mode should avoid duplicating all payloads into a
-  generated static artifact tree.
+- Rolled the state files forward to this ordered goal:
+  1. verify and commit the current project state;
+  2. push the verified commit;
+  3. further polish visualizer comparison mode;
+  4. produce substantive MLCommons-style proposal artifacts;
+  5. verify, critique, fix, commit, and push the final work.
+- Updated `tasks/todo.md` so the prior comparison/smoke/scaling goal is
+  complete and this loop is active.
+
+### Next Step
+
+- Run current-state verification with `python -m pytest` and
+  `python -m ruff check`.
+- Inspect the diff, stage explicit files, commit the current feature layer, and
+  push it only if verification passes.

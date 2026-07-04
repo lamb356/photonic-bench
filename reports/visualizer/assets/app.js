@@ -10,6 +10,7 @@
     sort: "name",
     view: "detail",
     compareIds: new Set(),
+    pinnedId: null,
     payloadCache: new Map(),
     payloadPromises: new Map(),
   };
@@ -156,6 +157,20 @@
     });
   }
 
+  function selectedArtifacts() {
+    return Array.from(state.compareIds)
+      .map((id) => byId.get(id))
+      .filter(Boolean);
+  }
+
+  function ensurePinnedReference(artifacts = selectedArtifacts()) {
+    if (state.pinnedId && state.compareIds.has(state.pinnedId)) {
+      return byId.get(state.pinnedId) || null;
+    }
+    state.pinnedId = artifacts[0] ? artifacts[0].summary.id : null;
+    return state.pinnedId ? byId.get(state.pinnedId) : null;
+  }
+
   function renderList() {
     const list = document.getElementById("artifact-list");
     const artifacts = filteredArtifacts();
@@ -169,7 +184,10 @@
       .map((artifact) => {
         const summary = artifact.summary;
         const active = summary.id === state.selectedId ? " active" : "";
+        const pinned = summary.id === state.pinnedId ? " pinned" : "";
         const checked = state.compareIds.has(summary.id) ? " checked" : "";
+        const pinDisabled = state.compareIds.has(summary.id) ? "" : " disabled";
+        const pinActive = summary.id === state.pinnedId ? " active" : "";
         const badgeClass =
           summary.kind === "transformer_layer" ? "badge layer" : "badge";
         const tags = (summary.boundary_tags || [])
@@ -177,12 +195,13 @@
           .map((tag) => `<span class="badge">${escapeHtml(tag)}</span>`)
           .join("");
         return `
-          <div class="artifact-row${active}" data-id="${escapeHtml(summary.id)}">
+          <div class="artifact-row${active}${pinned}" data-id="${escapeHtml(summary.id)}">
             <button class="artifact-main" type="button" data-id="${escapeHtml(summary.id)}">
               <div class="artifact-title">${escapeHtml(summary.benchmark_name)}</div>
               <div class="artifact-meta">${escapeHtml(summary.source_path)}</div>
               <div class="badge-row">
                 <span class="${badgeClass}">${kindLabel(summary.kind)}</span>
+                ${summary.id === state.pinnedId ? '<span class="badge layer">pinned reference</span>' : ""}
                 <span class="badge">${formatNumber(summary.equivalent_ops)} eq ops</span>
                 <span class="badge">${formatPj(summary.total_energy_pj)}</span>
                 ${
@@ -193,10 +212,13 @@
                 ${tags}
               </div>
             </button>
-            <label class="compare-pick">
-              <input type="checkbox" data-compare-id="${escapeHtml(summary.id)}"${checked}>
-              Compare
-            </label>
+            <div class="compare-controls">
+              <label class="compare-pick">
+                <input type="checkbox" data-compare-id="${escapeHtml(summary.id)}"${checked}>
+                Compare
+              </label>
+              <button class="pin-button${pinActive}" type="button" data-pin-id="${escapeHtml(summary.id)}"${pinDisabled}>Pin</button>
+            </div>
           </div>
         `;
       })
@@ -217,7 +239,23 @@
           state.compareIds.add(id);
         } else {
           state.compareIds.delete(id);
+          if (state.pinnedId === id) {
+            state.pinnedId = null;
+          }
         }
+        ensurePinnedReference();
+        render();
+      });
+    });
+
+    list.querySelectorAll("button[data-pin-id]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const id = button.dataset.pinId;
+        if (!state.compareIds.has(id)) {
+          return;
+        }
+        state.pinnedId = id;
+        state.view = "compare";
         render();
       });
     });
@@ -335,13 +373,28 @@
     }
 
     const artifact = byId.get(id);
-    if (!artifact || !artifact.summary.payload_script_path) {
+    if (!artifact) {
+      return Promise.reject(new Error(`No artifact recorded for ${id}`));
+    }
+    if (!artifact.summary.payload_script_path && !artifact.summary.payload_path) {
       return Promise.reject(new Error(`No payload path recorded for ${id}`));
     }
 
-    const promise = new Promise((resolve, reject) => {
+    const promise = artifact.summary.payload_script_path
+      ? loadPayloadScript(id, artifact.summary.payload_script_path)
+      : fetchPayloadJson(id, artifact.summary.payload_path);
+
+    state.payloadPromises.set(id, promise);
+    promise.catch(() => {
+      state.payloadPromises.delete(id);
+    });
+    return promise;
+  }
+
+  function loadPayloadScript(id, scriptPath) {
+    return new Promise((resolve, reject) => {
       const script = document.createElement("script");
-      script.src = artifact.summary.payload_script_path;
+      script.src = scriptPath;
       script.onload = () => {
         const registry = window.PhotonicBenchPayloadRegistry || {};
         const payload = registry[id];
@@ -355,12 +408,20 @@
       script.onerror = () => reject(new Error(`Could not load ${script.src}`));
       document.head.appendChild(script);
     });
+  }
 
-    state.payloadPromises.set(id, promise);
-    promise.catch(() => {
-      state.payloadPromises.delete(id);
-    });
-    return promise;
+  function fetchPayloadJson(id, payloadPath) {
+    return fetch(payloadPath, { cache: "no-store" })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Could not load ${payloadPath}: HTTP ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((payload) => {
+        state.payloadCache.set(id, payload);
+        return payload;
+      });
   }
 
   function renderMatmul(artifact, payload) {
@@ -577,8 +638,12 @@
       });
   }
 
-  function comparisonRows(artifacts) {
+  function comparisonSummaryRows(artifacts, pinnedArtifact) {
     const metricRows = [
+      [
+        "Pinned reference",
+        (summary) => (pinnedArtifact && summary.id === pinnedArtifact.summary.id ? "yes" : "no"),
+      ],
       ["Kind", (summary) => kindLabel(summary.kind)],
       ["Schema", (summary) => summary.schema_version],
       [
@@ -615,11 +680,139 @@
     ]);
   }
 
+  function comparisonMetricSpecs() {
+    return [
+      {
+        label: "MACs",
+        get: (summary) => summary.macs,
+        format: formatNumber,
+      },
+      {
+        label: "Equivalent ops",
+        get: (summary) => summary.equivalent_ops,
+        format: formatNumber,
+      },
+      {
+        label: "Output elements",
+        get: (summary) => summary.output_elements,
+        format: formatNumber,
+      },
+      {
+        label: "Local total energy",
+        get: (summary) => summary.total_energy_pj,
+        format: formatPj,
+      },
+      {
+        label: "Energy per op",
+        get: (summary) => summary.energy_per_op_pj,
+        format: formatPj,
+      },
+      {
+        label: "Latency",
+        get: (summary) => summary.latency_ns,
+        format: formatNs,
+      },
+      {
+        label: "Throughput",
+        get: (summary) => summary.throughput_equivalent_ops_per_second,
+        format: formatThroughput,
+      },
+      {
+        label: "Assumption count",
+        get: (summary) => summary.assumptions_count,
+        format: formatNumber,
+      },
+    ];
+  }
+
+  function groupArtifactsByKind(artifacts) {
+    const groups = new Map();
+    artifacts.forEach((artifact) => {
+      const label = kindLabel(artifact.summary.kind);
+      if (!groups.has(label)) {
+        groups.set(label, []);
+      }
+      groups.get(label).push(artifact);
+    });
+    return Array.from(groups.entries());
+  }
+
+  function renderGroupedAnalytics(artifacts, pinnedArtifact) {
+    return groupArtifactsByKind(artifacts)
+      .map(([label, group]) => {
+        const compatiblePinned =
+          pinnedArtifact && pinnedArtifact.summary.kind === group[0].summary.kind
+            ? pinnedArtifact
+            : null;
+        const reference = compatiblePinned || group[0];
+        const note = compatiblePinned
+          ? `Deltas and ratios use pinned reference: ${reference.summary.benchmark_name}.`
+          : "Pinned reference is a different schema, so this group shows values without cross-schema deltas.";
+        return `
+          <section class="panel">
+            <h3>${escapeHtml(label)} Analytics</h3>
+            <div class="notes"><p>${escapeHtml(note)}</p></div>
+            ${simpleTable(
+              [
+                { label: "Metric" },
+                { label: "Artifact" },
+                { label: "Value", num: true },
+                { label: "Delta vs pinned", num: true },
+                { label: "Ratio vs pinned", num: true },
+              ],
+              analyticsRows(group, reference, Boolean(compatiblePinned)),
+              "comparison-table"
+            )}
+          </section>
+        `;
+      })
+      .join("");
+  }
+
+  function analyticsRows(group, reference, showDeltas) {
+    const specs = comparisonMetricSpecs();
+    return specs.flatMap((spec) =>
+      group.map((artifact) => {
+        const value = Number(spec.get(artifact.summary));
+        const referenceValue = Number(spec.get(reference.summary));
+        const isReference =
+          showDeltas && artifact.summary.id === reference.summary.id;
+        return [
+          escapeHtml(spec.label),
+          `${escapeHtml(artifact.summary.benchmark_name)}${
+            isReference ? ' <span class="badge layer">reference</span>' : ""
+          }`,
+          escapeHtml(spec.format(value)),
+          escapeHtml(showDeltas ? formatDelta(value, referenceValue, spec.format) : "n/a"),
+          escapeHtml(showDeltas ? formatRatio(value, referenceValue) : "n/a"),
+        ];
+      })
+    );
+  }
+
+  function formatDelta(value, referenceValue, formatter) {
+    if (!Number.isFinite(value) || !Number.isFinite(referenceValue)) {
+      return "n/a";
+    }
+    const delta = value - referenceValue;
+    const prefix = delta > 0 ? "+" : "";
+    return `${prefix}${formatter(delta)}`;
+  }
+
+  function formatRatio(value, referenceValue) {
+    if (
+      !Number.isFinite(value) ||
+      !Number.isFinite(referenceValue) ||
+      referenceValue === 0
+    ) {
+      return "n/a";
+    }
+    return `${formatNumber(value / referenceValue)}x`;
+  }
+
   function renderComparison() {
     const detail = document.getElementById("detail");
-    const artifacts = Array.from(state.compareIds)
-      .map((id) => byId.get(id))
-      .filter(Boolean);
+    const artifacts = selectedArtifacts();
 
     if (!artifacts.length) {
       detail.innerHTML =
@@ -627,6 +820,7 @@
       return;
     }
 
+    const pinnedArtifact = ensurePinnedReference(artifacts);
     const kinds = new Set(artifacts.map((artifact) => artifact.summary.kind));
     const hasLayer = artifacts.some(
       (artifact) => artifact.summary.kind === "transformer_layer"
@@ -659,10 +853,16 @@
             <div class="badge-row">
               <span class="badge mix">Comparison Mode</span>
               <span class="badge">${artifacts.length} selected</span>
+              ${pinnedArtifact ? '<span class="badge layer">Pinned reference</span>' : ""}
               ${kinds.size > 1 ? '<span class="badge warn">mixed schema</span>' : ""}
             </div>
             <h2>Artifact Comparison</h2>
-            <div class="description">Schema-aware side-by-side summary across selected PhotonicBench JSON artifacts.</div>
+            <div class="description">Schema-aware side-by-side summary plus grouped delta and ratio analysis across selected PhotonicBench JSON artifacts.</div>
+            ${
+              pinnedArtifact
+                ? `<div class="description"><strong>Reference:</strong> ${escapeHtml(pinnedArtifact.summary.benchmark_name)} (${escapeHtml(pinnedArtifact.summary.source_path)})</div>`
+                : ""
+            }
           </div>
           <div class="actions">
             <button class="action-button" type="button" data-action="clear-compare">Clear comparison</button>
@@ -671,8 +871,13 @@
       </section>
       <section class="panel">
         <h3>Comparison Matrix</h3>
-        ${simpleTable(headers, comparisonRows(artifacts), "comparison-table")}
+        ${simpleTable(headers, comparisonSummaryRows(artifacts, pinnedArtifact), "comparison-table")}
       </section>
+      <section class="panel">
+        <h3>Grouped Same-Schema Analytics</h3>
+        <div class="notes"><p>Compatible rows report value, absolute delta, and ratio against the pinned reference. Mixed-schema groups keep incompatible deltas as n/a.</p></div>
+      </section>
+      ${renderGroupedAnalytics(artifacts, pinnedArtifact)}
       <section class="panel">
         <h3>Comparison Boundary Notes</h3>
         <div class="notes">${boundaryNotes
@@ -685,6 +890,7 @@
       "click",
       () => {
         state.compareIds.clear();
+        state.pinnedId = null;
         state.view = "detail";
         render();
       }
@@ -706,6 +912,7 @@
       const first = filteredArtifacts()[0];
       state.selectedId = first ? first.summary.id : null;
     }
+    ensurePinnedReference();
     renderModeTabs();
     renderList();
     renderIssues();

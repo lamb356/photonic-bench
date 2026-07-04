@@ -20,7 +20,7 @@ from photonic_bench.transformer import (
     render_transformer_layer_json,
     slugify,
 )
-from photonic_bench.visualizer import write_visualizer
+from photonic_bench.visualizer import build_visualizer_http_server, write_visualizer
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -41,7 +41,13 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "transformer-layer":
             return _transformer_layer(args.config, args.output_dir, args.prefix)
         if args.command == "visualize":
-            return _visualize(args.reports_dir, args.output)
+            return _visualize(
+                args.reports_dir,
+                args.output,
+                args.serve,
+                args.host,
+                args.port,
+            )
     except (OSError, ValueError) as exc:
         parser.exit(2, f"error: {exc}\n")
 
@@ -132,6 +138,22 @@ def _build_parser() -> argparse.ArgumentParser:
         type=Path,
         default=Path("reports/visualizer/index.html"),
         help="HTML file to write",
+    )
+    visualize.add_argument(
+        "--serve",
+        action="store_true",
+        help="Serve the visualizer locally without writing duplicated payload assets",
+    )
+    visualize.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="Host interface for --serve",
+    )
+    visualize.add_argument(
+        "--port",
+        type=int,
+        default=8000,
+        help="Port for --serve; use 0 to select an available port",
     )
     return parser
 
@@ -229,7 +251,36 @@ def _transformer_layer(
     return 0
 
 
-def _visualize(reports_dir: Path, output_path: Path) -> int:
+def _visualize(
+    reports_dir: Path,
+    output_path: Path,
+    serve: bool,
+    host: str,
+    port: int,
+) -> int:
+    if serve:
+        server, site = build_visualizer_http_server(
+            reports_dir,
+            host=host,
+            port=port,
+        )
+        bound_host, bound_port = server.server_address[:2]
+        display_host = "127.0.0.1" if bound_host in ("", "0.0.0.0") else bound_host
+        print(
+            f"Serving web visualizer at http://{display_host}:{bound_port}/ "
+            f"({len(site.data.artifacts)} artifacts, {len(site.data.issues)} warnings)"
+        )
+        print("Press Ctrl+C to stop.")
+        for issue in site.data.issues:
+            print(f"warning: {issue.source_path}: {issue.message}", file=sys.stderr)
+        try:
+            server.serve_forever()
+        except KeyboardInterrupt:
+            print("\nStopped web visualizer server.")
+        finally:
+            server.server_close()
+        return 0
+
     data = write_visualizer(reports_dir, output_path)
     print(
         f"Wrote web visualizer to {output_path} "
