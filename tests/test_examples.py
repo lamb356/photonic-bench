@@ -206,3 +206,77 @@ def test_taichi_2024_chiplet_surrogate_card_is_source_backed() -> None:
             "surrogate_mapping"
         ]
     )
+
+
+def test_hitop_2025_optical_tensor_processor_card_is_source_backed() -> None:
+    config = load_config(
+        Path("examples/hitop_2025_optical_tensor_processor_surrogate.yaml")
+    )
+    result = evaluate(config)
+    payload = report_to_dict(result)
+
+    assert config.provenance is not None
+    assert config.provenance.doi == "10.1126/sciadv.adu0228"
+    assert config.published_calibration is not None
+    assert (
+        config.published_calibration.energy_efficiency_including_lasers_tops_per_watt
+        == pytest.approx(40)
+    )
+    assert result.macs == 262_144
+    assert result.equivalent_ops == 524_288
+    assert result.published_calibration is not None
+    assert result.published_calibration.energy_per_op_including_lasers_pj == pytest.approx(
+        1 / 40
+    )
+    assert result.published_calibration.total_energy_including_lasers_pj == pytest.approx(
+        524_288 / 40
+    )
+    metrics = payload["published_reference"]["reported"]["additional_metrics"]
+    assert metrics["model_parameters_validated"] == 405_000
+    assert metrics["reported_energy_per_op_fj_from_efficiency"] == pytest.approx(25)
+    assert "not an exact space-time-wavelength streaming schedule" in (
+        metrics["surrogate_mapping"]
+    )
+
+
+def test_lin_2024_tfln_tensor_core_card_is_source_backed() -> None:
+    config = load_config(
+        Path("examples/lin_2024_tfln_120gops_tensor_core_surrogate.yaml")
+    )
+    result = evaluate(config)
+    payload = report_to_dict(result)
+
+    assert config.provenance is not None
+    assert config.provenance.doi == "10.1038/s41467-024-53261-x"
+    assert config.published_calibration is not None
+    assert config.published_calibration.reported_tops == pytest.approx(0.12)
+    assert result.macs == 4096
+    assert result.equivalent_ops == 8192
+    metrics = payload["published_reference"]["reported"]["additional_metrics"]
+    assert metrics["reported_gops"] == pytest.approx(120)
+    assert metrics["weight_update_speed_ghz"] == pytest.approx(60)
+    assert metrics["fan_in_dimension"] == 131_072
+    assert "not an exact time-domain integration schedule" in (
+        metrics["surrogate_mapping"]
+    )
+
+
+def test_meng_2025_mrr_otpu_tensor_core_card_is_source_backed() -> None:
+    config = load_config(Path("examples/meng_2025_mrr_otpu_tensor_core_surrogate.yaml"))
+    result = evaluate(config)
+    payload = report_to_dict(result)
+
+    assert config.provenance is not None
+    assert config.provenance.doi == "10.1038/s41377-024-01706-9"
+    assert config.published_calibration is not None
+    assert config.published_calibration.reported_tops is None
+    assert result.macs == 4096
+    assert result.equivalent_ops == 8192
+    assert result.published_calibration is not None
+    assert result.published_calibration.energy_per_op_including_lasers_pj is None
+    metrics = payload["published_reference"]["reported"]["additional_metrics"]
+    assert metrics["computing_density_tops_per_mm2"] == pytest.approx(34.04)
+    assert metrics["mnist_accuracy_percent"] == pytest.approx(96.41)
+    assert "not an exact multidomain convolution schedule" in (
+        metrics["surrogate_mapping"]
+    )

@@ -44,6 +44,8 @@ noise:
     assert config.device.vector_dac.energy_pj_per_conversion == 0.2
     assert config.device.weight_dac.energy_pj_per_conversion == 0.2
     assert config.execution.batch_size == 1
+    assert config.system.sram.read_energy_pj_per_byte == 0.02
+    assert config.system.off_chip.bandwidth_bytes_per_ns == 16.0
     assert config.noise.phase_noise_rad_rms == 0.02
 
 
@@ -231,3 +233,107 @@ noise:
     assert config.execution.weight_stationary is True
     assert config.execution.pipeline.stages == 3
     assert config.execution.pipeline.cycle_time_ns == 2
+
+
+def test_load_config_supports_system_memory_tiers(tmp_path: Path) -> None:
+    config_path = tmp_path / "system.yaml"
+    config_path.write_text(
+        """
+benchmark:
+  name: system matmul
+workload:
+  type: matmul
+  m: 4
+  n: 8
+  k: 2
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 6
+    energy_pj_per_conversion: 0.5
+  dac:
+    bits: 6
+    energy_pj_per_conversion: 0.2
+system:
+  sram:
+    read_energy_pj_per_byte: 0.03
+    write_energy_pj_per_byte: 0.04
+    bandwidth_bytes_per_ns: 512
+  off_chip:
+    read_energy_pj_per_byte: 12
+    write_energy_pj_per_byte: 16
+    bandwidth_bytes_per_ns: 8
+    read_fraction: 0.25
+    write_fraction: 0.5
+timing:
+  optical_latency_ns: 3
+  adc_latency_ns: 1
+  dac_latency_ns: 1
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 3
+""".strip(),
+        encoding="utf-8",
+    )
+
+    config = load_config(config_path)
+
+    assert config.system.sram.read_energy_pj_per_byte == 0.03
+    assert config.system.sram.write_energy_pj_per_byte == 0.04
+    assert config.system.sram.bandwidth_bytes_per_ns == 512
+    assert config.system.sram.read_fraction == 1.0
+    assert config.system.off_chip.read_energy_pj_per_byte == 12
+    assert config.system.off_chip.write_energy_pj_per_byte == 16
+    assert config.system.off_chip.bandwidth_bytes_per_ns == 8
+    assert config.system.off_chip.read_fraction == 0.25
+    assert config.system.off_chip.write_fraction == 0.5
+
+
+def test_load_config_rejects_invalid_system_fraction(tmp_path: Path) -> None:
+    config_path = tmp_path / "bad_system.yaml"
+    config_path.write_text(
+        """
+benchmark:
+  name: bad system matmul
+workload:
+  type: matmul
+  m: 4
+  n: 8
+  k: 2
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 6
+    energy_pj_per_conversion: 0.5
+  dac:
+    bits: 6
+    energy_pj_per_conversion: 0.2
+system:
+  off_chip:
+    read_fraction: 1.5
+timing:
+  optical_latency_ns: 3
+  adc_latency_ns: 1
+  dac_latency_ns: 1
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 3
+""".strip(),
+        encoding="utf-8",
+    )
+
+    try:
+        load_config(config_path)
+    except ValueError as exc:
+        message = str(exc)
+    else:
+        raise AssertionError("load_config should reject invalid system fractions")
+
+    assert "system.off_chip.read_fraction" in message
+    assert "between 0 and 1" in message

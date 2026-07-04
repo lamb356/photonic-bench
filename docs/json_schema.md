@@ -10,6 +10,12 @@ Aggregate transformer-layer schema version:
 Machine-readable aggregate schema:
 `docs/photonic-bench-transformer-layer-report-v1.schema.json`
 
+Transformer-model aggregate schema version:
+`photonic-bench-transformer-model-report-v1`
+
+Machine-readable transformer-model aggregate schema:
+`docs/photonic-bench-transformer-model-report-v1.schema.json`
+
 ## Versioning
 
 `schema_version` is required and currently must be `photonic-bench-report-v1`.
@@ -20,6 +26,10 @@ Transformer-layer aggregate JSON uses its own schema version because it
 summarizes a whole layer rather than one matmul card. Its current
 `schema_version` is `photonic-bench-transformer-layer-report-v1`.
 
+Transformer-model aggregate JSON uses a third schema version because it
+summarizes one or more counted transformer-layer specs. Its current
+`schema_version` is `photonic-bench-transformer-model-report-v1`.
+
 ## Per-Card Top-Level Fields
 
 | Field | Required | Type | Meaning |
@@ -27,14 +37,49 @@ summarizes a whole layer rather than one matmul card. Its current
 | `schema_version` | yes | string | Report schema identifier. |
 | `benchmark` | yes | object | Name and description from the YAML config. |
 | `workload` | yes | object | Matmul dimensions and total workload size. |
-| `model_inputs` | yes | object | Device, execution, timing, and noise assumptions used by the local model. |
-| `local_model` | yes | object | PhotonicBench-computed conversion counts, interface memory traffic, energy, timing, and noise. |
+| `model_inputs` | yes | object | Device, execution, system-tier, timing, and noise assumptions used by the local model. |
+| `local_model` | yes | object | PhotonicBench-computed conversion counts, interface memory traffic, system movement estimates, energy, timing, and noise. |
 | `published_reference` | yes | object or null | Paper-reported values and direct unit conversions, when present. |
 | `calibration_fit` | yes | object or null | Optional one-parameter calibration fit result. |
 | `assumptions` | yes | string array | Human-readable assumptions that apply to this card. |
 | `provenance` | yes | object or null | Source citation metadata, when present. |
 
 Transformer-layer helper per-matmul outputs use this same per-card JSON schema.
+
+## Per-Card System Model Fields
+
+Per-card reports include `model_inputs.system` with explicit `sram` and
+`off_chip` tier assumptions:
+
+```yaml
+system:
+  sram:
+    read_energy_pj_per_byte: 0.02
+    write_energy_pj_per_byte: 0.02
+    bandwidth_bytes_per_ns: 1024
+    read_fraction: 1.0
+    write_fraction: 1.0
+  off_chip:
+    read_energy_pj_per_byte: 10.0
+    write_energy_pj_per_byte: 10.0
+    bandwidth_bytes_per_ns: 16
+    read_fraction: 1.0
+    write_fraction: 1.0
+```
+
+`local_model.system.tiers.sram` and `local_model.system.tiers.off_chip` report
+the tier read bytes, write bytes, movement energy, bandwidth, and transfer time.
+`local_model.system.total_movement_energy_pj` is added to
+`local_model.system.local_compute_and_conversion_energy_pj` to produce
+`local_model.system.total_system_energy_pj`. The legacy
+`local_model.energy.total_pj` remains the local photonic compute/conversion
+estimate and is not overwritten by movement energy.
+
+Bandwidth-limited fields are local estimates. For per-card reports,
+`local_model.system.bandwidth_limited_batch_latency_ns` is the maximum of the
+existing batch latency and the modeled tier transfer times, and
+`local_model.system.bandwidth_limited_equivalent_ops_per_second` divides the
+card's equivalent ops by that bandwidth-limited latency.
 
 ## Aggregate Transformer-Layer JSON
 
@@ -60,8 +105,8 @@ Schema version: `photonic-bench-transformer-layer-report-v1`
 | `benchmark` | yes | object | Layer-level benchmark name and description. |
 | `transformer_layer` | yes | object | Layer type, attention mode, and shape fields. |
 | `workload` | yes | object | Layer-level matmul count, MACs, equivalent ops, and summed generated output elements. |
-| `aggregate_semantics` | yes | object | Text labels explaining source cards, energy aggregation, timing aggregation, and noise handling. |
-| `local_model` | yes | object | Summed conversion counts, summed interface traffic, summed energy, serial timing summary, and non-additive noise diagnostics. |
+| `aggregate_semantics` | yes | object | Text labels explaining source cards, energy aggregation, memory traffic aggregation, system aggregation, timing aggregation, and noise handling. |
+| `local_model` | yes | object | Summed conversion counts, summed interface traffic, summed system movement estimates, summed energy, serial timing summary, and non-additive noise diagnostics. |
 | `published_reference` | yes | null | Always null for current transformer-layer configs, which reject `published_calibration`. |
 | `calibration_fit` | yes | null | Always null for current aggregate layer reports. |
 | `formula_audit` | yes | object | Expected helper totals, JSON totals, match booleans, and per-operation formula rows. |
@@ -95,6 +140,14 @@ from decomposed cards where additive, and `macs_per_byte` plus
 fields describe converter-interface traffic, not full cache, SRAM, DRAM, NoC,
 or non-matmul tensor traffic.
 
+System movement fields under `local_model.system` are summed from decomposed
+cards where additive. Transformer-layer aggregate JSON sums per-matmul SRAM and
+off-chip movement energy, recomputes system energy per MAC/op from aggregate
+workload totals, and reports
+`bandwidth_limited_serial_batch_latency_ns` as the sum of decomposed
+bandwidth-limited batch latencies. This is a serial accounting artifact, not a
+fused memory scheduler or complete memory hierarchy.
+
 Timing fields are explicitly serial summaries. `serial_batch_latency_ns` sums
 the per-matmul `batch_latency_ns` values. The effective layer throughputs divide
 the aggregate MAC or equivalent-op totals by that serial latency. These fields
@@ -103,6 +156,52 @@ do not claim a fused hardware scheduler or parallel layer pipeline.
 Noise is not additive. Aggregate noise fields are labeled diagnostics over the
 per-matmul cards; the detailed per-card noise values remain under
 `matmuls[].local_model.noise`.
+
+## Aggregate Transformer-Model JSON
+
+The `transformer-model` command writes representative transformer-layer
+artifacts for each configured layer spec, then writes a full-model summary:
+
+```powershell
+python -m photonic_bench.cli transformer-model examples/bert_base_12layer_model.yaml --output-dir reports/bert_base_12layer_model --prefix bert_base_12layer
+```
+
+The aggregate model JSON path is:
+
+```text
+reports/bert_base_12layer_model/bert_base_12layer_model_summary.json
+```
+
+Schema version: `photonic-bench-transformer-model-report-v1`
+
+| Field | Required | Type | Meaning |
+| --- | --- | --- | --- |
+| `schema_version` | yes | string | Aggregate model schema identifier. |
+| `artifact_type` | yes | string | Currently `transformer_model_aggregate`. |
+| `benchmark` | yes | object | Model-level benchmark name and description. |
+| `workload` | yes | object | Unique layer spec count, total layer instances, MACs, equivalent ops, and output elements. |
+| `aggregate_semantics` | yes | object | Text labels explaining layer-count, energy, memory, system, timing, and noise aggregation. |
+| `local_model` | yes | object | Count-weighted conversion counts, interface traffic, system movement estimates, energy, serial timing, and non-additive noise diagnostics. |
+| `layers` | yes | array | Representative layer summary references, counts, weighted totals, local layer summaries, and decomposed matmul report names. |
+| `published_reference` | yes | null | Always null for current transformer-model configs, which reject `published_calibration`. |
+| `calibration_fit` | yes | null | Always null for current aggregate model reports. |
+| `assumptions` | yes | string array | Model-level and aggregate-report assumptions. |
+| `exclusions` | yes | string array | Union of known excluded transformer costs from layer summaries. |
+| `provenance` | yes | object or null | Model-level provenance metadata, when present. |
+
+Transformer-model aggregation is deliberately count based. Each
+`transformer_model.layers[]` entry is generated once as a normal
+transformer-layer aggregate. The model summary multiplies additive layer fields
+by that entry's `count`, sums the results, and recomputes per-MAC/per-op and
+throughput metrics from model totals. The model summary preserves auditability
+through `layers[].json_report` and `layers[].matmul_reports`.
+In short, model totals are built from representative transformer-layer summaries and configured layer counts.
+
+This is not a fused full-model scheduler. Serial timing fields assume weighted
+layer summaries execute one after another. System movement fields are weighted
+serial summaries over the layer-level SRAM/off-chip estimates; they do not model
+activation lifetime, cache residency, KV-cache reuse, operator fusion, or
+inter-layer overlap.
 
 ## Transformer-Layer Config Validation
 
@@ -128,6 +227,33 @@ Currently supported values are `layer_type: encoder|decoder` and
 `published_calibration` so layer-level paper targets are not silently mixed with
 local-model decomposed cards.
 
+## Transformer-Model Config Validation
+
+Transformer-model YAML configs use a `transformer_model.layers` array. Each
+entry has the same dense layer shape fields as `transformer_layer`, plus an
+optional unique `name` and a positive integer `count`:
+
+```yaml
+transformer_model:
+  layers:
+    - name: encoder_block
+      count: 12
+      layer_type: encoder
+      attention_mode: dense
+      batch_size: 1
+      sequence_length: 128
+      hidden_size: 768
+      num_heads: 12
+      head_dim: 64
+      mlp_intermediate_size: 3072
+```
+
+Names default to `layer_1`, `layer_2`, and so on when omitted, but explicit
+names must be unique. `head_dim` inference and validation match
+`transformer-layer`. Transformer-model configs reject `published_calibration`
+for the same reason as transformer-layer configs: model totals are local
+estimates, not paper targets.
+
 ## Units
 
 | JSON path | Unit |
@@ -135,6 +261,11 @@ local-model decomposed cards.
 | `model_inputs.device.optical_mac_energy_fj` | fJ/MAC |
 | `model_inputs.device.photodetector_energy_fj_per_sample` | fJ/sample |
 | `model_inputs.device.*dac.energy_pj_per_conversion` | pJ/conversion |
+| `model_inputs.system.*.read_energy_pj_per_byte` | pJ/byte |
+| `model_inputs.system.*.write_energy_pj_per_byte` | pJ/byte |
+| `model_inputs.system.*.bandwidth_bytes_per_ns` | bytes/ns |
+| `model_inputs.system.*.read_fraction` | unitless fraction |
+| `model_inputs.system.*.write_fraction` | unitless fraction |
 | `model_inputs.timing.*_latency_ns` | ns |
 | `model_inputs.noise.phase_noise_rad_rms` | radians RMS |
 | `model_inputs.noise.drift_rad_per_second` | radians/second |
@@ -144,6 +275,19 @@ local-model decomposed cards.
 | `local_model.memory_traffic.*_bytes` | bytes |
 | `local_model.memory_traffic.macs_per_byte` | MACs/byte |
 | `local_model.memory_traffic.equivalent_ops_per_byte` | equivalent ops/byte |
+| `local_model.system.tiers.*.*_bytes` | bytes |
+| `local_model.system.tiers.*.*_energy_pj` | pJ |
+| `local_model.system.tiers.*.bandwidth_bytes_per_ns` | bytes/ns |
+| `local_model.system.tiers.*.transfer_time_ns` | ns |
+| `local_model.system.total_movement_energy_pj` | pJ |
+| `local_model.system.total_system_energy_pj` | pJ |
+| `local_model.system.system_energy_per_mac_pj` | pJ/MAC |
+| `local_model.system.system_energy_per_op_pj` | pJ/equivalent op |
+| `local_model.system.movement_energy_share` | unitless fraction |
+| `local_model.system.bandwidth_limited_batch_latency_ns` | ns |
+| `local_model.system.bandwidth_limited_equivalent_ops_per_second` | equivalent ops/second |
+| `local_model.system.bandwidth_limited_serial_batch_latency_ns` | ns |
+| `local_model.system.bandwidth_limited_serial_effective_equivalent_ops_per_second` | equivalent ops/second |
 | `local_model.timing.*_ns` | ns |
 | `local_model.timing.serial_batch_latency_ns` | ns |
 | `local_model.timing.serial_effective_macs_per_second` | MACs/second |
@@ -190,6 +334,7 @@ python -m photonic_bench.cli run examples/nature_pace_64x64.yaml --report report
 ```powershell
 python examples/load_report_json.py reports/nature_pace_64x64.json
 python examples/load_report_json.py reports/bert_base_encoder_layer/bert_base_layer_layer_summary.json
+python examples/load_report_json.py reports/bert_base_12layer_model/bert_base_12layer_model_summary.json
 ```
 
 Minimal Python pattern:
@@ -201,9 +346,10 @@ from pathlib import Path
 card = json.loads(Path("reports/nature_pace_64x64.json").read_text())
 name = card["benchmark"]["name"]
 total_pj = card["local_model"]["energy"]["total_pj"]
+system_pj = card["local_model"]["system"]["total_system_energy_pj"]
 eq_ops_per_byte = card["local_model"]["memory_traffic"]["equivalent_ops_per_byte"]
 published = card["published_reference"]
-print(name, total_pj, eq_ops_per_byte, published is not None)
+print(name, total_pj, system_pj, eq_ops_per_byte, published is not None)
 ```
 
 Minimal aggregate-layer pattern:
@@ -218,9 +364,51 @@ layer = json.loads(
 assert layer["schema_version"] == "photonic-bench-transformer-layer-report-v1"
 total_macs = layer["workload"]["macs"]
 total_interface_bytes = layer["local_model"]["memory_traffic"]["total_interface_bytes"]
+system_pj_per_op = layer["local_model"]["system"]["system_energy_per_op_pj"]
 rows = layer["formula_audit"]["rows"]
-print(total_macs, total_interface_bytes, [row["operation_key"] for row in rows])
+print(
+    total_macs,
+    total_interface_bytes,
+    system_pj_per_op,
+    [row["operation_key"] for row in rows],
+)
 ```
+
+Minimal aggregate-model pattern:
+
+```python
+import json
+from pathlib import Path
+
+model = json.loads(
+    Path("reports/bert_base_12layer_model/bert_base_12layer_model_summary.json").read_text()
+)
+assert model["schema_version"] == "photonic-bench-transformer-model-report-v1"
+layer_count = model["workload"]["layer_count"]
+system_pj_per_op = model["local_model"]["system"]["system_energy_per_op_pj"]
+layer_reports = [layer["json_report"] for layer in model["layers"]]
+print(layer_count, system_pj_per_op, layer_reports)
+```
+
+## Visualizer External Loading
+
+The static visualizer can load additional local JSON reports from the browser
+with `Load external JSON reports`. This is a limited foundation for external
+report inspection, not a hosted upload service. The browser parses each selected
+file, accepts only these schema versions, and builds an in-memory artifact
+summary:
+
+- `photonic-bench-report-v1`
+- `photonic-bench-transformer-layer-report-v1`
+- `photonic-bench-transformer-model-report-v1`
+
+Required summary fields such as `schema_version`, `benchmark.name`, workload
+totals, local energy, timing, assumptions, and aggregate artifact markers are
+validated before the external artifact enters the UI. Unsupported schemas,
+malformed JSON, and missing or non-finite required numbers are rejected inline.
+Loaded external artifacts are labeled as `external/...`, can be selected for
+detail or comparison views, and remain browser-session state only; the generated
+`reports/visualizer/data/index.json` and payload files are not modified.
 
 ## Comparison Tables
 

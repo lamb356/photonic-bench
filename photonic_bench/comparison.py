@@ -62,6 +62,11 @@ def render_comparison_markdown(
         "Eq ops",
         "Local total pJ",
         "Local pJ/op",
+        "System total pJ",
+        "System pJ/op",
+        "Movement pJ",
+        "Movement share",
+        "Bandwidth-limited eq ops/s",
         "Interface bytes",
         "Eq ops/byte",
         "Batch latency ns",
@@ -98,6 +103,7 @@ def _row(card: ComparisonCard) -> list[str]:
     provenance = _dict_or_empty(payload.get("provenance"))
     local_energy = _dict_or_empty(_get(payload, "local_model", "energy"))
     memory = _dict_or_empty(_get(payload, "local_model", "memory_traffic"))
+    system = _dict_or_empty(_get(payload, "local_model", "system"))
     local_timing = _dict_or_empty(_get(payload, "local_model", "timing"))
 
     return [
@@ -108,6 +114,11 @@ def _row(card: ComparisonCard) -> list[str]:
         _fmt(_get(payload, "workload", "equivalent_ops")),
         _fmt(local_energy.get("total_pj")),
         _fmt(local_energy.get("energy_per_op_pj")),
+        _fmt(system.get("total_system_energy_pj")),
+        _fmt(system.get("system_energy_per_op_pj")),
+        _fmt(system.get("total_movement_energy_pj")),
+        _fmt(system.get("movement_energy_share")),
+        _fmt(system.get("bandwidth_limited_equivalent_ops_per_second")),
         _fmt(memory.get("total_interface_bytes")),
         _fmt(memory.get("equivalent_ops_per_byte")),
         _fmt(local_timing.get("batch_latency_ns")),

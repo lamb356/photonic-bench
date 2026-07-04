@@ -1,0 +1,55 @@
+benchmark:
+  name: Meng 2025 MRR OTPU tensor core surrogate
+  description: "Source-backed card for the Light: Science & Applications 2025 high-integrated microring-resonator optical tensor processing unit. The published result is a multidomain tensor-convolution OTPU; this config uses a 16x16 dense local matmul surrogate for comparison only."
+workload:
+  type: matmul
+  m: 16
+  n: 16
+  k: 16
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 8
+    energy_pj_per_conversion: 0.5
+  vector_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+  weight_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+execution:
+  batch_size: 1
+  vector_reuse_factor: 1
+  weight_reuse_factor: 1
+  weight_stationary: true
+  pipeline:
+    stages: 1
+timing:
+  optical_latency_ns: 1
+  adc_latency_ns: 0
+  dac_latency_ns: 0
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 1
+provenance:
+  source_title: High-integrated photonic tensor core utilizing high-dimensional lightwave and microwave multidomain multiplexing
+  source_url: https://www.nature.com/articles/s41377-024-01706-9
+  doi: 10.1038/s41377-024-01706-9
+  venue: "Light: Science & Applications 14, 27 (2025)"
+  claim_status: paper-reported computing-density/accuracy claims; matmul-surrogate local model
+published_calibration:
+  architecture: Microring-resonator optical tensor processing unit with lightwave/microwave multidomain multiplexing
+  additional_metrics:
+    computing_density_tops_per_mm2: 34.04
+    mnist_accuracy_percent: 96.41
+    theoretical_mnist_accuracy_percent: 96.79
+    multiplexing_domains: time-wavelength-microwave-frequency
+    optical_core: single microring resonator
+    surrogate_mapping: m=16, k=16, n=16 is a dense local surrogate for an MRR OTPU tensor-convolution result; not an exact multidomain convolution schedule.
+assumptions:
+  - Source reports 34.04 TOPS/mm2 computing density and 96.41 percent MNIST accuracy; this card keeps those values as published references.
+  - No scalar total TOPS or TOPS/W value is encoded because the cited paper metric is computing density rather than absolute throughput or energy efficiency.
+  - Local timing, converter energy, system tiers, and dense workload shape are PhotonicBench assumptions for cross-card comparison.

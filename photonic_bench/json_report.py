@@ -95,6 +95,10 @@ def _model_inputs(config: BenchmarkConfig) -> dict[str, Any]:
                 "cycle_time_ns": config.execution.pipeline.cycle_time_ns,
             },
         },
+        "system": {
+            "sram": _system_tier_inputs(config.system.sram),
+            "off_chip": _system_tier_inputs(config.system.off_chip),
+        },
         "timing": {
             "optical_latency_ns": config.timing.optical_latency_ns,
             "adc_latency_ns": config.timing.adc_latency_ns,
@@ -130,6 +134,33 @@ def _local_model(result: BenchmarkResult) -> dict[str, Any]:
             "note": (
                 "Interface traffic is derived from DAC/ADC bit widths and reuse "
                 "counts. It is not a full memory hierarchy simulation."
+            ),
+        },
+        "system": {
+            "tiers": {
+                "sram": _system_tier_result(result.system.sram),
+                "off_chip": _system_tier_result(result.system.off_chip),
+            },
+            "local_compute_and_conversion_energy_pj": (
+                result.system.local_compute_and_conversion_energy_pj
+            ),
+            "total_movement_energy_pj": result.system.total_movement_energy_pj,
+            "total_system_energy_pj": result.system.total_system_energy_pj,
+            "system_energy_per_mac_pj": result.system.system_energy_per_mac_pj,
+            "system_energy_per_op_pj": result.system.system_energy_per_op_pj,
+            "movement_energy_share": result.system.movement_energy_share,
+            "max_transfer_time_ns": result.system.max_transfer_time_ns,
+            "bandwidth_limited_batch_latency_ns": (
+                result.system.bandwidth_limited_batch_latency_ns
+            ),
+            "bandwidth_limited_equivalent_ops_per_second": (
+                result.system.bandwidth_limited_equivalent_ops_per_second
+            ),
+            "bandwidth_limited_tier": result.system.bandwidth_limited_tier,
+            "note": (
+                "System movement energy is a local estimate over explicit SRAM "
+                "and off-chip tiers. It is added separately from photonic core "
+                "compute/conversion energy and is not a published measurement."
             ),
         },
         "energy": {
@@ -169,6 +200,32 @@ def _local_model(result: BenchmarkResult) -> dict[str, Any]:
                 result.noise.estimated_relative_error_rms
             ),
         },
+    }
+
+
+def _system_tier_inputs(tier) -> dict[str, float]:
+    return {
+        "read_energy_pj_per_byte": tier.read_energy_pj_per_byte,
+        "write_energy_pj_per_byte": tier.write_energy_pj_per_byte,
+        "bandwidth_bytes_per_ns": tier.bandwidth_bytes_per_ns,
+        "read_fraction": tier.read_fraction,
+        "write_fraction": tier.write_fraction,
+    }
+
+
+def _system_tier_result(tier) -> dict[str, float | str]:
+    return {
+        "name": tier.name,
+        "read_bytes": tier.read_bytes,
+        "write_bytes": tier.write_bytes,
+        "total_bytes": tier.total_bytes,
+        "read_energy_pj": tier.read_energy_pj,
+        "write_energy_pj": tier.write_energy_pj,
+        "total_energy_pj": tier.total_energy_pj,
+        "bandwidth_bytes_per_ns": tier.bandwidth_bytes_per_ns,
+        "transfer_time_ns": tier.transfer_time_ns,
+        "read_fraction": tier.read_fraction,
+        "write_fraction": tier.write_fraction,
     }
 
 

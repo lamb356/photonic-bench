@@ -72,11 +72,70 @@ macs_per_byte = macs / total_interface_bytes
 equivalent_ops_per_byte = equivalent_ops / total_interface_bytes
 ```
 
-This is an interface traffic model, not a full memory hierarchy simulation. It
-captures the effect of batch size, vector reuse, weight reuse, weight-stationary
-execution, and converter precision on operand reads and output writes, but it
-does not model caches, SRAM banks, DRAM, interposer links, NoCs, instruction
-traffic, or nonlinear/non-matmul tensor traffic.
+This interface traffic model captures the effect of batch size, vector reuse,
+weight reuse, weight-stationary execution, and converter precision on operand
+reads and output writes. It is also the byte source for the optional system tier
+model below. It is still not a cache simulator: it does not model bank conflicts,
+replacement policy, NoC routing, instruction traffic, nonlinear operations, or
+non-matmul tensor traffic.
+
+## Multi-Tier System Movement Model
+
+PhotonicBench extends converter-interface traffic into an auditable local system
+movement estimate with explicit SRAM and off-chip tiers. The default tiers are
+deliberately simple and visible:
+
+```yaml
+system:
+  sram:
+    read_energy_pj_per_byte: 0.02
+    write_energy_pj_per_byte: 0.02
+    bandwidth_bytes_per_ns: 1024
+    read_fraction: 1.0
+    write_fraction: 1.0
+  off_chip:
+    read_energy_pj_per_byte: 10.0
+    write_energy_pj_per_byte: 10.0
+    bandwidth_bytes_per_ns: 16
+    read_fraction: 1.0
+    write_fraction: 1.0
+```
+
+For each tier:
+
+```text
+operand_read_bytes = vector_operand_read_bytes + weight_operand_read_bytes
+tier_read_bytes = operand_read_bytes * tier.read_fraction
+tier_write_bytes = output_write_bytes * tier.write_fraction
+tier_total_bytes = tier_read_bytes + tier_write_bytes
+tier_read_energy_pj = tier_read_bytes * tier.read_energy_pj_per_byte
+tier_write_energy_pj = tier_write_bytes * tier.write_energy_pj_per_byte
+tier_total_energy_pj = tier_read_energy_pj + tier_write_energy_pj
+tier_transfer_time_ns = tier_total_bytes / tier.bandwidth_bytes_per_ns
+```
+
+The per-card system summary is:
+
+```text
+total_movement_energy_pj =
+    sram_total_energy_pj + off_chip_total_energy_pj
+total_system_energy_pj =
+    local_compute_and_conversion_energy_pj + total_movement_energy_pj
+system_energy_per_mac_pj = total_system_energy_pj / macs
+system_energy_per_op_pj = total_system_energy_pj / equivalent_ops
+movement_energy_share = total_movement_energy_pj / total_system_energy_pj
+max_transfer_time_ns = max(sram_transfer_time_ns, off_chip_transfer_time_ns)
+bandwidth_limited_batch_latency_ns =
+    max(batch_latency_ns, max_transfer_time_ns)
+bandwidth_limited_equivalent_ops_per_second =
+    equivalent_ops / (bandwidth_limited_batch_latency_ns * 1e-9)
+```
+
+These fields live under `local_model.system` in JSON and under the
+`Multi-Tier System Movement` section in Markdown. They are local estimates, not
+paper-published measurements. They intentionally remain separate from
+`local_model.energy.total_pj`, which is the photonic compute/conversion estimate
+used by older cards and calibration flows.
 
 ## Noise Estimate
 
@@ -222,6 +281,13 @@ additive quantities such as MACs, equivalent ops, output elements, conversion
 counts, and energy components; then it recomputes energy per MAC, energy per
 equivalent op, and peripheral share from the summed quantities.
 
+Aggregate system movement fields are serial summaries over decomposed cards.
+`local_model.system.total_movement_energy_pj` and
+`local_model.system.total_system_energy_pj` are sums of the per-matmul system
+estimates. `bandwidth_limited_serial_batch_latency_ns` sums the decomposed
+bandwidth-limited batch latencies and should not be read as a fused layer memory
+scheduler.
+
 Aggregate timing fields are labeled serial summaries. In particular,
 `serial_batch_latency_ns` is the sum of per-matmul batch latencies, and
 `serial_effective_equivalent_ops_per_second` divides total layer equivalent ops
@@ -259,6 +325,53 @@ assumptions; they do not silently change dense attention MAC counts.
 Transformer-layer configs may include `provenance`, but they currently reject
 `published_calibration`. That prevents a layer-level paper target from being
 silently copied or dropped across decomposed per-matmul local-model cards.
+
+## Full Transformer Model Helpers
+
+Transformer-model helper configs use a `transformer_model.layers` list to build
+counted full-model summaries from representative transformer-layer artifacts:
+
+```yaml
+transformer_model:
+  layers:
+    - name: encoder_block
+      count: 12
+      layer_type: encoder
+      attention_mode: dense
+      batch_size: 1
+      sequence_length: 128
+      hidden_size: 768
+      num_heads: 12
+      head_dim: 64
+      mlp_intermediate_size: 3072
+```
+
+The `transformer-model` command generates one normal decomposed
+transformer-layer artifact tree for each layer spec, then writes model-level
+Markdown and JSON summaries. Additive fields are multiplied by the layer spec's
+`count` and summed:
+
+```text
+model_macs = sum(layer_count_i * layer_macs_i)
+model_equivalent_ops = sum(layer_count_i * layer_equivalent_ops_i)
+model_total_energy_pj = sum(layer_count_i * layer_total_energy_pj_i)
+model_total_system_energy_pj =
+    sum(layer_count_i * layer_total_system_energy_pj_i)
+model_serial_batch_latency_ns =
+    sum(layer_count_i * layer_serial_batch_latency_ns_i)
+model_bandwidth_limited_serial_batch_latency_ns =
+    sum(layer_count_i * layer_bandwidth_limited_serial_batch_latency_ns_i)
+```
+
+Per-MAC, per-op, movement-share, operational-intensity, and throughput fields
+are recomputed from model totals. The summary preserves auditability by storing
+`layers[].json_report` for each representative layer summary and
+`layers[].matmul_reports` for the decomposed per-matmul cards behind that layer.
+
+Full-model summaries remain local serial accounting artifacts. They do not model
+operator fusion, layer overlap, activation lifetime, cache residency, KV-cache
+reuse, embeddings, tokenizer work, loss heads, poolers, or non-matmul operators
+unless those costs appear in the decomposed layer summaries.
 
 ## Provenance And Published Calibration
 

@@ -74,6 +74,30 @@ simulation.
 | MACs per interface byte | 0.909088 |
 | Equivalent ops per interface byte | 1.81818 |
 
+## Multi-Tier System Movement
+
+These rows add an explicit local system movement estimate on top of the
+photonic core/converter model. SRAM and off-chip traffic are cumulative tier
+movements, not published measurements and not a cache simulator.
+
+| Tier | Read bytes | Write bytes | Movement energy | Transfer time | Bandwidth |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| SRAM | 2750000 bytes | 10 bytes | 55000.200 pJ | 2685.557 ns | 1024.000 bytes/ns |
+| Off-chip/DRAM | 2750000 bytes | 10 bytes | 27500100.000 pJ | 171875.625 ns | 16.000 bytes/ns |
+
+| Metric | Value |
+| --- | ---: |
+| Local compute/conversion energy | 555005.100 pJ |
+| Total movement energy | 27555100.200 pJ |
+| Total system energy | 28110105.300 pJ |
+| System energy per MAC | 11.244 pJ |
+| System energy per equivalent op | 5.622 pJ |
+| Movement energy share | 98.03% |
+| Max transfer time | 171875.625 ns |
+| Bandwidth-limited tier | off_chip |
+| Bandwidth-limited batch latency | 171875.625 ns |
+| Bandwidth-limited equivalent ops/s | 29090803306.170 |
+
 ## Energy
 
 | Metric | Value |
@@ -127,3 +151,4 @@ simulation.
 - Weight DAC conversions are counted once per batch because weight_stationary is true.
 - The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.
 - Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.
+- The multi-tier system model adds explicit SRAM and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.

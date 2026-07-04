@@ -26,10 +26,10 @@ Rows are decomposed transformer matmul cards loaded from machine-readable JSON r
 | MLP down-projection | `B * S * intermediate * H` | 1024 | 2048 |
 | Aggregate layer total | sum of decomposed JSON cards | 4096 | 8192 |
 
-| Benchmark | Source DOI | Calibration fit | MACs | Eq ops | Local total pJ | Local pJ/op | Interface bytes | Eq ops/byte | Batch latency ns | Steady eq ops/s | Published TOPS | Published TOPS/W incl lasers | Published pJ/op incl lasers | Published metrics |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Small transformer sanity layer - QKV projection | n/a | none | 1536 | 3072 | 195.072 | 0.0635 | 448 | 6.85714 | 7 | 7.68e+11 | n/a | n/a | n/a | none |
-| Small transformer sanity layer - Attention scores | n/a | none | 256 | 512 | 69.632 | 0.136 | 192 | 2.66667 | 11 | 6.4e+10 | n/a | n/a | n/a | none |
-| Small transformer sanity layer - Attention-value | n/a | none | 256 | 512 | 69.632 | 0.136 | 192 | 2.66667 | 11 | 6.4e+10 | n/a | n/a | n/a | none |
-| Small transformer sanity layer - MLP up-projection | n/a | none | 1024 | 2048 | 132.608 | 0.06475 | 320 | 6.4 | 7 | 5.12e+11 | n/a | n/a | n/a | none |
-| Small transformer sanity layer - MLP down-projection | n/a | none | 1024 | 2048 | 107.648 | 0.0525625 | 320 | 6.4 | 7 | 5.12e+11 | n/a | n/a | n/a | none |
+| Benchmark | Source DOI | Calibration fit | MACs | Eq ops | Local total pJ | Local pJ/op | System total pJ | System pJ/op | Movement pJ | Movement share | Bandwidth-limited eq ops/s | Interface bytes | Eq ops/byte | Batch latency ns | Steady eq ops/s | Published TOPS | Published TOPS/W incl lasers | Published pJ/op incl lasers | Published metrics |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Small transformer sanity layer - QKV projection | n/a | none | 1536 | 3072 | 195.072 | 0.0635 | 4684.03 | 1.52475 | 4488.96 | 0.958354 | 1.09714e+11 | 448 | 6.85714 | 7 | 7.68e+11 | n/a | n/a | n/a | none |
+| Small transformer sanity layer - Attention scores | n/a | none | 256 | 512 | 69.632 | 0.136 | 1993.47 | 3.8935 | 1923.84 | 0.96507 | 4.26667e+10 | 192 | 2.66667 | 11 | 6.4e+10 | n/a | n/a | n/a | none |
+| Small transformer sanity layer - Attention-value | n/a | none | 256 | 512 | 69.632 | 0.136 | 1993.47 | 3.8935 | 1923.84 | 0.96507 | 4.26667e+10 | 192 | 2.66667 | 11 | 6.4e+10 | n/a | n/a | n/a | none |
+| Small transformer sanity layer - MLP up-projection | n/a | none | 1024 | 2048 | 132.608 | 0.06475 | 3339.01 | 1.63038 | 3206.4 | 0.960285 | 1.024e+11 | 320 | 6.4 | 7 | 5.12e+11 | n/a | n/a | n/a | none |
+| Small transformer sanity layer - MLP down-projection | n/a | none | 1024 | 2048 | 107.648 | 0.0525625 | 3314.05 | 1.61819 | 3206.4 | 0.967518 | 1.024e+11 | 320 | 6.4 | 7 | 5.12e+11 | n/a | n/a | n/a | none |

@@ -29,6 +29,11 @@ def test_render_comparison_markdown_summarizes_local_and_published_cards() -> No
     assert "10.1038/s41586-020-03063-0" in markdown
     assert "Interface bytes" in markdown
     assert "Eq ops/byte" in markdown
+    assert "System total pJ" in markdown
+    assert "System pJ/op" in markdown
+    assert "Movement pJ" in markdown
+    assert "Bandwidth-limited eq ops/s" in markdown
+    assert "582.368" in markdown
     assert "2.28571" in markdown
     assert "image_pixels=250000" in markdown
     assert "n/a" in markdown
@@ -99,4 +104,5 @@ def test_cli_compare_writes_markdown_report(tmp_path: Path) -> None:
     assert "PhotonicBench Comparison" in markdown
     assert "unit matmul" in markdown
     assert "Eq ops/byte" in markdown
+    assert "System pJ/op" in markdown
     assert "11" in markdown

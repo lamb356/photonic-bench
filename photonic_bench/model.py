@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 import math
 
-from photonic_bench.config import BenchmarkConfig
+from photonic_bench.config import BenchmarkConfig, MemoryTierConfig
 
 
 SUPPORTED_CALIBRATION_TARGETS = (
@@ -77,6 +77,37 @@ class MemoryTrafficResult:
 
 
 @dataclass(frozen=True)
+class SystemTierResult:
+    name: str
+    read_bytes: float
+    write_bytes: float
+    total_bytes: float
+    read_energy_pj: float
+    write_energy_pj: float
+    total_energy_pj: float
+    bandwidth_bytes_per_ns: float
+    transfer_time_ns: float
+    read_fraction: float
+    write_fraction: float
+
+
+@dataclass(frozen=True)
+class SystemModelResult:
+    sram: SystemTierResult
+    off_chip: SystemTierResult
+    local_compute_and_conversion_energy_pj: float
+    total_movement_energy_pj: float
+    total_system_energy_pj: float
+    system_energy_per_mac_pj: float
+    system_energy_per_op_pj: float
+    movement_energy_share: float
+    max_transfer_time_ns: float
+    bandwidth_limited_batch_latency_ns: float
+    bandwidth_limited_equivalent_ops_per_second: float
+    bandwidth_limited_tier: str
+
+
+@dataclass(frozen=True)
 class PublishedCalibrationResult:
     energy_per_op_excluding_lasers_pj: float | None
     energy_per_op_including_lasers_pj: float | None
@@ -128,6 +159,7 @@ class BenchmarkResult:
     timing: TimingResult
     noise: NoiseResult
     memory_traffic: MemoryTrafficResult
+    system: SystemModelResult
     published_calibration: PublishedCalibrationResult | None = None
     calibration_fit: CalibrationFitResult | None = None
 
@@ -225,6 +257,27 @@ def _evaluate_core(config: BenchmarkConfig) -> BenchmarkResult:
             steady_state_operations_per_second * operation_equivalent_ops
         ),
     )
+    energy = EnergyResult(
+        optical_compute_pj=optical_compute_pj,
+        laser_electrical_pj=laser_electrical_pj,
+        detector_pj=detector_pj,
+        adc_pj=adc_pj,
+        vector_dac_pj=vector_dac_pj,
+        weight_dac_pj=weight_dac_pj,
+        dac_pj=dac_pj,
+        total_pj=total_pj,
+        energy_per_mac_pj=total_pj / macs,
+        energy_per_op_pj=total_pj / equivalent_ops,
+        peripheral_share=peripheral_pj / total_pj if total_pj else 0.0,
+    )
+    system = _system_model(
+        config,
+        memory_traffic=memory_traffic,
+        energy=energy,
+        timing=timing,
+        macs=macs,
+        equivalent_ops=equivalent_ops,
+    )
 
     quantization_snr_db = 6.02 * device.adc.bits + 1.76
     quantization_rms = 1 / (math.sqrt(12) * ((2**device.adc.bits) - 1))
@@ -252,19 +305,7 @@ def _evaluate_core(config: BenchmarkConfig) -> BenchmarkResult:
         vector_dac_conversions=vector_dac_conversions,
         weight_dac_conversions=weight_dac_conversions,
         dac_conversions=dac_conversions,
-        energy=EnergyResult(
-            optical_compute_pj=optical_compute_pj,
-            laser_electrical_pj=laser_electrical_pj,
-            detector_pj=detector_pj,
-            adc_pj=adc_pj,
-            vector_dac_pj=vector_dac_pj,
-            weight_dac_pj=weight_dac_pj,
-            dac_pj=dac_pj,
-            total_pj=total_pj,
-            energy_per_mac_pj=total_pj / macs,
-            energy_per_op_pj=total_pj / equivalent_ops,
-            peripheral_share=peripheral_pj / total_pj if total_pj else 0.0,
-        ),
+        energy=energy,
         timing=timing,
         noise=NoiseResult(
             quantization_snr_db=quantization_snr_db,
@@ -274,6 +315,7 @@ def _evaluate_core(config: BenchmarkConfig) -> BenchmarkResult:
             estimated_relative_error_rms=estimated_relative_error_rms,
         ),
         memory_traffic=memory_traffic,
+        system=system,
         published_calibration=published_calibration,
     )
 
@@ -311,6 +353,94 @@ def _memory_traffic(
 
 def _bytes_per_scalar(bits: int) -> int:
     return math.ceil(bits / 8)
+
+
+def _system_model(
+    config: BenchmarkConfig,
+    *,
+    memory_traffic: MemoryTrafficResult,
+    energy: EnergyResult,
+    timing: TimingResult,
+    macs: int,
+    equivalent_ops: int,
+) -> SystemModelResult:
+    operand_read_bytes = (
+        memory_traffic.vector_operand_read_bytes
+        + memory_traffic.weight_operand_read_bytes
+    )
+    output_write_bytes = memory_traffic.output_write_bytes
+    sram = _system_tier(
+        "sram",
+        config.system.sram,
+        operand_read_bytes=operand_read_bytes,
+        output_write_bytes=output_write_bytes,
+    )
+    off_chip = _system_tier(
+        "off_chip",
+        config.system.off_chip,
+        operand_read_bytes=operand_read_bytes,
+        output_write_bytes=output_write_bytes,
+    )
+    total_movement_energy_pj = sram.total_energy_pj + off_chip.total_energy_pj
+    total_system_energy_pj = energy.total_pj + total_movement_energy_pj
+    max_transfer_time_ns = max(sram.transfer_time_ns, off_chip.transfer_time_ns)
+    bandwidth_limited_batch_latency_ns = max(
+        timing.batch_latency_ns,
+        max_transfer_time_ns,
+    )
+    bandwidth_limited_tier = (
+        sram.name if sram.transfer_time_ns >= off_chip.transfer_time_ns else off_chip.name
+    )
+    return SystemModelResult(
+        sram=sram,
+        off_chip=off_chip,
+        local_compute_and_conversion_energy_pj=energy.total_pj,
+        total_movement_energy_pj=total_movement_energy_pj,
+        total_system_energy_pj=total_system_energy_pj,
+        system_energy_per_mac_pj=total_system_energy_pj / macs,
+        system_energy_per_op_pj=total_system_energy_pj / equivalent_ops,
+        movement_energy_share=(
+            total_movement_energy_pj / total_system_energy_pj
+            if total_system_energy_pj
+            else 0.0
+        ),
+        max_transfer_time_ns=max_transfer_time_ns,
+        bandwidth_limited_batch_latency_ns=bandwidth_limited_batch_latency_ns,
+        bandwidth_limited_equivalent_ops_per_second=(
+            equivalent_ops / (bandwidth_limited_batch_latency_ns * 1e-9)
+            if bandwidth_limited_batch_latency_ns
+            else 0.0
+        ),
+        bandwidth_limited_tier=bandwidth_limited_tier,
+    )
+
+
+def _system_tier(
+    name: str,
+    tier: MemoryTierConfig,
+    *,
+    operand_read_bytes: int,
+    output_write_bytes: int,
+) -> SystemTierResult:
+    read_bytes = operand_read_bytes * tier.read_fraction
+    write_bytes = output_write_bytes * tier.write_fraction
+    total_bytes = read_bytes + write_bytes
+    read_energy_pj = read_bytes * tier.read_energy_pj_per_byte
+    write_energy_pj = write_bytes * tier.write_energy_pj_per_byte
+    total_energy_pj = read_energy_pj + write_energy_pj
+    return SystemTierResult(
+        name=name,
+        read_bytes=read_bytes,
+        write_bytes=write_bytes,
+        total_bytes=total_bytes,
+        read_energy_pj=read_energy_pj,
+        write_energy_pj=write_energy_pj,
+        total_energy_pj=total_energy_pj,
+        bandwidth_bytes_per_ns=tier.bandwidth_bytes_per_ns,
+        transfer_time_ns=total_bytes / tier.bandwidth_bytes_per_ns,
+        read_fraction=tier.read_fraction,
+        write_fraction=tier.write_fraction,
+    )
 
 
 def _evaluate_published_calibration(
