@@ -1,4 +1,4 @@
-# PhotonicBench PR #7 Merge And Five-Objective Outer Loop Progress
+# PhotonicBench PR Publication, Visualizer, And System Modeling Progress
 
 ## 2026-07-04 Cycle 0: State Rollforward And Context Re-Read
 
@@ -6,228 +6,198 @@
 
 - Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
   `RUBRIC.md`.
-- Re-read the bottom of `tasks/todo.md`.
+- Re-read `tasks/todo.md`.
 
 ### GBrain, Memory, And Skills
 
 - Called GBrain `get_brain_identity`:
   - version `0.42.56.0`;
   - engine `pglite`;
-  - page count `27`;
-  - chunk count `27`.
-- Queried GBrain for current PR #7 / post-PR5 context; no direct hit was
-  returned.
+  - page count `34`;
+  - chunk count `34`.
+- Searched GBrain for PR #8 follow-up context.
+- Read GBrain page
+  `photonicbench-pr8-merge-bottleneck-stack-2026-07-04`, which records the
+  current branch as locally verified but unpublished.
 - Searched local memory `MEMORY.md` for PhotonicBench visualizer, JSON,
   transformer, and workflow context.
 - Read skills:
-  - `commit`;
   - `github:github`;
+  - `commit`;
   - `frontend-design`;
   - `review`.
 
-### Repository And PR State
+### Repository State
 
-- Current local branch at cycle start: `codex/post-pr5-visual-a11y`.
-- `git status --short --branch` showed a clean branch tracking
-  `origin/codex/post-pr5-visual-a11y`.
-- PR #7 state from `gh pr view 7`:
-  - URL: `https://github.com/lamb356/photonic-bench/pull/7`;
-  - state: `OPEN`;
-  - draft: `false`;
-  - mergeable: `MERGEABLE`;
-  - base: `master`;
-  - head: `codex/post-pr5-visual-a11y`.
-- PR #7 checks were green before merge:
-  - `Ruff, package, and pytest`: success on run `28710380414`;
-  - `macOS visual baseline capture`: success on run `28710380414`.
+- Current branch: `codex/pr8-followup-improvements`.
+- Remote: `https://github.com/lamb356/photonic-bench.git`.
+- `gh auth status` reports authenticated account `lamb356`.
+- `git status --short --branch` shows the expected dirty worktree containing
+  previously verified visualizer/modeling follow-up changes.
+- `git diff --stat` shows a large source, docs, schema, tests, reports, and
+  generated visualizer diff. The branch should be committed and published
+  before adding new feature work.
 
 ### State Rollforward
 
-- Replaced the prior completed branch-closeout state with an active
-  merge-first outer-loop state.
-- Created the prioritized checklist for:
-  1. PR #7 merge and post-merge `master` verification;
-  2. visualizer improvements;
-  3. deeper system modeling;
-  4. more published cards;
-  5. CLI/workflow usability;
-  6. documentation and verification;
-  7. mandatory hostile review;
-  8. final closeout.
+- Replaced the previous completed PR #8 loop state with this active
+  commit-first outer-loop state.
+- Created a prioritized checklist:
+  1. Commit/push/open PR for the existing verified work.
+  2. Add another meaningful visualizer improvement pass.
+  3. Add another deeper system-modeling pass.
+  4. Regenerate artifacts, update docs, and verify.
+  5. Run hostile review and fix important findings.
+  6. Close state with proof, durable note, and remaining risks.
 
-### Immediate Next Steps
+## Current Next Step
 
-1. Merge PR #7 into `master`.
-2. Update local `master` and verify the merge locally.
-3. Run local full verification and `verify-artifacts` on `master`.
-4. Check post-merge `master` GitHub Actions.
-5. Begin the next implementation slice from clean `master`.
+Push the final closeout state commit to PR #9 and verify the PR head.
 
-## 2026-07-04 Cycle 1: PR #7 Merge And Post-Merge Verification
+## 2026-07-04 Cycle 1: Protected Publish
 
-### Merge And Branch Cleanup
+### Verification Before Push
 
-- Merged PR #7 with `gh pr merge 7 --merge`.
-- PR #7 is merged at commit
-  `12aaab1554f0584eccb4f4b673880b60720a4f73`.
-- Fast-forwarded local `master` to `12aaab1`.
-- Deleted local branch `codex/post-pr5-visual-a11y`.
-- Deleted remote branch `origin/codex/post-pr5-visual-a11y`.
-- Created follow-up branch `codex/pr7-followup-improvements` for this
-  post-merge improvement loop.
+- `python -m ruff check` passed.
+- `python -m pytest -q` passed: 130 tests.
+- `python -m photonic_bench.cli verify-artifacts` passed: 258 generated files
+  fresh.
+- `node --check photonic_bench\visualizer_assets\app.js` passed.
+- `node --check reports\visualizer\assets\app.js` passed.
+- `python -m build` passed.
 
-### Post-Merge Verification
+### Commits
 
-- Local verification on merged `master`:
-  - `python -m pytest -q`: 128 passed;
-  - `python -m photonic_bench.cli verify-artifacts`: 238 generated files
-    fresh.
-- GitHub Actions:
-  - merge-triggered run `28710804037`;
-  - conclusion: `success`;
-  - jobs passed: `Ruff, package, and pytest`; `macOS visual baseline capture`.
+- `6e80186 Add tier bottleneck diagnostics and visualizer stack`.
+  - Contains implementation, docs, schemas, tests, and state files.
+- `50fe226 Refresh bottleneck diagnostic artifacts`.
+  - Contains regenerated reports and visualizer payloads.
+- The `.Codex/scripts/generate-reasoning.sh` hook referenced by the commit
+  skill is not present in this workspace, so no reasoning sidecars were
+  generated.
 
-### macOS Baseline Promotion
+### Push And PR
 
-- Downloaded real `macos-latest` artifact
-  `macos-visual-regression-screenshots` from run `28710804037`.
-- Promoted five reviewed macOS PNG baselines:
-  - `desktop-comparison.png`;
-  - `detail-published-reference.png`;
-  - `external-report-error.png`;
-  - `mobile-comparison.png`;
-  - `wide-transformer-comparison.png`.
-- Verified promoted PNG dimensions:
-  - desktop/detail/error: `1440x950`;
-  - mobile: `390x900`;
-  - wide transformer: `1680x1000`.
-- Tightened `.github/workflows/ci.yml` so the macOS job now runs strict visual
-  regression against checked `macos` baselines instead of update-only capture.
-- Focused post-promotion checks:
-  - `python -m pytest tests\test_visualizer_visual_regression.py -q`: 5
-    passed;
-  - `python -m photonic_bench.cli verify-artifacts`: 238 generated files
-    fresh.
+- Pushed `codex/pr8-followup-improvements` to `origin`.
+- Opened PR #9: `https://github.com/lamb356/photonic-bench/pull/9`.
+- PR metadata:
+  - state `OPEN`;
+  - non-draft;
+  - mergeable;
+  - base `master`;
+  - head `codex/pr8-followup-improvements`;
+  - head commit `50fe226be79f972672dafd7c9bf45a438002486d`.
+- PR CI run `28713516645` started:
+  - `Ruff, package, and pytest` queued;
+  - `macOS visual regression` in progress.
 
-## 2026-07-04 Cycle 2: Implementation Slice
+## 2026-07-04 Cycle 2: Bandwidth Utilization And Headroom Follow-Up
 
-### Visualizer Improvements
+### Visualizer Mapping
 
-- Added a Review Queue to the generated visualizer for daily triage:
-  - highest contention-adjusted transfer/compute ratio;
-  - highest movement energy per hierarchy byte;
-  - lowest hierarchy equivalent ops per byte;
-  - lowest source confidence.
-- Added new metrics to generated visualizer summaries, detail panels,
-  comparison rows, scoring profiles, and JSON/Markdown/CSV exports:
-  - hierarchy equivalent ops per byte;
-  - movement energy per hierarchy byte;
-  - transfer/compute time ratio;
-  - contention-adjusted transfer/compute time ratio.
-- Preserved modeling-boundary language for published references, local model
-  estimates, and surrogate workloads.
+- Reviewed visualizer summary extraction in `photonic_bench/visualizer.py`.
+- Reviewed comparison/dashboard/export/detail code in
+  `photonic_bench/visualizer_assets/app.js`.
+- Reviewed visualizer smoke, accessibility, and visual-regression tests.
+- Reviewed README and JSON-schema docs for browser export language.
 
-### Deeper System Modeling
+### System Modeling Mapping
 
-- Extended `SystemModelResult` with:
-  - `hierarchy_equivalent_ops_per_byte`;
-  - `movement_energy_per_hierarchy_byte_pj`;
-  - `transfer_to_compute_time_ratio`;
-  - `contention_adjusted_transfer_to_compute_time_ratio`.
-- Wired those metrics through Markdown reports, JSON reports, comparison
-  exports, transformer layer/model aggregates, JSON schemas, docs, tests, and
-  generated artifacts.
+- Reviewed per-card model, Markdown report, JSON report, comparison, and
+  transformer aggregate surfaces.
+- Reviewed strict report, transformer-layer, transformer-model, and comparison
+  export schemas.
+- Chose compute-window bandwidth utilization/headroom as the next narrow
+  modeling improvement because it turns existing tier bytes, batch latency, and
+  contention-adjusted effective bandwidth into auditable saturation diagnostics
+  without pretending to be a cache scheduler or measured hardware counter.
 
-### Published Cards
+### Implementation
 
-- Added five source-backed surrogate cards:
-  - `examples/tang_2025_waveguide_mvm_surrogate.yaml`;
-  - `examples/meng_2025_digital_analog_hop_surrogate.yaml`;
-  - `examples/prapas_2025_tsw_pitc_surrogate.yaml`;
-  - `examples/zhang_2025_pultc_logic_tensor_surrogate.yaml`;
-  - `examples/sved_2026_inverse_designed_pnn_surrogate.yaml`.
-- Added artifact recipes, Markdown reports, JSON reports, comparison updates,
-  and visualizer payloads for the five cards.
-- Kept source-backed values, derived values, and local surrogate estimates
-  separate in card metadata and reports.
+- Added per-tier:
+  - `compute_window_required_bandwidth_bytes_per_ns`;
+  - `contention_bandwidth_utilization`;
+  - `contention_bandwidth_headroom_bytes_per_ns`;
+  - `contention_bandwidth_headroom_ratio`.
+- Added top-level:
+  - `contention_bandwidth_saturation_tier`;
+  - `max_tier_contention_bandwidth_utilization`;
+  - `min_tier_contention_bandwidth_headroom_ratio`.
+- Exposed the fields in per-card Markdown/JSON, comparison Markdown,
+  transformer-layer aggregate JSON/Markdown, transformer-model aggregate
+  JSON/Markdown, strict schemas, visualizer summaries, visualizer detail tables,
+  comparison summary rows, scoring, Contention Insight, Bottleneck Stack, Review
+  Queue, JSON export, Markdown export, and CSV export.
+- Updated README, `docs/model.md`, `docs/json_schema.md`, and `CHANGELOG.md`.
+- Regenerated checked reports and visualizer payloads.
 
-### CLI / Workflow Usability
+### Focused Verification
 
-- Added `python -m photonic_bench.cli validate-examples`.
-- Added `validate-examples --json` for machine-readable inventory validation.
-- Added CLI tests and README documentation for the command.
+- Initial focused visualizer tests failed because checked reports were still
+  stale; regenerated artifacts fixed the expected stale-data failure.
+- `python -m pytest tests\test_model.py tests\test_json_report.py
+  tests\test_report.py tests\test_transformer.py tests\test_comparison.py
+  tests\test_visualizer.py tests\test_visualizer_smoke.py -q` passed: 61 tests.
+- `node --check photonic_bench\visualizer_assets\app.js` passed.
+- `node --check reports\visualizer\assets\app.js` passed.
 
-## 2026-07-04 Cycle 3: Verification
+## 2026-07-04 Cycle 3: Full Verification
 
-- `python -m photonic_bench.cli validate-examples --json` passed:
-  - checked examples: 35;
-  - ok examples: 35;
-  - errors: 0.
-- Focused tests passed:
-  - `python -m pytest tests\test_cli.py tests\test_model.py tests\test_json_report.py tests\test_transformer.py tests\test_visualizer.py -q`;
-  - result: 71 passed.
-- Browser checks passed:
-  - `python -m pytest tests\test_visualizer_smoke.py tests\test_visualizer_accessibility.py -q`;
-  - result: 2 passed.
-- Visual regression passed:
-  - `python -m pytest tests\test_visualizer_visual_regression.py -q`;
-  - result: 5 passed.
-- Full gate set passed:
-  - `python -m ruff check`;
-  - `python -m pytest -q`: 130 passed;
-  - `python -m build`;
-  - `node --check photonic_bench\visualizer_assets\app.js`;
-  - `node --check reports\visualizer\assets\app.js`;
-  - `python -m photonic_bench.cli verify-artifacts`: 258 generated files fresh;
-  - `git diff --check` with only Git line-ending normalization warnings.
+- `python -m ruff check` passed.
+- `python -m pytest -q` passed: 130 tests.
+- `python -m build` passed.
+- `python -m photonic_bench.cli verify-artifacts` passed: 258 generated files
+  fresh.
+- `node --check photonic_bench\visualizer_assets\app.js` passed.
+- `node --check reports\visualizer\assets\app.js` passed.
+- `python -m pytest tests\test_visualizer_smoke.py
+  tests\test_visualizer_accessibility.py
+  tests\test_visualizer_visual_regression.py -q` passed: 7 tests.
+- `git diff --check` passed with only Git line-ending normalization warnings.
 
 ## 2026-07-04 Cycle 4: Hostile Senior Reviewer Critique
 
-### Review Setup
+### Critique Finding
 
-- Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
-  `RUBRIC.md`, and `tasks/todo.md`.
-- Re-read the review skill and checklist.
-- Reviewed the branch diff against `origin/master` after fetching latest
-  `master`.
+- Usability/modeling clarity issue: the Contention Insight panel could name an
+  artifact for "Highest BW utilization" from selected legacy/external payloads
+  even when the utilization metric was missing, because it sorted missing values
+  as zero. Its boundary note also described contention pressure but did not
+  explicitly explain the new utilization/headroom diagnostic.
 
-### Finding
+### Fix
 
-- Finding 1: `CHANGELOG.md` mixed the new post-merge entry with stale language
-  describing PR #7 as newly opened and macOS CI as capture-only, even though
-  PR #7 had been merged and the macOS job was tightened to strict visual
-  regression.
-  - Fix: consolidated the top changelog section so it records the merged PR,
-    strict macOS baseline state, new metrics, new cards, and CLI workflow
-    commands without contradictory stale release wording.
+- Changed Contention Insight to use the finite-metric `bestArtifactForSpec`
+  path for highest bandwidth utilization.
+- Hardened Bottleneck Stack filtering/sorting around mixed finite and missing
+  pressure/utilization metrics.
+- Expanded the Contention Insight note: utilization/headroom compare
+  compute-window bytes against contention-adjusted effective bandwidth.
+- Regenerated checked artifacts after the JavaScript source change.
 
-### Post-Critique Verification
+### Post-Fix Verification
 
-- Re-ran closeout verification after the documentation fix:
-  - schema/docs focused tests;
-  - `python -m photonic_bench.cli verify-artifacts`;
-  - `git diff --check`.
+- `python -m pytest tests\test_visualizer.py tests\test_visualizer_smoke.py
+  tests\test_visualizer_accessibility.py
+  tests\test_visualizer_visual_regression.py -q` passed: 16 tests.
+- `node --check reports\visualizer\assets\app.js` passed.
+- `python -m photonic_bench.cli verify-artifacts` passed: 258 generated files
+  fresh.
 
-## 2026-07-04 Cycle 5: Closeout State
+## 2026-07-04 Cycle 5: Follow-Up Commit And Durable Note
 
-- Updated `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
-  `RUBRIC.md`, and `tasks/todo.md` to match the completed loop.
-- Durable GBrain note written:
-  - `photonicbench-pr7-merge-followup-2026-07-04`.
-
-## 2026-07-04 Cycle 6: PR #8 Publish And Remote CI
-
-- Committed the implementation package:
-  - `fd70f5d0f9172bfbb2d1145b28d7aec6bc06cb09`;
-  - message: `Extend PhotonicBench follow-up analysis`.
-- Pushed branch `codex/pr7-followup-improvements`.
-- Opened PR #8:
-  - `https://github.com/lamb356/photonic-bench/pull/8`;
-  - base: `master`;
-  - head: `codex/pr7-followup-improvements`;
-  - state: open, non-draft, mergeable.
-- PR #8 CI run `28711667848` passed:
-  - `Ruff, package, and pytest`: pass;
-  - `macOS visual regression`: pass.
-- Added this state-only closeout update so committed state files record the
-  actual PR #8 URL and green CI result.
+- Final pre-commit gates on the exact tree passed:
+  - `python -m ruff check`;
+  - `python -m pytest -q`: 130 tests;
+  - `python -m build`;
+  - `python -m photonic_bench.cli verify-artifacts`: 258 generated files fresh;
+  - `node --check photonic_bench\visualizer_assets\app.js`;
+  - `node --check reports\visualizer\assets\app.js`;
+  - `git diff --check` with only line-ending normalization warnings.
+- Created follow-up implementation commit:
+  - `d452cf8 Add hierarchy bandwidth headroom diagnostics`.
+- Wrote durable GBrain note:
+  - `photonicbench-pr9-bandwidth-headroom-followup-2026-07-04`.
+- This closeout state update marks all checklist items done. The final push and
+  PR #9 head verification happen immediately after this state commit and are
+  reported in the final response.

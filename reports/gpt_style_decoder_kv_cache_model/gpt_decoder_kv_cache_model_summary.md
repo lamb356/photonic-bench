@@ -29,6 +29,9 @@ GPT-2-small style decoder inference summary with 12 identical decoder layers, on
 | Bandwidth-limited equivalent ops/s | 2.48864e+10 |
 | Contention-adjusted serial latency (ns) | 1.08772e+07 |
 | Contention-adjusted equivalent ops/s | 2.48864e+10 |
+| Bandwidth saturation tier | off_chip |
+| Max tier bandwidth utilization | 13057.9 |
+| Min tier bandwidth headroom ratio | 7.65823e-05 |
 
 ## Model Components
 

@@ -104,11 +104,11 @@ photonic core/converter model. SRAM, intermediate, and off-chip traffic are
 cumulative tier movements, not published measurements and not a cache
 simulator.
 
-| Tier | Read bytes | Write bytes | Movement energy | Transfer time | Contention-adjusted transfer | Effective bandwidth |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| SRAM | 56 bytes | 40 bytes | 1.920 pJ | 0.094 ns | 0.094 ns | 1024.000 bytes/ns |
-| Intermediate/cache | 56 bytes | 40 bytes | 19.200 pJ | 0.375 ns | 0.375 ns | 256.000 bytes/ns |
-| Off-chip/DRAM | 56 bytes | 40 bytes | 960.000 pJ | 6.000 ns | 6.000 ns | 16.000 bytes/ns |
+| Tier | Read bytes | Write bytes | Movement energy | Traffic share | Movement share | Transfer time | Guardbanded transfer | Tier pressure | Effective bandwidth | Required bandwidth | Utilization | Headroom |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| SRAM | 56 bytes | 40 bytes | 1.920 pJ | 33.33% | 0.20% | 0.094 ns | 0.094 ns | 0.09375 | 1024.000 bytes/ns | 96.000 bytes/ns | 0.09375 | 928.000 bytes/ns |
+| Intermediate/cache | 56 bytes | 40 bytes | 19.200 pJ | 33.33% | 1.96% | 0.375 ns | 0.375 ns | 0.375 | 256.000 bytes/ns | 96.000 bytes/ns | 0.375 | 160.000 bytes/ns |
+| Off-chip/DRAM | 56 bytes | 40 bytes | 960.000 pJ | 33.33% | 97.85% | 6.000 ns | 6.000 ns | 6 | 16.000 bytes/ns | 96.000 bytes/ns | 6 | -80.000 bytes/ns |
 
 | Metric | Value |
 | --- | ---: |
@@ -130,6 +130,16 @@ simulator.
 | SRAM traffic share | 33.33% |
 | Intermediate/cache traffic share | 33.33% |
 | Off-chip traffic share | 33.33% |
+| Dominant traffic tier | sram |
+| Dominant movement-energy tier | off_chip |
+| Nominal memory bottleneck tier | off_chip |
+| Contention memory bottleneck tier | off_chip |
+| Max tier nominal pressure ratio | 6 |
+| Max tier contention pressure ratio | 6 |
+| Max tier movement-energy share | 97.85% |
+| Contention bandwidth saturation tier | off_chip |
+| Max tier contention bandwidth utilization | 6 |
+| Min tier contention bandwidth headroom ratio | 0.166667 |
 | Max transfer time | 6.000 ns |
 | Serialized transfer time | 6.469 ns |
 | Effective transfer time | 6.000 ns |

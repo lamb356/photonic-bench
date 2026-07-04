@@ -70,6 +70,11 @@ _SYSTEM_TIER_SUM_FIELDS = (
     "total_energy_pj",
     "transfer_time_ns",
     "contention_adjusted_transfer_time_ns",
+    "calibration_adjusted_transfer_time_ns",
+)
+_SYSTEM_TIER_CAPACITY_FIELDS = (
+    "bandwidth_bytes_per_ns",
+    "effective_bandwidth_bytes_per_ns",
 )
 _SYSTEM_TIER_NAMES = ("sram", "intermediate", "off_chip")
 _SYSTEM_DERIVED_FIELDS = (
@@ -89,6 +94,16 @@ _SYSTEM_DERIVED_FIELDS = (
     "bandwidth_pressure_ratio",
     "contention_adjusted_transfer_to_compute_time_ratio",
     "contention_pressure_ratio",
+    "dominant_traffic_tier",
+    "dominant_movement_energy_tier",
+    "nominal_memory_bottleneck_tier",
+    "contention_memory_bottleneck_tier",
+    "max_tier_nominal_transfer_pressure_ratio",
+    "max_tier_contention_adjusted_transfer_pressure_ratio",
+    "max_tier_movement_energy_share",
+    "contention_bandwidth_saturation_tier",
+    "max_tier_contention_bandwidth_utilization",
+    "min_tier_contention_bandwidth_headroom_ratio",
 )
 
 
@@ -403,6 +418,9 @@ def render_transformer_model_markdown(
 | Bandwidth-limited equivalent ops/s | {_format_metric(system["bandwidth_limited_serial_effective_equivalent_ops_per_second"])} |
 | Contention-adjusted serial latency (ns) | {_format_metric(system["contention_adjusted_serial_batch_latency_ns"])} |
 | Contention-adjusted equivalent ops/s | {_format_metric(system["contention_adjusted_serial_effective_equivalent_ops_per_second"])} |
+| Bandwidth saturation tier | {system["contention_bandwidth_saturation_tier"]} |
+| Max tier bandwidth utilization | {_format_metric(system["max_tier_contention_bandwidth_utilization"])} |
+| Min tier bandwidth headroom ratio | {_format_metric(system["min_tier_contention_bandwidth_headroom_ratio"])} |
 
 ## Model Components
 
@@ -2019,11 +2037,48 @@ def _aggregate_system_derived_metrics(
     serial_batch_latency_ns: float,
     bandwidth_limited_serial_batch_latency_ns: float,
     contention_adjusted_serial_batch_latency_ns: float,
-) -> dict[str, float]:
+) -> dict[str, Any]:
     total_hierarchy_bytes = sum(float(tier["total_bytes"]) for tier in tiers.values())
     calibration_guardband_time_ns = (
         contention_adjusted_serial_transfer_time_ns - contention_only_transfer_time_ns
     )
+    _annotate_aggregate_system_tiers(
+        tiers,
+        total_hierarchy_bytes=total_hierarchy_bytes,
+        total_movement_energy_pj=total_movement_energy_pj,
+        serial_transfer_time_ns=serial_transfer_time_ns,
+        contention_adjusted_serial_transfer_time_ns=(
+            contention_adjusted_serial_transfer_time_ns
+        ),
+        serial_batch_latency_ns=serial_batch_latency_ns,
+    )
+    dominant_traffic_tier = max(
+        tiers.values(),
+        key=lambda tier: float(tier.get("traffic_share") or 0.0),
+    )
+    dominant_movement_energy_tier = max(
+        tiers.values(),
+        key=lambda tier: float(tier.get("movement_energy_share") or 0.0),
+    )
+    nominal_memory_bottleneck_tier = max(
+        tiers.values(),
+        key=lambda tier: float(tier.get("transfer_time_ns") or 0.0),
+    )
+    contention_memory_bottleneck_tier = max(
+        tiers.values(),
+        key=lambda tier: float(
+            tier.get("calibration_adjusted_transfer_time_ns")
+            or tier.get("contention_adjusted_transfer_time_ns")
+            or 0.0
+        ),
+    )
+    bandwidth_saturation_tier = max(
+        tiers.values(),
+        key=lambda tier: float(tier.get("contention_bandwidth_utilization") or 0.0),
+    )
+    traffic_tiers = [
+        tier for tier in tiers.values() if float(tier.get("total_bytes") or 0.0) > 0.0
+    ]
     return {
         "total_hierarchy_bytes": total_hierarchy_bytes,
         "hierarchy_equivalent_ops_per_byte": _safe_divide(
@@ -2083,7 +2138,103 @@ def _aggregate_system_derived_metrics(
             contention_adjusted_serial_batch_latency_ns,
             serial_batch_latency_ns,
         ),
+        "dominant_traffic_tier": str(dominant_traffic_tier.get("name") or "tier"),
+        "dominant_movement_energy_tier": str(
+            dominant_movement_energy_tier.get("name") or "tier"
+        ),
+        "nominal_memory_bottleneck_tier": str(
+            nominal_memory_bottleneck_tier.get("name") or "tier"
+        ),
+        "contention_memory_bottleneck_tier": str(
+            contention_memory_bottleneck_tier.get("name") or "tier"
+        ),
+        "max_tier_nominal_transfer_pressure_ratio": max(
+            float(tier.get("nominal_transfer_pressure_ratio") or 0.0)
+            for tier in tiers.values()
+        ),
+        "max_tier_contention_adjusted_transfer_pressure_ratio": max(
+            float(tier.get("contention_adjusted_transfer_pressure_ratio") or 0.0)
+            for tier in tiers.values()
+        ),
+        "max_tier_movement_energy_share": float(
+            dominant_movement_energy_tier.get("movement_energy_share") or 0.0
+        ),
+        "contention_bandwidth_saturation_tier": str(
+            bandwidth_saturation_tier.get("name") or "tier"
+        ),
+        "max_tier_contention_bandwidth_utilization": float(
+            bandwidth_saturation_tier.get("contention_bandwidth_utilization") or 0.0
+        ),
+        "min_tier_contention_bandwidth_headroom_ratio": (
+            min(
+                float(tier.get("contention_bandwidth_headroom_ratio") or 0.0)
+                for tier in traffic_tiers
+            )
+            if traffic_tiers
+            else 0.0
+        ),
     }
+
+
+def _annotate_aggregate_system_tiers(
+    tiers: dict[str, dict[str, Any]],
+    *,
+    total_hierarchy_bytes: float,
+    total_movement_energy_pj: float,
+    serial_transfer_time_ns: float,
+    contention_adjusted_serial_transfer_time_ns: float,
+    serial_batch_latency_ns: float,
+) -> None:
+    for tier in tiers.values():
+        calibration_adjusted_transfer_time_ns = float(
+            tier.get("calibration_adjusted_transfer_time_ns")
+            or tier.get("contention_adjusted_transfer_time_ns")
+            or 0.0
+        )
+        tier["calibration_adjusted_transfer_time_ns"] = (
+            calibration_adjusted_transfer_time_ns
+        )
+        tier["traffic_share"] = _safe_divide(
+            float(tier.get("total_bytes") or 0.0),
+            total_hierarchy_bytes,
+        )
+        tier["movement_energy_share"] = _safe_divide(
+            float(tier.get("total_energy_pj") or 0.0),
+            total_movement_energy_pj,
+        )
+        tier["nominal_transfer_share"] = _safe_divide(
+            float(tier.get("transfer_time_ns") or 0.0),
+            serial_transfer_time_ns,
+        )
+        tier["contention_adjusted_transfer_share"] = _safe_divide(
+            calibration_adjusted_transfer_time_ns,
+            contention_adjusted_serial_transfer_time_ns,
+        )
+        tier["nominal_transfer_pressure_ratio"] = _safe_divide(
+            float(tier.get("transfer_time_ns") or 0.0),
+            serial_batch_latency_ns,
+        )
+        tier["contention_adjusted_transfer_pressure_ratio"] = _safe_divide(
+            calibration_adjusted_transfer_time_ns,
+            serial_batch_latency_ns,
+        )
+        required_bandwidth = _safe_divide(
+            float(tier.get("total_bytes") or 0.0),
+            serial_batch_latency_ns,
+        )
+        effective_bandwidth = float(tier.get("effective_bandwidth_bytes_per_ns") or 0.0)
+        tier["compute_window_required_bandwidth_bytes_per_ns"] = required_bandwidth
+        tier["contention_bandwidth_utilization"] = _safe_divide(
+            required_bandwidth,
+            effective_bandwidth,
+        )
+        tier["contention_bandwidth_headroom_bytes_per_ns"] = (
+            effective_bandwidth - required_bandwidth
+        )
+        tier["contention_bandwidth_headroom_ratio"] = _safe_divide(
+            effective_bandwidth,
+            required_bandwidth,
+        )
 
 
 def _safe_divide(numerator: float, denominator: float) -> float:
@@ -2120,8 +2271,15 @@ def _tier_movement(
             tier_read_bytes * tier.read_energy_pj_per_byte
             + tier_write_bytes * tier.write_energy_pj_per_byte
         ),
+        "bandwidth_bytes_per_ns": tier.bandwidth_bytes_per_ns,
+        "effective_bandwidth_bytes_per_ns": effective_bandwidth,
         "transfer_time_ns": total_bytes / tier.bandwidth_bytes_per_ns,
         "contention_adjusted_transfer_time_ns": total_bytes / effective_bandwidth,
+        "calibration_adjusted_transfer_time_ns": (
+            total_bytes
+            / effective_bandwidth
+            * (1.0 + contention.calibration_overhead_fraction)
+        ),
     }
 
 
@@ -2137,6 +2295,10 @@ def _system_tier_or_zero(raw: dict[str, Any], name: str) -> dict[str, Any]:
     return {
         "name": name,
         **{field: float(raw.get(field) or 0.0) for field in _SYSTEM_TIER_SUM_FIELDS},
+        **{
+            field: float(raw.get(field) or 0.0)
+            for field in _SYSTEM_TIER_CAPACITY_FIELDS
+        },
     }
 
 
@@ -2147,7 +2309,19 @@ def _add_system_tiers(left: dict[str, Any], right: dict[str, Any]) -> dict[str, 
             field: float(left.get(field) or 0.0) + float(right.get(field) or 0.0)
             for field in _SYSTEM_TIER_SUM_FIELDS
         },
+        **{
+            field: _min_positive(
+                float(left.get(field) or 0.0),
+                float(right.get(field) or 0.0),
+            )
+            for field in _SYSTEM_TIER_CAPACITY_FIELDS
+        },
     }
+
+
+def _min_positive(*values: float) -> float:
+    positive = [value for value in values if value > 0.0]
+    return min(positive) if positive else 0.0
 
 
 def _pipeline_component(config: TransformerModelConfig) -> dict[str, Any]:
@@ -2345,6 +2519,23 @@ def _weighted_model_system_tier(
                 for layer in layers
             )
             for field in _SYSTEM_TIER_SUM_FIELDS
+        },
+        **{
+            field: _min_positive(
+                *[
+                    _required_number(
+                        layer.payload,
+                        "local_model",
+                        "system",
+                        "tiers",
+                        tier,
+                        field,
+                        source=layer.json_report,
+                    )
+                    for layer in layers
+                ]
+            )
+            for field in _SYSTEM_TIER_CAPACITY_FIELDS
         },
     }
 
@@ -2673,6 +2864,23 @@ def _aggregate_system_tier(
                 for audit in audits
             )
             for field in _SYSTEM_TIER_SUM_FIELDS
+        },
+        **{
+            field: _min_positive(
+                *[
+                    _required_number(
+                        audit.json_card.payload,
+                        "local_model",
+                        "system",
+                        "tiers",
+                        tier,
+                        field,
+                        source=audit.json_card.path,
+                    )
+                    for audit in audits
+                ]
+            )
+            for field in _SYSTEM_TIER_CAPACITY_FIELDS
         },
     }
 

@@ -160,6 +160,19 @@ tier_effective_bandwidth_bytes_per_ns =
     tier.bandwidth_bytes_per_ns * arbitration_efficiency / shared_bandwidth_clients
 tier_contention_adjusted_transfer_time_ns =
     tier_total_bytes / tier_effective_bandwidth_bytes_per_ns
+tier_calibration_adjusted_transfer_time_ns =
+    tier_contention_adjusted_transfer_time_ns * (1 + calibration_overhead_fraction)
+tier_compute_window_required_bandwidth_bytes_per_ns =
+    tier_total_bytes / batch_latency_ns
+tier_contention_bandwidth_utilization =
+    tier_compute_window_required_bandwidth_bytes_per_ns /
+    tier_effective_bandwidth_bytes_per_ns
+tier_contention_bandwidth_headroom_bytes_per_ns =
+    tier_effective_bandwidth_bytes_per_ns -
+    tier_compute_window_required_bandwidth_bytes_per_ns
+tier_contention_bandwidth_headroom_ratio =
+    tier_effective_bandwidth_bytes_per_ns /
+    tier_compute_window_required_bandwidth_bytes_per_ns
 ```
 
 The per-card system summary is:
@@ -180,6 +193,26 @@ movement_energy_per_hierarchy_byte_pj =
 sram_traffic_share = sram_total_bytes / total_hierarchy_bytes
 intermediate_traffic_share = intermediate_total_bytes / total_hierarchy_bytes
 off_chip_traffic_share = off_chip_total_bytes / total_hierarchy_bytes
+dominant_traffic_tier =
+    tier with largest tier_total_bytes / total_hierarchy_bytes
+dominant_movement_energy_tier =
+    tier with largest tier_total_energy_pj / total_movement_energy_pj
+nominal_memory_bottleneck_tier =
+    tier with largest tier_transfer_time_ns
+contention_memory_bottleneck_tier =
+    tier with largest tier_calibration_adjusted_transfer_time_ns
+max_tier_nominal_transfer_pressure_ratio =
+    max(tier_transfer_time_ns / batch_latency_ns)
+max_tier_contention_adjusted_transfer_pressure_ratio =
+    max(tier_calibration_adjusted_transfer_time_ns / batch_latency_ns)
+max_tier_movement_energy_share =
+    max(tier_total_energy_pj / total_movement_energy_pj)
+contention_bandwidth_saturation_tier =
+    tier with largest tier_contention_bandwidth_utilization
+max_tier_contention_bandwidth_utilization =
+    max(tier_contention_bandwidth_utilization)
+min_tier_contention_bandwidth_headroom_ratio =
+    min(tier_contention_bandwidth_headroom_ratio for tiers with tier_total_bytes > 0)
 max_transfer_time_ns =
     max(sram_transfer_time_ns, intermediate_transfer_time_ns, off_chip_transfer_time_ns)
 serial_transfer_time_ns =
@@ -230,12 +263,15 @@ paper-published measurements. They intentionally remain separate from
 `local_model.energy.total_pj`, which is the photonic compute/conversion estimate
 used by older cards and calibration flows.
 
-The hierarchy traffic, hierarchy-intensity, movement-per-byte, transfer/compute
-ratio, and loaded-bandwidth fields are diagnostic summaries over the explicit
-tiers already declared in the config. They do not add a cache policy, memory
-scheduler, or packetized NoC model; they make locality, movement cost,
-contention derate, calibration guardband, and memory pressure visible for
-cross-card comparisons.
+The hierarchy traffic, hierarchy-intensity, movement-per-byte, tier-share,
+tier-pressure, transfer/compute ratio, loaded-bandwidth, compute-window
+bandwidth utilization, and bandwidth-headroom fields are diagnostic summaries
+over the explicit tiers already declared in the config. A zero-traffic tier
+uses `0` for headroom ratio to keep JSON finite, and the top-level minimum
+headroom ratio only considers tiers with modeled traffic. These fields do not
+add a cache policy, memory scheduler, or packetized NoC model; they make
+locality, movement cost, bottleneck tier, contention derate, calibration
+guardband, and memory pressure visible for cross-card comparisons.
 
 ## Noise Estimate
 
@@ -389,6 +425,9 @@ bandwidth-limited batch latencies and should not be read as a fused layer memory
 scheduler. `contention_adjusted_serial_batch_latency_ns` and
 `contention_adjusted_serial_effective_equivalent_ops_per_second` apply the same
 serial aggregation to decomposed local contention-adjusted timing.
+Aggregate tier bandwidth utilization uses each aggregate tier's summed bytes
+divided by `serial_batch_latency_ns`, and compares that required bandwidth with
+the minimum positive effective bandwidth carried by the contributing cards.
 
 Aggregate timing fields are labeled serial summaries. In particular,
 `serial_batch_latency_ns` is the sum of per-matmul batch latencies, and

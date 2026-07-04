@@ -45,6 +45,12 @@ def test_discover_visualizer_data_loads_root_and_nested_reports() -> None:
     assert layer.system_energy_per_op_pj is not None
     assert layer.movement_energy_pj is not None
     assert layer.movement_energy_share is not None
+    assert layer.dominant_movement_energy_tier == "off_chip"
+    assert layer.contention_memory_bottleneck_tier == "off_chip"
+    assert layer.max_tier_contention_adjusted_transfer_pressure_ratio is not None
+    assert layer.contention_bandwidth_saturation_tier == "off_chip"
+    assert layer.max_tier_contention_bandwidth_utilization is not None
+    assert layer.min_tier_contention_bandwidth_headroom_ratio is not None
     assert layer.bandwidth_limited_latency_ns is not None
     assert layer.bandwidth_limited_throughput_equivalent_ops_per_second is not None
     assert layer.system_profile == "default"
@@ -58,6 +64,10 @@ def test_discover_visualizer_data_loads_root_and_nested_reports() -> None:
     assert "serial timing" in model.boundary_tags
     assert model.system_energy_per_op_pj is not None
     assert model.system_profile == "default"
+    assert model.dominant_movement_energy_tier == "off_chip"
+    assert model.contention_memory_bottleneck_tier == "off_chip"
+    assert model.contention_bandwidth_saturation_tier == "off_chip"
+    assert model.max_tier_contention_bandwidth_utilization is not None
     profile = summaries["profile_sensitivity_64x64_hbm.json"]
     assert profile.kind == "matmul_card"
     assert profile.system_profile == "hbm"
@@ -185,6 +195,12 @@ def test_write_visualizer_emits_index_payloads_and_static_assets(
         index["artifacts"][0]["summary"]["shared_bandwidth_clients"]
         is not None
     )
+    assert (
+        index["artifacts"][0]["summary"][
+            "max_tier_contention_bandwidth_utilization"
+        ]
+        is not None
+    )
 
     layer = next(
         artifact
@@ -254,6 +270,7 @@ def test_static_app_contains_comparison_and_boundary_labels() -> None:
     assert "System energy per op" in app_js
     assert "Movement share" in app_js
     assert "Contention Insight" in app_js
+    assert "Bottleneck Stack" in app_js
     assert "Review Queue" in app_js
     assert "Hierarchy equivalent ops/byte" in app_js
     assert "Transfer/compute time ratio" in app_js
@@ -262,6 +279,14 @@ def test_static_app_contains_comparison_and_boundary_labels() -> None:
     assert "Loaded hierarchy bandwidth" in app_js
     assert "Off-chip traffic share" in app_js
     assert "Contention pressure ratio" in app_js
+    assert "Worst tier pressure" in app_js
+    assert "Bandwidth saturation tier" in app_js
+    assert "Bandwidth utilization" in app_js
+    assert "Bandwidth headroom" in app_js
+    assert "max_tier_contention_bandwidth_utilization" in app_js
+    assert "min_tier_contention_bandwidth_headroom_ratio" in app_js
+    assert "Dominant movement tier" in app_js
+    assert "max_tier_contention_adjusted_transfer_pressure_ratio" in app_js
     assert "contention_adjusted_loaded_bandwidth_bytes_per_ns" in app_js
     assert "total_transfer_overhead_fraction" in app_js
     assert "contention-throughput" in app_js

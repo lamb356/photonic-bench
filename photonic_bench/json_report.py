@@ -171,6 +171,34 @@ def _local_model(result: BenchmarkResult) -> dict[str, Any]:
             "sram_traffic_share": result.system.sram_traffic_share,
             "intermediate_traffic_share": result.system.intermediate_traffic_share,
             "off_chip_traffic_share": result.system.off_chip_traffic_share,
+            "dominant_traffic_tier": result.system.dominant_traffic_tier,
+            "dominant_movement_energy_tier": (
+                result.system.dominant_movement_energy_tier
+            ),
+            "nominal_memory_bottleneck_tier": (
+                result.system.nominal_memory_bottleneck_tier
+            ),
+            "contention_memory_bottleneck_tier": (
+                result.system.contention_memory_bottleneck_tier
+            ),
+            "max_tier_nominal_transfer_pressure_ratio": (
+                result.system.max_tier_nominal_transfer_pressure_ratio
+            ),
+            "max_tier_contention_adjusted_transfer_pressure_ratio": (
+                result.system.max_tier_contention_adjusted_transfer_pressure_ratio
+            ),
+            "max_tier_movement_energy_share": (
+                result.system.max_tier_movement_energy_share
+            ),
+            "contention_bandwidth_saturation_tier": (
+                result.system.contention_bandwidth_saturation_tier
+            ),
+            "max_tier_contention_bandwidth_utilization": (
+                result.system.max_tier_contention_bandwidth_utilization
+            ),
+            "min_tier_contention_bandwidth_headroom_ratio": (
+                result.system.min_tier_contention_bandwidth_headroom_ratio
+            ),
             "max_transfer_time_ns": result.system.max_transfer_time_ns,
             "serial_transfer_time_ns": result.system.serial_transfer_time_ns,
             "effective_transfer_time_ns": result.system.effective_transfer_time_ns,
@@ -289,6 +317,27 @@ def _system_tier_result(tier) -> dict[str, float | str]:
         ),
         "read_fraction": tier.read_fraction,
         "write_fraction": tier.write_fraction,
+        "calibration_adjusted_transfer_time_ns": (
+            tier.calibration_adjusted_transfer_time_ns
+        ),
+        "traffic_share": tier.traffic_share,
+        "movement_energy_share": tier.movement_energy_share,
+        "nominal_transfer_share": tier.nominal_transfer_share,
+        "contention_adjusted_transfer_share": tier.contention_adjusted_transfer_share,
+        "nominal_transfer_pressure_ratio": tier.nominal_transfer_pressure_ratio,
+        "contention_adjusted_transfer_pressure_ratio": (
+            tier.contention_adjusted_transfer_pressure_ratio
+        ),
+        "compute_window_required_bandwidth_bytes_per_ns": (
+            tier.compute_window_required_bandwidth_bytes_per_ns
+        ),
+        "contention_bandwidth_utilization": tier.contention_bandwidth_utilization,
+        "contention_bandwidth_headroom_bytes_per_ns": (
+            tier.contention_bandwidth_headroom_bytes_per_ns
+        ),
+        "contention_bandwidth_headroom_ratio": (
+            tier.contention_bandwidth_headroom_ratio
+        ),
     }
 
 

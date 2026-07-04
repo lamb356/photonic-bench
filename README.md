@@ -128,7 +128,14 @@ energy, system energy per MAC/op, movement-energy share, selected profile
 metadata, memory timing mode, bandwidth-limited throughput,
 contention-adjusted latency/throughput, hierarchy traffic shares, loaded
 hierarchy bandwidth under contention, bandwidth derate, guardband overhead, and
-bandwidth/contention pressure ratios. `overlapped`
+bandwidth/contention pressure ratios. Each tier also records traffic share,
+movement-energy share, guardbanded transfer time, transfer share, and tier-local
+pressure ratio. It also records the bandwidth required to move that tier's
+bytes inside the compute batch window, utilization of the contention-adjusted
+effective bandwidth, remaining bandwidth headroom in bytes/ns, and a headroom
+ratio. The system summary identifies the dominant traffic tier, dominant
+movement-energy tier, memory bottleneck tier, bandwidth saturation tier, maximum
+tier bandwidth utilization, and minimum tier bandwidth headroom ratio. `overlapped`
 timing uses the slowest tier transfer; `serialized` timing sums the tier
 transfer times for a conservative contention-style bound. These are local
 PhotonicBench estimates and remain separate from paper-reported values and from
@@ -668,13 +675,20 @@ generated sidecar presets remain read-only.
 The comparison dashboard also includes a contention insight panel that
 highlights the best adjusted throughput, lowest adjusted latency, largest
 shared-client count, largest calibration/control overhead, highest pressure
-ratio, and best loaded hierarchy bandwidth among the selected artifacts. It
+ratio, best loaded hierarchy bandwidth, highest compute-window bandwidth
+utilization, and lowest bandwidth headroom among the selected artifacts. It
 keeps the boundary label explicit: these metrics are local shared-link,
 hierarchy, and guardband assumptions, not paper-reported hardware claims.
+The Bottleneck Stack ranks selected artifacts by worst tier-local pressure,
+dominant movement-energy tier, dominant traffic tier, bandwidth saturation tier,
+bandwidth utilization, and bandwidth headroom so hierarchy problems are visible
+before opening individual payloads.
 The adjacent Review Queue highlights the selected artifacts most worth manual
 inspection for high contention transfer/compute ratio, high movement energy per
-hierarchy byte, low hierarchy intensity, or low source-confidence metadata. It
-is a local triage aid only, not a failure label or hardware ranking.
+hierarchy byte, worst tier-local pressure, high compute-window bandwidth
+utilization, low bandwidth headroom, low hierarchy intensity, or low
+source-confidence metadata. It is a local triage aid only, not a failure label or
+hardware ranking.
 
 Comparison results are exportable from the browser. `Download JSON` writes a
 `photonic-bench-comparison-export-v1` object with selected artifact summaries,
@@ -687,9 +701,11 @@ provenance status, and modeling-boundary notes. Its formal schema is checked in 
 `Download CSV` writes a spreadsheet-friendly selected-artifact table with
 focus, score weights, energy, timing, throughput, movement, loaded hierarchy
 bandwidth, hierarchy intensity, movement energy per hierarchy byte,
-transfer/compute ratios, off-chip traffic share, pressure ratios, provenance,
-source-quality, system-profile, and boundary tag columns plus comparison-level
-boundary notes.
+dominant traffic/movement tiers, memory bottleneck tier, worst tier pressure,
+largest tier movement share, transfer/compute ratios, off-chip traffic share,
+pressure ratios, bandwidth saturation tier, bandwidth utilization, bandwidth
+headroom, provenance, source-quality, system-profile, and boundary tag columns
+plus comparison-level boundary notes.
 
 The visualizer accessibility pass keeps controls keyboard-reachable, adds
 specific ARIA labels to comparison and pin controls, exposes mode button
@@ -847,10 +863,11 @@ The comparison table is generated from `local_model`, `published_reference`,
 `calibration_fit`, and `provenance` fields in JSON. It includes local energy,
 system energy, movement energy, movement share, interface bytes, operational
 intensity, timing, throughput, bandwidth-limited throughput,
-contention-adjusted latency/throughput, and selected published metrics. For
-published cards it also shows source grade, surrogate type, and key-dimension
-coverage. Missing optional paper or quality fields are rendered as `n/a`
-instead of guessed.
+contention-adjusted latency/throughput, tier bottleneck summaries, bandwidth
+saturation/headroom diagnostics, and selected published metrics. For published
+cards it also shows source grade, surrogate type, and key-dimension coverage.
+Missing optional paper or quality fields are rendered as `n/a` instead of
+guessed.
 
 ## Calibration Fitting
 

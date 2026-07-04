@@ -467,6 +467,16 @@
         "sram_traffic_share",
         "intermediate_traffic_share",
         "off_chip_traffic_share",
+        "dominant_traffic_tier",
+        "dominant_movement_energy_tier",
+        "nominal_memory_bottleneck_tier",
+        "contention_memory_bottleneck_tier",
+        "max_tier_nominal_transfer_pressure_ratio",
+        "max_tier_contention_adjusted_transfer_pressure_ratio",
+        "max_tier_movement_energy_share",
+        "contention_bandwidth_saturation_tier",
+        "max_tier_contention_bandwidth_utilization",
+        "min_tier_contention_bandwidth_headroom_ratio",
         "max_transfer_time_ns",
         "serial_transfer_time_ns",
         "effective_transfer_time_ns",
@@ -533,6 +543,32 @@
           "type": "number",
           "minimum": 0,
           "maximum": 1
+        },
+        "dominant_traffic_tier": {"type": "string"},
+        "dominant_movement_energy_tier": {"type": "string"},
+        "nominal_memory_bottleneck_tier": {"type": "string"},
+        "contention_memory_bottleneck_tier": {"type": "string"},
+        "max_tier_nominal_transfer_pressure_ratio": {
+          "type": "number",
+          "minimum": 0
+        },
+        "max_tier_contention_adjusted_transfer_pressure_ratio": {
+          "type": "number",
+          "minimum": 0
+        },
+        "max_tier_movement_energy_share": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "contention_bandwidth_saturation_tier": {"type": "string"},
+        "max_tier_contention_bandwidth_utilization": {
+          "type": "number",
+          "minimum": 0
+        },
+        "min_tier_contention_bandwidth_headroom_ratio": {
+          "type": "number",
+          "minimum": 0
         },
         "max_transfer_time_ns": {"type": "number", "minimum": 0},
         "serial_transfer_time_ns": {"type": "number", "minimum": 0},
@@ -608,7 +644,18 @@
         "transfer_time_ns",
         "contention_adjusted_transfer_time_ns",
         "read_fraction",
-        "write_fraction"
+        "write_fraction",
+        "calibration_adjusted_transfer_time_ns",
+        "traffic_share",
+        "movement_energy_share",
+        "nominal_transfer_share",
+        "contention_adjusted_transfer_share",
+        "nominal_transfer_pressure_ratio",
+        "contention_adjusted_transfer_pressure_ratio",
+        "compute_window_required_bandwidth_bytes_per_ns",
+        "contention_bandwidth_utilization",
+        "contention_bandwidth_headroom_bytes_per_ns",
+        "contention_bandwidth_headroom_ratio"
       ],
       "additionalProperties": false,
       "properties": {
@@ -630,7 +677,35 @@
           "minimum": 0
         },
         "read_fraction": {"type": "number", "minimum": 0, "maximum": 1},
-        "write_fraction": {"type": "number", "minimum": 0, "maximum": 1}
+        "write_fraction": {"type": "number", "minimum": 0, "maximum": 1},
+        "calibration_adjusted_transfer_time_ns": {
+          "type": "number",
+          "minimum": 0
+        },
+        "traffic_share": {"type": "number", "minimum": 0, "maximum": 1},
+        "movement_energy_share": {"type": "number", "minimum": 0, "maximum": 1},
+        "nominal_transfer_share": {"type": "number", "minimum": 0},
+        "contention_adjusted_transfer_share": {"type": "number", "minimum": 0},
+        "nominal_transfer_pressure_ratio": {"type": "number", "minimum": 0},
+        "contention_adjusted_transfer_pressure_ratio": {
+          "type": "number",
+          "minimum": 0
+        },
+        "compute_window_required_bandwidth_bytes_per_ns": {
+          "type": "number",
+          "minimum": 0
+        },
+        "contention_bandwidth_utilization": {
+          "type": "number",
+          "minimum": 0
+        },
+        "contention_bandwidth_headroom_bytes_per_ns": {
+          "type": "number"
+        },
+        "contention_bandwidth_headroom_ratio": {
+          "type": "number",
+          "minimum": 0
+        }
       }
     }
   }

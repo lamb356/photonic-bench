@@ -8,6 +8,9 @@
 - Extended local system diagnostics with hierarchy traffic shares, contention
   bandwidth derate, guardband timing, loaded hierarchy bandwidth, transfer
   overhead, and bandwidth/contention pressure ratios.
+- Added compute-window bandwidth utilization, bandwidth headroom, and bandwidth
+  saturation tier diagnostics across reports, JSON, transformer aggregates,
+  comparison exports, and the web visualizer.
 - Added hierarchy intensity, movement-per-hierarchy-byte, and transfer/compute
   ratios across reports, JSON, transformer aggregates, comparisons, exports,
   and the visualizer Review Queue.

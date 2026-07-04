@@ -117,8 +117,33 @@ def test_report_to_dict_exposes_json_schema_sections() -> None:
     )
     assert system["tiers"]["sram"]["write_bytes"] == pytest.approx(32)
     assert system["tiers"]["sram"]["total_energy_pj"] == pytest.approx(1.12)
+    assert system["tiers"]["sram"]["traffic_share"] == pytest.approx(1 / 3)
+    assert system["tiers"]["sram"]["nominal_transfer_pressure_ratio"] == pytest.approx(
+        (56 / 1024) / 5
+    )
     assert system["tiers"]["intermediate"]["total_energy_pj"] == pytest.approx(11.2)
     assert system["tiers"]["off_chip"]["total_energy_pj"] == pytest.approx(560)
+    assert system["tiers"]["off_chip"][
+        "calibration_adjusted_transfer_time_ns"
+    ] == pytest.approx(56 / 16)
+    assert system["tiers"]["off_chip"][
+        "compute_window_required_bandwidth_bytes_per_ns"
+    ] == pytest.approx(56 / 5)
+    assert system["tiers"]["off_chip"][
+        "contention_bandwidth_utilization"
+    ] == pytest.approx((56 / 5) / 16)
+    assert system["tiers"]["off_chip"][
+        "contention_bandwidth_headroom_bytes_per_ns"
+    ] == pytest.approx(16 - (56 / 5))
+    assert system["tiers"]["off_chip"][
+        "contention_bandwidth_headroom_ratio"
+    ] == pytest.approx(16 / (56 / 5))
+    assert system["tiers"]["off_chip"]["movement_energy_share"] == pytest.approx(
+        560 / 572.32
+    )
+    assert system["tiers"]["off_chip"][
+        "contention_adjusted_transfer_pressure_ratio"
+    ] == pytest.approx((56 / 16) / 5)
     assert system["local_compute_and_conversion_energy_pj"] == pytest.approx(21.248)
     assert system["total_movement_energy_pj"] == pytest.approx(572.32)
     assert system["total_system_energy_pj"] == pytest.approx(593.568)
@@ -132,6 +157,20 @@ def test_report_to_dict_exposes_json_schema_sections() -> None:
     assert system["sram_traffic_share"] == pytest.approx(1 / 3)
     assert system["intermediate_traffic_share"] == pytest.approx(1 / 3)
     assert system["off_chip_traffic_share"] == pytest.approx(1 / 3)
+    assert system["dominant_movement_energy_tier"] == "off_chip"
+    assert system["nominal_memory_bottleneck_tier"] == "off_chip"
+    assert system["contention_memory_bottleneck_tier"] == "off_chip"
+    assert system["max_tier_contention_adjusted_transfer_pressure_ratio"] == (
+        pytest.approx((56 / 16) / 5)
+    )
+    assert system["max_tier_movement_energy_share"] == pytest.approx(560 / 572.32)
+    assert system["contention_bandwidth_saturation_tier"] == "off_chip"
+    assert system["max_tier_contention_bandwidth_utilization"] == pytest.approx(
+        (56 / 5) / 16
+    )
+    assert system["min_tier_contention_bandwidth_headroom_ratio"] == pytest.approx(
+        16 / (56 / 5)
+    )
     assert system["serial_transfer_time_ns"] == pytest.approx(
         (56 / 1024) + (56 / 256) + (56 / 16)
     )

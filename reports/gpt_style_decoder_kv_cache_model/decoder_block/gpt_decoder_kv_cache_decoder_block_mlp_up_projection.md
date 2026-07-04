@@ -57,11 +57,11 @@ photonic core/converter model. SRAM, intermediate, and off-chip traffic are
 cumulative tier movements, not published measurements and not a cache
 simulator.
 
-| Tier | Read bytes | Write bytes | Movement energy | Transfer time | Contention-adjusted transfer | Effective bandwidth |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| SRAM | 2360064 bytes | 3072 bytes | 47262.720 pJ | 2307.750 ns | 2307.750 ns | 1024.000 bytes/ns |
-| Intermediate/cache | 2360064 bytes | 3072 bytes | 472627.200 pJ | 9231.000 ns | 9231.000 ns | 256.000 bytes/ns |
-| Off-chip/DRAM | 2360064 bytes | 3072 bytes | 23631360.000 pJ | 147696.000 ns | 147696.000 ns | 16.000 bytes/ns |
+| Tier | Read bytes | Write bytes | Movement energy | Traffic share | Movement share | Transfer time | Guardbanded transfer | Tier pressure | Effective bandwidth | Required bandwidth | Utilization | Headroom |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| SRAM | 2360064 bytes | 3072 bytes | 47262.720 pJ | 33.33% | 0.20% | 2307.750 ns | 2307.750 ns | 461.55 | 1024.000 bytes/ns | 472627.200 bytes/ns | 461.55 | -471603.200 bytes/ns |
+| Intermediate/cache | 2360064 bytes | 3072 bytes | 472627.200 pJ | 33.33% | 1.96% | 9231.000 ns | 9231.000 ns | 1846.2 | 256.000 bytes/ns | 472627.200 bytes/ns | 1846.2 | -472371.200 bytes/ns |
+| Off-chip/DRAM | 2360064 bytes | 3072 bytes | 23631360.000 pJ | 33.33% | 97.85% | 147696.000 ns | 147696.000 ns | 29539.2 | 16.000 bytes/ns | 472627.200 bytes/ns | 29539.2 | -472611.200 bytes/ns |
 
 | Metric | Value |
 | --- | ---: |
@@ -83,6 +83,16 @@ simulator.
 | SRAM traffic share | 33.33% |
 | Intermediate/cache traffic share | 33.33% |
 | Off-chip traffic share | 33.33% |
+| Dominant traffic tier | sram |
+| Dominant movement-energy tier | off_chip |
+| Nominal memory bottleneck tier | off_chip |
+| Contention memory bottleneck tier | off_chip |
+| Max tier nominal pressure ratio | 29539.2 |
+| Max tier contention pressure ratio | 29539.2 |
+| Max tier movement-energy share | 97.85% |
+| Contention bandwidth saturation tier | off_chip |
+| Max tier contention bandwidth utilization | 29539.2 |
+| Min tier contention bandwidth headroom ratio | 3.38533e-05 |
 | Max transfer time | 147696.000 ns |
 | Serialized transfer time | 159234.750 ns |
 | Effective transfer time | 147696.000 ns |

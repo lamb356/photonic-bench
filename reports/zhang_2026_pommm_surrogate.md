@@ -106,11 +106,11 @@ photonic core/converter model. SRAM, intermediate, and off-chip traffic are
 cumulative tier movements, not published measurements and not a cache
 simulator.
 
-| Tier | Read bytes | Write bytes | Movement energy | Transfer time | Contention-adjusted transfer | Effective bandwidth |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| SRAM | 800 bytes | 400 bytes | 24.000 pJ | 1.172 ns | 1.172 ns | 1024.000 bytes/ns |
-| Intermediate/cache | 800 bytes | 400 bytes | 240.000 pJ | 4.688 ns | 4.688 ns | 256.000 bytes/ns |
-| Off-chip/DRAM | 800 bytes | 400 bytes | 12000.000 pJ | 75.000 ns | 75.000 ns | 16.000 bytes/ns |
+| Tier | Read bytes | Write bytes | Movement energy | Traffic share | Movement share | Transfer time | Guardbanded transfer | Tier pressure | Effective bandwidth | Required bandwidth | Utilization | Headroom |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| SRAM | 800 bytes | 400 bytes | 24.000 pJ | 33.33% | 0.20% | 1.172 ns | 1.172 ns | 1.17188 | 1024.000 bytes/ns | 1200.000 bytes/ns | 1.17188 | -176.000 bytes/ns |
+| Intermediate/cache | 800 bytes | 400 bytes | 240.000 pJ | 33.33% | 1.96% | 4.688 ns | 4.688 ns | 4.6875 | 256.000 bytes/ns | 1200.000 bytes/ns | 4.6875 | -944.000 bytes/ns |
+| Off-chip/DRAM | 800 bytes | 400 bytes | 12000.000 pJ | 33.33% | 97.85% | 75.000 ns | 75.000 ns | 75 | 16.000 bytes/ns | 1200.000 bytes/ns | 75 | -1184.000 bytes/ns |
 
 | Metric | Value |
 | --- | ---: |
@@ -132,6 +132,16 @@ simulator.
 | SRAM traffic share | 33.33% |
 | Intermediate/cache traffic share | 33.33% |
 | Off-chip traffic share | 33.33% |
+| Dominant traffic tier | sram |
+| Dominant movement-energy tier | off_chip |
+| Nominal memory bottleneck tier | off_chip |
+| Contention memory bottleneck tier | off_chip |
+| Max tier nominal pressure ratio | 75 |
+| Max tier contention pressure ratio | 75 |
+| Max tier movement-energy share | 97.85% |
+| Contention bandwidth saturation tier | off_chip |
+| Max tier contention bandwidth utilization | 75 |
+| Min tier contention bandwidth headroom ratio | 0.0133333 |
 | Max transfer time | 75.000 ns |
 | Serialized transfer time | 80.859 ns |
 | Effective transfer time | 75.000 ns |

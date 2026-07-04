@@ -34,6 +34,11 @@ def test_render_comparison_markdown_summarizes_local_and_published_cards() -> No
     assert "System profile" in markdown
     assert "Memory timing" in markdown
     assert "Effective transfer ns" in markdown
+    assert "Memory bottleneck tier" in markdown
+    assert "Worst tier pressure" in markdown
+    assert "Bandwidth saturation tier" in markdown
+    assert "Max bandwidth utilization" in markdown
+    assert "Min bandwidth headroom" in markdown
     assert "Movement pJ" in markdown
     assert "Bandwidth-limited eq ops/s" in markdown
     assert "Source grade" in markdown

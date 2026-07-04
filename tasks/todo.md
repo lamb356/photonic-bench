@@ -381,7 +381,7 @@
       post-push CI, macOS artifact verification, durable note, and git status
       are reported in the final response.
 
-## Active Goal: Merge PR #7 And Continue PhotonicBench Improvements
+## Completed Goal: Merge PR #7 And Continue PhotonicBench Improvements
 
 - [x] Task 0: Roll state files forward and create the prioritized checklist.
       Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
@@ -439,6 +439,105 @@
       `photonicbench-pr7-merge-followup-2026-07-04` is written. Follow-up
       PR #8 is open and green:
       `https://github.com/lamb356/photonic-bench/pull/8`.
+
+## Completed Goal: Merge PR #8, Then Improve Visualizer And System Modeling
+
+- [x] Task 0: Roll state files forward and create the prioritized checklist.
+      Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
+      `RUBRIC.md`, and `tasks/todo.md`; exposed GBrain; queried GBrain for
+      PR #8 / PR #7 follow-up context; searched local memory; read GitHub,
+      frontend-design, review, and commit guidance; confirmed PR #8 is open,
+      non-draft, mergeable, and green.
+- [x] Task 1: Merge PR #8 into `master`, verify post-merge `master` CI is
+      green, update local `master`, run full tests and `verify-artifacts`,
+      and delete `codex/pr7-followup-improvements` locally and remotely.
+      PR #8 merged at `c5cffaa`; post-merge master CI run `28712123752`
+      passed; local `pytest` passed with 130 tests; `verify-artifacts` passed
+      with 258 generated files; the remote branch was deleted and the stale
+      remote-tracking ref was pruned.
+- [x] Task 2: Further improve the web visualizer for interaction, dashboard
+      experience, analytical features, and daily usability while preserving
+      modeling-boundary labels.
+      Added Bottleneck Stack, worst tier pressure and largest movement-share
+      diagnostics, and export/scoring/review-queue exposure with local-model
+      boundary labels.
+- [x] Task 3: Deepen system modeling around contention calibration, realistic
+      memory hierarchy behavior, and related metrics; expose changes in
+      reports, JSON, transformer aggregates, and the visualizer.
+      Added per-tier calibrated transfer, traffic/movement shares,
+      transfer-share, and pressure ratios plus top-level dominant/bottleneck
+      tier summaries across reports, schemas, transformer aggregates, docs,
+      tests, generated artifacts, and visualizer exports.
+- [x] Task 4: Update documentation, regenerate checked artifacts, and run
+      focused plus full verification.
+      Updated README/docs/schemas, regenerated 258 checked artifacts, and
+      passed focused tests, full Ruff, full pytest, package build, source and
+      generated JS syntax checks, artifact freshness, explicit browser
+      smoke/accessibility/visual-regression tests, and diff hygiene.
+- [x] Task 5: Run mandatory Hostile Senior Reviewer critique focused on
+      usability, modeling clarity, source boundaries, code quality, CI artifact
+      usability, and visual regression portability; fix important findings.
+      Fixed the live browser smoke gap by asserting the Bottleneck Stack panel
+      and exported tier-attribution fields; focused visualizer/schema smoke and
+      JS syntax checks pass.
+- [x] Task 6: Close final state files, update durable notes, verify final
+      git/CI/artifact status, and report remaining risks.
+      Final gates passed on `codex/pr8-followup-improvements`: Ruff, full
+      pytest, package build, artifact freshness, JS syntax, explicit browser
+      smoke/accessibility/visual regression, and diff hygiene. Remaining risk:
+      follow-up work is verified locally but not committed/pushed/opened as a
+      PR because publication was not requested in this goal.
+
+## Active Goal: Commit PR #8 Follow-Up, Then Improve Visualizer And System Modeling
+
+- [x] Task 0: Roll state files forward and create the prioritized checklist.
+      Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
+      `RUBRIC.md`, and `tasks/todo.md`; exposed GBrain; read the durable
+      GBrain note `photonicbench-pr8-merge-bottleneck-stack-2026-07-04`;
+      searched local memory; read GitHub, commit, frontend-design, and review
+      guidance; confirmed branch `codex/pr8-followup-improvements` has the
+      expected verified dirty worktree.
+- [x] Task 1: Review the current dirty worktree, run quality gates, create
+      clean logical commits, push `codex/pr8-followup-improvements`, and open a
+      pull request to `master`.
+      Pre-push gates passed: Ruff, full pytest with 130 tests,
+      `verify-artifacts` with 258 fresh files, source/generated JS syntax
+      checks, and package build. Created commits `6e80186` and `50fe226`,
+      pushed the branch, and opened PR #9:
+      `https://github.com/lamb356/photonic-bench/pull/9`.
+- [x] Task 2: Further improve the web visualizer for interaction, dashboard
+      experience, analytical features, and daily usability while preserving
+      modeling-boundary labels.
+      Added bandwidth utilization/headroom/saturation diagnostics to
+      Contention Insight, Bottleneck Stack, Review Queue, comparison rows,
+      scoring, JSON/Markdown/CSV exports, docs, generated payloads, and browser
+      smoke coverage.
+- [x] Task 3: Deepen system modeling around contention calibration, realistic
+      memory hierarchy behavior, and related metrics; expose changes in
+      reports, JSON, transformer aggregates, and the visualizer.
+      Added per-tier compute-window required bandwidth, utilization, headroom
+      bytes/ns, headroom ratio, plus top-level bandwidth saturation tier,
+      maximum utilization, and minimum traffic-tier headroom ratio across
+      reports, schemas, transformer aggregates, docs, tests, and generated
+      artifacts.
+- [x] Task 4: Update documentation, regenerate checked artifacts, and run
+      focused plus full verification.
+      Regenerated 258 checked artifacts. Focused tests, Ruff, full pytest,
+      package build, artifact freshness, source/generated JS syntax, explicit
+      browser smoke/accessibility/visual-regression tests, and diff hygiene
+      passed.
+- [x] Task 5: Run mandatory Hostile Senior Reviewer critique focused on
+      usability, modeling clarity, source boundaries, code quality, CI artifact
+      usability, and visual regression portability; fix significant findings.
+      Fixed non-finite legacy/external payload handling for highest bandwidth
+      utilization and expanded the Contention Insight boundary note; post-fix
+      visualizer/browser tests and artifact freshness passed.
+- [x] Task 6: Close final state files, update durable notes, verify final
+      git/CI/artifact status, and report remaining risks.
+      Follow-up implementation commit `d452cf8` is created, durable GBrain note
+      `photonicbench-pr9-bandwidth-headroom-followup-2026-07-04` is written,
+      all local gates are green, and final push/PR head verification is
+      reported in the final response after this closeout state commit.
 
 ## Explicitly Not Active In This Goal
 
