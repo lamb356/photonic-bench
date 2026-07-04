@@ -20,14 +20,19 @@ python -m photonic_bench.cli run examples/taichi_2024_chiplet_surrogate.yaml --r
 python -m photonic_bench.cli run examples/hitop_2025_optical_tensor_processor_surrogate.yaml --report reports/hitop_2025_optical_tensor_processor_surrogate.md --json-report reports/hitop_2025_optical_tensor_processor_surrogate.json
 python -m photonic_bench.cli run examples/lin_2024_tfln_120gops_tensor_core_surrogate.yaml --report reports/lin_2024_tfln_120gops_tensor_core_surrogate.md --json-report reports/lin_2024_tfln_120gops_tensor_core_surrogate.json
 python -m photonic_bench.cli run examples/meng_2025_mrr_otpu_tensor_core_surrogate.yaml --report reports/meng_2025_mrr_otpu_tensor_core_surrogate.md --json-report reports/meng_2025_mrr_otpu_tensor_core_surrogate.json
+python -m photonic_bench.cli run examples/luan_2026_single_shot_mmm_surrogate.yaml --report reports/luan_2026_single_shot_mmm_surrogate.md --json-report reports/luan_2026_single_shot_mmm_surrogate.json
+python -m photonic_bench.cli run examples/bandyopadhyay_2024_single_chip_dnn_surrogate.yaml --report reports/bandyopadhyay_2024_single_chip_dnn_surrogate.md --json-report reports/bandyopadhyay_2024_single_chip_dnn_surrogate.json
+python -m photonic_bench.cli run examples/kari_2024_coherent_matrix_platform_surrogate.yaml --report reports/kari_2024_coherent_matrix_platform_surrogate.md --json-report reports/kari_2024_coherent_matrix_platform_surrogate.json
+python -m photonic_bench.cli run examples/dong_2023_continuous_time_tensor_core_surrogate.yaml --report reports/dong_2023_continuous_time_tensor_core_surrogate.md --json-report reports/dong_2023_continuous_time_tensor_core_surrogate.json
 python -m photonic_bench.cli transformer-layer examples/transformer_small_sanity.yaml --output-dir reports/transformer_small_sanity --prefix small_transformer
 python -m photonic_bench.cli transformer-layer examples/bert_base_encoder_layer.yaml --output-dir reports/bert_base_encoder_layer --prefix bert_base_layer
 python -m photonic_bench.cli transformer-layer examples/gpt_style_decoder_layer.yaml --output-dir reports/gpt_style_decoder_layer --prefix gpt_decoder_layer
 python -m photonic_bench.cli transformer-model examples/bert_base_12layer_model.yaml --output-dir reports/bert_base_12layer_model --prefix bert_base_12layer
 python -m photonic_bench.cli transformer-model examples/gpt_style_decoder_kv_cache_model.yaml --output-dir reports/gpt_style_decoder_kv_cache_model --prefix gpt_decoder_kv_cache
+python -m photonic_bench.cli inspect-config examples/bert_base_12layer_model.yaml --kind transformer-model
 python -m photonic_bench.cli run examples/nature_pace_64x64.yaml --report reports/nature_pace_64x64.md --json-report reports/nature_pace_64x64.json
 python -m photonic_bench.cli run examples/nature_pace_64x64.yaml --report reports/nature_pace_64x64_calibrated.md --json-report reports/nature_pace_64x64_calibrated.json --fit-target published-including-lasers --fit-parameter device.dac.energy_pj_per_conversion
-python -m photonic_bench.cli compare reports/matmul_64x64.json reports/nature_pace_64x64.json reports/nature_pace_64x64_calibrated.json reports/xu_11tops_convolution_surrogate.json reports/weight_stationary_64x64_batch.json reports/feldmann_2021_photonic_tensor_core_surrogate.json reports/pappas_2025_awgr_262tops_surrogate.json reports/taichi_2024_chiplet_surrogate.json reports/hitop_2025_optical_tensor_processor_surrogate.json reports/lin_2024_tfln_120gops_tensor_core_surrogate.json reports/meng_2025_mrr_otpu_tensor_core_surrogate.json --report reports/comparison.md
+python -m photonic_bench.cli compare reports/matmul_64x64.json reports/nature_pace_64x64.json reports/nature_pace_64x64_calibrated.json reports/xu_11tops_convolution_surrogate.json reports/weight_stationary_64x64_batch.json reports/feldmann_2021_photonic_tensor_core_surrogate.json reports/pappas_2025_awgr_262tops_surrogate.json reports/taichi_2024_chiplet_surrogate.json reports/hitop_2025_optical_tensor_processor_surrogate.json reports/lin_2024_tfln_120gops_tensor_core_surrogate.json reports/meng_2025_mrr_otpu_tensor_core_surrogate.json reports/luan_2026_single_shot_mmm_surrogate.json reports/bandyopadhyay_2024_single_chip_dnn_surrogate.json reports/kari_2024_coherent_matrix_platform_surrogate.json reports/dong_2023_continuous_time_tensor_core_surrogate.json --report reports/comparison.md
 python -m photonic_bench.cli visualize --reports-dir reports --output reports/visualizer/index.html
 python -m photonic_bench.cli verify-artifacts
 ```
@@ -83,6 +88,10 @@ system:
     read_energy_pj_per_byte: 10.0
     write_energy_pj_per_byte: 10.0
     bandwidth_bytes_per_ns: 16
+  contention:
+    shared_bandwidth_clients: 1.0
+    arbitration_efficiency: 1.0
+    calibration_overhead_fraction: 0.0
 ```
 
 Named profiles are local modeling presets, not measured hardware claims:
@@ -107,10 +116,17 @@ system:
 ```
 
 Each tier can also set `read_fraction` and `write_fraction` between `0` and `1`.
+The optional `contention` block reduces nominal tier bandwidth by shared client
+count and arbitration efficiency, then applies a calibration/control overhead
+guardband to adjusted transfer timing. For example, the built-in
+`pcie_attached` profile uses two shared clients, `0.85` arbitration efficiency,
+and `0.05` calibration overhead. These are local system assumptions, not
+paper-reported hardware measurements.
 Reports expose `local_model.system` with SRAM/intermediate/off-chip read bytes,
 write bytes, movement energy, transfer time, total movement energy, total system
 energy, system energy per MAC/op, movement-energy share, selected profile
-metadata, memory timing mode, and bandwidth-limited throughput. `overlapped`
+metadata, memory timing mode, bandwidth-limited throughput, and
+contention-adjusted latency/throughput. `overlapped`
 timing uses the slowest tier transfer; `serialized` timing sums the tier
 transfer times for a conservative contention-style bound. These are local
 PhotonicBench estimates and remain separate from paper-reported values and from
@@ -335,7 +351,7 @@ The Xu 2021 example uses the Nature paper "11 TOPS photonic convolutional accele
 
 Because that source is a vector convolution accelerator, PhotonicBench labels the local workload as a dense matmul surrogate (`m=1`, `k=250000`, `n=10`). The card carries the paper numbers as published references, not as local model results.
 
-This repository also includes ten additional source-backed published-card
+This repository also includes fourteen additional source-backed published-card
 surrogates:
 
 - Feldmann et al., "Parallel convolutional processing using an integrated
@@ -388,6 +404,27 @@ surrogates:
   0.96 TOPS throughput claim, 4x2x1 primitive shape, average error, data-rate,
   and Iris classification metrics while using the demonstrated primitive shape
   as the local workload.
+- Luan et al., "Single-shot matrix-matrix photonic processor based on
+  spatial-spectral hypermultiplexed parallel diffraction", Nature
+  Communications 17, 484 (2026), DOI: `10.1038/s41467-026-68452-x`. The card
+  records the 16x16-by-16x16 matrix-matrix demonstration, 4096 MACs per shot,
+  2 GSa/s sample rate, 20 aJ/MAC optical energy, and task accuracy while using
+  a 16x16 dense tile surrogate.
+- Bandyopadhyay et al., "Single-chip photonic deep neural network with
+  forward-only training", Nature Photonics 18, 1335-1343 (2024), DOI:
+  `10.1038/s41566-024-01567-z`. The card records the integrated six-neuron,
+  three-layer photonic DNN, 410 ps latency, forward-only training, and reported
+  accuracy while using a compact 6x6 dense local surrogate.
+- Kari et al., "Realization of an integrated coherent photonic platform for
+  scalable matrix operations", Optica 11, 542-551 (2024), DOI:
+  `10.1364/OPTICA.507525`. The card records coherent real/complex
+  multiply-accumulate and scalable matrix-operation framing while using a small
+  dense coherent dot-product tile surrogate.
+- Dong et al., "Higher-dimensional processing using a photonic tensor core
+  with continuous-time data", Nature Photonics 17, 1080-1088 (2023), DOI:
+  `10.1038/s41566-023-01313-x`. The card records the spatial/wavelength/RF
+  tensor-core framing, parallelism of 100, RF/WDM dimensions, ECG workload, and
+  reported accuracy while using a 3x3-by-3x100 dense local surrogate.
 
 ## Current Boundary
 
@@ -414,6 +451,8 @@ The JSON card includes:
 - benchmark metadata and workload dimensions
 - model input assumptions
 - local component-model energy, timing, noise, and conversion-count outputs
+- local system movement, contention, effective bandwidth, and
+  contention-adjusted latency/throughput outputs
 - optional published reference data, source quality, and provenance
 - a `calibration_fit` field reserved for fitted calibration results
 
@@ -433,8 +472,8 @@ Transformer-model aggregate JSON uses schema version
 `photonic-bench-transformer-model-report-v1` and is written by default as
 `<prefix>_model_summary.json` when running `transformer-model`. It includes
 count-weighted workload totals, energy, system movement, serial timing,
-non-additive noise diagnostics, activation tensor traffic, model-component
-assumption details, optional overlap-adjusted timing fields, layer summary
+contention-adjusted serial timing, non-additive noise diagnostics, activation
+tensor traffic, model-component assumption details, optional overlap-adjusted timing fields, layer summary
 references, and decomposed matmul report references.
 
 Schema documentation:
@@ -527,12 +566,14 @@ exclusions, local estimates, system movement estimates, interface traffic
 estimates, and published references are not flattened into one false hardware
 model.
 
-The Pareto chart has two modes:
+The Pareto chart has three modes:
 
 - `Energy/op vs throughput`: lower system pJ/equivalent-op and higher
   bandwidth-limited equivalent ops/s are better.
 - `Ops/byte vs latency`: higher equivalent ops/byte and lower
   bandwidth-limited latency are better.
+- `Contention-adjusted throughput`: lower system pJ/equivalent-op and higher
+  contention-adjusted equivalent ops/s are better.
 
 Frontier points are highlighted deterministically from the currently selected
 comparison artifacts. Missing legacy fields degrade to `n/a`; the chart falls
@@ -548,6 +589,12 @@ validates the sidecar and embeds it into `data/index.json`. The browser UI can
 also save local presets into local storage for ad hoc daily comparisons. Stale
 sidecar artifact IDs are reported as index warnings and valid artifacts still
 load.
+
+The comparison dashboard also includes a contention insight panel that highlights
+the best adjusted throughput, lowest adjusted latency, largest shared-client
+count, and largest calibration/control overhead among the selected artifacts.
+It keeps the boundary label explicit: these metrics are local shared-link and
+guardband assumptions, not paper-reported hardware claims.
 
 Comparison results are exportable from the browser. `Download JSON` writes a
 `photonic-bench-comparison-export-v1` object with selected artifact summaries,
@@ -589,6 +636,21 @@ Markdown exports, checks representative transformer and per-matmul detail flows,
 pins a comparison reference, and verifies delta/ratio comparison labels while
 failing on page or console errors.
 
+## Config Inspection
+
+Use `inspect-config` to validate a config and print the normalized workload,
+system profile, tier, and contention assumptions before generating artifacts:
+
+```powershell
+python -m photonic_bench.cli inspect-config examples/profile_sensitivity_64x64_pcie_attached.yaml
+python -m photonic_bench.cli inspect-config examples/bert_base_12layer_model.yaml --kind transformer-model --json
+```
+
+`--kind auto` is the default and recognizes single-card matmul,
+`transformer-layer`, and `transformer-model` configs from their top-level YAML
+sections. The command is read-only and is meant for catching complex
+transformer/system-profile mistakes before a longer artifact generation run.
+
 ## Artifact Freshness
 
 Checked-in reports and visualizer outputs can be verified without mutating the
@@ -628,16 +690,17 @@ references, calibration fits, and future measured-system submissions.
 Use the `compare` command to generate a Markdown table from JSON cards:
 
 ```powershell
-python -m photonic_bench.cli compare reports/matmul_64x64.json reports/nature_pace_64x64.json reports/nature_pace_64x64_calibrated.json reports/xu_11tops_convolution_surrogate.json reports/weight_stationary_64x64_batch.json reports/feldmann_2021_photonic_tensor_core_surrogate.json reports/pappas_2025_awgr_262tops_surrogate.json reports/taichi_2024_chiplet_surrogate.json reports/hitop_2025_optical_tensor_processor_surrogate.json reports/lin_2024_tfln_120gops_tensor_core_surrogate.json reports/meng_2025_mrr_otpu_tensor_core_surrogate.json --report reports/comparison.md
+python -m photonic_bench.cli compare reports/matmul_64x64.json reports/nature_pace_64x64.json reports/nature_pace_64x64_calibrated.json reports/xu_11tops_convolution_surrogate.json reports/weight_stationary_64x64_batch.json reports/feldmann_2021_photonic_tensor_core_surrogate.json reports/pappas_2025_awgr_262tops_surrogate.json reports/taichi_2024_chiplet_surrogate.json reports/hitop_2025_optical_tensor_processor_surrogate.json reports/lin_2024_tfln_120gops_tensor_core_surrogate.json reports/meng_2025_mrr_otpu_tensor_core_surrogate.json reports/luan_2026_single_shot_mmm_surrogate.json reports/bandyopadhyay_2024_single_chip_dnn_surrogate.json reports/kari_2024_coherent_matrix_platform_surrogate.json reports/dong_2023_continuous_time_tensor_core_surrogate.json --report reports/comparison.md
 ```
 
 The comparison table is generated from `local_model`, `published_reference`,
 `calibration_fit`, and `provenance` fields in JSON. It includes local energy,
 system energy, movement energy, movement share, interface bytes, operational
-intensity, timing, throughput, bandwidth-limited throughput, and selected
-published metrics. For published cards it also shows source grade, surrogate
-type, and key-dimension coverage. Missing optional paper or quality fields are
-rendered as `n/a` instead of guessed.
+intensity, timing, throughput, bandwidth-limited throughput,
+contention-adjusted latency/throughput, and selected published metrics. For
+published cards it also shows source grade, surrogate type, and key-dimension
+coverage. Missing optional paper or quality fields are rendered as `n/a`
+instead of guessed.
 
 ## Calibration Fitting
 

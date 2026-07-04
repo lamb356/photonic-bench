@@ -1,0 +1,72 @@
+benchmark:
+  name: Dong 2023 continuous-time photonic tensor core surrogate
+  description: Source-backed card for the Nature Photonics 2023 higher-dimensional photonic tensor core using continuous-time data. The local workload maps the reported 3x3 ECG-kernel by 3x100 input framing into a dense matmul surrogate.
+workload:
+  type: matmul
+  m: 3
+  n: 100
+  k: 3
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 8
+    energy_pj_per_conversion: 0.5
+  vector_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+  weight_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+execution:
+  batch_size: 1
+  vector_reuse_factor: 1
+  weight_reuse_factor: 1
+  weight_stationary: true
+  pipeline:
+    stages: 1
+timing:
+  optical_latency_ns: 1
+  adc_latency_ns: 0
+  dac_latency_ns: 0
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 1
+provenance:
+  source_title: Higher-dimensional processing using a photonic tensor core with continuous-time data
+  source_url: https://www.nature.com/articles/s41566-023-01313-x
+  doi: 10.1038/s41566-023-01313-x
+  venue: Nature Photonics 17, 1080-1088 (2023)
+  claim_status: paper-reported continuous-time higher-dimensional photonic tensor core; ECG-convolution matmul-surrogate local model
+published_calibration:
+  architecture: Electro-optically controlled photonic tensor core with spatial, wavelength, and RF degrees of freedom
+  additional_metrics:
+    reported_parallelism: 100
+    rf_components: 50
+    wdm_channels: 2
+    reported_ecg_signals: 100
+    reported_cnn_accuracy_percent: 93.5
+    surrogate_mapping: m=3, k=3, n=100 follows the paper's 3x3 kernel and 3x100 ECG input framing; it is not a continuous-time RF/WDM simulation.
+source_quality:
+  reported_metrics:
+    - parallelism
+    - rf_components
+    - wavelength_channels
+    - accuracy
+  local_surrogate_type: continuous_time_tensor_core_ecg_matmul_surrogate
+  coverage:
+    throughput: derived
+    energy: not_reported
+    accuracy: reported
+    area: not_reported
+    precision: reported
+  confidence_grade: B
+  notes:
+    - The source reports a hardware photonic tensor core using spatial, wavelength, and RF degrees of freedom with parallelism of 100.
+    - Local dense matmul accounting does not model RF multiplexing, PCM memory programming, optical routing, or clinical ECG preprocessing.
+assumptions:
+  - The dense surrogate preserves the reported 3x3-kernel and 100-signal ECG demonstration scale.
+  - Local timing, energy, converter, and system movement values are generic PhotonicBench assumptions.
+  - Weight-stationary mode approximates fixed tensor-core weights for one local ECG convolution tile.

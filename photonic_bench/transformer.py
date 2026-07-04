@@ -69,6 +69,7 @@ _SYSTEM_TIER_SUM_FIELDS = (
     "write_energy_pj",
     "total_energy_pj",
     "transfer_time_ns",
+    "contention_adjusted_transfer_time_ns",
 )
 _SYSTEM_TIER_NAMES = ("sram", "intermediate", "off_chip")
 
@@ -304,6 +305,11 @@ def render_transformer_model_markdown(
                         "bandwidth_limited_serial_batch_latency_ns"
                     ]
                 ),
+                _format_metric(
+                    layer["local_model"]["system"][
+                        "contention_adjusted_serial_batch_latency_ns"
+                    ]
+                ),
             ]
         )
         + " |"
@@ -377,6 +383,8 @@ def render_transformer_model_markdown(
 | Bandwidth-limited serial latency (ns) | {_format_metric(system["bandwidth_limited_serial_batch_latency_ns"])} |
 | Bandwidth-limited overlap-adjusted latency (ns) | {_format_metric(timing["bandwidth_limited_overlap_adjusted_batch_latency_ns"])} |
 | Bandwidth-limited equivalent ops/s | {_format_metric(system["bandwidth_limited_serial_effective_equivalent_ops_per_second"])} |
+| Contention-adjusted serial latency (ns) | {_format_metric(system["contention_adjusted_serial_batch_latency_ns"])} |
+| Contention-adjusted equivalent ops/s | {_format_metric(system["contention_adjusted_serial_effective_equivalent_ops_per_second"])} |
 
 ## Model Components
 
@@ -399,8 +407,8 @@ def render_transformer_model_markdown(
 
 ## Layer Specs
 
-| Layer spec | Count | Summary JSON | Per-layer MACs | Weighted MACs | System pJ/op | BW-limited layer latency (ns) |
-| --- | ---: | --- | ---: | ---: | ---: | ---: |
+| Layer spec | Count | Summary JSON | Per-layer MACs | Weighted MACs | System pJ/op | BW-limited layer latency (ns) | Contention-adjusted layer latency (ns) |
+| --- | ---: | --- | ---: | ---: | ---: | ---: | ---: |
 {layer_rows}
 
 ## Aggregate Semantics
@@ -444,6 +452,10 @@ def transformer_layer_report_to_dict(
     bandwidth_limited_serial_batch_latency_ns = _sum_local_system(
         audits,
         "bandwidth_limited_batch_latency_ns",
+    )
+    contention_adjusted_serial_batch_latency_ns = _sum_local_system(
+        audits,
+        "contention_adjusted_batch_latency_ns",
     )
 
     return {
@@ -495,6 +507,7 @@ def transformer_layer_report_to_dict(
                 "profile": config.system.profile,
                 "profile_overrides": list(config.system.profile_overrides),
                 "memory_timing_mode": config.system.memory_timing_mode,
+                "contention": system_config_to_dict(config.system)["contention"],
                 **{field: _sum_local_system(audits, field) for field in _SYSTEM_SUM_FIELDS},
                 "tiers": {
                     tier: _aggregate_system_tier(audits, tier)
@@ -508,8 +521,21 @@ def transformer_layer_report_to_dict(
                     audits,
                     "effective_transfer_time_ns",
                 ),
+                "contention_adjusted_serial_transfer_time_ns": _sum_local_system(
+                    audits,
+                    "calibration_adjusted_effective_transfer_time_ns",
+                ),
+                "max_per_matmul_contention_adjusted_transfer_time_ns": (
+                    _max_local_system(
+                        audits,
+                        "calibration_adjusted_effective_transfer_time_ns",
+                    )
+                ),
                 "bandwidth_limited_serial_batch_latency_ns": (
                     bandwidth_limited_serial_batch_latency_ns
+                ),
+                "contention_adjusted_serial_batch_latency_ns": (
+                    contention_adjusted_serial_batch_latency_ns
                 ),
                 "system_energy_per_mac_pj": total_system_energy_pj / total_macs,
                 "system_energy_per_op_pj": (
@@ -530,10 +556,21 @@ def transformer_layer_report_to_dict(
                         bandwidth_limited_serial_batch_latency_ns,
                     )
                 ),
+                "contention_adjusted_serial_effective_macs_per_second": _per_second(
+                    total_macs,
+                    contention_adjusted_serial_batch_latency_ns,
+                ),
+                "contention_adjusted_serial_effective_equivalent_ops_per_second": (
+                    _per_second(
+                        total_equivalent_ops,
+                        contention_adjusted_serial_batch_latency_ns,
+                    )
+                ),
                 "note": (
                     "Summed from decomposed per-matmul system movement estimates. "
                     "This is a serial aggregate over explicit SRAM, intermediate, "
-                    "and off-chip tiers, not a fused memory scheduler."
+                    "and off-chip tiers with local contention assumptions, not a "
+                    "fused memory scheduler."
                 ),
             },
             "energy": {
@@ -666,6 +703,12 @@ def transformer_model_report_to_dict(
         "system",
         "bandwidth_limited_serial_batch_latency_ns",
     ) + extra["system"]["bandwidth_limited_serial_batch_latency_ns"]
+    contention_adjusted_serial_batch_latency_ns = _weighted_layer_number(
+        audited_layers,
+        "local_model",
+        "system",
+        "contention_adjusted_serial_batch_latency_ns",
+    ) + extra["system"]["contention_adjusted_serial_batch_latency_ns"]
     overlap_timing = _model_overlap_timing(
         config,
         serial_batch_latency_ns=serial_batch_latency_ns,
@@ -749,6 +792,7 @@ def transformer_model_report_to_dict(
                 "profile": config.system.profile,
                 "profile_overrides": list(config.system.profile_overrides),
                 "memory_timing_mode": config.system.memory_timing_mode,
+                "contention": system_config_to_dict(config.system)["contention"],
                 **{
                     field: (
                         _weighted_layer_number(
@@ -783,8 +827,28 @@ def transformer_model_report_to_dict(
                     "system",
                     "serial_transfer_time_ns",
                 ),
+                "contention_adjusted_serial_transfer_time_ns": (
+                    _weighted_layer_number(
+                        audited_layers,
+                        "local_model",
+                        "system",
+                        "contention_adjusted_serial_transfer_time_ns",
+                    )
+                    + extra["system"]["contention_adjusted_serial_transfer_time_ns"]
+                ),
+                "max_per_layer_contention_adjusted_transfer_time_ns": (
+                    _max_layer_number(
+                        audited_layers,
+                        "local_model",
+                        "system",
+                        "contention_adjusted_serial_transfer_time_ns",
+                    )
+                ),
                 "bandwidth_limited_serial_batch_latency_ns": (
                     bandwidth_limited_serial_batch_latency_ns
+                ),
+                "contention_adjusted_serial_batch_latency_ns": (
+                    contention_adjusted_serial_batch_latency_ns
                 ),
                 "system_energy_per_mac_pj": total_system_energy_pj / total_macs,
                 "system_energy_per_op_pj": (
@@ -805,10 +869,21 @@ def transformer_model_report_to_dict(
                         bandwidth_limited_serial_batch_latency_ns,
                     )
                 ),
+                "contention_adjusted_serial_effective_macs_per_second": _per_second(
+                    total_macs,
+                    contention_adjusted_serial_batch_latency_ns,
+                ),
+                "contention_adjusted_serial_effective_equivalent_ops_per_second": (
+                    _per_second(
+                        total_equivalent_ops,
+                        contention_adjusted_serial_batch_latency_ns,
+                    )
+                ),
                 "note": (
                     "Weighted sum of transformer-layer system movement estimates "
                     "plus explicit output-projection and tensor-memory movement "
                     "assumptions over SRAM, intermediate, and off-chip tiers. "
+                    "Contention fields remain local shared-link assumptions. "
                     "This is serial accounting, not a measured full-model scheduler."
                 ),
             },
@@ -1458,13 +1533,25 @@ def _model_extra_accounting(
     )
     tensor_movement_energy = tensor_system["total_movement_energy_pj"]
     tensor_transfer_time_ns = tensor_system["effective_transfer_time_ns"]
+    tensor_adjusted_transfer_time_ns = tensor_system[
+        "calibration_adjusted_effective_transfer_time_ns"
+    ]
     output_bandwidth_latency = float(
         output_system.get("bandwidth_limited_batch_latency_ns") or 0.0
+    )
+    output_contention_latency = float(
+        output_system.get("contention_adjusted_batch_latency_ns")
+        or output_bandwidth_latency
     )
     output_transfer_time = float(
         output_system.get("effective_transfer_time_ns")
         or output_system.get("max_transfer_time_ns")
         or 0.0
+    )
+    output_adjusted_transfer_time = float(
+        output_system.get("calibration_adjusted_effective_transfer_time_ns")
+        or output_system.get("contention_adjusted_effective_transfer_time_ns")
+        or output_transfer_time
     )
 
     return {
@@ -1491,8 +1578,14 @@ def _model_extra_accounting(
             "total_system_energy_pj": output_system_total + tensor_movement_energy,
             "tiers": extra_system_tiers,
             "serial_transfer_time_ns": output_transfer_time + tensor_transfer_time_ns,
+            "contention_adjusted_serial_transfer_time_ns": (
+                output_adjusted_transfer_time + tensor_adjusted_transfer_time_ns
+            ),
             "bandwidth_limited_serial_batch_latency_ns": (
                 output_bandwidth_latency + tensor_transfer_time_ns
+            ),
+            "contention_adjusted_serial_batch_latency_ns": (
+                output_contention_latency + tensor_adjusted_transfer_time_ns
             ),
         },
         "activation_memory_traffic": tensor_memory,
@@ -1756,14 +1849,27 @@ def _tensor_memory_system(
 ) -> dict[str, Any]:
     read_bytes = int(tensor_memory["total_tensor_read_bytes"])
     write_bytes = int(tensor_memory["total_tensor_write_bytes"])
-    sram = _tier_movement("sram", config.system.sram, read_bytes, write_bytes)
-    intermediate = _tier_movement(
-        "intermediate",
-        config.system.intermediate,
+    sram = _tier_movement(
+        "sram",
+        config.system.sram,
+        config.system.contention,
         read_bytes,
         write_bytes,
     )
-    off_chip = _tier_movement("off_chip", config.system.off_chip, read_bytes, write_bytes)
+    intermediate = _tier_movement(
+        "intermediate",
+        config.system.intermediate,
+        config.system.contention,
+        read_bytes,
+        write_bytes,
+    )
+    off_chip = _tier_movement(
+        "off_chip",
+        config.system.off_chip,
+        config.system.contention,
+        read_bytes,
+        write_bytes,
+    )
     tiers = {
         "sram": sram,
         "intermediate": intermediate,
@@ -1777,23 +1883,53 @@ def _tensor_memory_system(
         if config.system.memory_timing_mode == "serialized"
         else max_transfer_time
     )
+    contention_adjusted_max_transfer_time = max(
+        tier["contention_adjusted_transfer_time_ns"] for tier in tiers.values()
+    )
+    contention_adjusted_serial_transfer_time = sum(
+        tier["contention_adjusted_transfer_time_ns"] for tier in tiers.values()
+    )
+    contention_adjusted_effective_transfer_time = (
+        contention_adjusted_serial_transfer_time
+        if config.system.memory_timing_mode == "serialized"
+        else contention_adjusted_max_transfer_time
+    )
+    calibration_adjusted_effective_transfer_time = (
+        contention_adjusted_effective_transfer_time
+        * (1.0 + config.system.contention.calibration_overhead_fraction)
+    )
     return {
         "tiers": tiers,
         "total_movement_energy_pj": total_movement,
         "serial_transfer_time_ns": serial_transfer_time,
         "effective_transfer_time_ns": effective_transfer_time,
+        "contention_adjusted_serial_transfer_time_ns": (
+            contention_adjusted_serial_transfer_time
+        ),
+        "contention_adjusted_effective_transfer_time_ns": (
+            contention_adjusted_effective_transfer_time
+        ),
+        "calibration_adjusted_effective_transfer_time_ns": (
+            calibration_adjusted_effective_transfer_time
+        ),
     }
 
 
 def _tier_movement(
     name: str,
     tier,
+    contention,
     read_bytes: int,
     write_bytes: int,
 ) -> dict[str, Any]:
     tier_read_bytes = read_bytes * tier.read_fraction
     tier_write_bytes = write_bytes * tier.write_fraction
     total_bytes = tier_read_bytes + tier_write_bytes
+    effective_bandwidth = (
+        tier.bandwidth_bytes_per_ns
+        * contention.arbitration_efficiency
+        / contention.shared_bandwidth_clients
+    )
     return {
         "name": name,
         "read_bytes": tier_read_bytes,
@@ -1806,6 +1942,7 @@ def _tier_movement(
             + tier_write_bytes * tier.write_energy_pj_per_byte
         ),
         "transfer_time_ns": total_bytes / tier.bandwidth_bytes_per_ns,
+        "contention_adjusted_transfer_time_ns": total_bytes / effective_bandwidth,
     }
 
 
@@ -2097,8 +2234,8 @@ def _model_aggregate_semantics() -> dict[str, str]:
             "Layer system movement estimates are multiplied by layer count and "
             "summed over explicit SRAM, intermediate/cache, and off-chip tiers. "
             "Output projection and tensor-memory movement are added when configured. "
-            "Bandwidth-limited timing is serial accounting, not a measured "
-            "full-model scheduler."
+            "Bandwidth-limited and contention-adjusted timing are serial "
+            "accounting, not a measured full-model scheduler."
         ),
         "timing": (
             "serial_* timing fields assume weighted layer summaries execute one "
@@ -2182,8 +2319,8 @@ def _aggregate_semantics() -> dict[str, str]:
         "system": (
             "System movement energy/timing is summed from decomposed card "
             "estimates over explicit SRAM, intermediate/cache, and off-chip tiers. "
-            "Bandwidth-limited serial timing is a sum of decomposed bandwidth-limited batch "
-            "latencies, not a fused scheduler claim."
+            "Bandwidth-limited and contention-adjusted serial timing are sums "
+            "of decomposed batch latencies, not fused scheduler claims."
         ),
         "timing": (
             "serial_* timing fields assume the decomposed matmuls execute one "
@@ -2210,8 +2347,9 @@ def _aggregate_assumptions(config: TransformerLayerConfig) -> list[str]:
             "model card values."
         ),
         (
-            "Layer system movement energy and bandwidth-limited timing are sums "
-            "of decomposed local model card values."
+            "Layer system movement energy, bandwidth-limited timing, and "
+            "contention-adjusted timing are sums of decomposed local model card "
+            "values."
         ),
         (
             "Layer serial timing is a sum of decomposed batch latencies, not a "

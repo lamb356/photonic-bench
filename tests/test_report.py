@@ -24,20 +24,27 @@ def test_render_markdown_exposes_assumptions_and_totals() -> None:
     assert "| Total interface traffic | 56 bytes |" in markdown
     assert "| Equivalent ops per interface byte | 2.28571 |" in markdown
     assert "## Multi-Tier System Movement" in markdown
-    assert "| SRAM | 24 bytes | 32 bytes | 1.120 pJ | 0.055 ns | 1024.000 bytes/ns |" in markdown
     assert (
-        "| Intermediate/cache | 24 bytes | 32 bytes | 11.200 pJ | 0.219 ns | 256.000 bytes/ns |"
+        "| SRAM | 24 bytes | 32 bytes | 1.120 pJ | 0.055 ns | 0.055 ns | 1024.000 bytes/ns |"
         in markdown
     )
     assert (
-        "| Off-chip/DRAM | 24 bytes | 32 bytes | 560.000 pJ | 3.500 ns | 16.000 bytes/ns |"
+        "| Intermediate/cache | 24 bytes | 32 bytes | 11.200 pJ | 0.219 ns | 0.219 ns | 256.000 bytes/ns |"
+        in markdown
+    )
+    assert (
+        "| Off-chip/DRAM | 24 bytes | 32 bytes | 560.000 pJ | 3.500 ns | 3.500 ns | 16.000 bytes/ns |"
         in markdown
     )
     assert "| System profile | default |" in markdown
     assert "| Profile tier overrides | none |" in markdown
+    assert "| Shared bandwidth clients | 1 |" in markdown
     assert "| Total movement energy | 572.320 pJ |" in markdown
     assert "| Total system energy | 593.568 pJ |" in markdown
+    assert "| Bandwidth-limited tier | compute |" in markdown
     assert "| Bandwidth-limited batch latency | 5.000 ns |" in markdown
+    assert "| Contention-limited tier | compute |" in markdown
+    assert "| Contention-adjusted batch latency | 5.000 ns |" in markdown
     assert "## Assumptions" in markdown
     assert "optical MAC energy" in markdown
     assert "laser wall-plug efficiency" in markdown

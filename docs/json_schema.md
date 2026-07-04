@@ -83,6 +83,10 @@ system:
     bandwidth_bytes_per_ns: 16
     read_fraction: 1.0
     write_fraction: 1.0
+  contention:
+    shared_bandwidth_clients: 1.0
+    arbitration_efficiency: 1.0
+    calibration_overhead_fraction: 0.0
 ```
 
 Supported profile names are `default`, `on_chip_sram`, `hbm`, `ddr`, and
@@ -92,9 +96,18 @@ overridden tier names or timing-mode names appear in
 `model_inputs.system.profile_overrides` and
 `local_model.system.profile_overrides`.
 
+`model_inputs.system.contention` records local shared-link assumptions:
+`shared_bandwidth_clients` divides nominal tier bandwidth by the number of
+active clients, `arbitration_efficiency` multiplies the remaining bandwidth by
+an arbitration efficiency in `(0, 1]`, and
+`calibration_overhead_fraction` applies a final guardband to adjusted transfer
+time. These values are local modeling assumptions and are not paper-reported
+hardware metrics unless a future measured-system schema says so explicitly.
+
 `local_model.system.tiers.sram`, `local_model.system.tiers.intermediate`, and
 `local_model.system.tiers.off_chip` report the tier read bytes, write bytes,
-movement energy, bandwidth, and transfer time.
+movement energy, nominal bandwidth, effective bandwidth under contention,
+nominal transfer time, and contention-adjusted transfer time.
 `local_model.system.total_movement_energy_pj` is added to
 `local_model.system.local_compute_and_conversion_energy_pj` to produce
 `local_model.system.total_system_energy_pj`. The legacy
@@ -108,6 +121,15 @@ transfer time (`overlapped`) or the sum of tier transfer times (`serialized`).
 existing batch latency and that effective transfer time, and
 `local_model.system.bandwidth_limited_equivalent_ops_per_second` divides the
 card's equivalent ops by that bandwidth-limited latency.
+
+Contention-adjusted timing uses the same overlapped/serialized timing mode after
+reducing each tier's effective bandwidth by the local contention assumptions.
+`local_model.system.calibration_adjusted_effective_transfer_time_ns` then
+applies the calibration/control overhead guardband.
+`local_model.system.contention_adjusted_batch_latency_ns` is the maximum of the
+card's batch latency and that guardbanded transfer time, and
+`local_model.system.contention_adjusted_equivalent_ops_per_second` divides
+equivalent ops by the adjusted latency.
 
 ## Aggregate Transformer-Layer JSON
 
@@ -180,8 +202,11 @@ cards where additive. Transformer-layer aggregate JSON sums per-matmul SRAM and
 off-chip movement energy, recomputes system energy per MAC/op from aggregate
 workload totals, and reports
 `bandwidth_limited_serial_batch_latency_ns` as the sum of decomposed
-bandwidth-limited batch latencies. This is a serial accounting artifact, not a
-fused memory scheduler or complete memory hierarchy.
+bandwidth-limited batch latencies. It also reports
+`contention_adjusted_serial_batch_latency_ns` and
+`contention_adjusted_serial_effective_equivalent_ops_per_second` as serial sums
+of the decomposed local contention-adjusted card timing. This is a serial
+accounting artifact, not a fused memory scheduler or complete memory hierarchy.
 
 Timing fields are explicitly serial summaries. `serial_batch_latency_ns` sums
 the per-matmul `batch_latency_ns` values. The effective layer throughputs divide
@@ -347,6 +372,9 @@ transformer_model:
 | `model_inputs.device.*dac.energy_pj_per_conversion` | pJ/conversion |
 | `model_inputs.system.profile` | profile name |
 | `model_inputs.system.profile_overrides[]` | overridden tier names |
+| `model_inputs.system.contention.shared_bandwidth_clients` | count |
+| `model_inputs.system.contention.arbitration_efficiency` | unitless fraction |
+| `model_inputs.system.contention.calibration_overhead_fraction` | unitless fraction |
 | `model_inputs.system.*.read_energy_pj_per_byte` | pJ/byte |
 | `model_inputs.system.*.write_energy_pj_per_byte` | pJ/byte |
 | `model_inputs.system.*.bandwidth_bytes_per_ns` | bytes/ns |
@@ -367,7 +395,9 @@ transformer_model:
 | `local_model.system.tiers.*.*_bytes` | bytes |
 | `local_model.system.tiers.*.*_energy_pj` | pJ |
 | `local_model.system.tiers.*.bandwidth_bytes_per_ns` | bytes/ns |
+| `local_model.system.tiers.*.effective_bandwidth_bytes_per_ns` | bytes/ns |
 | `local_model.system.tiers.*.transfer_time_ns` | ns |
+| `local_model.system.tiers.*.contention_adjusted_transfer_time_ns` | ns |
 | `local_model.system.total_movement_energy_pj` | pJ |
 | `local_model.system.total_system_energy_pj` | pJ |
 | `local_model.system.system_energy_per_mac_pj` | pJ/MAC |
@@ -375,8 +405,12 @@ transformer_model:
 | `local_model.system.movement_energy_share` | unitless fraction |
 | `local_model.system.bandwidth_limited_batch_latency_ns` | ns |
 | `local_model.system.bandwidth_limited_equivalent_ops_per_second` | equivalent ops/second |
+| `local_model.system.contention_adjusted_batch_latency_ns` | ns |
+| `local_model.system.contention_adjusted_equivalent_ops_per_second` | equivalent ops/second |
 | `local_model.system.bandwidth_limited_serial_batch_latency_ns` | ns |
 | `local_model.system.bandwidth_limited_serial_effective_equivalent_ops_per_second` | equivalent ops/second |
+| `local_model.system.contention_adjusted_serial_batch_latency_ns` | ns |
+| `local_model.system.contention_adjusted_serial_effective_equivalent_ops_per_second` | equivalent ops/second |
 | `local_model.timing.*_ns` | ns |
 | `local_model.timing.serial_batch_latency_ns` | ns |
 | `local_model.timing.serial_effective_macs_per_second` | MACs/second |

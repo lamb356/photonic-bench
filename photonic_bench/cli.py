@@ -63,6 +63,8 @@ def main(argv: list[str] | None = None) -> int:
                 args.host,
                 args.port,
             )
+        if args.command == "inspect-config":
+            return _inspect_config(args.config, args.kind, args.json)
         if args.command == "system-profiles":
             return _system_profiles(args.json)
         if args.command == "verify-artifacts":
@@ -224,6 +226,26 @@ def _build_parser() -> argparse.ArgumentParser:
         "--json",
         action="store_true",
         help="Emit machine-readable profile data instead of a Markdown table",
+    )
+    inspect = subparsers.add_parser(
+        "inspect-config",
+        help="Validate a config and show normalized workload/system assumptions",
+    )
+    inspect.add_argument(
+        "config",
+        type=Path,
+        help="Path to a PhotonicBench YAML config",
+    )
+    inspect.add_argument(
+        "--kind",
+        choices=("auto", "matmul", "transformer-layer", "transformer-model"),
+        default="auto",
+        help="Config kind to validate; auto tries all supported loaders",
+    )
+    inspect.add_argument(
+        "--json",
+        action="store_true",
+        help="Emit machine-readable inspection data",
     )
     return parser
 
@@ -438,6 +460,88 @@ def _verify_artifacts(
     return 1
 
 
+def _inspect_config(config_path: Path, kind: str, json_output: bool) -> int:
+    inspection = _load_config_for_inspection(config_path, kind)
+    if json_output:
+        print(json.dumps(inspection, indent=2))
+        return 0
+
+    system = inspection["system"]
+    contention = system["contention"]
+    rows = [
+        ("Path", inspection["path"]),
+        ("Kind", inspection["kind"]),
+        ("Benchmark", inspection["benchmark"]),
+        ("Workload", inspection["workload"]),
+        ("System profile", system["profile"]),
+        ("Profile overrides", ", ".join(system["profile_overrides"]) or "none"),
+        ("Memory timing", system["memory_timing_mode"]),
+        ("Shared bandwidth clients", contention["shared_bandwidth_clients"]),
+        ("Arbitration efficiency", contention["arbitration_efficiency"]),
+        ("Calibration/control overhead", contention["calibration_overhead_fraction"]),
+    ]
+    print("# PhotonicBench Config Inspection")
+    print()
+    print("| Field | Value |")
+    print("| --- | --- |")
+    for label, value in rows:
+        print(f"| {label} | {value} |")
+    return 0
+
+
+def _load_config_for_inspection(config_path: Path, kind: str) -> dict[str, object]:
+    loaders = [
+        ("matmul", load_config),
+        ("transformer-layer", load_transformer_layer_config),
+        ("transformer-model", load_transformer_model_config),
+    ]
+    if kind != "auto":
+        loaders = [(label, loader) for label, loader in loaders if label == kind]
+
+    errors = []
+    for label, loader in loaders:
+        try:
+            config = loader(config_path)
+        except ValueError as exc:
+            errors.append(f"{label}: {exc}")
+            continue
+        return _inspection_payload(config_path, label, config)
+
+    joined = "; ".join(errors)
+    expected = kind if kind != "auto" else "any supported"
+    raise ValueError(
+        f"{config_path} did not validate as {expected} PhotonicBench config "
+        f"({joined})"
+    )
+
+
+def _inspection_payload(config_path: Path, kind: str, config) -> dict[str, object]:
+    return {
+        "path": str(config_path),
+        "kind": kind,
+        "benchmark": config.benchmark.name,
+        "workload": _inspection_workload(kind, config),
+        "system": system_config_to_dict(config.system),
+    }
+
+
+def _inspection_workload(kind: str, config) -> str:
+    if kind == "matmul":
+        return f"matmul {config.workload.m}x{config.workload.k}x{config.workload.n}"
+    if kind == "transformer-layer":
+        shape = config.transformer_layer
+        return (
+            f"{shape.layer_type} layer B={shape.batch_size}, "
+            f"S={shape.sequence_length}, H={shape.hidden_size}, "
+            f"heads={shape.num_heads}, mlp={shape.mlp_intermediate_size}"
+        )
+    layer_count = sum(layer.count for layer in config.layers)
+    return (
+        f"transformer model with {len(config.layers)} layer spec(s), "
+        f"{layer_count} layer(s)"
+    )
+
+
 def _system_profiles(json_output: bool) -> int:
     rows = []
     for profile in SYSTEM_PROFILES.values():
@@ -455,10 +559,14 @@ def _system_profiles(json_output: bool) -> int:
         print(json.dumps({"profiles": rows}, indent=2))
         return 0
 
-    print("| Profile | Timing | SRAM pJ/B | Intermediate pJ/B | Off-chip pJ/B | Description |")
-    print("| --- | --- | ---: | ---: | ---: | --- |")
+    print(
+        "| Profile | Timing | Shared clients | Arbitration | Calibration overhead | "
+        "SRAM pJ/B | Intermediate pJ/B | Off-chip pJ/B | Description |"
+    )
+    print("| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |")
     for row in rows:
         system = row["system"]
+        contention = system["contention"]
         sram = system["sram"]
         intermediate = system["intermediate"]
         off_chip = system["off_chip"]
@@ -466,6 +574,9 @@ def _system_profiles(json_output: bool) -> int:
             "| "
             f"{row['name']} | "
             f"{row['memory_timing_mode']} | "
+            f"{contention['shared_bandwidth_clients']:.6g} | "
+            f"{contention['arbitration_efficiency']:.6g} | "
+            f"{contention['calibration_overhead_fraction']:.6g} | "
             f"{_tier_energy_label(sram)} | "
             f"{_tier_energy_label(intermediate)} | "
             f"{_tier_energy_label(off_chip)} | "

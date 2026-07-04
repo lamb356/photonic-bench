@@ -139,6 +139,15 @@ def _local_model(result: BenchmarkResult) -> dict[str, Any]:
             "profile": result.config.system.profile,
             "profile_overrides": list(result.config.system.profile_overrides),
             "memory_timing_mode": result.system.memory_timing_mode,
+            "contention": {
+                "shared_bandwidth_clients": result.system.shared_bandwidth_clients,
+                "arbitration_efficiency": (
+                    result.system.bandwidth_arbitration_efficiency
+                ),
+                "calibration_overhead_fraction": (
+                    result.system.calibration_overhead_fraction
+                ),
+            },
             "tiers": {
                 "sram": _system_tier_result(result.system.sram),
                 "intermediate": _system_tier_result(result.system.intermediate),
@@ -155,6 +164,18 @@ def _local_model(result: BenchmarkResult) -> dict[str, Any]:
             "max_transfer_time_ns": result.system.max_transfer_time_ns,
             "serial_transfer_time_ns": result.system.serial_transfer_time_ns,
             "effective_transfer_time_ns": result.system.effective_transfer_time_ns,
+            "contention_adjusted_max_transfer_time_ns": (
+                result.system.contention_adjusted_max_transfer_time_ns
+            ),
+            "contention_adjusted_serial_transfer_time_ns": (
+                result.system.contention_adjusted_serial_transfer_time_ns
+            ),
+            "contention_adjusted_effective_transfer_time_ns": (
+                result.system.contention_adjusted_effective_transfer_time_ns
+            ),
+            "calibration_adjusted_effective_transfer_time_ns": (
+                result.system.calibration_adjusted_effective_transfer_time_ns
+            ),
             "bandwidth_limited_batch_latency_ns": (
                 result.system.bandwidth_limited_batch_latency_ns
             ),
@@ -162,11 +183,19 @@ def _local_model(result: BenchmarkResult) -> dict[str, Any]:
                 result.system.bandwidth_limited_equivalent_ops_per_second
             ),
             "bandwidth_limited_tier": result.system.bandwidth_limited_tier,
+            "contention_adjusted_batch_latency_ns": (
+                result.system.contention_adjusted_batch_latency_ns
+            ),
+            "contention_adjusted_equivalent_ops_per_second": (
+                result.system.contention_adjusted_equivalent_ops_per_second
+            ),
+            "contention_limited_tier": result.system.contention_limited_tier,
             "note": (
                 "System movement energy is a local estimate over explicit SRAM, "
-                "intermediate, and off-chip tiers. It is added separately from "
-                "photonic core compute/conversion energy and is not a published "
-                "measurement."
+                "intermediate, and off-chip tiers. Contention and calibration "
+                "guardband fields are local shared-link assumptions. These "
+                "values are added separately from photonic core compute/"
+                "conversion energy and are not a published measurement."
             ),
         },
         "energy": {
@@ -217,7 +246,11 @@ def _system_tier_result(tier) -> dict[str, float | str]:
         "write_energy_pj": tier.write_energy_pj,
         "total_energy_pj": tier.total_energy_pj,
         "bandwidth_bytes_per_ns": tier.bandwidth_bytes_per_ns,
+        "effective_bandwidth_bytes_per_ns": tier.effective_bandwidth_bytes_per_ns,
         "transfer_time_ns": tier.transfer_time_ns,
+        "contention_adjusted_transfer_time_ns": (
+            tier.contention_adjusted_transfer_time_ns
+        ),
         "read_fraction": tier.read_fraction,
         "write_fraction": tier.write_fraction,
     }

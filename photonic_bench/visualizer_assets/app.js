@@ -1066,6 +1066,55 @@
       bandwidth_limited_latency_ns: values.bandwidth_limited_latency_ns,
       bandwidth_limited_throughput_equivalent_ops_per_second:
         values.bandwidth_limited_throughput_equivalent_ops_per_second,
+      contention_adjusted_latency_ns:
+        values.contention_adjusted_latency_ns ??
+        optionalNumber(
+          localModel,
+          sourcePath,
+          "system",
+          "contention_adjusted_batch_latency_ns"
+        ) ??
+        optionalNumber(
+          localModel,
+          sourcePath,
+          "system",
+          "contention_adjusted_serial_batch_latency_ns"
+        ),
+      contention_adjusted_throughput_equivalent_ops_per_second:
+        values.contention_adjusted_throughput_equivalent_ops_per_second ??
+        optionalNumber(
+          localModel,
+          sourcePath,
+          "system",
+          "contention_adjusted_equivalent_ops_per_second"
+        ) ??
+        optionalNumber(
+          localModel,
+          sourcePath,
+          "system",
+          "contention_adjusted_serial_effective_equivalent_ops_per_second"
+        ),
+      shared_bandwidth_clients: optionalNumber(
+        localModel,
+        sourcePath,
+        "system",
+        "contention",
+        "shared_bandwidth_clients"
+      ),
+      bandwidth_arbitration_efficiency: optionalNumber(
+        localModel,
+        sourcePath,
+        "system",
+        "contention",
+        "arbitration_efficiency"
+      ),
+      calibration_overhead_fraction: optionalNumber(
+        localModel,
+        sourcePath,
+        "system",
+        "contention",
+        "calibration_overhead_fraction"
+      ),
       provenance_status: provenanceStatusValue,
       has_published_reference: hasPublishedReference,
       source_quality_grade: sourceQuality.grade,
@@ -1470,27 +1519,67 @@
           escapeHtml(formatBytes(tier.write_bytes)),
           escapeHtml(formatPj(tier.total_energy_pj)),
           escapeHtml(formatNs(tier.transfer_time_ns)),
-          escapeHtml(`${formatNumber(tier.bandwidth_bytes_per_ns)} bytes/ns`),
+          escapeHtml(formatNs(tier.contention_adjusted_transfer_time_ns)),
+          escapeHtml(
+            `${formatNumber(
+              tier.effective_bandwidth_bytes_per_ns ?? tier.bandwidth_bytes_per_ns
+            )} bytes/ns`
+          ),
         ];
       });
+    const contention = system.contention || {};
     const summaryRows = [
       ["System profile", system.profile || "n/a"],
       ["Profile tier overrides", formatProfileOverrides(system.profile_overrides)],
       ["Memory timing mode", system.memory_timing_mode || "n/a"],
+      ["Shared bandwidth clients", formatNumber(contention.shared_bandwidth_clients)],
+      ["Arbitration efficiency", formatPercent(contention.arbitration_efficiency)],
+      [
+        "Calibration/control overhead",
+        formatPercent(contention.calibration_overhead_fraction),
+      ],
       ["Local compute/conversion energy", formatPj(system.local_compute_and_conversion_energy_pj)],
       ["Total movement energy", formatPj(system.total_movement_energy_pj)],
       ["Total system energy", formatPj(system.total_system_energy_pj)],
       ["System energy/op", formatPj(system.system_energy_per_op_pj)],
       ["Movement share", formatPercent(system.movement_energy_share)],
-      ["Max transfer time", formatNs(system.max_transfer_time_ns || system.serial_transfer_time_ns)],
+      ["Max transfer time", formatNs(system.max_transfer_time_ns ?? system.serial_transfer_time_ns)],
       ["Serialized transfer time", formatNs(system.serial_transfer_time_ns)],
-      ["Effective transfer time", formatNs(system.effective_transfer_time_ns || system.serial_transfer_time_ns)],
-      [timingLabel, formatNs(system.bandwidth_limited_batch_latency_ns || system.bandwidth_limited_serial_batch_latency_ns)],
+      ["Effective transfer time", formatNs(system.effective_transfer_time_ns ?? system.serial_transfer_time_ns)],
+      [
+        "Contention-adjusted transfer",
+        formatNs(
+          system.contention_adjusted_effective_transfer_time_ns ??
+            system.contention_adjusted_serial_transfer_time_ns
+        ),
+      ],
+      [
+        "Calibration-adjusted transfer",
+        formatNs(
+          system.calibration_adjusted_effective_transfer_time_ns ??
+            system.contention_adjusted_serial_transfer_time_ns
+        ),
+      ],
+      [timingLabel, formatNs(system.bandwidth_limited_batch_latency_ns ?? system.bandwidth_limited_serial_batch_latency_ns)],
       [
         "Bandwidth-limited throughput",
         formatThroughput(
-          system.bandwidth_limited_equivalent_ops_per_second ||
+          system.bandwidth_limited_equivalent_ops_per_second ??
             system.bandwidth_limited_serial_effective_equivalent_ops_per_second
+        ),
+      ],
+      [
+        "Contention-adjusted latency",
+        formatNs(
+          system.contention_adjusted_batch_latency_ns ??
+            system.contention_adjusted_serial_batch_latency_ns
+        ),
+      ],
+      [
+        "Contention-adjusted throughput",
+        formatThroughput(
+          system.contention_adjusted_equivalent_ops_per_second ??
+            system.contention_adjusted_serial_effective_equivalent_ops_per_second
         ),
       ],
     ];
@@ -1505,7 +1594,8 @@
             { label: "Write bytes", num: true },
             { label: "Movement energy", num: true },
             { label: "Transfer time", num: true },
-            { label: "Bandwidth", num: true },
+            { label: "Adjusted transfer", num: true },
+            { label: "Effective bandwidth", num: true },
           ],
           tierRows,
           "comparison-table"
@@ -2076,6 +2166,18 @@
         "Effective transfer time",
         (summary) => formatNs(summary.effective_transfer_time_ns),
       ],
+      [
+        "Shared bandwidth clients",
+        (summary) => formatNumber(summary.shared_bandwidth_clients),
+      ],
+      [
+        "Arbitration efficiency",
+        (summary) => formatPercent(summary.bandwidth_arbitration_efficiency),
+      ],
+      [
+        "Calibration/control overhead",
+        (summary) => formatPercent(summary.calibration_overhead_fraction),
+      ],
       ["Movement energy", (summary) => formatPj(summary.movement_energy_pj)],
       ["Movement share", (summary) => formatPercent(summary.movement_energy_share)],
       ["Latency label", (summary) => summary.latency_label],
@@ -2087,6 +2189,12 @@
       ["Bandwidth-limited throughput", (summary) =>
         formatThroughput(
           summary.bandwidth_limited_throughput_equivalent_ops_per_second
+        )],
+      ["Contention-adjusted latency", (summary) =>
+        formatNs(summary.contention_adjusted_latency_ns)],
+      ["Contention-adjusted throughput", (summary) =>
+        formatThroughput(
+          summary.contention_adjusted_throughput_equivalent_ops_per_second
         )],
       ["Interface traffic", (summary) => formatBytes(summary.memory_traffic_bytes)],
       ["Operational intensity", (summary) =>
@@ -2176,6 +2284,19 @@
         direction: "higher",
       },
       {
+        label: "Contention-adjusted latency",
+        get: (summary) => summary.contention_adjusted_latency_ns,
+        format: formatNs,
+        direction: "lower",
+      },
+      {
+        label: "Contention-adjusted throughput",
+        get: (summary) =>
+          summary.contention_adjusted_throughput_equivalent_ops_per_second,
+        format: formatThroughput,
+        direction: "higher",
+      },
+      {
         label: "Interface traffic",
         get: (summary) => summary.memory_traffic_bytes,
         format: formatBytes,
@@ -2222,6 +2343,20 @@
           summary.bandwidth_limited_latency_ns ?? summary.latency_ns,
         xFormat: formatOpsPerByte,
         yFormat: formatNs,
+      },
+      "contention-throughput": {
+        label: "Contention-adjusted throughput",
+        xLabel: "System pJ/op",
+        yLabel: "Contention-adjusted eq ops/s",
+        xDirection: "lower",
+        yDirection: "higher",
+        xGet: (summary) => summary.system_energy_per_op_pj ?? summary.energy_per_op_pj,
+        yGet: (summary) =>
+          summary.contention_adjusted_throughput_equivalent_ops_per_second ??
+          summary.bandwidth_limited_throughput_equivalent_ops_per_second ??
+          summary.throughput_equivalent_ops_per_second,
+        xFormat: formatPj,
+        yFormat: formatThroughput,
       },
     };
   }
@@ -2663,6 +2798,77 @@
     `;
   }
 
+  function renderContentionInsight(artifacts) {
+    const withAdjusted = artifacts.filter((artifact) =>
+      Number.isFinite(Number(artifact.summary.contention_adjusted_latency_ns))
+    );
+    if (!withAdjusted.length) {
+      return "";
+    }
+    const worstLatency = bestArtifactForSpec(withAdjusted, {
+      label: "Contention-adjusted latency",
+      get: (summary) => summary.contention_adjusted_latency_ns,
+      format: formatNs,
+      direction: "lower",
+    });
+    const bestThroughput = bestArtifactForSpec(withAdjusted, {
+      label: "Contention-adjusted throughput",
+      get: (summary) =>
+        summary.contention_adjusted_throughput_equivalent_ops_per_second,
+      format: formatThroughput,
+      direction: "higher",
+    });
+    const highestClientCount = [...withAdjusted].sort(
+      (left, right) =>
+        Number(right.summary.shared_bandwidth_clients || 0) -
+        Number(left.summary.shared_bandwidth_clients || 0)
+    )[0];
+    const highestGuardband = [...withAdjusted].sort(
+      (left, right) =>
+        Number(right.summary.calibration_overhead_fraction || 0) -
+        Number(left.summary.calibration_overhead_fraction || 0)
+    )[0];
+    return `
+      <section class="panel">
+        <h3>Contention Insight</h3>
+        <div class="metric-grid">
+          ${metric(
+            "Best adjusted throughput",
+            bestThroughput ? bestThroughput.summary.benchmark_name : "n/a",
+            bestThroughput
+              ? formatThroughput(
+                  bestThroughput.summary
+                    .contention_adjusted_throughput_equivalent_ops_per_second
+                )
+              : ""
+          )}
+          ${metric(
+            "Lowest adjusted latency",
+            worstLatency ? worstLatency.summary.benchmark_name : "n/a",
+            worstLatency
+              ? formatNs(worstLatency.summary.contention_adjusted_latency_ns)
+              : ""
+          )}
+          ${metric(
+            "Most shared clients",
+            highestClientCount ? highestClientCount.summary.benchmark_name : "n/a",
+            highestClientCount
+              ? formatNumber(highestClientCount.summary.shared_bandwidth_clients)
+              : ""
+          )}
+          ${metric(
+            "Largest guardband",
+            highestGuardband ? highestGuardband.summary.benchmark_name : "n/a",
+            highestGuardband
+              ? formatPercent(highestGuardband.summary.calibration_overhead_fraction)
+              : ""
+          )}
+        </div>
+        <div class="notes"><p>Contention metrics are local shared-link assumptions: nominal tier bandwidth is reduced by client count and arbitration efficiency, then calibration/control guardband is applied to transfer timing.</p></div>
+      </section>
+    `;
+  }
+
   function analyticsRows(group, reference, showDeltas) {
     const specs = comparisonMetricSpecs();
     return specs.flatMap((spec) =>
@@ -2786,6 +2992,11 @@
         system_profile_overrides: artifact.summary.system_profile_overrides || [],
         memory_timing_mode: artifact.summary.memory_timing_mode,
         effective_transfer_time_ns: artifact.summary.effective_transfer_time_ns,
+        shared_bandwidth_clients: artifact.summary.shared_bandwidth_clients,
+        bandwidth_arbitration_efficiency:
+          artifact.summary.bandwidth_arbitration_efficiency,
+        calibration_overhead_fraction:
+          artifact.summary.calibration_overhead_fraction,
         movement_energy_pj: artifact.summary.movement_energy_pj,
         movement_energy_share: artifact.summary.movement_energy_share,
         latency_label: artifact.summary.latency_label,
@@ -2795,6 +3006,11 @@
         bandwidth_limited_latency_ns: artifact.summary.bandwidth_limited_latency_ns,
         bandwidth_limited_throughput_equivalent_ops_per_second:
           artifact.summary.bandwidth_limited_throughput_equivalent_ops_per_second,
+        contention_adjusted_latency_ns:
+          artifact.summary.contention_adjusted_latency_ns,
+        contention_adjusted_throughput_equivalent_ops_per_second:
+          artifact.summary
+            .contention_adjusted_throughput_equivalent_ops_per_second,
         memory_traffic_bytes: artifact.summary.memory_traffic_bytes,
         operational_intensity_ops_per_byte:
           artifact.summary.operational_intensity_ops_per_byte,
@@ -2821,6 +3037,8 @@
                   "Movement share",
                   "Latency",
                   "Bandwidth-limited throughput",
+                  "Contention-adjusted latency",
+                  "Contention-adjusted throughput",
                   "Operational intensity",
                 ].includes(spec.label)
               )
@@ -2857,10 +3075,17 @@
           formatProfileOverrides(summary.system_profile_overrides),
           summary.memory_timing_mode || "n/a",
           formatNs(summary.effective_transfer_time_ns),
+          formatNumber(summary.shared_bandwidth_clients),
+          formatPercent(summary.bandwidth_arbitration_efficiency),
+          formatPercent(summary.calibration_overhead_fraction),
           formatNs(summary.latency_ns),
           formatThroughput(summary.throughput_equivalent_ops_per_second),
           formatThroughput(
             summary.bandwidth_limited_throughput_equivalent_ops_per_second
+          ),
+          formatNs(summary.contention_adjusted_latency_ns),
+          formatThroughput(
+            summary.contention_adjusted_throughput_equivalent_ops_per_second
           ),
           formatBytes(summary.memory_traffic_bytes),
           formatOpsPerByte(summary.operational_intensity_ops_per_byte),
@@ -2880,8 +3105,8 @@ Pinned reference: ${
       pinnedArtifact ? pinnedArtifact.summary.benchmark_name : "none"
     }
 
-| Benchmark | Kind | Source | Local pJ/op | System pJ/op | System profile | Profile overrides | Memory timing | Effective transfer | Latency | Throughput | BW-limited throughput | Interface traffic | Eq ops/byte | Movement share | Published reference | Source grade | Surrogate type | Provenance |
-| --- | --- | --- | ---: | ---: | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- |
+| Benchmark | Kind | Source | Local pJ/op | System pJ/op | System profile | Profile overrides | Memory timing | Effective transfer | Shared clients | Arbitration eff. | Calibration overhead | Latency | Throughput | BW-limited throughput | Contention latency | Contention throughput | Interface traffic | Eq ops/byte | Movement share | Published reference | Source grade | Surrogate type | Provenance |
+| --- | --- | --- | ---: | ---: | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- |
 ${rows}
 
 ## Boundary Notes
@@ -2949,6 +3174,7 @@ ${notes}
         : "Selected artifacts are local model summaries with no published_reference block.",
       "Interface traffic is derived from converter bit widths and reuse counts; it is not a full memory hierarchy simulation.",
       "System movement energy is a local SRAM/intermediate/off-chip tier estimate added separately from photonic core compute/conversion energy.",
+      "Contention metrics are local shared-bandwidth and calibration/control guardband assumptions, not paper-reported hardware claims.",
     ];
     const exportObject = comparisonExport(artifacts, pinnedArtifact, boundaryNotes);
     const exportMarkdown = comparisonMarkdown(
@@ -2984,6 +3210,7 @@ ${notes}
         </div>
       </section>
       ${renderComparisonBrief(artifacts)}
+      ${renderContentionInsight(artifacts)}
       ${renderDecisionScorecard(artifacts)}
       ${renderParetoChart(artifacts)}
       <section class="panel">

@@ -147,10 +147,18 @@ class MemoryTierConfig:
 
 
 @dataclass(frozen=True)
+class SystemContentionConfig:
+    shared_bandwidth_clients: float = 1.0
+    arbitration_efficiency: float = 1.0
+    calibration_overhead_fraction: float = 0.0
+
+
+@dataclass(frozen=True)
 class SystemConfig:
     profile: str = "default"
     profile_overrides: tuple[str, ...] = ()
     memory_timing_mode: str = "overlapped"
+    contention: SystemContentionConfig = field(default_factory=SystemContentionConfig)
     sram: MemoryTierConfig = field(
         default_factory=lambda: MemoryTierConfig(
             read_energy_pj_per_byte=0.02,
@@ -182,6 +190,7 @@ class SystemProfile:
     intermediate: MemoryTierConfig
     off_chip: MemoryTierConfig
     memory_timing_mode: str = "overlapped"
+    contention: SystemContentionConfig = field(default_factory=SystemContentionConfig)
 
     def to_system_config(
         self,
@@ -192,6 +201,7 @@ class SystemProfile:
             profile=self.name,
             profile_overrides=profile_overrides,
             memory_timing_mode=self.memory_timing_mode,
+            contention=self.contention,
             sram=self.sram,
             intermediate=self.intermediate,
             off_chip=self.off_chip,
@@ -313,6 +323,11 @@ SYSTEM_PROFILES: dict[str, SystemProfile] = {
             bandwidth_bytes_per_ns=8.0,
         ),
         memory_timing_mode="serialized",
+        contention=SystemContentionConfig(
+            shared_bandwidth_clients=2.0,
+            arbitration_efficiency=0.85,
+            calibration_overhead_fraction=0.05,
+        ),
     ),
 }
 
@@ -322,9 +337,20 @@ def system_config_to_dict(system: SystemConfig) -> dict[str, Any]:
         "profile": system.profile,
         "profile_overrides": list(system.profile_overrides),
         "memory_timing_mode": system.memory_timing_mode,
+        "contention": system_contention_config_to_dict(system.contention),
         "sram": memory_tier_config_to_dict(system.sram),
         "intermediate": memory_tier_config_to_dict(system.intermediate),
         "off_chip": memory_tier_config_to_dict(system.off_chip),
+    }
+
+
+def system_contention_config_to_dict(
+    contention: SystemContentionConfig,
+) -> dict[str, float]:
+    return {
+        "shared_bandwidth_clients": contention.shared_bandwidth_clients,
+        "arbitration_efficiency": contention.arbitration_efficiency,
+        "calibration_overhead_fraction": contention.calibration_overhead_fraction,
     }
 
 
@@ -1149,6 +1175,7 @@ def _optional_system(raw: dict[str, Any]) -> SystemConfig:
     sram = _optional_nested_mapping(system, "system", "sram")
     intermediate = _optional_nested_mapping(system, "system", "intermediate")
     off_chip = _optional_nested_mapping(system, "system", "off_chip")
+    contention = _optional_nested_mapping(system, "system", "contention")
     memory_timing_mode = _optional_memory_timing_mode(
         system,
         default=base.memory_timing_mode,
@@ -1160,6 +1187,7 @@ def _optional_system(raw: dict[str, Any]) -> SystemConfig:
             ("sram", sram),
             ("intermediate", intermediate),
             ("off_chip", off_chip),
+            ("contention", contention),
         )
         if value
     )
@@ -1168,6 +1196,11 @@ def _optional_system(raw: dict[str, Any]) -> SystemConfig:
         profile=effective_profile,
         profile_overrides=profile_overrides,
         memory_timing_mode=memory_timing_mode,
+        contention=_system_contention_config(
+            contention,
+            "system.contention",
+            default=base.contention,
+        ),
         sram=_memory_tier_config(
             sram,
             "system.sram",
@@ -1223,6 +1256,34 @@ def _optional_memory_timing_mode(
             "system.memory_timing_mode must be one of: overlapped, serialized"
         )
     return mode
+
+
+def _system_contention_config(
+    raw: dict[str, Any] | None,
+    section: str,
+    *,
+    default: SystemContentionConfig,
+) -> SystemContentionConfig:
+    if raw is None:
+        return default
+
+    return SystemContentionConfig(
+        shared_bandwidth_clients=_positive_float_with_default(
+            raw,
+            f"{section}.shared_bandwidth_clients",
+            default=default.shared_bandwidth_clients,
+        ),
+        arbitration_efficiency=_efficiency_with_default(
+            raw,
+            f"{section}.arbitration_efficiency",
+            default=default.arbitration_efficiency,
+        ),
+        calibration_overhead_fraction=_non_negative_float_with_default(
+            raw,
+            f"{section}.calibration_overhead_fraction",
+            default=default.calibration_overhead_fraction,
+        ),
+    )
 
 
 def _memory_tier_config(
@@ -1433,6 +1494,17 @@ def _efficiency(raw: dict[str, Any], dotted_key: str) -> float:
     if not 0 < value <= 1:
         raise ValueError(f"{dotted_key} must be greater than 0 and at most 1")
     return value
+
+
+def _efficiency_with_default(
+    raw: dict[str, Any],
+    dotted_key: str,
+    default: float,
+) -> float:
+    key = dotted_key.rsplit(".", 1)[-1]
+    if key not in raw:
+        return default
+    return _efficiency(raw, dotted_key)
 
 
 def _fraction_with_default(

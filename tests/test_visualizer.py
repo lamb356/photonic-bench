@@ -80,6 +80,10 @@ def test_discover_visualizer_data_loads_root_and_nested_reports() -> None:
         "chen_2026_fsr_gemm_surrogate.json",
         "ning_2025_cirptc_surrogate.json",
         "kovaios_2025_wdm_1tops_tensor_core_surrogate.json",
+        "luan_2026_single_shot_mmm_surrogate.json",
+        "bandyopadhyay_2024_single_chip_dnn_surrogate.json",
+        "kari_2024_coherent_matrix_platform_surrogate.json",
+        "dong_2023_continuous_time_tensor_core_surrogate.json",
     )
     assert data.comparison_presets[2].artifact_ids == (
         "profile_sensitivity_64x64_on_chip_sram.json",
@@ -175,7 +179,12 @@ def test_write_visualizer_emits_index_payloads_and_static_assets(
     assert "System movement energy" in " ".join(index["modeling_boundaries"])
     assert "System profile names" in " ".join(index["modeling_boundaries"])
     assert "Transformer model timing" in " ".join(index["modeling_boundaries"])
+    assert "Contention metrics" in " ".join(index["modeling_boundaries"])
     assert index["artifacts"][0]["summary"]["system_profile"] is not None
+    assert (
+        index["artifacts"][0]["summary"]["shared_bandwidth_clients"]
+        is not None
+    )
 
     layer = next(
         artifact
@@ -227,6 +236,10 @@ def test_static_app_contains_comparison_and_boundary_labels() -> None:
     assert "Profile tier overrides" in app_js
     assert "System energy per op" in app_js
     assert "Movement share" in app_js
+    assert "Contention Insight" in app_js
+    assert "Contention-adjusted latency" in app_js
+    assert "Contention-adjusted throughput" in app_js
+    assert "contention-throughput" in app_js
     assert "Pareto Trade-Offs" in app_js
     assert "Energy/op vs throughput" in app_js
     assert "Ops/byte vs latency" in app_js

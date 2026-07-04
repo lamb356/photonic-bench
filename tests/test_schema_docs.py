@@ -38,10 +38,14 @@ def test_json_schema_file_documents_report_v1_contract() -> None:
     assert "system" in schema["properties"]["local_model"]["required"]
     assert "systemResult" in schema["$defs"]
     assert "profile" in schema["$defs"]["systemInputs"]["required"]
+    assert "contention" in schema["$defs"]["systemInputs"]["required"]
+    assert "systemContentionInputs" in schema["$defs"]
     system = schema["$defs"]["systemResult"]
     assert "tiers" in system["required"]
     assert "profile" in system["required"]
+    assert "contention" in system["required"]
     assert "bandwidth_limited_batch_latency_ns" in system["required"]
+    assert "contention_adjusted_batch_latency_ns" in system["required"]
     assert "sourceQuality" in schema["$defs"]
 
 
@@ -87,6 +91,12 @@ def test_transformer_layer_json_schema_file_documents_aggregate_contract() -> No
     aggregate_system = schema["$defs"]["aggregateSystemResult"]
     assert "profile" in aggregate_system["required"]
     assert "bandwidth_limited_serial_batch_latency_ns" in aggregate_system["required"]
+    assert "contention" in aggregate_system["required"]
+    assert (
+        "contention_adjusted_serial_batch_latency_ns"
+        in aggregate_system["required"]
+    )
+    assert "systemContentionInputs" in schema["$defs"]
     assert "rows" in schema["properties"]["formula_audit"]["required"]
     assert schema["properties"]["workload"]["properties"]["matmul_count"]["const"] == 5
     assert (
@@ -130,6 +140,12 @@ def test_transformer_model_json_schema_file_documents_aggregate_contract() -> No
     assert "activationMemoryTraffic" in schema["$defs"]
     assert "modelComponents" in schema["$defs"]
     assert "profile" in schema["$defs"]["modelSystem"]["required"]
+    assert "contention" in schema["$defs"]["modelSystem"]["required"]
+    assert (
+        "contention_adjusted_serial_batch_latency_ns"
+        in schema["$defs"]["modelSystem"]["required"]
+    )
+    assert "systemContentionInputs" in schema["$defs"]
     assert "overlap_adjusted_batch_latency_ns" in schema["$defs"]["modelTiming"][
         "required"
     ]
@@ -154,9 +170,12 @@ def test_json_schema_docs_describe_units_nullability_and_examples() -> None:
     assert "`local_model.memory_traffic.*_bytes` | bytes" in docs
     assert "`model_inputs.system.*.read_energy_pj_per_byte` | pJ/byte" in docs
     assert "`model_inputs.system.profile` | profile name" in docs
+    assert "`model_inputs.system.contention.shared_bandwidth_clients` | count" in docs
     assert "`local_model.system.profile` | profile name" in docs
     assert "`local_model.system.total_system_energy_pj` | pJ" in docs
     assert "`local_model.system.bandwidth_limited_batch_latency_ns` | ns" in docs
+    assert "`local_model.system.contention_adjusted_batch_latency_ns` | ns" in docs
+    assert "Contention-adjusted timing" in docs
     assert "Per-Card System Model Fields" in docs
     assert "System movement fields under `local_model.system`" in docs
     assert "converter-interface traffic, not full cache" in docs

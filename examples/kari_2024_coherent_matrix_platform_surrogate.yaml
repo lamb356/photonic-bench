@@ -1,0 +1,68 @@
+benchmark:
+  name: Kari 2024 coherent matrix operations platform surrogate
+  description: Source-backed card for the Optica 2024 integrated coherent photonic platform for scalable matrix operations. The local workload is a small dense dot-product tile surrogate, not a full temporal-multiplexed coherent receiver model.
+workload:
+  type: matmul
+  m: 4
+  n: 4
+  k: 4
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 8
+    energy_pj_per_conversion: 0.5
+  vector_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+  weight_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+execution:
+  batch_size: 1
+  vector_reuse_factor: 1
+  weight_reuse_factor: 1
+  weight_stationary: true
+  pipeline:
+    stages: 1
+timing:
+  optical_latency_ns: 1
+  adc_latency_ns: 0
+  dac_latency_ns: 0
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 1
+provenance:
+  source_title: Realization of an integrated coherent photonic platform for scalable matrix operations
+  source_url: https://opg.optica.org/optica/fulltext.cfm?uri=optica-11-4-542
+  doi: 10.1364/OPTICA.507525
+  venue: Optica 11, 542-551 (2024)
+  claim_status: paper-reported coherent dot-product and scalable matrix-operation platform; small dense-tile local surrogate
+published_calibration:
+  architecture: Integrated coherent temporally multiplexed dot-product unit cell
+  additional_metrics:
+    operation_types: real_mac,complex_mac,covariance
+    scalable_target: general_matrix_matrix_operations
+    source_demonstrates_temporal_multiplexing: true
+    surrogate_mapping: m=4, k=4, n=4 is a compact dense tile used only to exercise PhotonicBench local accounting for a coherent matrix-operation platform.
+source_quality:
+  reported_metrics:
+    - operation_type
+    - architecture
+    - scalability_path
+  local_surrogate_type: coherent_dot_product_tile_surrogate
+  coverage:
+    throughput: not_reported
+    energy: not_reported
+    accuracy: reported
+    area: not_reported
+    precision: reported
+  confidence_grade: B
+  notes:
+    - The source directly demonstrates coherent multiply-accumulate and matrix-operation primitives, but does not provide a scalar TOPS or TOPS/W card metric.
+assumptions:
+  - Source-reported operation classes and scalable matrix-operation framing are preserved in published_reference.
+  - Local one-nanosecond timing, optical MAC energy, converter energy, and system movement values are PhotonicBench assumptions.
+  - The dense 4x4 tile is a bookkeeping surrogate rather than a temporal waveform or coherent detection simulation.
