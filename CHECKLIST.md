@@ -1,4 +1,4 @@
-# PhotonicBench Five-Objective Outer Loop Checklist
+# PhotonicBench PR #7 Merge And Five-Objective Outer Loop Checklist
 
 Status key:
 
@@ -12,234 +12,223 @@ Status key:
 - [x] DONE: Re-read required state files and create this active checklist.
   - Proof:
     - Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
-      `RUBRIC.md` at the start of this cycle.
+      `RUBRIC.md`.
     - Re-read the bottom of `tasks/todo.md`.
-    - Exposed and called GBrain `get_brain_identity`; GBrain version
-      `0.42.56.0`.
-    - Queried and directly read GBrain page
-      `photonicbench-post-pr5-visual-a11y-2026-07-04`.
-    - Searched local memory `MEMORY.md` for PhotonicBench context.
-    - Read commit, GitHub publish, GitHub triage, frontend-design, and review
-      skill guidance.
-    - Confirmed current branch `codex/post-pr5-visual-a11y` with the intended
-      uncommitted post-PR5 work present.
+    - Called GBrain `get_brain_identity`; version `0.42.56.0`.
+    - Queried GBrain for current PR #7 / post-PR5 context; no direct hit was
+      returned.
+    - Searched local memory `MEMORY.md` for PhotonicBench visualizer, JSON,
+      transformer, and workflow context.
+    - Read GitHub, commit, frontend-design, and review skill guidance.
 - [x] DONE: Keep `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`,
       `PROGRESS.md`, `RUBRIC.md`, and `tasks/todo.md` aligned as work
       advances.
   - Proof:
-    - Updated closeout state after implementation, verification, and hostile
-      review.
+    - Updated closeout state after merge, implementation, verification, and
+      hostile review.
 
-## Task 1: Commit, Push, And Open Pull Request
+## Task 1: Merge PR #7 And Verify Master
 
-- [x] DONE: Run quick pre-commit validation so known tests/lint are not
-      failing before push.
+- [x] DONE: Verify PR #7 is open, non-draft, mergeable, and green before
+      merge.
   - Proof:
-    - `python -m ruff check` passed.
-    - `python -m pytest tests\test_visualizer_visual_regression.py tests\test_visualizer_accessibility.py -q`
-      passed.
-    - `python -m photonic_bench.cli verify-artifacts` passed.
-    - `node --check photonic_bench\visualizer_assets\app.js` passed.
-    - `git diff --check` passed with only Git line-ending normalization
-      warnings.
-- [x] DONE: Create clean logical commit(s) for current branch work.
+    - `gh pr view 7` reported state `OPEN`, `isDraft=false`,
+      `mergeable=MERGEABLE`.
+    - PR checks were green:
+      - `Ruff, package, and pytest`: success on run `28710380414`.
+      - `macOS visual baseline capture`: success on run `28710380414`.
+- [x] DONE: Merge PR #7 into `master`.
   - Proof:
-    - Initial protected work was committed as
-      `582408af063a50570fd2d40e3816a96fcab59f81`.
-    - The follow-up implementation is prepared as one logical closeout commit
-      after this state update.
-- [x] DONE: Push `codex/post-pr5-visual-a11y`.
+    - `gh pr merge 7 --merge` completed successfully.
+    - PR #7 is `MERGED` at merge commit
+      `12aaab1554f0584eccb4f4b673880b60720a4f73`.
+- [x] DONE: Update local `master`, verify it contains the merge, and clean up
+      the merged branch locally/remotely if safe.
   - Proof:
-    - Initial branch commit was pushed to `origin/codex/post-pr5-visual-a11y`.
-    - Follow-up push is performed after this closeout state update.
-- [x] DONE: Open a pull request to `master` with a clear description.
+    - Local `master` fast-forwarded to `12aaab1`.
+    - Deleted local branch `codex/post-pr5-visual-a11y`.
+    - Deleted remote branch `origin/codex/post-pr5-visual-a11y`.
+    - Created follow-up branch `codex/pr7-followup-improvements` for new work.
+- [x] DONE: Verify post-merge `master` GitHub Actions completes green.
   - Proof:
-    - PR #7 is open: `https://github.com/lamb356/photonic-bench/pull/7`.
-- [x] DONE: Verify PR CI status or record pending/failure state.
+    - Merge-triggered CI run `28710804037` completed `success`.
+    - Jobs passed:
+      - `Ruff, package, and pytest`.
+      - `macOS visual baseline capture`.
+- [x] DONE: Run local full test suite and `verify-artifacts` on `master`.
   - Proof:
-    - Initial PR CI failure was diagnosed as Linux visual-baseline drift.
-    - Linux `github-linux` baselines were regenerated from WSL2 with Chromium,
-      then verified with `VISUAL_REGRESSION_BASELINE_PLATFORM=github-linux`.
-    - Final post-push CI status is checked and reported after the closeout
-      commit is pushed.
+    - `python -m pytest -q` passed: 128 tests.
+    - `python -m photonic_bench.cli verify-artifacts` passed: 238 generated
+      files fresh.
+- [x] DONE: Perform post-merge artifact verification, including visualizer
+      payload freshness and macOS baseline artifact decision.
+  - Proof:
+    - Downloaded real `macos-latest` artifact
+      `macos-visual-regression-screenshots` from run `28710804037`.
+    - Promoted five reviewed macOS PNG baselines into
+      `tests/visual_baselines/macos/`.
+    - Tightened the macOS CI job from update/capture mode to strict
+      baseline comparison.
+    - Verified promoted PNG dimensions and reran
+      `python -m pytest tests\test_visualizer_visual_regression.py -q`
+      successfully.
+    - `python -m photonic_bench.cli verify-artifacts` still passed.
 
-## Task 2: Fix macOS Visual Baseline Issues
+## Task 2: Visualizer Improvements
 
-- [x] DONE: Inspect current macOS baseline routing, CI feasibility, and checked
-      baseline inventory.
-  - Proof:
-    - Confirmed macOS aliases normalize to `macos` and that no macOS PNGs were
-      fabricated from another renderer.
-- [x] DONE: Add a non-fabricated macOS baseline path, CI capture job, or
-      clearly gated workflow that can produce reviewed macOS screenshots.
-  - Proof:
-    - Added `macOS visual baseline capture` GitHub Actions job on
-      `macos-latest`.
-    - The job runs visual regression with `UPDATE_VISUAL_BASELINES=1` and
-      uploads `macos-visual-regression-screenshots` for reviewed promotion.
-    - Added `tests/visual_baselines/macos/README.md` documenting the
-      no-fabricated-baselines rule.
-- [x] DONE: Verify macOS-related behavior without weakening Linux/Windows
-      visual regression checks.
-  - Proof:
-    - Root visual regression passed locally.
-    - `github-linux` visual regression passed inside WSL2 against checked
-      Linux baselines.
-    - CI Linux screenshot artifacts remain uploaded on every run.
-
-## Task 3: Visualizer Improvements
-
-- [x] DONE: Map current visualizer comparison, dashboard, export, preset,
-      profile, and smoke-test surfaces.
+- [x] DONE: Map current visualizer dashboard, comparison, URL-state, preset,
+      export, detail, and visual-regression surfaces on `master`.
   - Proof:
     - Reviewed `photonic_bench/visualizer.py`,
-      `photonic_bench/visualizer_assets/app.js`, generated payloads, and
-      visualizer tests.
-- [x] DONE: Implement high-value interaction polish or analytical features.
+      `photonic_bench/visualizer_assets/app.js`, generated payload indexing,
+      visualizer smoke, accessibility, and visual-regression tests.
+- [x] DONE: Implement high-value interaction, dashboard, analytical, or
+      usability improvements while preserving modeling-boundary labels.
   - Proof:
-    - Added hierarchy traffic, off-chip share, derate, transfer-overhead,
-      loaded-bandwidth, bandwidth-pressure, and contention-pressure metrics to
-      detail, comparison, insight, JSON, Markdown, and CSV export surfaces.
-- [x] DONE: Preserve visible modeling-boundary labels.
+    - Added a Review Queue that triages high contention transfer/compute,
+      high movement pJ per hierarchy byte, low hierarchy intensity, and low
+      source confidence.
+    - Added hierarchy intensity, movement pJ per hierarchy byte,
+      transfer/compute ratio, and contention-adjusted transfer/compute ratio
+      to detail, comparison, scoring, and export surfaces.
+    - Kept published-reference, local-model, and surrogate labels visible.
+- [x] DONE: Update visualizer docs, checked artifacts, browser smoke,
+      accessibility, or visual regression coverage as relevant.
   - Proof:
-    - Contention insight notes continue to label shared-link, hierarchy, and
-      guardband metrics as local assumptions, not paper measurements.
-- [x] DONE: Update docs, generated visualizer assets, and focused tests.
-  - Proof:
-    - Updated README visualizer documentation.
+    - Updated README and JSON schema docs.
     - Regenerated `reports/visualizer`.
-    - `tests/test_visualizer.py`, root visual regression, Linux visual
-      regression, and accessibility tests passed.
+    - `tests/test_visualizer.py`, visualizer smoke, accessibility, and visual
+      regression tests passed.
 
-## Task 4: Deeper System Modeling
+## Task 3: Deeper System Modeling
 
-- [x] DONE: Map current multi-tier memory, contention, calibration, reporting,
-      JSON, visualizer, and tests.
+- [x] DONE: Map current contention calibration, memory hierarchy, transformer
+      aggregate, report, JSON schema, and visualizer exposure.
   - Proof:
-    - Reviewed model, JSON report, Markdown report, comparison table,
-      transformer aggregation, visualizer summaries, schemas, and tests.
-- [x] DONE: Add meaningful contention calibration or memory hierarchy behavior
-      with explicit assumptions.
+    - Reviewed model, report, JSON report, comparison, transformer aggregate,
+      schema, visualizer, and tests.
+- [x] DONE: Add meaningful realism or calibration improvements with explicit
+      local-model assumptions.
   - Proof:
-    - Added aggregate hierarchy bytes, per-tier traffic shares, contention
-      derate, calibration guardband time, transfer-overhead fractions, loaded
-      bandwidth under load, and pressure ratios.
-    - Clamped overhead helpers to non-negative values to match schema
-      semantics.
-- [x] DONE: Expose new metrics in reports/JSON/visualizer where appropriate.
+    - Added hierarchy equivalent ops per byte, movement energy per hierarchy
+      byte, transfer/compute time ratio, and contention-adjusted
+      transfer/compute time ratio.
+- [x] DONE: Expose new metrics in Markdown, JSON, comparison, transformer, and
+      visualizer surfaces where appropriate.
   - Proof:
-    - Exposed metrics in matmul report JSON/Markdown, comparison Markdown,
-      transformer layer/model aggregate JSON schemas and generated artifacts,
-      and the visualizer.
+    - Exposed new metrics in matmul reports, JSON, comparison exports,
+      transformer layer/model aggregates, schemas, docs, and visualizer views.
 - [x] DONE: Add focused tests and regenerate affected artifacts.
   - Proof:
-    - Updated `tests/test_json_report.py`, `tests/test_report.py`, and
-      `tests/test_transformer.py`.
-    - Regenerated checked reports and visualizer payloads.
-    - `python -m photonic_bench.cli verify-artifacts` passed with 238 files.
+    - Updated model, JSON report, transformer, CLI, and visualizer tests.
+    - Regenerated checked artifacts; final artifact check reports 258 fresh
+      generated files.
 
-## Task 5: More Published Photonic Accelerator Cards
+## Task 4: More Published Photonic Accelerator Cards
 
-- [x] DONE: Research recent high-quality photonic GEMM/tensor processor papers
-      from primary sources.
+- [x] DONE: Research recent high-quality photonic GEMM/tensor/tensor-core
+      papers from primary sources.
   - Proof:
-    - Used primary-source pages/DOIs for Meyer 2026 Nature Communications,
-      Xie 2025 Science Advances, and Wu 2026 Optica.
-- [x] DONE: Add 3-5 source-backed example YAML cards with quality metadata and
-      surrogate labels.
+    - Used primary source pages/DOIs for Tang 2025 waveguide MVM, Meng 2025
+      HOP, Prapas 2025 TSW PITC, Zhang 2025 PULTC, and Sved 2026
+      inverse-designed PNN.
+- [x] DONE: Add at least 3-5 source-backed example YAML cards with quality
+      metadata, citations, and clear surrogate labels.
   - Proof:
-    - Added `examples/meyer_2026_reconfigurable_ptp_surrogate.yaml`.
-    - Added `examples/xie_2025_complex_mvm_surrogate.yaml`.
-    - Added `examples/wu_2026_high_order_tensor_surrogate.yaml`.
-- [x] DONE: Generate Markdown/JSON reports and update comparisons/visualizer.
+    - Added five checked YAML cards under `examples/`.
+    - `python -m photonic_bench.cli validate-examples --json` passed with 35
+      checked examples and 0 errors.
+- [x] DONE: Generate Markdown/JSON reports, comparison updates, and visualizer
+      payloads for the new cards.
   - Proof:
-    - Added generated Markdown/JSON reports for all three cards.
-    - Updated comparison report and visualizer payloads.
-- [x] DONE: Document sources and assumptions.
+    - Generated Markdown and JSON reports for all five cards.
+    - Updated comparison and visualizer payload artifacts.
+- [x] DONE: Document sources, assumptions, and source-vs-local-model
+      boundaries.
   - Proof:
-    - README lists the new papers, DOI/source metadata, local surrogate
-      mapping, and boundary labels.
+    - README and generated reports identify source-backed fields, local
+      surrogate mappings, and source-quality metadata.
 
-## Task 6: CLI And Workflow Usability
+## Task 5: CLI And Workflow Usability
 
-- [x] DONE: Map current CLI validation and transformer-model workflow pain
-      points.
+- [x] DONE: Map current CLI validation and full transformer-model workflow
+      friction.
   - Proof:
-    - Reviewed `inspect-config`, system-profile output, example inventory, and
-      transformer-model generated workflows.
-- [x] DONE: Improve error messages, validation feedback, or add helpful
-      commands/flags.
+    - Reviewed CLI example inventory, kind detection, YAML validation, and
+      transformer workflow surfaces.
+- [x] DONE: Improve validation feedback, workflow commands, or flags that
+      reduce daily friction.
   - Proof:
-    - Added `python -m photonic_bench.cli list-examples`.
-    - Added `--json` output for machine-readable example inventory.
-    - Output includes path, detected kind, benchmark, workload, system profile,
-      published-reference status, source grade, surrogate type, and per-file
-      validation status.
-- [x] DONE: Add tests and documentation for the workflow improvement.
+    - Added `python -m photonic_bench.cli validate-examples` with text and
+      JSON summaries.
+- [x] DONE: Add tests and documentation for CLI/workflow improvements.
   - Proof:
-    - Added CLI tests for table and JSON output.
-    - README documents `list-examples`.
+    - Added CLI tests and README documentation for `validate-examples`.
 
-## Task 7: Documentation, Artifacts, And Verification
+## Task 6: Verification And Documentation
 
-- [x] DONE: Regenerate checked artifacts after model, example, visualizer, or
-      docs changes.
+- [x] DONE: Regenerate checked artifacts after source/model/example/visualizer
+      changes.
   - Proof:
-    - Ran `regenerate_checked_artifacts()`.
-    - `python -m photonic_bench.cli verify-artifacts` passed with 238 files.
+    - Ran checked artifact regeneration.
+    - `python -m photonic_bench.cli verify-artifacts` passed with 258 fresh
+      generated files.
 - [x] DONE: Run focused tests for touched surfaces.
   - Proof:
-    - Focused model/report/CLI/visualizer/transformer/schema/accessibility and
-      visual-regression tests passed.
-- [x] DONE: Run full Ruff, full pytest, package build, JS syntax, artifact
-      freshness, visual regression, accessibility, and diff hygiene before
-      closeout.
+    - Focused CLI/model/JSON/transformer/visualizer tests passed with 71
+      tests.
+    - Visualizer smoke and accessibility tests passed.
+    - Visual regression tests passed with 5 tests.
+- [x] DONE: Run full Ruff, full pytest, package build, JS syntax,
+      `verify-artifacts`, visual regression, accessibility, and diff hygiene
+      before closeout.
   - Proof:
     - `python -m ruff check` passed.
-    - `python -m pytest -q` passed with 128 tests.
+    - `python -m pytest -q` passed with 130 tests.
     - `python -m build` passed.
-    - `node --check photonic_bench\visualizer_assets\app.js` passed.
+    - Node syntax checks passed for source and generated visualizer JS.
     - `python -m photonic_bench.cli verify-artifacts` passed.
-    - Root and Linux visual regression suites passed.
-    - `tests/test_visualizer_accessibility.py` passed.
+    - Browser smoke, accessibility, and visual regression tests passed.
     - `git diff --check` passed with only Git line-ending normalization
       warnings.
 
-## Task 8: Mandatory Hostile Senior Reviewer Critique
+## Task 7: Mandatory Hostile Senior Reviewer Critique
 
 - [x] DONE: Re-read state files and review checklist before critique.
   - Proof:
     - Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
-      `RUBRIC.md`, `tasks/todo.md`, and the review checklist before critique.
+      `RUBRIC.md`, `tasks/todo.md`, and the review skill checklist.
 - [x] DONE: Run critique focused on usability, modeling clarity, source
-      boundaries, code quality, test reliability, and macOS visual baseline
-      correctness.
+      boundaries, code quality, test reliability, CI artifact usability, and
+      visual regression portability.
   - Proof:
-    - Hostile review found that transformer aggregate summaries did not expose
-      the new system diagnostics at the top aggregate level.
-    - Review also found overhead helpers should be contract-stable for
-      non-negative schema fields.
-- [x] DONE: Fix important findings.
+    - Hostile review found stale `CHANGELOG.md` language describing PR #7 as
+      newly opened and macOS CI as capture-only after it had been merged and
+      tightened.
+- [x] DONE: Fix important findings and re-run affected verification.
   - Proof:
-    - Added transformer layer/model aggregate derived metrics, schemas, tests,
-      regenerated artifacts, and refreshed affected visual baselines.
-    - Clamped overhead helpers and updated model docs.
+    - Consolidated the changelog entry to match the post-merge strict macOS
+      baseline state.
+    - Re-ran affected verification during closeout.
 
-## Task 9: Final Closeout
+## Task 8: Final Closeout
 
 - [x] DONE: Confirm all five objectives have meaningful implementation and
       proof.
   - Proof:
-    - Commit/PR path established, visualizer improved, system modeling
-      deepened, three source-backed cards added, CLI workflow improved, and
-      macOS capture workflow added.
+    - PR #7 merge and master verification completed.
+    - Visualizer, system modeling, published-card, and CLI/workflow surfaces
+      all received tested implementation.
 - [x] DONE: Update state files and `tasks/todo.md` to final DONE state.
   - Proof:
-    - This closeout update marks all active checklist items complete with
+    - This closeout update marks the active checklist items complete with
       recorded proof.
-- [x] DONE: Record PR, CI, final git status, verification, and remaining risks.
+- [x] DONE: Record PR merge, CI, final git status, verification, durable notes,
+      and remaining risks.
   - Proof:
-    - PR #7 is open.
-    - Final post-push CI, macOS artifact availability, and final git status are
-      checked after the closeout commit is pushed and reported in the final
-      response.
+    - PR merge, CI, artifact, test, source, and review evidence are recorded
+      here and in `PROGRESS.md`.
+    - Durable GBrain note:
+      `photonicbench-pr7-merge-followup-2026-07-04`.
+    - Follow-up PR #8 is open and green:
+      `https://github.com/lamb356/photonic-bench/pull/8`.

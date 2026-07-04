@@ -1,25 +1,19 @@
-# PhotonicBench Five-Objective Outer Loop Rubric
+# PhotonicBench PR #7 Merge And Five-Objective Outer Loop Rubric
 
 Use this rubric for completion decisions and the mandatory Hostile Senior
 Reviewer critique.
 
-## Commit, Push, And PR
+## PR #7 Merge And Master Verification
 
-- Current branch work is validated before push.
-- Commits are logical, clear, and free of Codex attribution.
-- Branch `codex/post-pr5-visual-a11y` is pushed to `origin`.
-- A pull request to `master` is opened with a clear description and validation
-  summary.
-- PR CI is checked or explicitly recorded as pending/failing.
-
-## macOS Visual Baseline Quality
-
-- The project does not fabricate macOS PNGs from Windows or Linux screenshots.
-- macOS baseline behavior is materially improved through a real macOS capture
-  path, CI job, documented artifact workflow, or gated update process.
-- Existing Windows/root and `github-linux` visual regression checks remain
-  strict and green.
-- Any macOS limitation is documented as an honest platform constraint.
+- PR #7 is verified open, non-draft, mergeable, and green before merge.
+- PR #7 is merged into `master`.
+- Local `master` is updated and contains the merge.
+- Post-merge `master` GitHub Actions completes successfully.
+- Local full tests and `python -m photonic_bench.cli verify-artifacts` pass on
+  `master`.
+- Branch cleanup is performed when safe or explicitly recorded as skipped.
+- macOS visual baseline artifacts are promoted only if they come from reviewed
+  real macOS screenshots.
 
 ## Visualizer Quality
 
@@ -27,7 +21,8 @@ Reviewer critique.
 - UI remains dense, operational, keyboard reachable, and boundary-labeled.
 - Mixed-schema and local-vs-published semantics remain explicit.
 - Export/share/preset behavior remains reproducible.
-- Browser smoke or visual regression coverage is updated when behavior changes.
+- Browser smoke, accessibility, or visual regression coverage is updated when
+  behavior changes.
 
 ## System Modeling Quality
 
@@ -40,7 +35,7 @@ Reviewer critique.
 
 ## Published Card Quality
 
-- Adds 3-5 high-quality cards based on primary sources.
+- Adds at least 3-5 high-quality cards based on primary sources.
 - Cards include citation metadata, source-quality grading, and surrogate type.
 - Local workloads are clearly labeled as surrogates when not exactly the paper
   workload.

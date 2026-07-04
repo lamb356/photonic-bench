@@ -125,6 +125,10 @@ def test_report_to_dict_exposes_json_schema_sections() -> None:
     assert system["system_energy_per_op_pj"] == pytest.approx(593.568 / 128)
     assert system["movement_energy_share"] == pytest.approx(572.32 / 593.568)
     assert system["total_hierarchy_bytes"] == pytest.approx(168)
+    assert system["hierarchy_equivalent_ops_per_byte"] == pytest.approx(128 / 168)
+    assert system["movement_energy_per_hierarchy_byte_pj"] == pytest.approx(
+        572.32 / 168
+    )
     assert system["sram_traffic_share"] == pytest.approx(1 / 3)
     assert system["intermediate_traffic_share"] == pytest.approx(1 / 3)
     assert system["off_chip_traffic_share"] == pytest.approx(1 / 3)
@@ -150,10 +154,14 @@ def test_report_to_dict_exposes_json_schema_sections() -> None:
     assert system["contention_adjusted_loaded_bandwidth_bytes_per_ns"] == pytest.approx(
         48
     )
+    assert system["transfer_to_compute_time_ratio"] == pytest.approx((56 / 16) / 5)
     assert system["bandwidth_limited_batch_latency_ns"] == pytest.approx(5.0)
     assert system["bandwidth_pressure_ratio"] == pytest.approx(1.0)
     assert system["bandwidth_limited_tier"] == "compute"
     assert system["contention_adjusted_batch_latency_ns"] == pytest.approx(5.0)
+    assert system["contention_adjusted_transfer_to_compute_time_ratio"] == pytest.approx(
+        (56 / 16) / 5
+    )
     assert system["contention_pressure_ratio"] == pytest.approx(1.0)
     assert system["contention_adjusted_equivalent_ops_per_second"] == pytest.approx(
         128 / 5e-9

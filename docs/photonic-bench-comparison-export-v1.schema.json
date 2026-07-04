@@ -299,6 +299,18 @@
         },
         "source_path": {
           "type": "string"
+        },
+        "hierarchy_equivalent_ops_per_byte": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "movement_energy_per_hierarchy_byte_pj": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "transfer_to_compute_time_ratio": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "contention_adjusted_transfer_to_compute_time_ratio": {
+          "$ref": "#/$defs/nullableNumber"
         }
       }
     },

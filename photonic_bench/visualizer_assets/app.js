@@ -1570,6 +1570,30 @@
         "system",
         "movement_energy_share"
       ),
+      total_hierarchy_bytes: optionalNumber(
+        localModel,
+        sourcePath,
+        "system",
+        "total_hierarchy_bytes"
+      ),
+      hierarchy_equivalent_ops_per_byte: optionalNumber(
+        localModel,
+        sourcePath,
+        "system",
+        "hierarchy_equivalent_ops_per_byte"
+      ),
+      movement_energy_per_hierarchy_byte_pj: optionalNumber(
+        localModel,
+        sourcePath,
+        "system",
+        "movement_energy_per_hierarchy_byte_pj"
+      ),
+      off_chip_traffic_share: optionalNumber(
+        localModel,
+        sourcePath,
+        "system",
+        "off_chip_traffic_share"
+      ),
       system_profile: optionalString(localModel, sourcePath, "system", "profile"),
       system_profile_overrides: optionalStringArray(
         localModel,
@@ -1589,7 +1613,37 @@
         "system",
         "effective_transfer_time_ns"
       ),
+      contention_bandwidth_derate_factor: optionalNumber(
+        localModel,
+        sourcePath,
+        "system",
+        "contention_bandwidth_derate_factor"
+      ),
+      total_transfer_overhead_fraction: optionalNumber(
+        localModel,
+        sourcePath,
+        "system",
+        "total_transfer_overhead_fraction"
+      ),
+      contention_adjusted_loaded_bandwidth_bytes_per_ns: optionalNumber(
+        localModel,
+        sourcePath,
+        "system",
+        "contention_adjusted_loaded_bandwidth_bytes_per_ns"
+      ),
+      transfer_to_compute_time_ratio: optionalNumber(
+        localModel,
+        sourcePath,
+        "system",
+        "transfer_to_compute_time_ratio"
+      ),
       bandwidth_limited_latency_ns: values.bandwidth_limited_latency_ns,
+      bandwidth_pressure_ratio: optionalNumber(
+        localModel,
+        sourcePath,
+        "system",
+        "bandwidth_pressure_ratio"
+      ),
       bandwidth_limited_throughput_equivalent_ops_per_second:
         values.bandwidth_limited_throughput_equivalent_ops_per_second,
       contention_adjusted_latency_ns:
@@ -1606,6 +1660,18 @@
           "system",
           "contention_adjusted_serial_batch_latency_ns"
         ),
+      contention_adjusted_transfer_to_compute_time_ratio: optionalNumber(
+        localModel,
+        sourcePath,
+        "system",
+        "contention_adjusted_transfer_to_compute_time_ratio"
+      ),
+      contention_pressure_ratio: optionalNumber(
+        localModel,
+        sourcePath,
+        "system",
+        "contention_pressure_ratio"
+      ),
       contention_adjusted_throughput_equivalent_ops_per_second:
         values.contention_adjusted_throughput_equivalent_ops_per_second ??
         optionalNumber(
@@ -2090,6 +2156,14 @@
       ["System energy/op", formatPj(system.system_energy_per_op_pj)],
       ["Movement share", formatPercent(system.movement_energy_share)],
       ["Total hierarchy traffic", formatBytes(system.total_hierarchy_bytes)],
+      [
+        "Hierarchy equivalent ops/byte",
+        formatOpsPerByte(system.hierarchy_equivalent_ops_per_byte),
+      ],
+      [
+        "Movement energy per hierarchy byte",
+        formatPj(system.movement_energy_per_hierarchy_byte_pj),
+      ],
       ["Off-chip traffic share", formatPercent(system.off_chip_traffic_share)],
       ["Max transfer time", formatNs(system.max_transfer_time_ns ?? system.serial_transfer_time_ns)],
       ["Serialized transfer time", formatNs(system.serial_transfer_time_ns)],
@@ -2123,6 +2197,10 @@
             system.effective_loaded_bandwidth_bytes_per_ns
         ),
       ],
+      [
+        "Transfer/compute time ratio",
+        formatNumber(system.transfer_to_compute_time_ratio),
+      ],
       [timingLabel, formatNs(system.bandwidth_limited_batch_latency_ns ?? system.bandwidth_limited_serial_batch_latency_ns)],
       ["Bandwidth pressure ratio", formatNumber(system.bandwidth_pressure_ratio)],
       [
@@ -2138,6 +2216,10 @@
           system.contention_adjusted_batch_latency_ns ??
             system.contention_adjusted_serial_batch_latency_ns
         ),
+      ],
+      [
+        "Contention transfer/compute ratio",
+        formatNumber(system.contention_adjusted_transfer_to_compute_time_ratio),
       ],
       ["Contention pressure ratio", formatNumber(system.contention_pressure_ratio)],
       [
@@ -2737,6 +2819,14 @@
           formatBytesPerNs(summary.contention_adjusted_loaded_bandwidth_bytes_per_ns),
       ],
       [
+        "Hierarchy equivalent ops/byte",
+        (summary) => formatOpsPerByte(summary.hierarchy_equivalent_ops_per_byte),
+      ],
+      [
+        "Movement pJ/hierarchy byte",
+        (summary) => formatPj(summary.movement_energy_per_hierarchy_byte_pj),
+      ],
+      [
         "Off-chip traffic share",
         (summary) => formatPercent(summary.off_chip_traffic_share),
       ],
@@ -2760,6 +2850,10 @@
         "Total transfer overhead",
         (summary) => formatPercent(summary.total_transfer_overhead_fraction),
       ],
+      [
+        "Transfer/compute time ratio",
+        (summary) => formatNumber(summary.transfer_to_compute_time_ratio),
+      ],
       ["Movement energy", (summary) => formatPj(summary.movement_energy_pj)],
       ["Movement share", (summary) => formatPercent(summary.movement_energy_share)],
       ["Latency label", (summary) => summary.latency_label],
@@ -2778,6 +2872,11 @@
         )],
       ["Contention-adjusted latency", (summary) =>
         formatNs(summary.contention_adjusted_latency_ns)],
+      [
+        "Contention transfer/compute ratio",
+        (summary) =>
+          formatNumber(summary.contention_adjusted_transfer_to_compute_time_ratio),
+      ],
       [
         "Contention pressure ratio",
         (summary) => formatNumber(summary.contention_pressure_ratio),
@@ -2855,6 +2954,18 @@
         direction: "lower",
       },
       {
+        label: "Hierarchy equivalent ops/byte",
+        get: (summary) => summary.hierarchy_equivalent_ops_per_byte,
+        format: formatOpsPerByte,
+        direction: "higher",
+      },
+      {
+        label: "Movement pJ/hierarchy byte",
+        get: (summary) => summary.movement_energy_per_hierarchy_byte_pj,
+        format: formatPj,
+        direction: "lower",
+      },
+      {
         label: "Latency",
         get: (summary) => summary.latency_ns,
         format: formatNs,
@@ -2877,6 +2988,19 @@
         label: "Contention-adjusted latency",
         get: (summary) => summary.contention_adjusted_latency_ns,
         format: formatNs,
+        direction: "lower",
+      },
+      {
+        label: "Transfer/compute time ratio",
+        get: (summary) => summary.transfer_to_compute_time_ratio,
+        format: formatNumber,
+        direction: "lower",
+      },
+      {
+        label: "Contention transfer/compute ratio",
+        get: (summary) =>
+          summary.contention_adjusted_transfer_to_compute_time_ratio,
+        format: formatNumber,
         direction: "lower",
       },
       {
@@ -3056,6 +3180,7 @@
           "Energy per op",
           "System energy per op",
           "Movement share",
+          "Hierarchy equivalent ops/byte",
           "Latency",
           "Bandwidth-limited throughput",
           "Contention-adjusted throughput",
@@ -3066,12 +3191,14 @@
       efficiency: {
         label: "Efficiency",
         description:
-          "Prioritizes low local/system energy, low movement share, low interface traffic, and high operational intensity.",
+          "Prioritizes low local/system energy, low movement cost, low interface traffic, and high hierarchy-aware intensity.",
         metricLabels: [
           "Energy per op",
           "System energy per op",
           "Movement share",
+          "Movement pJ/hierarchy byte",
           "Interface traffic",
+          "Hierarchy equivalent ops/byte",
           "Operational intensity",
         ],
       },
@@ -3093,6 +3220,8 @@
           "Prioritizes adjusted throughput/latency while penalizing shared-client and calibration/control guardband assumptions.",
         metricLabels: [
           "Contention-adjusted latency",
+          "Contention transfer/compute ratio",
+          "Transfer/compute time ratio",
           "Contention-adjusted throughput",
           "Shared bandwidth clients",
           "Calibration/control overhead",
@@ -3130,7 +3259,9 @@
           "Energy per op": 1.5,
           "System energy per op": 2,
           "Movement share": 1.5,
+          "Movement pJ/hierarchy byte": 1.25,
           "Interface traffic": 1.25,
+          "Hierarchy equivalent ops/byte": 1.5,
           "Operational intensity": 1.25,
         },
       },
@@ -3154,6 +3285,8 @@
           "Use when shared bandwidth, calibration/control overhead, and adjusted throughput are the main operational risks.",
         weights: {
           "Contention-adjusted latency": 1.75,
+          "Contention transfer/compute ratio": 1.75,
+          "Transfer/compute time ratio": 1.25,
           "Contention-adjusted throughput": 2,
           "Shared bandwidth clients": 1.25,
           "Calibration/control overhead": 1.5,
@@ -4120,6 +4253,90 @@
     `;
   }
 
+  function reviewQueueEntry(artifacts, label, spec, note) {
+    const artifact = bestArtifactForSpec(artifacts, spec);
+    if (!artifact) {
+      return [
+        escapeHtml(label),
+        "n/a",
+        "n/a",
+        escapeHtml(note),
+      ];
+    }
+    return [
+      escapeHtml(label),
+      escapeHtml(artifact.summary.benchmark_name),
+      escapeHtml(spec.format(spec.get(artifact.summary))),
+      escapeHtml(note),
+    ];
+  }
+
+  function renderReviewQueue(artifacts) {
+    const rows = [
+      reviewQueueEntry(
+        artifacts,
+        "Highest contention transfer/compute",
+        {
+          label: "Contention transfer/compute ratio",
+          get: (summary) =>
+            summary.contention_adjusted_transfer_to_compute_time_ratio,
+          format: formatNumber,
+          direction: "higher",
+        },
+        "transfer path most exposed after local contention and guardband"
+      ),
+      reviewQueueEntry(
+        artifacts,
+        "Highest movement pJ/byte",
+        {
+          label: "Movement pJ/hierarchy byte",
+          get: (summary) => summary.movement_energy_per_hierarchy_byte_pj,
+          format: formatPj,
+          direction: "higher",
+        },
+        "local hierarchy movement is expensive per moved byte"
+      ),
+      reviewQueueEntry(
+        artifacts,
+        "Lowest hierarchy intensity",
+        {
+          label: "Hierarchy equivalent ops/byte",
+          get: (summary) => summary.hierarchy_equivalent_ops_per_byte,
+          format: formatOpsPerByte,
+          direction: "lower",
+        },
+        "least compute work per modeled hierarchy byte"
+      ),
+      reviewQueueEntry(
+        artifacts,
+        "Lowest source confidence",
+        {
+          label: "Source confidence",
+          get: sourceConfidenceScore,
+          format: formatConfidenceScore,
+          direction: "lower",
+        },
+        "triage provenance before treating local ranking as decisive"
+      ),
+    ];
+    return `
+      <section class="panel">
+        <h3>Review Queue</h3>
+        ${simpleTable(
+          [
+            { label: "Check" },
+            { label: "Artifact" },
+            { label: "Value", num: true },
+            { label: "Why review" },
+          ],
+          rows,
+          "comparison-table"
+        )}
+        <div class="notes"><p>Review queue entries are local dashboard triage heuristics. They flag selected artifacts for inspection; they are not measured hardware failures and do not alter generated report values.</p></div>
+      </section>
+    `;
+  }
+
   function renderComparisonWorkspace(artifacts, pinnedArtifact, focus) {
     const visibleCount = filteredArtifacts().length;
     return `
@@ -4286,11 +4503,17 @@
         effective_transfer_time_ns: artifact.summary.effective_transfer_time_ns,
         loaded_hierarchy_bandwidth_bytes_per_ns:
           artifact.summary.contention_adjusted_loaded_bandwidth_bytes_per_ns,
+        hierarchy_equivalent_ops_per_byte:
+          artifact.summary.hierarchy_equivalent_ops_per_byte,
+        movement_energy_per_hierarchy_byte_pj:
+          artifact.summary.movement_energy_per_hierarchy_byte_pj,
         off_chip_traffic_share: artifact.summary.off_chip_traffic_share,
         contention_bandwidth_derate_factor:
           artifact.summary.contention_bandwidth_derate_factor,
         total_transfer_overhead_fraction:
           artifact.summary.total_transfer_overhead_fraction,
+        transfer_to_compute_time_ratio:
+          artifact.summary.transfer_to_compute_time_ratio,
         shared_bandwidth_clients: artifact.summary.shared_bandwidth_clients,
         bandwidth_arbitration_efficiency:
           artifact.summary.bandwidth_arbitration_efficiency,
@@ -4308,6 +4531,8 @@
           artifact.summary.bandwidth_limited_throughput_equivalent_ops_per_second,
         contention_adjusted_latency_ns:
           artifact.summary.contention_adjusted_latency_ns,
+        contention_adjusted_transfer_to_compute_time_ratio:
+          artifact.summary.contention_adjusted_transfer_to_compute_time_ratio,
         contention_pressure_ratio: artifact.summary.contention_pressure_ratio,
         contention_adjusted_throughput_equivalent_ops_per_second:
           artifact.summary
@@ -4376,9 +4601,12 @@
           summary.memory_timing_mode || "n/a",
           formatNs(summary.effective_transfer_time_ns),
           formatBytesPerNs(summary.contention_adjusted_loaded_bandwidth_bytes_per_ns),
+          formatOpsPerByte(summary.hierarchy_equivalent_ops_per_byte),
+          formatPj(summary.movement_energy_per_hierarchy_byte_pj),
           formatPercent(summary.off_chip_traffic_share),
           formatNumber(summary.contention_bandwidth_derate_factor),
           formatPercent(summary.total_transfer_overhead_fraction),
+          formatNumber(summary.transfer_to_compute_time_ratio),
           formatNumber(summary.shared_bandwidth_clients),
           formatPercent(summary.bandwidth_arbitration_efficiency),
           formatPercent(summary.calibration_overhead_fraction),
@@ -4389,6 +4617,7 @@
           ),
           formatNumber(summary.bandwidth_pressure_ratio),
           formatNs(summary.contention_adjusted_latency_ns),
+          formatNumber(summary.contention_adjusted_transfer_to_compute_time_ratio),
           formatNumber(summary.contention_pressure_ratio),
           formatThroughput(
             summary.contention_adjusted_throughput_equivalent_ops_per_second
@@ -4428,8 +4657,8 @@ Score profile: ${activeScoreProfileSummary(focus).label}
 
 Score weights: ${weightSummary || "n/a"}
 
-| Benchmark | Kind | Source | Local pJ/op | System pJ/op | System profile | Profile overrides | Memory timing | Effective transfer | Loaded BW | Off-chip share | Derate | Transfer overhead | Shared clients | Arbitration eff. | Calibration overhead | Latency | Throughput | BW-limited throughput | BW pressure | Contention latency | Contention pressure | Contention throughput | Interface traffic | Eq ops/byte | Movement share | Published reference | Source grade | Surrogate type | Provenance |
-| --- | --- | --- | ---: | ---: | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- |
+| Benchmark | Kind | Source | Local pJ/op | System pJ/op | System profile | Profile overrides | Memory timing | Effective transfer | Loaded BW | Hierarchy eq ops/byte | Movement pJ/hierarchy byte | Off-chip share | Derate | Transfer overhead | Transfer/compute | Shared clients | Arbitration eff. | Calibration overhead | Latency | Throughput | BW-limited throughput | BW pressure | Contention latency | Contention transfer/compute | Contention pressure | Contention throughput | Interface traffic | Eq ops/byte | Movement share | Published reference | Source grade | Surrogate type | Provenance |
+| --- | --- | --- | ---: | ---: | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- |
 ${rows}
 
 ## Recommendations
@@ -4454,14 +4683,18 @@ ${notes}
       "local_pj_per_op",
       "system_pj_per_op",
       "loaded_hierarchy_bandwidth_bytes_per_ns",
+      "hierarchy_equivalent_ops_per_byte",
+      "movement_energy_per_hierarchy_byte_pj",
       "off_chip_traffic_share",
       "contention_bandwidth_derate_factor",
       "total_transfer_overhead_fraction",
+      "transfer_to_compute_time_ratio",
       "latency_ns",
       "throughput_equivalent_ops_per_second",
       "bandwidth_limited_throughput_equivalent_ops_per_second",
       "bandwidth_pressure_ratio",
       "contention_adjusted_latency_ns",
+      "contention_adjusted_transfer_to_compute_time_ratio",
       "contention_pressure_ratio",
       "contention_adjusted_throughput_equivalent_ops_per_second",
       "interface_traffic_bytes",
@@ -4491,14 +4724,18 @@ ${notes}
         summary.energy_per_op_pj,
         summary.system_energy_per_op_pj,
         summary.contention_adjusted_loaded_bandwidth_bytes_per_ns,
+        summary.hierarchy_equivalent_ops_per_byte,
+        summary.movement_energy_per_hierarchy_byte_pj,
         summary.off_chip_traffic_share,
         summary.contention_bandwidth_derate_factor,
         summary.total_transfer_overhead_fraction,
+        summary.transfer_to_compute_time_ratio,
         summary.latency_ns,
         summary.throughput_equivalent_ops_per_second,
         summary.bandwidth_limited_throughput_equivalent_ops_per_second,
         summary.bandwidth_pressure_ratio,
         summary.contention_adjusted_latency_ns,
+        summary.contention_adjusted_transfer_to_compute_time_ratio,
         summary.contention_pressure_ratio,
         summary.contention_adjusted_throughput_equivalent_ops_per_second,
         summary.memory_traffic_bytes,
@@ -4651,6 +4888,7 @@ ${notes}
       ${renderSelectionDrawer(artifacts)}
       ${renderComparisonBrief(artifacts)}
       ${renderContentionInsight(artifacts)}
+      ${renderReviewQueue(artifacts)}
       ${renderComparisonRecommendations(artifacts, focus)}
       ${renderDecisionScorecard(artifacts, focus)}
       ${renderParetoChart(artifacts)}

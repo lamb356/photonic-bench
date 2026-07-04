@@ -1,0 +1,74 @@
+benchmark:
+  name: Tang 2025 waveguide-multiplexed MVM surrogate
+  description: Source-backed card for the Optica 2025 waveguide-multiplexed photonic MVM processor using multiport photodetectors. The local workload matches the demonstrated 4x4 MVM primitive as a dense bookkeeping surrogate only.
+workload:
+  type: matmul
+  m: 1
+  n: 4
+  k: 4
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 8
+    energy_pj_per_conversion: 0.5
+  vector_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+  weight_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+execution:
+  batch_size: 1
+  vector_reuse_factor: 1
+  weight_reuse_factor: 1
+  weight_stationary: true
+  pipeline:
+    stages: 1
+timing:
+  optical_latency_ns: 1
+  adc_latency_ns: 0
+  dac_latency_ns: 0
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 1
+provenance:
+  source_title: "Waveguide-multiplexed photonic matrix-vector multiplication processor using multiport photodetectors"
+  source_url: https://opg.optica.org/optica/fulltext.cfm?uri=optica-12-6-812
+  doi: 10.1364/OPTICA.552023
+  venue: Optica 12, 812-820 (2025)
+  claim_status: paper-reported 4x4 MVM and multiport photodetector metrics; matmul-surrogate local model
+published_calibration:
+  architecture: Waveguide-multiplexed intensity MVM processor with multiport Ge photodetectors
+  additional_metrics:
+    demonstrated_mvm_shape: 4x4
+    photodetector_ports: 16
+    photodetector_3db_bandwidth_ghz: 11.8
+    photodetector_bias_voltage_v: -3
+    projected_scaled_ports: 250
+    projected_scaled_bandwidth_ghz: 6.1
+    iris_accuracy_percent: 93.3
+    fashion_mnist_sim_accuracy_percent: 90.53
+    surrogate_mapping: m=1, k=4, n=4 encodes the demonstrated 4x4 MVM primitive; it does not model multiport photodetector analog summing physics.
+source_quality:
+  reported_metrics:
+    - photodetector_bandwidth
+    - primitive_shape
+    - scaled_port_projection
+    - task_accuracy
+  local_surrogate_type: direct_4x4_waveguide_mvm_surrogate
+  coverage:
+    throughput: derived
+    energy: not_reported
+    accuracy: reported
+    area: not_reported
+    precision: not_reported
+  confidence_grade: B
+  notes:
+    - Direct primitive shape and detector bandwidth are reported, but energy and exact system timing are not converted into local model outputs.
+assumptions:
+  - The local card uses a dense 4x4 MVM bookkeeping surrogate for the paper's waveguide-multiplexed MVM demonstration.
+  - Paper-reported photodetector bandwidth, port scaling, and task accuracy remain published reference metadata.
+  - Local converter energy, system tiers, timing, and noise settings are generic PhotonicBench assumptions.

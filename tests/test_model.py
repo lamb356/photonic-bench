@@ -91,6 +91,11 @@ def test_evaluate_matmul_energy_accounting() -> None:
     assert result.system.movement_energy_share == pytest.approx(
         572.32 / (21.248 + 572.32)
     )
+    assert result.system.total_hierarchy_bytes == pytest.approx(168)
+    assert result.system.hierarchy_equivalent_ops_per_byte == pytest.approx(128 / 168)
+    assert result.system.movement_energy_per_hierarchy_byte_pj == pytest.approx(
+        572.32 / 168
+    )
     assert result.system.max_transfer_time_ns == pytest.approx(56 / 16)
     assert result.system.serial_transfer_time_ns == pytest.approx(
         (56 / 1024) + (56 / 256) + (56 / 16)
@@ -109,9 +114,13 @@ def test_evaluate_matmul_energy_accounting() -> None:
     assert result.system.calibration_adjusted_effective_transfer_time_ns == pytest.approx(
         56 / 16
     )
+    assert result.system.transfer_to_compute_time_ratio == pytest.approx((56 / 16) / 5)
     assert result.system.bandwidth_limited_batch_latency_ns == pytest.approx(5.0)
     assert result.system.bandwidth_limited_tier == "compute"
     assert result.system.contention_adjusted_batch_latency_ns == pytest.approx(5.0)
+    assert result.system.contention_adjusted_transfer_to_compute_time_ratio == (
+        pytest.approx((56 / 16) / 5)
+    )
     assert result.system.contention_limited_tier == "compute"
 
 
@@ -139,6 +148,9 @@ def test_evaluate_applies_shared_bandwidth_contention_and_calibration_guardband(
         (56 / 4) * 1.25
     )
     assert result.system.contention_adjusted_batch_latency_ns == pytest.approx(17.5)
+    assert result.system.contention_adjusted_transfer_to_compute_time_ratio == (
+        pytest.approx(17.5 / 5)
+    )
     assert result.system.contention_limited_tier == "off_chip"
     assert result.system.contention_adjusted_equivalent_ops_per_second == pytest.approx(
         128 / (17.5e-9)
