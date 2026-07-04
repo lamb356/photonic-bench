@@ -1,0 +1,44 @@
+benchmark:
+  name: Nature PACE 64x64 matrix-vector calibration
+  description: Source-backed calibration card for the Nature 2025 PACE 64x64 photonic matrix-vector accelerator. The component model remains a simple local assumption set; the published calibration table carries the paper-reported values.
+workload:
+  type: matmul
+  m: 1
+  n: 64
+  k: 64
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 8
+    energy_pj_per_conversion: 0.5
+  dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+timing:
+  optical_latency_ns: 5
+  adc_latency_ns: 0
+  dac_latency_ns: 0
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 5
+provenance:
+  source_title: An integrated large-scale photonic accelerator with ultralow latency
+  source_url: https://www.nature.com/articles/s41586-025-08786-6
+  doi: 10.1038/s41586-025-08786-6
+  venue: Nature 640, 361-367 (2025)
+  claim_status: paper-reported calibration targets
+published_calibration:
+  architecture: PACE 64x64 matrix-vector oMAC
+  reported_tops: 8.19
+  energy_efficiency_excluding_lasers_tops_per_watt: 4.21
+  energy_efficiency_including_lasers_tops_per_watt: 2.38
+  reported_latency_ns: 5
+  reported_future_latency_ns: 3
+  reported_enob: 7.61
+  reported_component_count_min: 16000
+  a10_latency_ns_min: 2300
+  pace_total_time_us: 2.7
+  gpu_total_time_us: 798.1

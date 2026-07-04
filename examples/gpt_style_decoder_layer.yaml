@@ -1,0 +1,44 @@
+benchmark:
+  name: GPT-style decoder layer
+  description: Dense GPT-2-small style decoder benchmark shape with hidden size 768, 12 attention heads, sequence length 1024, and MLP intermediate size 3072. This is a shape helper example, not a published accelerator calibration card.
+transformer_layer:
+  layer_type: decoder
+  attention_mode: dense
+  batch_size: 1
+  sequence_length: 1024
+  hidden_size: 768
+  num_heads: 12
+  head_dim: 64
+  mlp_intermediate_size: 3072
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 6
+    energy_pj_per_conversion: 0.5
+  vector_dac:
+    bits: 6
+    energy_pj_per_conversion: 0.12
+  weight_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.45
+execution:
+  vector_reuse_factor: 1
+  weight_reuse_factor: 1
+  weight_stationary: true
+  pipeline:
+    stages: 4
+    cycle_time_ns: 2
+timing:
+  optical_latency_ns: 3
+  adc_latency_ns: 1
+  dac_latency_ns: 1
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 3
+assumptions:
+  - Dense full-context decoder self-attention is used for layer-level accounting.
+  - The decoder label does not apply causal triangular halving or KV-cache incremental decoding.
+  - GPT-style means common public decoder dimensions, not a source-backed photonic accelerator claim.

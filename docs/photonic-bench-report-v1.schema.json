@@ -1,0 +1,311 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://photonicbench.local/schemas/photonic-bench-report-v1.schema.json",
+  "title": "PhotonicBench report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "benchmark",
+    "workload",
+    "model_inputs",
+    "local_model",
+    "published_reference",
+    "calibration_fit",
+    "assumptions",
+    "provenance"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "photonic-bench-report-v1"
+    },
+    "benchmark": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "description"],
+      "properties": {
+        "name": {"type": "string"},
+        "description": {"type": "string"}
+      }
+    },
+    "workload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "shape", "macs", "equivalent_ops", "output_elements"],
+      "properties": {
+        "type": {"const": "matmul"},
+        "shape": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["m", "k", "n"],
+          "properties": {
+            "m": {"type": "integer", "minimum": 1},
+            "k": {"type": "integer", "minimum": 1},
+            "n": {"type": "integer", "minimum": 1}
+          }
+        },
+        "macs": {"type": "integer", "minimum": 1},
+        "equivalent_ops": {"type": "integer", "minimum": 1},
+        "output_elements": {"type": "integer", "minimum": 1}
+      }
+    },
+    "model_inputs": {
+      "type": "object",
+      "required": ["device", "execution", "timing", "noise"],
+      "additionalProperties": true,
+      "properties": {
+        "device": {
+          "type": "object",
+          "required": [
+            "optical_mac_energy_fj",
+            "laser_wall_plug_efficiency",
+            "photodetector_energy_fj_per_sample",
+            "adc",
+            "dac",
+            "vector_dac",
+            "weight_dac"
+          ],
+          "additionalProperties": true,
+          "properties": {
+            "optical_mac_energy_fj": {"type": "number", "minimum": 0},
+            "laser_wall_plug_efficiency": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1
+            },
+            "photodetector_energy_fj_per_sample": {
+              "type": "number",
+              "minimum": 0
+            },
+            "adc": {"$ref": "#/$defs/converter"},
+            "dac": {"$ref": "#/$defs/converter"},
+            "vector_dac": {"$ref": "#/$defs/converter"},
+            "weight_dac": {"$ref": "#/$defs/converter"}
+          }
+        },
+        "execution": {
+          "type": "object",
+          "required": [
+            "batch_size",
+            "vector_reuse_factor",
+            "weight_reuse_factor",
+            "weight_stationary",
+            "pipeline"
+          ],
+          "additionalProperties": true,
+          "properties": {
+            "batch_size": {"type": "integer", "minimum": 1},
+            "vector_reuse_factor": {"type": "integer", "minimum": 1},
+            "weight_reuse_factor": {"type": "integer", "minimum": 1},
+            "weight_stationary": {"type": "boolean"},
+            "pipeline": {
+              "type": "object",
+              "required": ["stages", "cycle_time_ns"],
+              "additionalProperties": true,
+              "properties": {
+                "stages": {"type": "integer", "minimum": 1},
+                "cycle_time_ns": {
+                  "type": ["number", "null"],
+                  "exclusiveMinimum": 0
+                }
+              }
+            }
+          }
+        },
+        "timing": {
+          "type": "object",
+          "required": [
+            "optical_latency_ns",
+            "adc_latency_ns",
+            "dac_latency_ns"
+          ],
+          "additionalProperties": true,
+          "properties": {
+            "optical_latency_ns": {"type": "number", "minimum": 0},
+            "adc_latency_ns": {"type": "number", "minimum": 0},
+            "dac_latency_ns": {"type": "number", "minimum": 0}
+          }
+        },
+        "noise": {
+          "type": "object",
+          "required": [
+            "phase_noise_rad_rms",
+            "drift_rad_per_second",
+            "integration_time_ns"
+          ],
+          "additionalProperties": true,
+          "properties": {
+            "phase_noise_rad_rms": {"type": "number", "minimum": 0},
+            "drift_rad_per_second": {"type": "number", "minimum": 0},
+            "integration_time_ns": {"type": "number", "minimum": 0}
+          }
+        }
+      }
+    },
+    "local_model": {
+      "type": "object",
+      "required": ["conversion_counts", "energy", "timing", "noise"],
+      "additionalProperties": true,
+      "properties": {
+        "conversion_counts": {
+          "type": "object",
+          "required": [
+            "adc_conversions",
+            "vector_dac_conversions",
+            "weight_dac_conversions",
+            "dac_conversions"
+          ],
+          "additionalProperties": true,
+          "properties": {
+            "adc_conversions": {"type": "integer", "minimum": 0},
+            "vector_dac_conversions": {"type": "integer", "minimum": 0},
+            "weight_dac_conversions": {"type": "integer", "minimum": 0},
+            "dac_conversions": {"type": "integer", "minimum": 0}
+          }
+        },
+        "energy": {
+          "type": "object",
+          "required": [
+            "optical_compute_pj",
+            "laser_electrical_pj",
+            "detector_pj",
+            "adc_pj",
+            "vector_dac_pj",
+            "weight_dac_pj",
+            "dac_pj",
+            "total_pj",
+            "energy_per_mac_pj",
+            "energy_per_op_pj",
+            "peripheral_share"
+          ],
+          "additionalProperties": true,
+          "properties": {
+            "optical_compute_pj": {"type": "number", "minimum": 0},
+            "laser_electrical_pj": {"type": "number", "minimum": 0},
+            "detector_pj": {"type": "number", "minimum": 0},
+            "adc_pj": {"type": "number", "minimum": 0},
+            "vector_dac_pj": {"type": "number", "minimum": 0},
+            "weight_dac_pj": {"type": "number", "minimum": 0},
+            "dac_pj": {"type": "number", "minimum": 0},
+            "total_pj": {"type": "number", "minimum": 0},
+            "energy_per_mac_pj": {"type": "number", "minimum": 0},
+            "energy_per_op_pj": {"type": "number", "minimum": 0},
+            "peripheral_share": {"type": "number", "minimum": 0}
+          }
+        },
+        "timing": {
+          "type": "object",
+          "required": [
+            "optical_latency_ns",
+            "adc_latency_ns",
+            "dac_latency_ns",
+            "total_latency_ns",
+            "pipeline_stages",
+            "pipeline_cycle_time_ns",
+            "batch_latency_ns",
+            "steady_state_operations_per_second",
+            "steady_state_equivalent_ops_per_second"
+          ],
+          "additionalProperties": true,
+          "properties": {
+            "optical_latency_ns": {"type": "number", "minimum": 0},
+            "adc_latency_ns": {"type": "number", "minimum": 0},
+            "dac_latency_ns": {"type": "number", "minimum": 0},
+            "total_latency_ns": {"type": "number", "minimum": 0},
+            "pipeline_stages": {"type": "integer", "minimum": 1},
+            "pipeline_cycle_time_ns": {"type": "number", "minimum": 0},
+            "batch_latency_ns": {"type": "number", "minimum": 0},
+            "steady_state_operations_per_second": {
+              "type": "number",
+              "minimum": 0
+            },
+            "steady_state_equivalent_ops_per_second": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        },
+        "noise": {
+          "type": "object",
+          "required": [
+            "quantization_snr_db",
+            "quantization_rms",
+            "phase_noise_rad_rms",
+            "drift_rms_rad",
+            "estimated_relative_error_rms"
+          ],
+          "additionalProperties": true,
+          "properties": {
+            "quantization_snr_db": {"type": "number"},
+            "quantization_rms": {"type": "number", "minimum": 0},
+            "phase_noise_rad_rms": {"type": "number", "minimum": 0},
+            "drift_rms_rad": {"type": "number", "minimum": 0},
+            "estimated_relative_error_rms": {"type": "number", "minimum": 0}
+          }
+        }
+      }
+    },
+    "published_reference": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source_type",
+            "provenance",
+            "reported",
+            "derived_unit_conversions",
+            "separation_note"
+          ],
+          "properties": {
+            "source_type": {"const": "published_calibration"},
+            "provenance": {"type": ["object", "null"]},
+            "reported": {"type": "object"},
+            "derived_unit_conversions": {"type": "object"},
+            "separation_note": {"type": "string"}
+          }
+        }
+      ]
+    },
+    "calibration_fit": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "required": [
+            "target",
+            "target_source",
+            "target_total_energy_pj",
+            "fitted_parameter",
+            "objective",
+            "pre_fit_total_energy_pj",
+            "post_fit_total_energy_pj",
+            "absolute_error_pj",
+            "relative_error",
+            "assumptions"
+          ],
+          "additionalProperties": true
+        }
+      ]
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "provenance": {
+      "type": ["object", "null"]
+    }
+  },
+  "$defs": {
+    "converter": {
+      "type": "object",
+      "required": ["bits", "energy_pj_per_conversion"],
+      "additionalProperties": true,
+      "properties": {
+        "bits": {"type": "integer", "minimum": 1},
+        "energy_pj_per_conversion": {"type": "number", "minimum": 0}
+      }
+    }
+  }
+}

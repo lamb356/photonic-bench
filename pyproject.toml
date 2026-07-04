@@ -1,0 +1,15 @@
+[project]
+name = "photonic-bench"
+version = "0.1.0"
+description = "Transparent benchmark cards for photonic AI energy and noise claims."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "PyYAML>=6.0",
+]
+
+[project.scripts]
+photonic-bench = "photonic_bench.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

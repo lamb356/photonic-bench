@@ -1,0 +1,52 @@
+benchmark:
+  name: Xu 2021 11 TOPS convolution accelerator surrogate
+  description: Source-backed benchmark card for Xu et al. Nature 2021. The published reference is an optical vector convolution accelerator; this config uses PhotonicBench's matmul path as a dense vector-by-kernel surrogate only, not as an exact convolution dataflow reproduction.
+workload:
+  type: matmul
+  m: 1
+  n: 10
+  k: 250000
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 8
+    energy_pj_per_conversion: 0.5
+  vector_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+  weight_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+execution:
+  batch_size: 1
+  vector_reuse_factor: 1
+  weight_reuse_factor: 1
+  weight_stationary: true
+  pipeline:
+    stages: 1
+timing:
+  optical_latency_ns: 3
+  adc_latency_ns: 1
+  dac_latency_ns: 1
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 3
+provenance:
+  source_title: 11 TOPS photonic convolutional accelerator for optical neural networks
+  source_url: https://www.nature.com/articles/s41586-020-03063-0
+  doi: 10.1038/s41586-020-03063-0
+  venue: Nature 589, 44-51 (2021)
+  claim_status: paper-reported throughput/workload targets; matmul-surrogate local model
+published_calibration:
+  architecture: Kerr microcomb optical vector convolution accelerator
+  reported_tops: 11
+  additional_metrics:
+    reported_speed_note: Nature title reports 11 TOPS; abstract states more than ten TOPS.
+    image_pixels: 250000
+    kernels: 10
+    input_resolution_bits: 8
+    digit_recognition_accuracy_percent: 88
+    surrogate_mapping: m=1, k=250000, n=10 represents one dense vector-by-kernel surrogate; not an exact convolution dataflow reproduction.

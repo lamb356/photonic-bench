@@ -1,0 +1,299 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://photonicbench.local/schemas/photonic-bench-transformer-layer-report-v1.schema.json",
+  "title": "PhotonicBench transformer layer aggregate report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "benchmark",
+    "transformer_layer",
+    "workload",
+    "aggregate_semantics",
+    "local_model",
+    "published_reference",
+    "calibration_fit",
+    "formula_audit",
+    "matmuls",
+    "assumptions",
+    "exclusions",
+    "provenance"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "photonic-bench-transformer-layer-report-v1"
+    },
+    "artifact_type": {
+      "const": "transformer_layer_aggregate"
+    },
+    "benchmark": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "description"],
+      "properties": {
+        "name": {"type": "string"},
+        "description": {"type": "string"}
+      }
+    },
+    "transformer_layer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["layer_type", "attention_mode", "shape"],
+      "properties": {
+        "layer_type": {"enum": ["encoder", "decoder"]},
+        "attention_mode": {"const": "dense"},
+        "shape": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "batch_size",
+            "sequence_length",
+            "hidden_size",
+            "num_heads",
+            "head_dim",
+            "mlp_intermediate_size"
+          ],
+          "properties": {
+            "batch_size": {"type": "integer", "minimum": 1},
+            "sequence_length": {"type": "integer", "minimum": 1},
+            "hidden_size": {"type": "integer", "minimum": 1},
+            "num_heads": {"type": "integer", "minimum": 1},
+            "head_dim": {"type": "integer", "minimum": 1},
+            "mlp_intermediate_size": {"type": "integer", "minimum": 1}
+          }
+        }
+      }
+    },
+    "workload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "matmul_count",
+        "macs",
+        "equivalent_ops",
+        "output_elements"
+      ],
+      "properties": {
+        "type": {"const": "transformer_layer"},
+        "matmul_count": {"const": 5},
+        "macs": {"type": "integer", "minimum": 1},
+        "equivalent_ops": {"type": "integer", "minimum": 1},
+        "output_elements": {"type": "integer", "minimum": 1}
+      }
+    },
+    "aggregate_semantics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "energy", "timing", "noise"],
+      "properties": {
+        "source": {"type": "string"},
+        "energy": {"type": "string"},
+        "timing": {"type": "string"},
+        "noise": {"type": "string"}
+      }
+    },
+    "local_model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["conversion_counts", "energy", "timing", "noise"],
+      "properties": {
+        "conversion_counts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "adc_conversions",
+            "vector_dac_conversions",
+            "weight_dac_conversions",
+            "dac_conversions"
+          ],
+          "properties": {
+            "adc_conversions": {"type": "integer", "minimum": 0},
+            "vector_dac_conversions": {"type": "integer", "minimum": 0},
+            "weight_dac_conversions": {"type": "integer", "minimum": 0},
+            "dac_conversions": {"type": "integer", "minimum": 0}
+          }
+        },
+        "energy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "optical_compute_pj",
+            "laser_electrical_pj",
+            "detector_pj",
+            "adc_pj",
+            "vector_dac_pj",
+            "weight_dac_pj",
+            "dac_pj",
+            "total_pj",
+            "energy_per_mac_pj",
+            "energy_per_op_pj",
+            "peripheral_share"
+          ],
+          "properties": {
+            "optical_compute_pj": {"type": "number", "minimum": 0},
+            "laser_electrical_pj": {"type": "number", "minimum": 0},
+            "detector_pj": {"type": "number", "minimum": 0},
+            "adc_pj": {"type": "number", "minimum": 0},
+            "vector_dac_pj": {"type": "number", "minimum": 0},
+            "weight_dac_pj": {"type": "number", "minimum": 0},
+            "dac_pj": {"type": "number", "minimum": 0},
+            "total_pj": {"type": "number", "minimum": 0},
+            "energy_per_mac_pj": {"type": "number", "minimum": 0},
+            "energy_per_op_pj": {"type": "number", "minimum": 0},
+            "peripheral_share": {"type": "number", "minimum": 0}
+          }
+        },
+        "timing": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "timing_model",
+            "serial_single_operation_latency_ns",
+            "serial_batch_latency_ns",
+            "serial_effective_macs_per_second",
+            "serial_effective_equivalent_ops_per_second",
+            "max_pipeline_cycle_time_ns",
+            "max_per_matmul_batch_latency_ns"
+          ],
+          "properties": {
+            "timing_model": {
+              "const": "serial_sum_of_decomposed_batch_latencies"
+            },
+            "serial_single_operation_latency_ns": {
+              "type": "number",
+              "minimum": 0
+            },
+            "serial_batch_latency_ns": {"type": "number", "minimum": 0},
+            "serial_effective_macs_per_second": {
+              "type": "number",
+              "minimum": 0
+            },
+            "serial_effective_equivalent_ops_per_second": {
+              "type": "number",
+              "minimum": 0
+            },
+            "max_pipeline_cycle_time_ns": {"type": "number", "minimum": 0},
+            "max_per_matmul_batch_latency_ns": {"type": "number", "minimum": 0}
+          }
+        },
+        "noise": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "aggregation",
+            "note",
+            "max_quantization_rms",
+            "max_phase_noise_rad_rms",
+            "max_drift_rms_rad",
+            "max_estimated_relative_error_rms"
+          ],
+          "properties": {
+            "aggregation": {"const": "not_additive"},
+            "note": {"type": "string"},
+            "max_quantization_rms": {"type": "number", "minimum": 0},
+            "max_phase_noise_rad_rms": {"type": "number", "minimum": 0},
+            "max_drift_rms_rad": {"type": "number", "minimum": 0},
+            "max_estimated_relative_error_rms": {"type": "number", "minimum": 0}
+          }
+        }
+      }
+    },
+    "published_reference": {"type": "null"},
+    "calibration_fit": {"type": "null"},
+    "formula_audit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "expected_total_macs",
+        "json_total_macs",
+        "mac_total_matches_decomposed_json",
+        "expected_total_equivalent_ops",
+        "json_total_equivalent_ops",
+        "equivalent_ops_total_matches_decomposed_json",
+        "rows"
+      ],
+      "properties": {
+        "expected_total_macs": {"type": "integer", "minimum": 1},
+        "json_total_macs": {"type": "integer", "minimum": 1},
+        "mac_total_matches_decomposed_json": {"type": "boolean"},
+        "expected_total_equivalent_ops": {"type": "integer", "minimum": 1},
+        "json_total_equivalent_ops": {"type": "integer", "minimum": 1},
+        "equivalent_ops_total_matches_decomposed_json": {"type": "boolean"},
+        "rows": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "operation_key",
+              "label",
+              "formula",
+              "expected_macs",
+              "json_macs",
+              "expected_equivalent_ops",
+              "json_equivalent_ops"
+            ],
+            "properties": {
+              "operation_key": {"type": "string"},
+              "label": {"type": "string"},
+              "formula": {"type": "string"},
+              "expected_macs": {"type": "integer", "minimum": 1},
+              "json_macs": {"type": "integer", "minimum": 1},
+              "expected_equivalent_ops": {"type": "integer", "minimum": 1},
+              "json_equivalent_ops": {"type": "integer", "minimum": 1}
+            }
+          }
+        }
+      }
+    },
+    "matmuls": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "operation_key",
+          "label",
+          "formula",
+          "json_report",
+          "benchmark",
+          "workload",
+          "model_inputs",
+          "local_model",
+          "assumptions",
+          "provenance"
+        ],
+        "properties": {
+          "operation_key": {"type": "string"},
+          "label": {"type": "string"},
+          "formula": {"type": "string"},
+          "json_report": {"type": "string"},
+          "benchmark": {"type": "object"},
+          "workload": {"type": "object"},
+          "model_inputs": {"type": "object"},
+          "local_model": {"type": "object"},
+          "assumptions": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "provenance": {"type": ["object", "null"]}
+        }
+      }
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "exclusions": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "provenance": {"type": ["object", "null"]}
+  }
+}

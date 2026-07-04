@@ -1,0 +1,43 @@
+benchmark:
+  name: Small transformer sanity layer
+  description: Tiny dense transformer layer shape for exact MAC-count sanity checks. This is a synthetic helper example, not a published accelerator calibration card.
+transformer_layer:
+  layer_type: encoder
+  attention_mode: dense
+  batch_size: 2
+  sequence_length: 4
+  hidden_size: 8
+  num_heads: 2
+  head_dim: 4
+  mlp_intermediate_size: 16
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 6
+    energy_pj_per_conversion: 0.5
+  vector_dac:
+    bits: 6
+    energy_pj_per_conversion: 0.12
+  weight_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.45
+execution:
+  vector_reuse_factor: 1
+  weight_reuse_factor: 1
+  weight_stationary: true
+  pipeline:
+    stages: 4
+    cycle_time_ns: 2
+timing:
+  optical_latency_ns: 3
+  adc_latency_ns: 1
+  dac_latency_ns: 1
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 3
+assumptions:
+  - Dense full-sequence transformer accounting is used.
+  - This tiny shape is intended for manual MAC-count verification.
