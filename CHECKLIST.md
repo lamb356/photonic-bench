@@ -1,4 +1,4 @@
-# PhotonicBench PR Publication, Visualizer, And System Modeling Checklist
+# PhotonicBench PR9 Merge, Visualizer, And System Modeling Checklist
 
 Status key:
 
@@ -13,138 +13,160 @@ Status key:
   - Proof:
     - Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
       `RUBRIC.md`, and `tasks/todo.md`.
-    - Checked branch state with `git status --short --branch`; current branch
-      is `codex/pr8-followup-improvements`.
-    - Called GBrain `get_brain_identity`; version `0.42.56.0`.
-    - Searched GBrain for the PR #8 follow-up context and read
-      `photonicbench-pr8-merge-bottleneck-stack-2026-07-04`.
+    - Called GBrain `get_brain_identity`; version `0.42.56.0`, engine
+      `pglite`.
+    - Queried GBrain for PhotonicBench PR9 bandwidth/headroom follow-up
+      context; no matching page was returned.
     - Searched local memory `MEMORY.md` for PhotonicBench visualizer, JSON,
       transformer, and workflow context.
-    - Read GitHub, commit, frontend-design, and review skill guidance.
+    - Read GitHub, frontend-design, review, and commit skill guidance.
+    - Checked `git status --short --branch`; current branch is clean on
+      `codex/pr8-followup-improvements`.
+    - Checked PR #9 with `gh pr view`; PR is open, non-draft, mergeable,
+      base `master`, head `codex/pr8-followup-improvements`, head commit
+      `b75d4e409aa6594c6941aa1a97e34fb470e91c24`, and both checks are green.
 - [x] DONE: Roll `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
-      `RUBRIC.md`, and `tasks/todo.md` to the new commit-first outer loop.
+      `RUBRIC.md`, and `tasks/todo.md` to the merge-first outer loop.
   - Proof:
-    - This checklist records the new stop condition: publish the existing
-      verified branch first, then add one more visualizer/modeling pass.
+    - This checklist records the new stop condition: merge PR #9 first,
+      verify `master`, clean the feature branch, then add one more
+      visualizer/modeling pass.
 - [x] DONE: Keep state files aligned as each task advances.
   - Proof:
-    - Updated state after the initial verification, two commits, push, and PR
-      creation.
+    - Updated `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
+      `RUBRIC.md`, and `tasks/todo.md` for closeout after verification.
 
-## Task 1: Commit, Push, And Open PR
+## Task 1: Merge PR #9 And Verify Master
 
-- [x] DONE: Review the current dirty worktree and split commits logically.
+- [x] DONE: Confirm PR #9 checks are green immediately before merge.
   - Proof:
-    - `git diff --stat` reviewed.
-    - Split selected:
-      - source/docs/schemas/tests/state commit;
-      - generated reports and visualizer payload refresh commit.
-- [x] DONE: Re-run fast quality gates before committing.
+    - `gh pr view 9` confirmed PR #9 was open, non-draft, mergeable, based on
+      `master`, and at head `b75d4e409aa6594c6941aa1a97e34fb470e91c24`.
+    - Required checks were green before merge:
+      - `Ruff, package, and pytest`;
+      - `macOS visual regression`.
+- [x] DONE: Merge PR #9 into `master`.
   - Proof:
-    - `python -m ruff check` passed.
+    - `gh pr merge 9 --merge --delete-branch` succeeded.
+    - PR #9 state is `MERGED`.
+    - Merge commit:
+      `0f9ba2acc893ffbe5c5fbfd163481e4f69052328`.
+    - Merged at `2026-07-04T17:38:23Z`.
+- [x] DONE: Verify post-merge GitHub Actions is green on `master`.
+  - Proof:
+    - Watched master CI run `28714312225` to completion.
+    - `macOS visual regression` passed.
+    - `Ruff, package, and pytest` passed, including CI artifact freshness.
+- [x] DONE: Update local `master` to the merge commit and confirm it is clean.
+  - Proof:
+    - Local `master` fast-forwarded to `origin/master` at merge commit
+      `0f9ba2acc893ffbe5c5fbfd163481e4f69052328`.
+    - `git status --short --branch` showed `master...origin/master` clean
+      before active state edits were restored.
+- [x] DONE: Run post-merge local verification on `master`, including full
+      pytest and `verify-artifacts`.
+  - Proof:
     - `python -m pytest -q` passed: 130 tests.
     - `python -m photonic_bench.cli verify-artifacts` passed: 258 generated
       files fresh.
-    - `node --check photonic_bench\visualizer_assets\app.js` passed.
-    - `node --check reports\visualizer\assets\app.js` passed.
-    - `python -m build` passed.
-- [x] DONE: Create one or more clean commits on
-      `codex/pr8-followup-improvements`.
+- [x] DONE: Delete `codex/pr8-followup-improvements` locally and remotely, and
+      prune stale tracking refs.
   - Proof:
-    - `6e80186 Add tier bottleneck diagnostics and visualizer stack`.
-    - `50fe226 Refresh bottleneck diagnostic artifacts`.
-    - Workspace was clean after the commits.
-    - The `.Codex/scripts/generate-reasoning.sh` hook referenced by the commit
-      skill is not present in this workspace, so no reasoning sidecar was
-      generated.
-- [x] DONE: Push `codex/pr8-followup-improvements` and open a PR to `master`.
-  - Proof:
-    - `git push -u origin codex/pr8-followup-improvements` succeeded.
-    - PR opened: `https://github.com/lamb356/photonic-bench/pull/9`.
-    - `gh pr view 9` confirms state `OPEN`, `isDraft=false`,
-      `mergeable=MERGEABLE`, base `master`, head
-      `codex/pr8-followup-improvements`, and head commit `50fe226`.
-    - PR CI run `28713516645` has started.
+    - `git fetch --prune origin` removed stale
+      `origin/codex/pr8-followup-improvements`.
+    - `git branch --list "codex/pr8-followup-improvements"` returned no local
+      branch.
+    - `git ls-remote --heads origin codex/pr8-followup-improvements` returned
+      no remote branch.
 
 ## Task 2: Visualizer Improvements
 
-- [x] DONE: Map the current visualizer dashboard, comparison, URL-state,
-      preset, export, detail, smoke, accessibility, and visual-regression
-      surfaces after the protected PR is open.
+- [x] DONE: Map the current visualizer dashboard, comparison, selection,
+      URL-state, preset, export, detail, smoke, accessibility, and
+      visual-regression surfaces after PR #9 is merged.
   - Proof:
     - Reviewed `photonic_bench/visualizer.py`,
-      `photonic_bench/visualizer_assets/app.js`, visualizer tests, README
-      visualizer docs, and generated `reports/visualizer/**`.
-- [x] DONE: Implement high-value interaction, dashboard, analytical, or
+      `photonic_bench/visualizer_assets/app.js`,
+      `tests/test_visualizer.py`, `tests/test_visualizer_smoke.py`,
+      `tests/test_visualizer_accessibility.py`, and
+      `tests/test_visualizer_visual_regression.py`.
+    - Used parallel visualizer exploration guidance for a summary-driven
+      comparison review checklist and daily-use comparison panel.
+- [x] DONE: Implement meaningful interaction, dashboard, analytical, or
       usability improvements while preserving modeling-boundary labels.
   - Proof:
-    - Added bandwidth utilization, headroom, and saturation-tier analytics to
-      Contention Insight, Bottleneck Stack, Review Queue, comparison summary,
-      scoring, JSON export, Markdown export, and CSV export.
-    - Preserved explicit local-model boundary notes for contention, hierarchy,
-      guardband, and bandwidth-headroom diagnostics.
-    - Hostile-review fix tightened legacy/external payload handling so the
-      Contention Insight panel only names a highest-utilization artifact when
-      that metric is finite.
+    - Added an Energy Stack panel ranking selected artifacts by local
+      movement-to-compute energy ratio and largest hierarchy-tier share of
+      total local system energy.
+    - Added a Comparison Review Checklist panel and JSON/Markdown export data
+      for pinned baseline, schema compatibility, source/provenance coverage,
+      system metric coverage, energy split coverage, bandwidth phase coverage,
+      transformer boundaries, and external/legacy payloads.
+    - Added guardbanded-vs-contention-only loaded bandwidth labels in the
+      detail, comparison, contention insight, Markdown, CSV, and JSON export
+      surfaces while retaining the old JSON key as a compatibility alias.
 - [x] DONE: Update visualizer docs, generated visualizer artifacts, and
       browser/focused tests as relevant.
   - Proof:
-    - Updated `README.md`, `docs/json_schema.md`, `CHANGELOG.md`, and
-      comparison-export schema docs.
-    - Regenerated checked visualizer assets and payloads under
-      `reports/visualizer/**`.
-    - Added static and browser-smoke coverage for the new export fields and UI
-      labels.
+    - Updated `README.md`, `docs/json_schema.md`,
+      `docs/photonic-bench-comparison-export-v1.schema.json`, and
+      `CHANGELOG.md`.
+    - Regenerated checked `reports/visualizer/**` artifacts.
+    - Added focused static, discovery, schema, and browser-smoke assertions in
+      `tests/test_visualizer.py` and `tests/test_visualizer_smoke.py`.
 
 ## Task 3: Deeper System Modeling
 
-- [x] DONE: Map the current contention calibration, memory hierarchy, report,
-      JSON schema, transformer aggregate, and visualizer exposure after the
-      protected PR is open.
+- [x] DONE: Map current contention calibration, memory hierarchy, report, JSON
+      schema, transformer aggregate, and visualizer exposure after PR #9 is
+      merged.
   - Proof:
-    - Reviewed `photonic_bench/model.py`, `json_report.py`, `report.py`,
-      `comparison.py`, `transformer.py`, strict schemas, model docs, and focused
-      model/report/transformer tests.
-- [x] DONE: Add meaningful contention calibration or hierarchy-realism
-      improvements with explicit local-model assumptions.
+    - Reviewed `photonic_bench/model.py`, `photonic_bench/json_report.py`,
+      `photonic_bench/report.py`, `photonic_bench/comparison.py`,
+      `photonic_bench/transformer.py`, report schemas, docs, and generated
+      report artifacts.
+    - Used parallel modeling exploration guidance to separate contention-only
+      loaded bandwidth from the existing guardbanded loaded bandwidth field.
+- [x] DONE: Add meaningful contention calibration, effective-bandwidth,
+      hierarchy-energy, pressure-ratio, or related metrics with explicit
+      local-model assumptions.
   - Proof:
-    - Added per-tier compute-window required bandwidth, contention bandwidth
-      utilization, bandwidth headroom in bytes/ns, and bandwidth headroom ratio.
-    - Added system-level bandwidth saturation tier, maximum tier utilization,
-      and minimum traffic-tier headroom ratio.
-    - Documented formulas and boundary language in `docs/model.md`.
+    - Added per-tier `system_energy_share`.
+    - Added top-level local compute/conversion energy share,
+      movement-to-compute energy ratio, dominant total-system energy
+      component, max tier system-energy share, and contention-only loaded
+      hierarchy bandwidth.
+    - Preserved existing guardbanded
+      `contention_adjusted_loaded_bandwidth_bytes_per_ns` semantics.
 - [x] DONE: Expose new metrics in Markdown, JSON, comparison, transformer, and
       visualizer surfaces where appropriate.
   - Proof:
-    - Exposed fields in per-card Markdown/JSON, comparison Markdown,
-      transformer-layer aggregate JSON/Markdown, transformer-model aggregate
-      JSON/Markdown, strict schemas, visualizer summaries, visualizer detail
-      tables, comparison dashboard, and browser exports.
+    - Exposed the new metrics through per-matmul JSON/Markdown, comparison
+      Markdown, transformer layer/model aggregate JSON/Markdown, visualizer
+      summaries, comparison exports, schemas, docs, and generated reports.
 - [x] DONE: Add focused tests and regenerate affected checked artifacts.
   - Proof:
-    - Added assertions in model, JSON report, Markdown report, transformer,
-      comparison, visualizer, and browser smoke tests.
-    - Regenerated 258 checked artifacts.
+    - Added assertions in `tests/test_model.py`, `tests/test_json_report.py`,
+      `tests/test_report.py`, `tests/test_transformer.py`,
+      `tests/test_comparison.py`, `tests/test_visualizer.py`, and
+      `tests/test_visualizer_smoke.py`.
+    - `python -m photonic_bench.cli verify-artifacts` passed with 258 fresh
+      generated files.
 
 ## Task 4: Verification And Documentation
 
 - [x] DONE: Regenerate checked artifacts after source/model/visualizer changes.
   - Proof:
-    - `python -c "from photonic_bench.artifacts import regenerate_checked_artifacts; regenerate_checked_artifacts()"`
-      completed after source/docs/schema updates and again after the critique
-      visualizer fix.
+    - Regenerated all checked artifacts via
+      `python -c "from photonic_bench.artifacts import regenerate_checked_artifacts; regenerate_checked_artifacts()"`.
     - `python -m photonic_bench.cli verify-artifacts` passed: 258 generated
       files fresh.
 - [x] DONE: Run focused tests for touched surfaces.
   - Proof:
-    - Focused suite passed: `python -m pytest tests\test_model.py
-      tests\test_json_report.py tests\test_report.py tests\test_transformer.py
-      tests\test_comparison.py tests\test_visualizer.py
-      tests\test_visualizer_smoke.py -q`: 61 passed.
-    - Post-critique visualizer/browser suite passed:
-      `python -m pytest tests\test_visualizer.py
-      tests\test_visualizer_smoke.py tests\test_visualizer_accessibility.py
-      tests\test_visualizer_visual_regression.py -q`: 16 passed.
+    - `python -m pytest tests\test_model.py tests\test_json_report.py tests\test_report.py tests\test_transformer.py tests\test_comparison.py -q`
+      passed: 51 tests.
+    - `python -m pytest tests\test_visualizer.py tests\test_visualizer_smoke.py tests\test_schema_docs.py -q`
+      passed: 16 tests.
 - [x] DONE: Run full Ruff, full pytest, package build, JS syntax checks,
       `verify-artifacts`, browser smoke/accessibility/visual regression, and
       diff hygiene before closeout.
@@ -156,69 +178,61 @@ Status key:
       files fresh.
     - `node --check photonic_bench\visualizer_assets\app.js` passed.
     - `node --check reports\visualizer\assets\app.js` passed.
-    - `python -m pytest tests\test_visualizer_smoke.py
-      tests\test_visualizer_accessibility.py
-      tests\test_visualizer_visual_regression.py -q` passed: 7 tests.
-    - `git diff --check` passed with only Git line-ending normalization
-      warnings.
+    - `python -m pytest tests\test_visualizer.py tests\test_visualizer_smoke.py -q`
+      passed: 10 tests.
+    - `python -m pytest tests\test_visualizer_accessibility.py tests\test_visualizer_visual_regression.py -q`
+      passed: 6 tests.
+    - `git diff --check` passed.
 
 ## Task 5: Mandatory Hostile Senior Reviewer Critique
 
 - [x] DONE: Re-read state files and review checklist before critique.
   - Proof:
     - Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
-      `RUBRIC.md`, and `tasks/todo.md` immediately before critique.
+      `RUBRIC.md`, and `tasks/todo.md` immediately before the critique pass.
 - [x] DONE: Run critique focused on usability, modeling clarity, source
       boundaries, code quality, test reliability, CI artifact usability, and
       visual regression portability.
   - Proof:
-    - Audited source/model/schema/docs/test diff for end-to-end field
-      consistency, local-model boundary clarity, generated artifact freshness,
-      browser export coverage, and visualizer mixed/legacy payload behavior.
+    - Hostile review finding: the UI and JSON export still used the ambiguous
+      "loaded hierarchy bandwidth" label/key for the guardbanded value while a
+      new contention-only value had been added.
+    - No evidence found that published-reference values were merged into
+      `local_model`; the new Energy Stack and checklist are explicitly labeled
+      as local diagnostics.
 - [x] DONE: Fix important findings and re-run affected verification.
   - Proof:
-    - Fixed Contention Insight to avoid selecting a non-finite highest
-      bandwidth-utilization artifact from legacy/external payloads.
-    - Expanded the Contention Insight note to explicitly label
-      utilization/headroom as compute-window bytes versus contention-adjusted
-      effective bandwidth.
-    - Re-ran visualizer/browser focused tests, generated JS syntax check, and
-      artifact freshness after the fix.
+    - Renamed browser-facing labels to "Guardbanded loaded bandwidth".
+    - Added `guardbanded_loaded_hierarchy_bandwidth_bytes_per_ns` to JSON
+      export/schema/docs while preserving
+      `loaded_hierarchy_bandwidth_bytes_per_ns` as a backward-compatible alias.
+    - Re-ran affected tests, schema-doc checks, JS syntax, artifact freshness,
+      Ruff, full pytest, package build, browser accessibility/visual
+      regression, and diff hygiene successfully.
 
 ## Task 6: Final Closeout
 
 - [x] DONE: Confirm all three objectives have meaningful implementation and
       proof.
   - Proof:
-    - Commit/push/PR objective completed early with PR #9:
-      `https://github.com/lamb356/photonic-bench/pull/9`.
-    - Visualizer objective completed with bandwidth utilization/headroom
-      analytics in dashboard, comparison, scoring, exports, and detail views.
-    - System-model objective completed with compute-window required bandwidth,
-      utilization, headroom, saturation tier, max utilization, and min headroom
-      metrics across reports, schemas, transformer aggregates, tests, docs, and
-      generated artifacts.
+    - PR #9 merge and post-merge verification are complete.
+    - Visualizer Energy Stack and Comparison Review Checklist are implemented,
+      documented, tested, and regenerated.
+    - System-energy decomposition and bandwidth phase split are implemented,
+      documented, tested, and regenerated.
 - [x] DONE: Update state files and `tasks/todo.md` to final DONE state.
   - Proof:
-    - Updated `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
-      `RUBRIC.md`, and `tasks/todo.md`.
-    - Final closeout state is included in the closeout commit created after
-      implementation commit `d452cf8`.
-- [x] DONE: Record PR URL, commit hashes, verification, GBrain note, and
-      remaining risks.
+    - This closeout updates `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`,
+      `PROGRESS.md`, `RUBRIC.md`, and `tasks/todo.md`.
+- [x] DONE: Record PR merge commit, post-merge CI run, commits, verification,
+      durable notes, and remaining risks.
   - Proof:
-    - PR URL: `https://github.com/lamb356/photonic-bench/pull/9`.
-    - Protected publish commits:
-      - `6e80186 Add tier bottleneck diagnostics and visualizer stack`;
-      - `50fe226 Refresh bottleneck diagnostic artifacts`.
+    - PR #9 merge commit:
+      `0f9ba2acc893ffbe5c5fbfd163481e4f69052328`.
+    - Post-merge master CI run: `28714312225`, passed.
     - Follow-up implementation commit:
-      - `d452cf8 Add hierarchy bandwidth headroom diagnostics`.
-    - Durable GBrain note:
-      `photonicbench-pr9-bandwidth-headroom-followup-2026-07-04`.
-    - Verification before follow-up commit:
-      Ruff, full pytest, package build, artifact freshness, source/generated JS
-      syntax, explicit browser smoke/accessibility/visual regression, and diff
-      hygiene passed.
-    - Remaining risk:
-      post-push GitHub Actions for the final PR #9 head may still be running at
-      final response time; local required gates are green before push.
+      `8be7316725fd0ef2fd00e54e96d7bb9e7ef473a7`.
+    - Durable GBrain note slug reserved for final write:
+      `photonicbench-pr9-merge-energy-stack-followup-2026-07-04`.
+    - Remaining risk: the final closeout commit and post-push CI run are
+      created after this state update and are reported in the final response.

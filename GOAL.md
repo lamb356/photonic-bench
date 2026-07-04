@@ -1,17 +1,18 @@
 # PhotonicBench Goal
 
 Date started: 2026-07-04
-Implementation status: complete. The already verified
-`codex/pr8-followup-improvements` work has been committed, pushed, and opened
-as PR #9, and the follow-up visualizer/system-modeling pass has been
-implemented, verified, committed, and recorded in durable notes.
+Implementation status: complete. PR #9 was merged into `master`, post-merge
+GitHub Actions and local artifact verification passed, the old feature branch
+was cleaned up, and follow-up visualizer/modeling work was implemented in
+commit `8be7316725fd0ef2fd00e54e96d7bb9e7ef473a7`.
 
 ## Objective
 
 Complete the next autonomous PhotonicBench outer loop:
 
-1. Commit the current work on `codex/pr8-followup-improvements`, push it to
-   GitHub, and open a pull request to `master`.
+1. Merge PR #9 into `master`, verify GitHub Actions is green on `master` after
+   the merge, run post-merge local verification, and clean up the old feature
+   branch.
 2. Further improve the web visualizer for interaction, dashboard experience,
    analytical features, and daily usability.
 3. Deepen system modeling around contention calibration, realistic memory
@@ -19,11 +20,15 @@ Complete the next autonomous PhotonicBench outer loop:
 
 ## Priority Order
 
-1. Protect the current verified branch by committing, pushing, and opening a
-   PR early.
-2. Improve the visualizer where it adds practical daily analytical value.
-3. Deepen the local system model with explicit, auditable assumptions and
-   report/visualizer exposure.
+1. Merge PR #9 into `master` only after confirming the PR checks are green.
+2. Verify `master` after the merge locally and in GitHub Actions, then clean up
+   the merged feature branch.
+3. Add a meaningful visualizer improvement that is useful in daily analysis and
+   keeps modeling-boundary labels clear.
+4. Add a meaningful system-modeling improvement with explicit, auditable local
+   assumptions.
+5. Regenerate checked artifacts, update documentation, verify, run hostile
+   review, fix important findings, and close state with proof.
 
 ## Rules
 
@@ -32,7 +37,8 @@ Complete the next autonomous PhotonicBench outer loop:
 - Keep `tasks/todo.md` aligned with the active goal.
 - Before marking any checklist item DONE, verify the change and update
   documentation where relevant.
-- Do not push if known lint or tests are failing.
+- Do not merge or push with known failing lint, tests, artifact freshness, or
+  GitHub Actions checks.
 - Keep source-backed published values separate from local model estimates.
 - Preserve modeling-boundary labels in reports, JSON, and the visualizer.
 - Run the mandatory Hostile Senior Reviewer critique after substantial
@@ -40,8 +46,12 @@ Complete the next autonomous PhotonicBench outer loop:
 
 ## Stop Condition
 
-The loop is complete when the current branch is committed, pushed, and opened
-as a PR to `master`; a second meaningful pass lands across visualizer and
-system-modeling surfaces; generated artifacts and documentation are fresh; all
-checklist items are DONE with proof; and the hostile review pass is complete
-with major findings addressed.
+The loop is complete only when PR #9 is merged into `master`; post-merge
+GitHub Actions and local verification are green; the old feature branch is
+cleaned up; meaningful visualizer and system-modeling improvements are
+implemented, documented, regenerated, and tested; all checklist items are DONE
+with proof; and the hostile review pass is complete with major findings
+addressed.
+
+Closeout note: the final state commit and post-push GitHub Actions run are
+created after this file is updated and are reported in the final response.
