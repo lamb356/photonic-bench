@@ -5,6 +5,7 @@ Dense GPT-2-small style decoder benchmark shape with hidden size 768, 12 attenti
 
 
 
+
 ## Workload
 
 | Metric | Value |
@@ -62,6 +63,8 @@ movements, not published measurements and not a cache simulator.
 
 | Metric | Value |
 | --- | ---: |
+| System profile | default |
+| Profile tier overrides | none |
 | Local compute/conversion energy | 7592214.528 pJ |
 | Total movement energy | 63040389.120 pJ |
 | Total system energy | 70632603.648 pJ |
@@ -127,7 +130,7 @@ movements, not published measurements and not a cache simulator.
 - Transformer operation: MLP up-projection.
 - Transformer formula: B * S * H * intermediate.
 - Transformer batch/head multiplicity is represented by the generated card's execution.batch_size.
-- Layer shape: batch=1, sequence=1024, hidden=768, heads=12, head_dim=64, intermediate=3072.
+- Layer shape: batch=1, sequence=1024, hidden=768, heads=12, head_dim=64, attention_context=1024, intermediate=3072.
 - Dense attention accounting is used; decoder/causal labels do not halve attention MAC counts.
 - Non-matmul costs such as softmax, layer norm, bias adds, activations, dropout, masking, KV-cache incremental decoding, and non-matmul memory traffic are excluded.
 - The benchmark models 1 operation(s) per batch.

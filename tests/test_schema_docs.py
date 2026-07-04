@@ -37,9 +37,12 @@ def test_json_schema_file_documents_report_v1_contract() -> None:
     assert "system" in schema["properties"]["model_inputs"]["required"]
     assert "system" in schema["properties"]["local_model"]["required"]
     assert "systemResult" in schema["$defs"]
+    assert "profile" in schema["$defs"]["systemInputs"]["required"]
     system = schema["$defs"]["systemResult"]
     assert "tiers" in system["required"]
+    assert "profile" in system["required"]
     assert "bandwidth_limited_batch_latency_ns" in system["required"]
+    assert "sourceQuality" in schema["$defs"]
 
 
 def test_transformer_layer_json_schema_file_documents_aggregate_contract() -> None:
@@ -82,6 +85,7 @@ def test_transformer_layer_json_schema_file_documents_aggregate_contract() -> No
     assert "system" in schema["properties"]["local_model"]["required"]
     assert "aggregateSystemResult" in schema["$defs"]
     aggregate_system = schema["$defs"]["aggregateSystemResult"]
+    assert "profile" in aggregate_system["required"]
     assert "bandwidth_limited_serial_batch_latency_ns" in aggregate_system["required"]
     assert "rows" in schema["properties"]["formula_audit"]["required"]
     assert schema["properties"]["workload"]["properties"]["matmul_count"]["const"] == 5
@@ -91,6 +95,11 @@ def test_transformer_layer_json_schema_file_documents_aggregate_contract() -> No
     assert schema["properties"]["formula_audit"]["properties"]["rows"]["maxItems"] == 5
     assert schema["properties"]["matmuls"]["minItems"] == 5
     assert schema["properties"]["matmuls"]["maxItems"] == 5
+    shape_required = schema["properties"]["transformer_layer"]["properties"]["shape"][
+        "required"
+    ]
+    assert "attention_context_length" in shape_required
+    assert "kv_cache_enabled" in shape_required
 
 
 def test_transformer_model_json_schema_file_documents_aggregate_contract() -> None:
@@ -109,9 +118,21 @@ def test_transformer_model_json_schema_file_documents_aggregate_contract() -> No
         "transformer_model_aggregate"
     )
     assert "layers" in schema["required"]
+    assert "model_components" in schema["required"]
     assert "layer_counts" in schema["properties"]["aggregate_semantics"]["required"]
+    assert (
+        "activation_memory_traffic"
+        in schema["properties"]["aggregate_semantics"]["required"]
+    )
     assert "system" in schema["properties"]["local_model"]["required"]
+    assert "activation_memory_traffic" in schema["properties"]["local_model"]["required"]
     assert "modelSystem" in schema["$defs"]
+    assert "activationMemoryTraffic" in schema["$defs"]
+    assert "modelComponents" in schema["$defs"]
+    assert "profile" in schema["$defs"]["modelSystem"]["required"]
+    assert "overlap_adjusted_batch_latency_ns" in schema["$defs"]["modelTiming"][
+        "required"
+    ]
     assert schema["properties"]["workload"]["properties"]["type"]["const"] == (
         "transformer_model"
     )
@@ -124,12 +145,16 @@ def test_json_schema_docs_describe_units_nullability_and_examples() -> None:
     assert "Schema version: `photonic-bench-transformer-layer-report-v1`" in docs
     assert "Schema version: `photonic-bench-transformer-model-report-v1`" in docs
     assert "`published_reference` | yes | object or null" in docs
+    assert "Published Source Quality" in docs
+    assert "`published_reference.source_quality`" in docs
     assert "`calibration_fit` | yes | object or null" in docs
     assert "`formula_audit` | yes | object" in docs
     assert "`matmuls` | yes | array" in docs
     assert "`local_model.energy.*_pj` | pJ" in docs
     assert "`local_model.memory_traffic.*_bytes` | bytes" in docs
     assert "`model_inputs.system.*.read_energy_pj_per_byte` | pJ/byte" in docs
+    assert "`model_inputs.system.profile` | profile name" in docs
+    assert "`local_model.system.profile` | profile name" in docs
     assert "`local_model.system.total_system_energy_pj` | pJ" in docs
     assert "`local_model.system.bandwidth_limited_batch_latency_ns` | ns" in docs
     assert "Per-Card System Model Fields" in docs
@@ -140,10 +165,14 @@ def test_json_schema_docs_describe_units_nullability_and_examples() -> None:
     assert "Transformer-Model Config Validation" in docs
     assert "matches decomposed cards by the `Transformer operation: ...`" in docs
     assert "representative transformer-layer summaries and configured layer counts" in docs
+    assert "`model_components` | yes | object" in docs
+    assert "`local_model.activation_memory_traffic.*_bytes` | bytes" in docs
+    assert "Decoder KV-cache model examples" in docs
     assert "stale `model_inputs`" in docs
     assert "Visualizer External Loading" in docs
     assert "Load external JSON reports" in docs
     assert "Unsupported schemas" in docs
+    assert "per-file diagnostics" in docs
     assert "python examples/load_report_json.py" in docs
     assert "python -m photonic_bench.cli compare" in docs
 

@@ -15,6 +15,8 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
       "hidden_size": 768,
       "num_heads": 12,
       "head_dim": 64,
+      "attention_context_length": 128,
+      "kv_cache_enabled": false,
       "mlp_intermediate_size": 3072
     }
   },
@@ -50,6 +52,8 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
       "note": "Summed from decomposed per-matmul interface traffic. This is not a full memory hierarchy simulation."
     },
     "system": {
+      "profile": "default",
+      "profile_overrides": [],
       "local_compute_and_conversion_energy_pj": 5377032.192,
       "total_movement_energy_pj": 86680535.04,
       "total_system_energy_pj": 92057567.23200001,
@@ -138,7 +142,7 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
       {
         "operation_key": "attention_scores",
         "label": "Attention scores",
-        "formula": "B * heads * S * S * head_dim",
+        "formula": "B * heads * S_query * S_context * head_dim",
         "expected_macs": 12582912,
         "json_macs": 12582912,
         "expected_equivalent_ops": 25165824,
@@ -147,7 +151,7 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
       {
         "operation_key": "attention_value",
         "label": "Attention-value",
-        "formula": "B * heads * S * S * head_dim",
+        "formula": "B * heads * S_query * S_context * head_dim",
         "expected_macs": 12582912,
         "json_macs": 12582912,
         "expected_equivalent_ops": 25165824,
@@ -227,6 +231,8 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
           }
         },
         "system": {
+          "profile": "default",
+          "profile_overrides": [],
           "sram": {
             "read_energy_pj_per_byte": 0.02,
             "write_energy_pj_per_byte": 0.02,
@@ -270,6 +276,8 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
           "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
         },
         "system": {
+          "profile": "default",
+          "profile_overrides": [],
           "tiers": {
             "sram": {
               "name": "sram",
@@ -352,13 +360,13 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
         "Total latency is a transparent sum of DAC, optical, and ADC latency rather than a pipelined throughput model.",
         "Dense full-sequence encoder self-attention is used.",
         "BERT-base style means common public model dimensions, not a source-backed photonic accelerator claim.",
-        "The model summary multiplies one representative encoder-layer artifact by 12 and does not model embeddings, pooler, classifier head, layer norm, softmax, or activation functions.",
+        "Embeddings, vocabulary projection, activation tensor traffic, and overlap timing are local transformer-model assumptions, not a measured scheduler.",
         "Full transformer model layer spec: encoder_block.",
         "Full transformer model layer count: 12.",
         "Transformer operation: QKV projection.",
         "Transformer formula: 3 * B * S * H * H.",
         "Transformer batch/head multiplicity is represented by the generated card's execution.batch_size.",
-        "Layer shape: batch=1, sequence=128, hidden=768, heads=12, head_dim=64, intermediate=3072.",
+        "Layer shape: batch=1, sequence=128, hidden=768, heads=12, head_dim=64, attention_context=128, intermediate=3072.",
         "Dense attention accounting is used; decoder/causal labels do not halve attention MAC counts.",
         "Non-matmul costs such as softmax, layer norm, bias adds, activations, dropout, masking, KV-cache incremental decoding, and non-matmul memory traffic are excluded.",
         "The benchmark models 1 operation(s) per batch.",
@@ -373,11 +381,11 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
     {
       "operation_key": "attention_scores",
       "label": "Attention scores",
-      "formula": "B * heads * S * S * head_dim",
+      "formula": "B * heads * S_query * S_context * head_dim",
       "json_report": "bert_base_12layer_encoder_block_attention_scores.json",
       "benchmark": {
         "name": "BERT-base style 12-layer encoder model - encoder_block - Attention scores",
-        "description": "Representative transformer layer spec 'encoder_block' used 12 time(s) in full-model aggregation. Dense BERT-base style full encoder model summary with 12 identical encoder layers. This is a transformer-model workflow example, not a published accelerator calibration card. Generated decomposed card for Attention scores. Formula: B * heads * S * S * head_dim. Matmul shape is 128 x 64 times 64 x 128; operation multiplicity is 12. The right operand is activation data for attention, so cross-batch weight-stationary reuse is disabled in this generated card."
+        "description": "Representative transformer layer spec 'encoder_block' used 12 time(s) in full-model aggregation. Dense BERT-base style full encoder model summary with 12 identical encoder layers. This is a transformer-model workflow example, not a published accelerator calibration card. Generated decomposed card for Attention scores. Formula: B * heads * S_query * S_context * head_dim. Matmul shape is 128 x 64 times 64 x 128; operation multiplicity is 12. The right operand is activation data for attention, so cross-batch weight-stationary reuse is disabled in this generated card."
       },
       "workload": {
         "type": "matmul",
@@ -423,6 +431,8 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
           }
         },
         "system": {
+          "profile": "default",
+          "profile_overrides": [],
           "sram": {
             "read_energy_pj_per_byte": 0.02,
             "write_energy_pj_per_byte": 0.02,
@@ -466,6 +476,8 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
           "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
         },
         "system": {
+          "profile": "default",
+          "profile_overrides": [],
           "tiers": {
             "sram": {
               "name": "sram",
@@ -548,13 +560,13 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
         "Total latency is a transparent sum of DAC, optical, and ADC latency rather than a pipelined throughput model.",
         "Dense full-sequence encoder self-attention is used.",
         "BERT-base style means common public model dimensions, not a source-backed photonic accelerator claim.",
-        "The model summary multiplies one representative encoder-layer artifact by 12 and does not model embeddings, pooler, classifier head, layer norm, softmax, or activation functions.",
+        "Embeddings, vocabulary projection, activation tensor traffic, and overlap timing are local transformer-model assumptions, not a measured scheduler.",
         "Full transformer model layer spec: encoder_block.",
         "Full transformer model layer count: 12.",
         "Transformer operation: Attention scores.",
-        "Transformer formula: B * heads * S * S * head_dim.",
+        "Transformer formula: B * heads * S_query * S_context * head_dim.",
         "Transformer batch/head multiplicity is represented by the generated card's execution.batch_size.",
-        "Layer shape: batch=1, sequence=128, hidden=768, heads=12, head_dim=64, intermediate=3072.",
+        "Layer shape: batch=1, sequence=128, hidden=768, heads=12, head_dim=64, attention_context=128, intermediate=3072.",
         "Dense attention accounting is used; decoder/causal labels do not halve attention MAC counts.",
         "Non-matmul costs such as softmax, layer norm, bias adds, activations, dropout, masking, KV-cache incremental decoding, and non-matmul memory traffic are excluded.",
         "The benchmark models 12 operation(s) per batch.",
@@ -569,11 +581,11 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
     {
       "operation_key": "attention_value",
       "label": "Attention-value",
-      "formula": "B * heads * S * S * head_dim",
+      "formula": "B * heads * S_query * S_context * head_dim",
       "json_report": "bert_base_12layer_encoder_block_attention_value.json",
       "benchmark": {
         "name": "BERT-base style 12-layer encoder model - encoder_block - Attention-value",
-        "description": "Representative transformer layer spec 'encoder_block' used 12 time(s) in full-model aggregation. Dense BERT-base style full encoder model summary with 12 identical encoder layers. This is a transformer-model workflow example, not a published accelerator calibration card. Generated decomposed card for Attention-value. Formula: B * heads * S * S * head_dim. Matmul shape is 128 x 128 times 128 x 64; operation multiplicity is 12. The right operand is activation data for attention, so cross-batch weight-stationary reuse is disabled in this generated card."
+        "description": "Representative transformer layer spec 'encoder_block' used 12 time(s) in full-model aggregation. Dense BERT-base style full encoder model summary with 12 identical encoder layers. This is a transformer-model workflow example, not a published accelerator calibration card. Generated decomposed card for Attention-value. Formula: B * heads * S_query * S_context * head_dim. Matmul shape is 128 x 128 times 128 x 64; operation multiplicity is 12. The right operand is activation data for attention, so cross-batch weight-stationary reuse is disabled in this generated card."
       },
       "workload": {
         "type": "matmul",
@@ -619,6 +631,8 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
           }
         },
         "system": {
+          "profile": "default",
+          "profile_overrides": [],
           "sram": {
             "read_energy_pj_per_byte": 0.02,
             "write_energy_pj_per_byte": 0.02,
@@ -662,6 +676,8 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
           "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
         },
         "system": {
+          "profile": "default",
+          "profile_overrides": [],
           "tiers": {
             "sram": {
               "name": "sram",
@@ -744,13 +760,13 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
         "Total latency is a transparent sum of DAC, optical, and ADC latency rather than a pipelined throughput model.",
         "Dense full-sequence encoder self-attention is used.",
         "BERT-base style means common public model dimensions, not a source-backed photonic accelerator claim.",
-        "The model summary multiplies one representative encoder-layer artifact by 12 and does not model embeddings, pooler, classifier head, layer norm, softmax, or activation functions.",
+        "Embeddings, vocabulary projection, activation tensor traffic, and overlap timing are local transformer-model assumptions, not a measured scheduler.",
         "Full transformer model layer spec: encoder_block.",
         "Full transformer model layer count: 12.",
         "Transformer operation: Attention-value.",
-        "Transformer formula: B * heads * S * S * head_dim.",
+        "Transformer formula: B * heads * S_query * S_context * head_dim.",
         "Transformer batch/head multiplicity is represented by the generated card's execution.batch_size.",
-        "Layer shape: batch=1, sequence=128, hidden=768, heads=12, head_dim=64, intermediate=3072.",
+        "Layer shape: batch=1, sequence=128, hidden=768, heads=12, head_dim=64, attention_context=128, intermediate=3072.",
         "Dense attention accounting is used; decoder/causal labels do not halve attention MAC counts.",
         "Non-matmul costs such as softmax, layer norm, bias adds, activations, dropout, masking, KV-cache incremental decoding, and non-matmul memory traffic are excluded.",
         "The benchmark models 12 operation(s) per batch.",
@@ -815,6 +831,8 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
           }
         },
         "system": {
+          "profile": "default",
+          "profile_overrides": [],
           "sram": {
             "read_energy_pj_per_byte": 0.02,
             "write_energy_pj_per_byte": 0.02,
@@ -858,6 +876,8 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
           "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
         },
         "system": {
+          "profile": "default",
+          "profile_overrides": [],
           "tiers": {
             "sram": {
               "name": "sram",
@@ -940,13 +960,13 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
         "Total latency is a transparent sum of DAC, optical, and ADC latency rather than a pipelined throughput model.",
         "Dense full-sequence encoder self-attention is used.",
         "BERT-base style means common public model dimensions, not a source-backed photonic accelerator claim.",
-        "The model summary multiplies one representative encoder-layer artifact by 12 and does not model embeddings, pooler, classifier head, layer norm, softmax, or activation functions.",
+        "Embeddings, vocabulary projection, activation tensor traffic, and overlap timing are local transformer-model assumptions, not a measured scheduler.",
         "Full transformer model layer spec: encoder_block.",
         "Full transformer model layer count: 12.",
         "Transformer operation: MLP up-projection.",
         "Transformer formula: B * S * H * intermediate.",
         "Transformer batch/head multiplicity is represented by the generated card's execution.batch_size.",
-        "Layer shape: batch=1, sequence=128, hidden=768, heads=12, head_dim=64, intermediate=3072.",
+        "Layer shape: batch=1, sequence=128, hidden=768, heads=12, head_dim=64, attention_context=128, intermediate=3072.",
         "Dense attention accounting is used; decoder/causal labels do not halve attention MAC counts.",
         "Non-matmul costs such as softmax, layer norm, bias adds, activations, dropout, masking, KV-cache incremental decoding, and non-matmul memory traffic are excluded.",
         "The benchmark models 1 operation(s) per batch.",
@@ -1011,6 +1031,8 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
           }
         },
         "system": {
+          "profile": "default",
+          "profile_overrides": [],
           "sram": {
             "read_energy_pj_per_byte": 0.02,
             "write_energy_pj_per_byte": 0.02,
@@ -1054,6 +1076,8 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
           "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
         },
         "system": {
+          "profile": "default",
+          "profile_overrides": [],
           "tiers": {
             "sram": {
               "name": "sram",
@@ -1136,13 +1160,13 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
         "Total latency is a transparent sum of DAC, optical, and ADC latency rather than a pipelined throughput model.",
         "Dense full-sequence encoder self-attention is used.",
         "BERT-base style means common public model dimensions, not a source-backed photonic accelerator claim.",
-        "The model summary multiplies one representative encoder-layer artifact by 12 and does not model embeddings, pooler, classifier head, layer norm, softmax, or activation functions.",
+        "Embeddings, vocabulary projection, activation tensor traffic, and overlap timing are local transformer-model assumptions, not a measured scheduler.",
         "Full transformer model layer spec: encoder_block.",
         "Full transformer model layer count: 12.",
         "Transformer operation: MLP down-projection.",
         "Transformer formula: B * S * intermediate * H.",
         "Transformer batch/head multiplicity is represented by the generated card's execution.batch_size.",
-        "Layer shape: batch=1, sequence=128, hidden=768, heads=12, head_dim=64, intermediate=3072.",
+        "Layer shape: batch=1, sequence=128, hidden=768, heads=12, head_dim=64, attention_context=128, intermediate=3072.",
         "Dense attention accounting is used; decoder/causal labels do not halve attention MAC counts.",
         "Non-matmul costs such as softmax, layer norm, bias adds, activations, dropout, masking, KV-cache incremental decoding, and non-matmul memory traffic are excluded.",
         "The benchmark models 1 operation(s) per batch.",
@@ -1158,7 +1182,7 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
   "assumptions": [
     "Dense full-sequence encoder self-attention is used.",
     "BERT-base style means common public model dimensions, not a source-backed photonic accelerator claim.",
-    "The model summary multiplies one representative encoder-layer artifact by 12 and does not model embeddings, pooler, classifier head, layer norm, softmax, or activation functions.",
+    "Embeddings, vocabulary projection, activation tensor traffic, and overlap timing are local transformer-model assumptions, not a measured scheduler.",
     "Full transformer model layer spec: encoder_block.",
     "Full transformer model layer count: 12.",
     "Aggregate transformer-layer JSON is generated by loading the decomposed per-matmul JSON cards.",

@@ -1,0 +1,456 @@
+window.PhotonicBenchPayloadRegistry = window.PhotonicBenchPayloadRegistry || {};
+window.PhotonicBenchPayloadRegistry["gpt_style_decoder_kv_cache_model/gpt_decoder_kv_cache_model_summary.json"] = {
+  "schema_version": "photonic-bench-transformer-model-report-v1",
+  "artifact_type": "transformer_model_aggregate",
+  "benchmark": {
+    "name": "GPT-style decoder KV-cache model",
+    "description": "GPT-2-small style decoder inference summary with 12 identical decoder layers, one generated query token, and a 1024-token KV-cache context. This is a transformer-model workflow example, not a published accelerator calibration card."
+  },
+  "workload": {
+    "type": "transformer_model",
+    "unique_layer_specs": 1,
+    "layer_count": 12,
+    "macs": 135346944,
+    "equivalent_ops": 270693888,
+    "output_elements": 280801
+  },
+  "aggregate_semantics": {
+    "source": "Generated from transformer-layer aggregate JSON summaries emitted by the transformer-model command.",
+    "layer_counts": "Each layer spec is generated once as decomposed transformer-layer artifacts and multiplied by its configured count.",
+    "energy": "Additive layer energy fields are multiplied by layer count and summed; per-MAC and per-op fields are recomputed from model totals.",
+    "memory_traffic": "Layer interface traffic is multiplied by layer count and summed. Output projection interface traffic is added when enabled. Activation tensor and KV-cache traffic are reported separately.",
+    "activation_memory_traffic": "Embedding reads, activation tensor materialization, and KV-cache read/write bytes are local model-level assumptions outside the converter-interface traffic table.",
+    "system": "Layer system movement estimates are multiplied by layer count and summed over explicit SRAM/off-chip tiers. Output projection and tensor-memory movement are added when configured. Bandwidth-limited timing is serial accounting, not a measured full-model scheduler.",
+    "timing": "serial_* timing fields assume weighted layer summaries execute one after another. Overlap-adjusted timing fields are optional local assumptions and do not replace the serial fields.",
+    "noise": "Noise remains non-additive. Model-level noise fields are maxima over representative layer summaries."
+  },
+  "local_model": {
+    "conversion_counts": {
+      "adc_conversions": 280801,
+      "vector_dac_conversions": 212880,
+      "weight_dac_conversions": 135346944,
+      "dac_conversions": 135559824
+    },
+    "memory_traffic": {
+      "vector_operand_read_bytes": 212880,
+      "weight_operand_read_bytes": 135346944,
+      "output_write_bytes": 280801,
+      "total_interface_bytes": 135840625,
+      "macs_per_byte": 0.9963657337412869,
+      "equivalent_ops_per_byte": 1.9927314674825738,
+      "note": "Weighted sum of transformer-layer interface traffic. Counts are multiplied by layer spec count and include any explicit model-level output projection. Activation tensor and KV-cache traffic are reported separately."
+    },
+    "activation_memory_traffic": {
+      "enabled": true,
+      "bits_per_element": 16,
+      "embedding_read_bytes": 3072,
+      "layer_input_read_bytes": 18432,
+      "layer_output_write_bytes": 18432,
+      "attention_score_bytes": 295200,
+      "mlp_intermediate_bytes": 73728,
+      "kv_cache_read_bytes": 37748736,
+      "kv_cache_write_bytes": 36864,
+      "total_tensor_read_bytes": 37770240,
+      "total_tensor_write_bytes": 424224,
+      "total_tensor_bytes": 38194464,
+      "note": "Tensor memory traffic is a local activation/KV/cache movement estimate. It is intentionally separate from converter-interface memory_traffic."
+    },
+    "system": {
+      "profile": "default",
+      "profile_overrides": [],
+      "local_compute_and_conversion_energy_pj": 61345572.79799999,
+      "total_movement_energy_pj": 1743831591.7799997,
+      "total_system_energy_pj": 1805177164.5779998,
+      "tiers": {
+        "sram": {
+          "name": "sram",
+          "read_bytes": 173330064.0,
+          "write_bytes": 705025.0,
+          "total_bytes": 174035089.0,
+          "read_energy_pj": 3466601.2800000003,
+          "write_energy_pj": 14100.5,
+          "total_energy_pj": 3480701.7800000003,
+          "transfer_time_ns": 169956.1416015625
+        },
+        "off_chip": {
+          "name": "off_chip",
+          "read_bytes": 173330064.0,
+          "write_bytes": 705025.0,
+          "total_bytes": 174035089.0,
+          "read_energy_pj": 1733300640.0,
+          "write_energy_pj": 7050250.0,
+          "total_energy_pj": 1740350890.0,
+          "transfer_time_ns": 10877193.0625
+        }
+      },
+      "serial_transfer_time_ns": 10877193.0625,
+      "max_per_layer_transfer_time_ns": 506209.5,
+      "bandwidth_limited_serial_batch_latency_ns": 10877193.0625,
+      "system_energy_per_mac_pj": 13.337406159521414,
+      "system_energy_per_op_pj": 6.668703079760707,
+      "movement_energy_share": 0.9660168685923185,
+      "bandwidth_limited_serial_effective_macs_per_second": 12443186695.528969,
+      "bandwidth_limited_serial_effective_equivalent_ops_per_second": 24886373391.057938,
+      "note": "Weighted sum of transformer-layer system movement estimates plus explicit output-projection and tensor-memory movement assumptions. This is serial accounting, not a measured full-model scheduler."
+    },
+    "energy": {
+      "optical_compute_pj": 67673.472,
+      "laser_electrical_pj": 270693.888,
+      "detector_pj": 2808.01,
+      "adc_pj": 140400.5,
+      "vector_dac_pj": 25545.6,
+      "weight_dac_pj": 60906124.8,
+      "dac_pj": 60931670.4,
+      "total_pj": 61345572.79799999,
+      "energy_per_mac_pj": 0.4532468261566363,
+      "energy_per_op_pj": 0.22662341307831815,
+      "peripheral_share": 0.9955873932599612
+    },
+    "timing": {
+      "timing_model": "serial_sum_of_weighted_layer_summaries",
+      "serial_batch_latency_ns": 833.0,
+      "serial_effective_macs_per_second": 162481325330132.06,
+      "serial_effective_equivalent_ops_per_second": 324962650660264.1,
+      "max_per_layer_serial_batch_latency_ns": 69.0,
+      "schedule_assumption": "local_decoder_pipeline_overlap_assumption",
+      "overlap_fraction": 0.5,
+      "overlap_adjusted_batch_latency_ns": 416.5,
+      "overlap_adjusted_effective_equivalent_ops_per_second": 649925301320528.2,
+      "bandwidth_limited_overlap_adjusted_batch_latency_ns": 5438596.53125,
+      "bandwidth_limited_overlap_adjusted_equivalent_ops_per_second": 49772746782.115875,
+      "schedule_note": "Overlap-adjusted latency is a local assumption derived from the configured overlap_fraction and clamped to at least the slowest representative layer latency."
+    },
+    "noise": {
+      "aggregation": "not_additive",
+      "note": "Noise is not summed into a model-level error. Values below are maxima over representative layer summaries.",
+      "max_quantization_rms": 0.004582144993568459,
+      "max_phase_noise_rad_rms": 0.02,
+      "max_drift_rms_rad": 3.0000000000000005e-10,
+      "max_estimated_relative_error_rms": 0.02051818833966792
+    }
+  },
+  "model_components": {
+    "embeddings": {
+      "enabled": true,
+      "vocab_size": 50257,
+      "include_token_embedding": true,
+      "include_position_embedding": true,
+      "bits_per_element": 16,
+      "token_embedding_read_bytes": 1536,
+      "position_embedding_read_bytes": 1536,
+      "total_embedding_read_bytes": 3072,
+      "note": "Embedding rows are modeled as local tensor reads only; no optical matmul work is assigned to lookup operations."
+    },
+    "output_projection": {
+      "enabled": true,
+      "vocab_size": 50257,
+      "tied_to_token_embedding": true,
+      "workload": {
+        "type": "matmul",
+        "shape": {
+          "m": 1,
+          "k": 768,
+          "n": 50257
+        },
+        "macs": 38597376,
+        "equivalent_ops": 77194752,
+        "output_elements": 50257
+      },
+      "local_model": {
+        "conversion_counts": {
+          "adc_conversions": 50257,
+          "vector_dac_conversions": 768,
+          "weight_dac_conversions": 38597376,
+          "dac_conversions": 38598144
+        },
+        "memory_traffic": {
+          "vector_operand_read_bytes": 768,
+          "weight_operand_read_bytes": 38597376,
+          "output_write_bytes": 50257,
+          "total_interface_bytes": 38648401,
+          "macs_per_byte": 0.9986797642676084,
+          "equivalent_ops_per_byte": 1.9973595285352168,
+          "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
+        },
+        "system": {
+          "profile": "default",
+          "profile_overrides": [],
+          "tiers": {
+            "sram": {
+              "name": "sram",
+              "read_bytes": 38598144.0,
+              "write_bytes": 50257.0,
+              "total_bytes": 38648401.0,
+              "read_energy_pj": 771962.88,
+              "write_energy_pj": 1005.14,
+              "total_energy_pj": 772968.02,
+              "bandwidth_bytes_per_ns": 1024.0,
+              "transfer_time_ns": 37742.5791015625,
+              "read_fraction": 1.0,
+              "write_fraction": 1.0
+            },
+            "off_chip": {
+              "name": "off_chip",
+              "read_bytes": 38598144.0,
+              "write_bytes": 50257.0,
+              "total_bytes": 38648401.0,
+              "read_energy_pj": 385981440.0,
+              "write_energy_pj": 502570.0,
+              "total_energy_pj": 386484010.0,
+              "bandwidth_bytes_per_ns": 16.0,
+              "transfer_time_ns": 2415525.0625,
+              "read_fraction": 1.0,
+              "write_fraction": 1.0
+            }
+          },
+          "local_compute_and_conversion_energy_pj": 17471737.182,
+          "total_movement_energy_pj": 387256978.02,
+          "total_system_energy_pj": 404728715.20199996,
+          "system_energy_per_mac_pj": 10.485912700438496,
+          "system_energy_per_op_pj": 5.242956350219248,
+          "movement_energy_share": 0.9568309919070609,
+          "max_transfer_time_ns": 2415525.0625,
+          "bandwidth_limited_batch_latency_ns": 2415525.0625,
+          "bandwidth_limited_equivalent_ops_per_second": 31957752456.563465,
+          "bandwidth_limited_tier": "off_chip",
+          "note": "System movement energy is a local estimate over explicit SRAM and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
+        },
+        "energy": {
+          "optical_compute_pj": 19298.688,
+          "laser_electrical_pj": 77194.752,
+          "detector_pj": 502.57,
+          "adc_pj": 25128.5,
+          "vector_dac_pj": 92.16,
+          "weight_dac_pj": 17368819.2,
+          "dac_pj": 17368911.36,
+          "total_pj": 17471737.182,
+          "energy_per_mac_pj": 0.4526664502270828,
+          "energy_per_op_pj": 0.2263332251135414,
+          "peripheral_share": 0.9955817357372151
+        },
+        "timing": {
+          "optical_latency_ns": 3.0,
+          "adc_latency_ns": 1.0,
+          "dac_latency_ns": 1.0,
+          "total_latency_ns": 5.0,
+          "pipeline_stages": 4,
+          "pipeline_cycle_time_ns": 2.0,
+          "batch_latency_ns": 5.0,
+          "steady_state_operations_per_second": 500000000.0,
+          "steady_state_equivalent_ops_per_second": 3.8597376e+16
+        },
+        "noise": {
+          "quantization_snr_db": 37.879999999999995,
+          "quantization_rms": 0.004582144993568459,
+          "phase_noise_rad_rms": 0.02,
+          "drift_rms_rad": 3.0000000000000005e-10,
+          "estimated_relative_error_rms": 0.02051818833966792
+        }
+      },
+      "assumptions": [
+        "The optical MAC energy is treated as delivered optical energy per multiply-accumulate.",
+        "The laser wall-plug efficiency converts delivered optical energy into electrical laser energy.",
+        "ADC conversions are counted once per output element.",
+        "DAC conversions are counted once per input value for the left and right matmul operands.",
+        "Detector energy is counted once per output sample.",
+        "The first noise model combines ADC quantization RMS, phase noise RMS, and drift RMS as independent terms.",
+        "Total latency is a transparent sum of DAC, optical, and ADC latency rather than a pipelined throughput model.",
+        "Decoder incremental inference uses one query token and a 1024-token KV-cache context.",
+        "GPT-style means common public decoder dimensions, not a source-backed photonic accelerator claim.",
+        "Embeddings, vocabulary projection, activation tensor traffic, KV-cache traffic, and overlap timing are local transformer-model assumptions.",
+        "Transformer model output projection is a local matmul assumption.",
+        "Output projection uses the final configured layer shape and vocab_size=50257.",
+        "Tied token/output embedding weights are recorded as metadata only; the local movement model still counts projection weight operand traffic explicitly.",
+        "The benchmark models 1 operation(s) per batch.",
+        "Vector DAC conversions are counted as ceil(batch_size / vector_reuse_factor) * m * k.",
+        "Weight DAC conversions are counted once per batch because weight_stationary is true.",
+        "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
+        "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.",
+        "The multi-tier system model adds explicit SRAM and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
+      ],
+      "note": "Output projection is included in transformer-model totals as a local matmul estimate, not as a source-paper measurement."
+    },
+    "activation_memory": {
+      "enabled": true,
+      "bits_per_element": 16,
+      "embedding_read_bytes": 3072,
+      "layer_input_read_bytes": 18432,
+      "layer_output_write_bytes": 18432,
+      "attention_score_bytes": 295200,
+      "mlp_intermediate_bytes": 73728,
+      "kv_cache_read_bytes": 37748736,
+      "kv_cache_write_bytes": 36864,
+      "total_tensor_read_bytes": 37770240,
+      "total_tensor_write_bytes": 424224,
+      "total_tensor_bytes": 38194464,
+      "note": "Tensor memory traffic is a local activation/KV/cache movement estimate. It is intentionally separate from converter-interface memory_traffic."
+    },
+    "kv_cache": {
+      "enabled": true,
+      "mode": "decoder_incremental",
+      "context_length": 1024,
+      "include_cache_reads": true,
+      "include_cache_writes": true,
+      "bits_per_element": 16,
+      "cache_read_bytes": 37748736,
+      "cache_write_bytes": 36864,
+      "note": "Decoder KV-cache mode changes decoder attention context length in the layer formulas and separately estimates cache read/write bytes."
+    },
+    "pipeline_overlap": {
+      "overlap_enabled": true,
+      "overlap_fraction": 0.5,
+      "label": "local_decoder_pipeline_overlap_assumption",
+      "note": "Pipeline overlap is an optional local latency assumption. Serial latency fields remain present and unchanged."
+    },
+    "notes": [
+      "Model components are local PhotonicBench assumptions.",
+      "Output projection reuses the normal matmul evaluator when enabled; embeddings, activation traffic, and KV-cache traffic are tensor-memory estimates."
+    ]
+  },
+  "layers": [
+    {
+      "name": "decoder_block",
+      "count": 12,
+      "json_report": "decoder_block/gpt_decoder_kv_cache_decoder_block_layer_summary.json",
+      "transformer_layer": {
+        "layer_type": "decoder",
+        "attention_mode": "dense",
+        "shape": {
+          "batch_size": 1,
+          "sequence_length": 1,
+          "hidden_size": 768,
+          "num_heads": 12,
+          "head_dim": 64,
+          "attention_context_length": 1025,
+          "kv_cache_enabled": true,
+          "mlp_intermediate_size": 3072
+        }
+      },
+      "workload": {
+        "type": "transformer_layer",
+        "matmul_count": 5,
+        "macs": 8062464,
+        "equivalent_ops": 16124928,
+        "output_elements": 19212
+      },
+      "weighted_macs": 96749568,
+      "weighted_equivalent_ops": 193499136,
+      "local_model": {
+        "conversion_counts": {
+          "adc_conversions": 19212,
+          "vector_dac_conversions": 17676,
+          "weight_dac_conversions": 8062464,
+          "dac_conversions": 8080140
+        },
+        "memory_traffic": {
+          "vector_operand_read_bytes": 17676,
+          "weight_operand_read_bytes": 8062464,
+          "output_write_bytes": 19212,
+          "total_interface_bytes": 8099352,
+          "macs_per_byte": 0.9954455615708516,
+          "equivalent_ops_per_byte": 1.9908911231417032,
+          "note": "Summed from decomposed per-matmul interface traffic. This is not a full memory hierarchy simulation."
+        },
+        "system": {
+          "profile": "default",
+          "profile_overrides": [],
+          "local_compute_and_conversion_energy_pj": 3656152.968,
+          "total_movement_energy_pj": 81155507.03999999,
+          "total_system_energy_pj": 84811660.008,
+          "tiers": {
+            "sram": {
+              "name": "sram",
+              "read_bytes": 8080140.0,
+              "write_bytes": 19212.0,
+              "total_bytes": 8099352.0,
+              "read_energy_pj": 161602.8,
+              "write_energy_pj": 384.24,
+              "total_energy_pj": 161987.04,
+              "transfer_time_ns": 7909.5234375
+            },
+            "off_chip": {
+              "name": "off_chip",
+              "read_bytes": 8080140.0,
+              "write_bytes": 19212.0,
+              "total_bytes": 8099352.0,
+              "read_energy_pj": 80801400.0,
+              "write_energy_pj": 192120.0,
+              "total_energy_pj": 80993520.0,
+              "transfer_time_ns": 506209.5
+            }
+          },
+          "serial_transfer_time_ns": 506209.5,
+          "max_per_matmul_transfer_time_ns": 147696.0,
+          "bandwidth_limited_serial_batch_latency_ns": 506209.5,
+          "system_energy_per_mac_pj": 10.519322629905696,
+          "system_energy_per_op_pj": 5.259661314952848,
+          "movement_energy_share": 0.9568909160880104,
+          "bandwidth_limited_serial_effective_macs_per_second": 15927128985.133625,
+          "bandwidth_limited_serial_effective_equivalent_ops_per_second": 31854257970.26725,
+          "note": "Summed from decomposed per-matmul system movement estimates. This is a serial aggregate over explicit SRAM/off-chip tiers, not a fused memory scheduler."
+        },
+        "energy": {
+          "optical_compute_pj": 4031.232,
+          "laser_electrical_pj": 16124.928,
+          "detector_pj": 192.12,
+          "adc_pj": 9606.0,
+          "vector_dac_pj": 2121.12,
+          "weight_dac_pj": 3628108.8,
+          "dac_pj": 3630229.92,
+          "total_pj": 3656152.968,
+          "energy_per_mac_pj": 0.4534783619498952,
+          "energy_per_op_pj": 0.2267391809749476,
+          "peripheral_share": 0.995589646237143
+        },
+        "timing": {
+          "timing_model": "serial_sum_of_decomposed_batch_latencies",
+          "serial_single_operation_latency_ns": 25.0,
+          "serial_batch_latency_ns": 69.0,
+          "serial_effective_macs_per_second": 116847304347826.08,
+          "serial_effective_equivalent_ops_per_second": 233694608695652.16,
+          "max_pipeline_cycle_time_ns": 2.0,
+          "max_per_matmul_batch_latency_ns": 27.0
+        },
+        "noise": {
+          "aggregation": "not_additive",
+          "note": "Noise is not summed into a layer-level error model. Extrema below are diagnostics over per-matmul cards.",
+          "max_quantization_rms": 0.004582144993568459,
+          "max_phase_noise_rad_rms": 0.02,
+          "max_drift_rms_rad": 3.0000000000000005e-10,
+          "max_estimated_relative_error_rms": 0.02051818833966792
+        }
+      },
+      "matmul_reports": [
+        "gpt_decoder_kv_cache_decoder_block_qkv_projection.json",
+        "gpt_decoder_kv_cache_decoder_block_attention_scores.json",
+        "gpt_decoder_kv_cache_decoder_block_attention_value.json",
+        "gpt_decoder_kv_cache_decoder_block_mlp_up_projection.json",
+        "gpt_decoder_kv_cache_decoder_block_mlp_down_projection.json"
+      ]
+    }
+  ],
+  "published_reference": null,
+  "calibration_fit": null,
+  "assumptions": [
+    "Decoder incremental inference uses one query token and a 1024-token KV-cache context.",
+    "GPT-style means common public decoder dimensions, not a source-backed photonic accelerator claim.",
+    "Embeddings, vocabulary projection, activation tensor traffic, KV-cache traffic, and overlap timing are local transformer-model assumptions.",
+    "Full transformer model JSON is generated from representative transformer-layer summaries and configured layer counts.",
+    "Layer counts multiply additive energy, movement, conversion, memory, and serial timing fields.",
+    "Embeddings, output projection, activation traffic, KV-cache traffic, and overlap timing are explicit local assumptions when configured.",
+    "The model summary preserves decomposed layer/card provenance through layers[].json_report and layers[].matmul_reports.",
+    "Published calibration targets are rejected for transformer-model configs so model totals remain local estimates."
+  ],
+  "exclusions": [
+    "softmax",
+    "layer_norm",
+    "bias_adds",
+    "activation_functions",
+    "dropout",
+    "masking",
+    "causal_triangular_halving",
+    "non_matmul_memory_traffic"
+  ],
+  "provenance": null
+}
+;

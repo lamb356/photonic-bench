@@ -5,6 +5,7 @@ Synthetic component-model example that exercises operand reuse, weight-stationar
 
 
 
+
 ## Workload
 
 | Metric | Value |
@@ -62,6 +63,8 @@ movements, not published measurements and not a cache simulator.
 
 | Metric | Value |
 | --- | ---: |
+| System profile | default |
+| Profile tier overrides | none |
 | Local compute/conversion energy | 51519.488 pJ |
 | Total movement energy | 1354383.360 pJ |
 | Total system energy | 1405902.848 pJ |

@@ -16,8 +16,10 @@ from photonic_bench.config import (
     TransformerModelConfig,
     TransformerModelLayerConfig,
     WorkloadConfig,
+    system_config_to_dict,
 )
-from photonic_bench.json_report import REPORT_SCHEMA_VERSION
+from photonic_bench.json_report import REPORT_SCHEMA_VERSION, report_to_dict
+from photonic_bench.model import evaluate
 
 
 TRANSFORMER_OPERATION_ORDER = (
@@ -143,13 +145,17 @@ def attention_scores_macs(shape: TransformerLayerShapeConfig) -> int:
         shape.batch_size
         * shape.num_heads
         * shape.sequence_length
-        * shape.sequence_length
+        * _attention_context_length(shape)
         * shape.head_dim
     )
 
 
 def attention_value_macs(shape: TransformerLayerShapeConfig) -> int:
     return attention_scores_macs(shape)
+
+
+def _attention_context_length(shape: TransformerLayerShapeConfig) -> int:
+    return shape.attention_context_length or shape.sequence_length
 
 
 def mlp_up_projection_macs(shape: TransformerLayerShapeConfig) -> int:
@@ -279,6 +285,8 @@ def render_transformer_model_markdown(
     local = payload["local_model"]
     system = local["system"]
     timing = local["timing"]
+    activation_memory = local["activation_memory_traffic"]
+    components = payload["model_components"]
 
     layer_rows = "\n".join(
         "| "
@@ -299,6 +307,42 @@ def render_transformer_model_markdown(
         )
         + " |"
         for layer in payload["layers"]
+    )
+    component_table_rows = [
+        [
+            "Embeddings",
+            str(components["embeddings"]["enabled"]),
+            _format_metric(components["embeddings"]["total_embedding_read_bytes"]),
+            "tensor reads",
+        ],
+        [
+            "Output projection",
+            str(bool(components["output_projection"])),
+            _format_metric(
+                components["output_projection"]["workload"]["macs"]
+                if components["output_projection"]
+                else 0
+            ),
+            "matmul MACs",
+        ],
+        [
+            "Activation tensors",
+            str(activation_memory["enabled"]),
+            _format_metric(activation_memory["total_tensor_bytes"]),
+            "read/write bytes",
+        ],
+        [
+            "KV cache",
+            str(components["kv_cache"]["enabled"]),
+            _format_metric(
+                components["kv_cache"]["cache_read_bytes"]
+                + components["kv_cache"]["cache_write_bytes"]
+            ),
+            components["kv_cache"]["mode"],
+        ],
+    ]
+    component_rows = "\n".join(
+        "| " + " | ".join(row) + " |" for row in component_table_rows
     )
     assumption_rows = "\n".join(f"- {assumption}" for assumption in payload["assumptions"])
     exclusion_rows = "\n".join(f"- {exclusion}" for exclusion in payload["exclusions"])
@@ -328,8 +372,29 @@ def render_transformer_model_markdown(
 | System energy per equivalent op (pJ) | {_format_metric(system["system_energy_per_op_pj"])} |
 | Movement energy share | {_format_metric(system["movement_energy_share"])} |
 | Serial batch latency (ns) | {_format_metric(timing["serial_batch_latency_ns"])} |
+| Overlap-adjusted latency (ns) | {_format_metric(timing["overlap_adjusted_batch_latency_ns"])} |
 | Bandwidth-limited serial latency (ns) | {_format_metric(system["bandwidth_limited_serial_batch_latency_ns"])} |
+| Bandwidth-limited overlap-adjusted latency (ns) | {_format_metric(timing["bandwidth_limited_overlap_adjusted_batch_latency_ns"])} |
 | Bandwidth-limited equivalent ops/s | {_format_metric(system["bandwidth_limited_serial_effective_equivalent_ops_per_second"])} |
+
+## Model Components
+
+| Component | Enabled | Quantity | Basis |
+| --- | --- | ---: | --- |
+{component_rows}
+
+## Activation And KV-Cache Tensor Traffic
+
+| Metric | Value |
+| --- | ---: |
+| Embedding reads | {_format_metric(activation_memory["embedding_read_bytes"])} bytes |
+| Layer input reads | {_format_metric(activation_memory["layer_input_read_bytes"])} bytes |
+| Layer output writes | {_format_metric(activation_memory["layer_output_write_bytes"])} bytes |
+| Attention score tensors | {_format_metric(activation_memory["attention_score_bytes"])} bytes |
+| MLP intermediate tensors | {_format_metric(activation_memory["mlp_intermediate_bytes"])} bytes |
+| KV-cache reads | {_format_metric(activation_memory["kv_cache_read_bytes"])} bytes |
+| KV-cache writes | {_format_metric(activation_memory["kv_cache_write_bytes"])} bytes |
+| Total tensor traffic | {_format_metric(activation_memory["total_tensor_bytes"])} bytes |
 
 ## Layer Specs
 
@@ -426,6 +491,8 @@ def transformer_layer_report_to_dict(
                 ),
             },
             "system": {
+                "profile": config.system.profile,
+                "profile_overrides": list(config.system.profile_overrides),
                 **{field: _sum_local_system(audits, field) for field in _SYSTEM_SUM_FIELDS},
                 "tiers": {
                     "sram": _aggregate_system_tier(audits, "sram"),
@@ -524,7 +591,7 @@ def transformer_layer_report_to_dict(
         "formula_audit": _formula_audit(plan, audits),
         "matmuls": [_matmul_breakdown(audit) for audit in audits],
         "assumptions": _aggregate_assumptions(config),
-        "exclusions": _transformer_exclusions(),
+        "exclusions": _transformer_exclusions(config),
         "provenance": _provenance_dict(config),
     }
 
@@ -534,60 +601,88 @@ def transformer_model_report_to_dict(
     layers: Sequence[TransformerModelLayerArtifact],
 ) -> dict[str, Any]:
     audited_layers = _audit_transformer_model_layers(config, layers)
-    total_macs = _weighted_layer_int(audited_layers, "workload", "macs")
+    extra = _model_extra_accounting(config, audited_layers)
+    layer_macs = _weighted_layer_int(audited_layers, "workload", "macs")
+    total_macs = layer_macs + extra["workload"]["macs"]
     total_equivalent_ops = _weighted_layer_int(
         audited_layers,
         "workload",
         "equivalent_ops",
-    )
+    ) + extra["workload"]["equivalent_ops"]
     total_output_elements = _weighted_layer_int(
         audited_layers,
         "workload",
         "output_elements",
-    )
+    ) + extra["workload"]["output_elements"]
     total_energy_pj = _weighted_layer_number(
         audited_layers,
         "local_model",
         "energy",
         "total_pj",
-    )
+    ) + extra["energy"]["total_pj"]
     detector_pj = _weighted_layer_number(
         audited_layers,
         "local_model",
         "energy",
         "detector_pj",
+    ) + extra["energy"]["detector_pj"]
+    adc_pj = (
+        _weighted_layer_number(audited_layers, "local_model", "energy", "adc_pj")
+        + extra["energy"]["adc_pj"]
     )
-    adc_pj = _weighted_layer_number(audited_layers, "local_model", "energy", "adc_pj")
-    dac_pj = _weighted_layer_number(audited_layers, "local_model", "energy", "dac_pj")
+    dac_pj = (
+        _weighted_layer_number(audited_layers, "local_model", "energy", "dac_pj")
+        + extra["energy"]["dac_pj"]
+    )
     total_interface_bytes = _weighted_layer_int(
         audited_layers,
         "local_model",
         "memory_traffic",
         "total_interface_bytes",
-    )
+    ) + extra["memory_traffic"]["total_interface_bytes"]
     total_system_energy_pj = _weighted_layer_number(
         audited_layers,
         "local_model",
         "system",
         "total_system_energy_pj",
-    )
+    ) + extra["system"]["total_system_energy_pj"]
     total_movement_energy_pj = _weighted_layer_number(
         audited_layers,
         "local_model",
         "system",
         "total_movement_energy_pj",
-    )
+    ) + extra["system"]["total_movement_energy_pj"]
     serial_batch_latency_ns = _weighted_layer_number(
         audited_layers,
         "local_model",
         "timing",
         "serial_batch_latency_ns",
-    )
+    ) + extra["timing"]["serial_batch_latency_ns"]
     bandwidth_limited_serial_batch_latency_ns = _weighted_layer_number(
         audited_layers,
         "local_model",
         "system",
         "bandwidth_limited_serial_batch_latency_ns",
+    ) + extra["system"]["bandwidth_limited_serial_batch_latency_ns"]
+    overlap_timing = _model_overlap_timing(
+        config,
+        serial_batch_latency_ns=serial_batch_latency_ns,
+        bandwidth_limited_serial_batch_latency_ns=(
+            bandwidth_limited_serial_batch_latency_ns
+        ),
+        max_per_layer_serial_batch_latency_ns=_max_layer_number(
+            audited_layers,
+            "local_model",
+            "timing",
+            "serial_batch_latency_ns",
+        ),
+        max_per_layer_bandwidth_limited_batch_latency_ns=_max_layer_number(
+            audited_layers,
+            "local_model",
+            "system",
+            "bandwidth_limited_serial_batch_latency_ns",
+        ),
+        total_equivalent_ops=total_equivalent_ops,
     )
 
     return {
@@ -608,21 +703,27 @@ def transformer_model_report_to_dict(
         "aggregate_semantics": _model_aggregate_semantics(),
         "local_model": {
             "conversion_counts": {
-                field: _weighted_layer_int(
-                    audited_layers,
-                    "local_model",
-                    "conversion_counts",
-                    field,
+                field: (
+                    _weighted_layer_int(
+                        audited_layers,
+                        "local_model",
+                        "conversion_counts",
+                        field,
+                    )
+                    + extra["conversion_counts"][field]
                 )
                 for field in _CONVERSION_SUM_FIELDS
             },
             "memory_traffic": {
                 **{
-                    field: _weighted_layer_int(
-                        audited_layers,
-                        "local_model",
-                        "memory_traffic",
-                        field,
+                    field: (
+                        _weighted_layer_int(
+                            audited_layers,
+                            "local_model",
+                            "memory_traffic",
+                            field,
+                        )
+                        + extra["memory_traffic"][field]
                     )
                     for field in _MEMORY_SUM_FIELDS
                 },
@@ -636,29 +737,45 @@ def transformer_model_report_to_dict(
                 ),
                 "note": (
                     "Weighted sum of transformer-layer interface traffic. "
-                    "Counts are multiplied by layer spec count and are not a "
-                    "full activation-lifetime or cache simulation."
+                    "Counts are multiplied by layer spec count and include any "
+                    "explicit model-level output projection. Activation tensor "
+                    "and KV-cache traffic are reported separately."
                 ),
             },
+            "activation_memory_traffic": extra["activation_memory_traffic"],
             "system": {
+                "profile": config.system.profile,
+                "profile_overrides": list(config.system.profile_overrides),
                 **{
-                    field: _weighted_layer_number(
-                        audited_layers,
-                        "local_model",
-                        "system",
-                        field,
+                    field: (
+                        _weighted_layer_number(
+                            audited_layers,
+                            "local_model",
+                            "system",
+                            field,
+                        )
+                        + extra["system"][field]
                     )
                     for field in _SYSTEM_SUM_FIELDS
                 },
                 "tiers": {
-                    "sram": _weighted_model_system_tier(audited_layers, "sram"),
-                    "off_chip": _weighted_model_system_tier(audited_layers, "off_chip"),
+                    "sram": _add_system_tiers(
+                        _weighted_model_system_tier(audited_layers, "sram"),
+                        extra["system"]["tiers"]["sram"],
+                    ),
+                    "off_chip": _add_system_tiers(
+                        _weighted_model_system_tier(audited_layers, "off_chip"),
+                        extra["system"]["tiers"]["off_chip"],
+                    ),
                 },
-                "serial_transfer_time_ns": _weighted_layer_number(
-                    audited_layers,
-                    "local_model",
-                    "system",
-                    "serial_transfer_time_ns",
+                "serial_transfer_time_ns": (
+                    _weighted_layer_number(
+                        audited_layers,
+                        "local_model",
+                        "system",
+                        "serial_transfer_time_ns",
+                    )
+                    + extra["system"]["serial_transfer_time_ns"]
                 ),
                 "max_per_layer_transfer_time_ns": _max_layer_number(
                     audited_layers,
@@ -689,18 +806,22 @@ def transformer_model_report_to_dict(
                     )
                 ),
                 "note": (
-                    "Weighted sum of transformer-layer system movement estimates. "
-                    "This is serial accounting over representative layer specs, "
-                    "not a fused full-model scheduler."
+                    "Weighted sum of transformer-layer system movement estimates "
+                    "plus explicit output-projection and tensor-memory movement "
+                    "assumptions. This is serial accounting, not a measured "
+                    "full-model scheduler."
                 ),
             },
             "energy": {
                 **{
-                    field: _weighted_layer_number(
-                        audited_layers,
-                        "local_model",
-                        "energy",
-                        field,
+                    field: (
+                        _weighted_layer_number(
+                            audited_layers,
+                            "local_model",
+                            "energy",
+                            field,
+                        )
+                        + extra["energy"][field]
                     )
                     for field in _ENERGY_SUM_FIELDS
                 },
@@ -729,6 +850,7 @@ def transformer_model_report_to_dict(
                     "timing",
                     "serial_batch_latency_ns",
                 ),
+                **overlap_timing,
             },
             "noise": {
                 "aggregation": "not_additive",
@@ -762,6 +884,7 @@ def transformer_model_report_to_dict(
                 ),
             },
         },
+        "model_components": extra["model_components"],
         "layers": [_model_layer_summary(layer) for layer in audited_layers],
         "published_reference": None,
         "calibration_fit": None,
@@ -775,6 +898,7 @@ def _operation_templates(
     config: TransformerLayerConfig,
 ) -> tuple[_OperationTemplate, ...]:
     shape = config.transformer_layer
+    context_length = _attention_context_length(shape)
     return (
         _OperationTemplate(
             key="qkv_projection",
@@ -793,12 +917,12 @@ def _operation_templates(
         _OperationTemplate(
             key="attention_scores",
             label="Attention scores",
-            formula="B * heads * S * S * head_dim",
+            formula="B * heads * S_query * S_context * head_dim",
             workload=WorkloadConfig(
                 type="matmul",
                 m=shape.sequence_length,
                 k=shape.head_dim,
-                n=shape.sequence_length,
+                n=context_length,
             ),
             operation_batch_size=shape.batch_size * shape.num_heads,
             uses_model_weights=False,
@@ -807,11 +931,11 @@ def _operation_templates(
         _OperationTemplate(
             key="attention_value",
             label="Attention-value",
-            formula="B * heads * S * S * head_dim",
+            formula="B * heads * S_query * S_context * head_dim",
             workload=WorkloadConfig(
                 type="matmul",
                 m=shape.sequence_length,
-                k=shape.sequence_length,
+                k=context_length,
                 n=shape.head_dim,
             ),
             operation_batch_size=shape.batch_size * shape.num_heads,
@@ -854,7 +978,33 @@ def _matmul_card(
     operation: _OperationTemplate,
 ) -> TransformerMatmulCardConfig:
     shape = layer_config.transformer_layer
+    context_length = _attention_context_length(shape)
     execution = _operation_execution(layer_config.execution, operation)
+    attention_assumption = (
+        (
+            "Decoder KV-cache attention accounting is enabled: attention "
+            f"uses query length {shape.sequence_length} and context length "
+            f"{context_length}. Cache read/write traffic is reported at the "
+            "transformer-model level."
+        )
+        if shape.kv_cache_enabled
+        else (
+            "Dense attention accounting is used; decoder/causal labels do "
+            "not halve attention MAC counts."
+        )
+    )
+    non_matmul_exclusion = (
+        "Non-matmul costs such as softmax, layer norm, bias adds, "
+        "activations, dropout, masking, and non-matmul memory traffic are "
+        "excluded. KV-cache read/write traffic is reported only in the "
+        "transformer-model aggregate."
+        if shape.kv_cache_enabled
+        else (
+            "Non-matmul costs such as softmax, layer norm, bias adds, "
+            "activations, dropout, masking, KV-cache incremental decoding, "
+            "and non-matmul memory traffic are excluded."
+        )
+    )
     config = BenchmarkConfig(
         benchmark=BenchmarkMeta(
             name=f"{layer_config.benchmark.name} - {operation.label}",
@@ -880,17 +1030,11 @@ def _matmul_card(
                 f"Layer shape: batch={shape.batch_size}, sequence="
                 f"{shape.sequence_length}, hidden={shape.hidden_size}, "
                 f"heads={shape.num_heads}, head_dim={shape.head_dim}, "
-                f"intermediate={shape.mlp_intermediate_size}."
+                f"attention_context={context_length}, intermediate="
+                f"{shape.mlp_intermediate_size}."
             ),
-            (
-                "Dense attention accounting is used; decoder/causal labels do "
-                "not halve attention MAC counts."
-            ),
-            (
-                "Non-matmul costs such as softmax, layer norm, bias adds, "
-                "activations, dropout, masking, KV-cache incremental decoding, "
-                "and non-matmul memory traffic are excluded."
-            ),
+            attention_assumption,
+            non_matmul_exclusion,
         ),
     )
     return TransformerMatmulCardConfig(
@@ -959,6 +1103,8 @@ def _shape_section(shape: TransformerLayerShapeConfig) -> str:
 | Hidden size | {shape.hidden_size} |
 | Attention heads | {shape.num_heads} |
 | Head dimension | {shape.head_dim} |
+| Attention context length | {_attention_context_length(shape)} |
+| KV-cache enabled | {shape.kv_cache_enabled} |
 | MLP intermediate size | {shape.mlp_intermediate_size} |"""
 
 
@@ -1159,7 +1305,7 @@ def _validate_model_inputs_match(
     expected_model_inputs = {
         "device": asdict(expected_card.config.device),
         "execution": asdict(expected_card.config.execution),
-        "system": asdict(expected_card.config.system),
+        "system": system_config_to_dict(expected_card.config.system),
         "timing": asdict(expected_card.config.timing),
         "noise": asdict(expected_card.config.noise),
     }
@@ -1268,15 +1414,495 @@ def _matmul_breakdown(audit: TransformerLayerCardAudit) -> dict[str, Any]:
     }
 
 
-def _transformer_shape_dict(shape: TransformerLayerShapeConfig) -> dict[str, int]:
+def _transformer_shape_dict(shape: TransformerLayerShapeConfig) -> dict[str, int | bool]:
     return {
         "batch_size": shape.batch_size,
         "sequence_length": shape.sequence_length,
         "hidden_size": shape.hidden_size,
         "num_heads": shape.num_heads,
         "head_dim": shape.head_dim,
+        "attention_context_length": _attention_context_length(shape),
+        "kv_cache_enabled": shape.kv_cache_enabled,
         "mlp_intermediate_size": shape.mlp_intermediate_size,
     }
+
+
+def _model_extra_accounting(
+    config: TransformerModelConfig,
+    layers: Sequence[TransformerModelLayerArtifact],
+) -> dict[str, Any]:
+    output_projection = _output_projection_component(config)
+    tensor_memory = _tensor_memory_component(config)
+    tensor_system = _tensor_memory_system(config, tensor_memory)
+
+    output_workload = _dict_or_empty(output_projection.get("workload"))
+    output_local = _dict_or_empty(output_projection.get("local_model"))
+    output_energy = _dict_or_empty(output_local.get("energy"))
+    output_memory = _dict_or_empty(output_local.get("memory_traffic"))
+    output_system = _dict_or_empty(output_local.get("system"))
+    output_timing = _dict_or_empty(output_local.get("timing"))
+    output_counts = _dict_or_empty(output_local.get("conversion_counts"))
+
+    output_system_tiers = _output_system_tiers(output_system)
+    extra_system_tiers = {
+        "sram": _add_system_tiers(output_system_tiers["sram"], tensor_system["tiers"]["sram"]),
+        "off_chip": _add_system_tiers(
+            output_system_tiers["off_chip"],
+            tensor_system["tiers"]["off_chip"],
+        ),
+    }
+    output_system_movement = float(output_system.get("total_movement_energy_pj") or 0.0)
+    output_system_total = float(output_system.get("total_system_energy_pj") or 0.0)
+    output_compute_energy = float(
+        output_system.get("local_compute_and_conversion_energy_pj") or 0.0
+    )
+    tensor_movement_energy = tensor_system["total_movement_energy_pj"]
+    tensor_transfer_time_ns = tensor_system["serial_transfer_time_ns"]
+    output_bandwidth_latency = float(
+        output_system.get("bandwidth_limited_batch_latency_ns") or 0.0
+    )
+    output_transfer_time = float(output_system.get("max_transfer_time_ns") or 0.0)
+
+    return {
+        "workload": {
+            "macs": int(output_workload.get("macs") or 0),
+            "equivalent_ops": int(output_workload.get("equivalent_ops") or 0),
+            "output_elements": int(output_workload.get("output_elements") or 0),
+        },
+        "conversion_counts": {
+            field: int(output_counts.get(field) or 0) for field in _CONVERSION_SUM_FIELDS
+        },
+        "memory_traffic": {
+            field: int(output_memory.get(field) or 0) for field in _MEMORY_SUM_FIELDS
+        },
+        "energy": {
+            field: float(output_energy.get(field) or 0.0) for field in _ENERGY_SUM_FIELDS
+        },
+        "timing": {
+            "serial_batch_latency_ns": float(output_timing.get("batch_latency_ns") or 0.0),
+        },
+        "system": {
+            "local_compute_and_conversion_energy_pj": output_compute_energy,
+            "total_movement_energy_pj": output_system_movement + tensor_movement_energy,
+            "total_system_energy_pj": output_system_total + tensor_movement_energy,
+            "tiers": extra_system_tiers,
+            "serial_transfer_time_ns": output_transfer_time + tensor_transfer_time_ns,
+            "bandwidth_limited_serial_batch_latency_ns": (
+                output_bandwidth_latency + tensor_transfer_time_ns
+            ),
+        },
+        "activation_memory_traffic": tensor_memory,
+        "model_components": {
+            "embeddings": _embedding_component(config),
+            "output_projection": output_projection or None,
+            "activation_memory": tensor_memory,
+            "kv_cache": _kv_cache_component(config),
+            "pipeline_overlap": _pipeline_component(config),
+            "notes": [
+                "Model components are local PhotonicBench assumptions.",
+                (
+                    "Output projection reuses the normal matmul evaluator when "
+                    "enabled; embeddings, activation traffic, and KV-cache "
+                    "traffic are tensor-memory estimates."
+                ),
+            ],
+        },
+    }
+
+
+def _embedding_component(config: TransformerModelConfig) -> dict[str, Any]:
+    embeddings = config.embeddings
+    input_shape = _input_model_shape(config)
+    bytes_per_element = _bytes_per_element(embeddings.bits_per_element)
+    token_bytes = (
+        input_shape.batch_size
+        * input_shape.sequence_length
+        * input_shape.hidden_size
+        * bytes_per_element
+        if embeddings.enabled and embeddings.include_token_embedding
+        else 0
+    )
+    position_bytes = (
+        input_shape.batch_size
+        * input_shape.sequence_length
+        * input_shape.hidden_size
+        * bytes_per_element
+        if embeddings.enabled and embeddings.include_position_embedding
+        else 0
+    )
+    return {
+        "enabled": embeddings.enabled,
+        "vocab_size": embeddings.vocab_size,
+        "include_token_embedding": embeddings.include_token_embedding,
+        "include_position_embedding": embeddings.include_position_embedding,
+        "bits_per_element": embeddings.bits_per_element,
+        "token_embedding_read_bytes": token_bytes,
+        "position_embedding_read_bytes": position_bytes,
+        "total_embedding_read_bytes": token_bytes + position_bytes,
+        "note": (
+            "Embedding rows are modeled as local tensor reads only; no optical "
+            "matmul work is assigned to lookup operations."
+        ),
+    }
+
+
+def _output_projection_component(config: TransformerModelConfig) -> dict[str, Any]:
+    projection = config.output_projection
+    if not projection.enabled:
+        return {}
+    final_shape = _final_model_shape(config)
+    if projection.vocab_size is None:
+        raise ValueError("output_projection.vocab_size must be set when enabled")
+
+    output_config = BenchmarkConfig(
+        benchmark=BenchmarkMeta(
+            name=f"{config.benchmark.name} - output projection",
+            description=(
+                "Model-level output projection generated as a local matmul "
+                "assumption for the transformer-model summary."
+            ),
+        ),
+        workload=WorkloadConfig(
+            type="matmul",
+            m=final_shape.sequence_length,
+            k=final_shape.hidden_size,
+            n=projection.vocab_size,
+        ),
+        device=config.device,
+        timing=config.timing,
+        noise=config.noise,
+        execution=ExecutionConfig(
+            batch_size=final_shape.batch_size,
+            vector_reuse_factor=config.execution.vector_reuse_factor,
+            weight_reuse_factor=config.execution.weight_reuse_factor,
+            weight_stationary=config.execution.weight_stationary,
+            pipeline=config.execution.pipeline,
+        ),
+        system=config.system,
+        assumptions=(
+            *config.assumptions,
+            "Transformer model output projection is a local matmul assumption.",
+            (
+                "Output projection uses the final configured layer shape and "
+                f"vocab_size={projection.vocab_size}."
+            ),
+            (
+                "Tied token/output embedding weights are recorded as metadata "
+                "only; the local movement model still counts projection weight "
+                "operand traffic explicitly."
+            )
+            if projection.tied_to_token_embedding
+            else "Output projection weights are counted as an explicit right operand.",
+        ),
+    )
+    payload = report_to_dict(evaluate(output_config))
+    return {
+        "enabled": True,
+        "vocab_size": projection.vocab_size,
+        "tied_to_token_embedding": projection.tied_to_token_embedding,
+        "workload": payload["workload"],
+        "local_model": payload["local_model"],
+        "assumptions": payload["assumptions"],
+        "note": (
+            "Output projection is included in transformer-model totals as a "
+            "local matmul estimate, not as a source-paper measurement."
+        ),
+    }
+
+
+def _tensor_memory_component(config: TransformerModelConfig) -> dict[str, Any]:
+    activation = config.activation_memory
+    embedding = _embedding_component(config)
+    kv_cache = _kv_cache_component(config)
+    if not activation.enabled and not config.embeddings.enabled and not config.kv_cache.enabled:
+        return {
+            "enabled": False,
+            "bits_per_element": activation.bits_per_element,
+            "embedding_read_bytes": 0,
+            "layer_input_read_bytes": 0,
+            "layer_output_write_bytes": 0,
+            "attention_score_bytes": 0,
+            "mlp_intermediate_bytes": 0,
+            "kv_cache_read_bytes": 0,
+            "kv_cache_write_bytes": 0,
+            "total_tensor_read_bytes": 0,
+            "total_tensor_write_bytes": 0,
+            "total_tensor_bytes": 0,
+            "note": "Tensor activation memory traffic is disabled.",
+        }
+
+    bytes_per_element = _bytes_per_element(activation.bits_per_element)
+    layer_input_read_bytes = 0
+    layer_output_write_bytes = 0
+    attention_score_bytes = 0
+    mlp_intermediate_bytes = 0
+    if activation.enabled:
+        for layer in config.layers:
+            shape = layer.transformer_layer
+            hidden_elements = shape.batch_size * shape.sequence_length * shape.hidden_size
+            if activation.include_layer_inputs:
+                layer_input_read_bytes += layer.count * hidden_elements * bytes_per_element
+                layer_output_write_bytes += layer.count * hidden_elements * bytes_per_element
+            if activation.include_attention_scores:
+                attention_score_bytes += (
+                    layer.count
+                    * shape.batch_size
+                    * shape.num_heads
+                    * shape.sequence_length
+                    * _attention_context_length(shape)
+                    * bytes_per_element
+                )
+            if activation.include_mlp_intermediate:
+                mlp_intermediate_bytes += (
+                    layer.count
+                    * shape.batch_size
+                    * shape.sequence_length
+                    * shape.mlp_intermediate_size
+                    * bytes_per_element
+                )
+
+    embedding_read_bytes = int(embedding["total_embedding_read_bytes"])
+    kv_cache_read_bytes = int(kv_cache["cache_read_bytes"])
+    kv_cache_write_bytes = int(kv_cache["cache_write_bytes"])
+    total_read = embedding_read_bytes + layer_input_read_bytes + kv_cache_read_bytes
+    total_write = (
+        layer_output_write_bytes
+        + attention_score_bytes
+        + mlp_intermediate_bytes
+        + kv_cache_write_bytes
+    )
+    return {
+        "enabled": activation.enabled or config.embeddings.enabled or config.kv_cache.enabled,
+        "bits_per_element": activation.bits_per_element,
+        "embedding_read_bytes": embedding_read_bytes,
+        "layer_input_read_bytes": layer_input_read_bytes,
+        "layer_output_write_bytes": layer_output_write_bytes,
+        "attention_score_bytes": attention_score_bytes,
+        "mlp_intermediate_bytes": mlp_intermediate_bytes,
+        "kv_cache_read_bytes": kv_cache_read_bytes,
+        "kv_cache_write_bytes": kv_cache_write_bytes,
+        "total_tensor_read_bytes": total_read,
+        "total_tensor_write_bytes": total_write,
+        "total_tensor_bytes": total_read + total_write,
+        "note": (
+            "Tensor memory traffic is a local activation/KV/cache movement "
+            "estimate. It is intentionally separate from converter-interface "
+            "memory_traffic."
+        ),
+    }
+
+
+def _kv_cache_component(config: TransformerModelConfig) -> dict[str, Any]:
+    kv_cache = config.kv_cache
+    if not kv_cache.enabled:
+        return {
+            "enabled": False,
+            "mode": kv_cache.mode,
+            "context_length": 0,
+            "bits_per_element": kv_cache.bits_per_element,
+            "cache_read_bytes": 0,
+            "cache_write_bytes": 0,
+            "note": "KV-cache mode is disabled.",
+        }
+
+    bytes_per_element = _bytes_per_element(kv_cache.bits_per_element)
+    read_bytes = 0
+    write_bytes = 0
+    for layer in config.layers:
+        shape = layer.transformer_layer
+        if shape.layer_type != "decoder":
+            continue
+        if kv_cache.include_cache_reads:
+            read_bytes += (
+                layer.count
+                * shape.batch_size
+                * kv_cache.context_length
+                * shape.hidden_size
+                * 2
+                * bytes_per_element
+            )
+        if kv_cache.include_cache_writes:
+            write_bytes += (
+                layer.count
+                * shape.batch_size
+                * shape.sequence_length
+                * shape.hidden_size
+                * 2
+                * bytes_per_element
+            )
+    return {
+        "enabled": True,
+        "mode": kv_cache.mode,
+        "context_length": kv_cache.context_length,
+        "include_cache_reads": kv_cache.include_cache_reads,
+        "include_cache_writes": kv_cache.include_cache_writes,
+        "bits_per_element": kv_cache.bits_per_element,
+        "cache_read_bytes": read_bytes,
+        "cache_write_bytes": write_bytes,
+        "note": (
+            "Decoder KV-cache mode changes decoder attention context length in "
+            "the layer formulas and separately estimates cache read/write bytes."
+        ),
+    }
+
+
+def _tensor_memory_system(
+    config: TransformerModelConfig,
+    tensor_memory: dict[str, Any],
+) -> dict[str, Any]:
+    read_bytes = int(tensor_memory["total_tensor_read_bytes"])
+    write_bytes = int(tensor_memory["total_tensor_write_bytes"])
+    sram = _tier_movement("sram", config.system.sram, read_bytes, write_bytes)
+    off_chip = _tier_movement("off_chip", config.system.off_chip, read_bytes, write_bytes)
+    total_movement = sram["total_energy_pj"] + off_chip["total_energy_pj"]
+    transfer_time = max(sram["transfer_time_ns"], off_chip["transfer_time_ns"])
+    return {
+        "tiers": {"sram": sram, "off_chip": off_chip},
+        "total_movement_energy_pj": total_movement,
+        "serial_transfer_time_ns": transfer_time,
+    }
+
+
+def _tier_movement(
+    name: str,
+    tier,
+    read_bytes: int,
+    write_bytes: int,
+) -> dict[str, Any]:
+    tier_read_bytes = read_bytes * tier.read_fraction
+    tier_write_bytes = write_bytes * tier.write_fraction
+    total_bytes = tier_read_bytes + tier_write_bytes
+    return {
+        "name": name,
+        "read_bytes": tier_read_bytes,
+        "write_bytes": tier_write_bytes,
+        "total_bytes": total_bytes,
+        "read_energy_pj": tier_read_bytes * tier.read_energy_pj_per_byte,
+        "write_energy_pj": tier_write_bytes * tier.write_energy_pj_per_byte,
+        "total_energy_pj": (
+            tier_read_bytes * tier.read_energy_pj_per_byte
+            + tier_write_bytes * tier.write_energy_pj_per_byte
+        ),
+        "transfer_time_ns": total_bytes / tier.bandwidth_bytes_per_ns,
+    }
+
+
+def _output_system_tiers(output_system: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    tiers = _dict_or_empty(output_system.get("tiers"))
+    return {
+        "sram": _system_tier_or_zero(_dict_or_empty(tiers.get("sram")), "sram"),
+        "off_chip": _system_tier_or_zero(
+            _dict_or_empty(tiers.get("off_chip")),
+            "off_chip",
+        ),
+    }
+
+
+def _system_tier_or_zero(raw: dict[str, Any], name: str) -> dict[str, Any]:
+    return {
+        "name": name,
+        **{field: float(raw.get(field) or 0.0) for field in _SYSTEM_TIER_SUM_FIELDS},
+    }
+
+
+def _add_system_tiers(left: dict[str, Any], right: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "name": str(left.get("name") or right.get("name") or "tier"),
+        **{
+            field: float(left.get(field) or 0.0) + float(right.get(field) or 0.0)
+            for field in _SYSTEM_TIER_SUM_FIELDS
+        },
+    }
+
+
+def _pipeline_component(config: TransformerModelConfig) -> dict[str, Any]:
+    pipeline = config.pipeline
+    return {
+        "overlap_enabled": pipeline.overlap_enabled,
+        "overlap_fraction": pipeline.overlap_fraction,
+        "label": pipeline.label,
+        "note": (
+            "Pipeline overlap is an optional local latency assumption. Serial "
+            "latency fields remain present and unchanged."
+        ),
+    }
+
+
+def _model_overlap_timing(
+    config: TransformerModelConfig,
+    *,
+    serial_batch_latency_ns: float,
+    bandwidth_limited_serial_batch_latency_ns: float,
+    max_per_layer_serial_batch_latency_ns: float,
+    max_per_layer_bandwidth_limited_batch_latency_ns: float,
+    total_equivalent_ops: int,
+) -> dict[str, Any]:
+    pipeline = config.pipeline
+    if not pipeline.overlap_enabled:
+        return {
+            "schedule_assumption": "serial",
+            "overlap_fraction": 0.0,
+            "overlap_adjusted_batch_latency_ns": serial_batch_latency_ns,
+            "overlap_adjusted_effective_equivalent_ops_per_second": _per_second(
+                total_equivalent_ops,
+                serial_batch_latency_ns,
+            ),
+            "bandwidth_limited_overlap_adjusted_batch_latency_ns": (
+                bandwidth_limited_serial_batch_latency_ns
+            ),
+            "bandwidth_limited_overlap_adjusted_equivalent_ops_per_second": _per_second(
+                total_equivalent_ops,
+                bandwidth_limited_serial_batch_latency_ns,
+            ),
+            "schedule_note": (
+                "No model-level overlap assumption is enabled; overlap-adjusted "
+                "fields equal serial fields."
+            ),
+        }
+
+    adjusted = max(
+        max_per_layer_serial_batch_latency_ns,
+        serial_batch_latency_ns * (1.0 - pipeline.overlap_fraction),
+    )
+    bandwidth_adjusted = max(
+        max_per_layer_bandwidth_limited_batch_latency_ns,
+        bandwidth_limited_serial_batch_latency_ns * (1.0 - pipeline.overlap_fraction),
+    )
+    return {
+        "schedule_assumption": pipeline.label,
+        "overlap_fraction": pipeline.overlap_fraction,
+        "overlap_adjusted_batch_latency_ns": adjusted,
+        "overlap_adjusted_effective_equivalent_ops_per_second": _per_second(
+            total_equivalent_ops,
+            adjusted,
+        ),
+        "bandwidth_limited_overlap_adjusted_batch_latency_ns": bandwidth_adjusted,
+        "bandwidth_limited_overlap_adjusted_equivalent_ops_per_second": _per_second(
+            total_equivalent_ops,
+            bandwidth_adjusted,
+        ),
+        "schedule_note": (
+            "Overlap-adjusted latency is a local assumption derived from the "
+            "configured overlap_fraction and clamped to at least the slowest "
+            "representative layer latency."
+        ),
+    }
+
+
+def _input_model_shape(config: TransformerModelConfig) -> TransformerLayerShapeConfig:
+    return config.layers[0].transformer_layer
+
+
+def _final_model_shape(config: TransformerModelConfig) -> TransformerLayerShapeConfig:
+    return config.layers[-1].transformer_layer
+
+
+def _bytes_per_element(bits: int) -> int:
+    return math.ceil(bits / 8)
+
+
+def _dict_or_empty(value: Any) -> dict[str, Any]:
+    return value if isinstance(value, dict) else {}
 
 
 def _audit_transformer_model_layers(
@@ -1440,17 +2066,25 @@ def _model_aggregate_semantics() -> dict[str, str]:
         ),
         "memory_traffic": (
             "Layer interface traffic is multiplied by layer count and summed. "
-            "Activation lifetime, cache residency, and KV-cache reuse are not "
-            "modeled."
+            "Output projection interface traffic is added when enabled. "
+            "Activation tensor and KV-cache traffic are reported separately."
+        ),
+        "activation_memory_traffic": (
+            "Embedding reads, activation tensor materialization, and KV-cache "
+            "read/write bytes are local model-level assumptions outside the "
+            "converter-interface traffic table."
         ),
         "system": (
             "Layer system movement estimates are multiplied by layer count and "
-            "summed over explicit SRAM/off-chip tiers. Bandwidth-limited timing "
-            "is serial accounting, not a fused full-model scheduler."
+            "summed over explicit SRAM/off-chip tiers. Output projection and "
+            "tensor-memory movement are added when configured. "
+            "Bandwidth-limited timing is serial accounting, not a measured "
+            "full-model scheduler."
         ),
         "timing": (
             "serial_* timing fields assume weighted layer summaries execute one "
-            "after another."
+            "after another. Overlap-adjusted timing fields are optional local "
+            "assumptions and do not replace the serial fields."
         ),
         "noise": (
             "Noise remains non-additive. Model-level noise fields are maxima "
@@ -1469,6 +2103,10 @@ def _model_assumptions(config: TransformerModelConfig) -> list[str]:
         (
             "Layer counts multiply additive energy, movement, conversion, memory, "
             "and serial timing fields."
+        ),
+        (
+            "Embeddings, output projection, activation traffic, KV-cache traffic, "
+            "and overlap timing are explicit local assumptions when configured."
         ),
         (
             "The model summary preserves decomposed layer/card provenance through "
@@ -1567,18 +2205,20 @@ def _aggregate_assumptions(config: TransformerLayerConfig) -> list[str]:
     ]
 
 
-def _transformer_exclusions() -> list[str]:
-    return [
+def _transformer_exclusions(config: TransformerLayerConfig) -> list[str]:
+    exclusions = [
         "softmax",
         "layer_norm",
         "bias_adds",
         "activation_functions",
         "dropout",
         "masking",
-        "kv_cache_incremental_decoding",
         "causal_triangular_halving",
         "non_matmul_memory_traffic",
     ]
+    if not config.transformer_layer.kv_cache_enabled:
+        exclusions.insert(6, "kv_cache_incremental_decoding")
+    return exclusions
 
 
 def _provenance_dict(

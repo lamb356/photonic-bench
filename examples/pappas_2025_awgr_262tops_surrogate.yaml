@@ -53,6 +53,22 @@ published_calibration:
     mnist_accuracy_percent: 92.14
     energy_efficiency_note: 3.663 TOPS/W is the direct conversion of the paper's 273 fJ/OP statement.
     surrogate_mapping: m=16, k=16, n=16 is a dense tile surrogate for the 16x16 AWGR engine; not an exact MbTM schedule.
+source_quality:
+  reported_metrics:
+    - throughput
+    - energy_per_op
+    - data_rate
+    - accuracy
+  local_surrogate_type: dense_awgr_tile_surrogate
+  coverage:
+    throughput: reported
+    energy: reported
+    accuracy: reported
+    area: not_reported
+    precision: not_reported
+  confidence_grade: B
+  notes:
+    - Good throughput, energy, and task-metric coverage; local dense tile is still a surrogate for the reported AWGR MbTM schedule.
 assumptions:
   - Source reports 262 TOPS at 32 Gbaud and a 273 fJ/OP silicon-photonic energy-efficiency analysis; PhotonicBench keeps those values in published_reference.
   - The local model uses a one-cycle 32 Gbaud timing surrogate and generic converter energy assumptions.

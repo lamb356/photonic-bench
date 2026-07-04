@@ -49,6 +49,8 @@ window.PhotonicBenchPayloadRegistry["pappas_2025_awgr_262tops_surrogate.json"] =
       }
     },
     "system": {
+      "profile": "default",
+      "profile_overrides": [],
       "sram": {
         "read_energy_pj_per_byte": 0.02,
         "write_energy_pj_per_byte": 0.02,
@@ -92,6 +94,8 @@ window.PhotonicBenchPayloadRegistry["pappas_2025_awgr_262tops_surrogate.json"] =
       "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
     },
     "system": {
+      "profile": "default",
+      "profile_overrides": [],
       "tiers": {
         "sram": {
           "name": "sram",
@@ -192,6 +196,29 @@ window.PhotonicBenchPayloadRegistry["pappas_2025_awgr_262tops_surrogate.json"] =
       "energy_per_mac_including_lasers_pj": 0.546,
       "total_energy_including_lasers_pj": 2236.416,
       "model_to_published_including_lasers_ratio": 0.10782967032967034
+    },
+    "source_quality": {
+      "source_reference": "A 262 TOPS hyperdimensional photonic AI accelerator powered by a Si3N4 microcomb laser",
+      "source_doi": "10.1063/5.0271374",
+      "reported_metrics": [
+        "throughput",
+        "energy_per_op",
+        "data_rate",
+        "accuracy"
+      ],
+      "local_surrogate_type": "dense_awgr_tile_surrogate",
+      "coverage": {
+        "throughput": "reported",
+        "energy": "reported",
+        "accuracy": "reported",
+        "area": "not_reported",
+        "precision": "not_reported"
+      },
+      "confidence_grade": "B",
+      "notes": [
+        "Good throughput, energy, and task-metric coverage; local dense tile is still a surrogate for the reported AWGR MbTM schedule."
+      ],
+      "note": "Source quality grades summarize evidence coverage for the published reference card. They do not upgrade local surrogate estimates into paper measurements."
     },
     "separation_note": "Published values are paper-reported references or direct unit conversions, not local component-model estimates."
   },

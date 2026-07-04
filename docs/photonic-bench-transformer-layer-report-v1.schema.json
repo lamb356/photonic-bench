@@ -52,6 +52,8 @@
             "hidden_size",
             "num_heads",
             "head_dim",
+            "attention_context_length",
+            "kv_cache_enabled",
             "mlp_intermediate_size"
           ],
           "properties": {
@@ -60,6 +62,8 @@
             "hidden_size": {"type": "integer", "minimum": 1},
             "num_heads": {"type": "integer", "minimum": 1},
             "head_dim": {"type": "integer", "minimum": 1},
+            "attention_context_length": {"type": "integer", "minimum": 1},
+            "kv_cache_enabled": {"type": "boolean"},
             "mlp_intermediate_size": {"type": "integer", "minimum": 1}
           }
         }
@@ -333,6 +337,8 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
+        "profile",
+        "profile_overrides",
         "local_compute_and_conversion_energy_pj",
         "total_movement_energy_pj",
         "total_system_energy_pj",
@@ -348,6 +354,11 @@
         "note"
       ],
       "properties": {
+        "profile": {"type": "string"},
+        "profile_overrides": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
         "local_compute_and_conversion_energy_pj": {"type": "number", "minimum": 0},
         "total_movement_energy_pj": {"type": "number", "minimum": 0},
         "total_system_energy_pj": {"type": "number", "minimum": 0},

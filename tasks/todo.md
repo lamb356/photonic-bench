@@ -162,6 +162,54 @@
       modeling clarity, usability, and daily-analysis value.
 - [x] Task 11: Close final state files and inspect final repository status.
 
+## Completed Goal: Artifact Freshness Verification And System Profiles
+
+- [x] Task 0: Roll state files forward and create prioritized checklist.
+- [x] Task 1: Map generated artifact families and source commands.
+- [x] Task 2: Implement artifact freshness verification command.
+- [x] Task 3: Add freshness tests and CI/local quality-path integration.
+- [x] Task 4: Add named system-model profiles while preserving manual config.
+- [x] Task 5: Add initial visualizer profile sensitivity or profile-aware
+      comparison support.
+- [x] Task 6: Update documentation and regenerate affected artifacts.
+- [x] Task 7: Run mandatory Hostile Senior Reviewer critique and fix important
+      findings.
+- [x] Task 8: Run final verification and close state files.
+
+## Completed Goal: Transformer Realism, External Loading, And Card Quality
+
+- [x] Task 0: Roll state files forward and create prioritized checklist.
+- [x] Task 1: Map current transformer, external loading, published-card,
+      documentation, generated-artifact, and test surfaces.
+- [x] Task 2: Extend transformer-model realism for embeddings, output
+      projection, activation memory traffic, KV-cache decoder inference, and
+      explicit pipeline/overlap assumptions.
+- [x] Task 3: Harden browser-based external report loading validation
+      feedback.
+- [x] Task 4: Add published-card source-confidence and quality/coverage table.
+- [x] Task 5: Update documentation and regenerate affected artifacts.
+- [x] Task 6: Run mandatory Hostile Senior Reviewer critique and fix important
+      issues.
+- [x] Task 7: Run final verification and close state files.
+
+## Active Goal: Autonomous PR, Visualizer, System Model, Cards, Usability
+
+- [x] Task 0: Roll state files forward and create prioritized checklist.
+- [ ] Task 1: Commit and push the current
+      `codex/artifact-freshness-profiles` work and open a pull request.
+- [ ] Task 2: Improve web visualizer comparison analytics, presets/exports,
+      modeling-boundary labels, and daily-use ergonomics.
+- [ ] Task 3: Deepen system memory hierarchy, bandwidth, and data-movement
+      modeling with auditable assumptions.
+- [ ] Task 4: Add at least 3 to 4 high-quality published photonic accelerator
+      cards with citations, source-quality metadata, and generated artifacts.
+- [ ] Task 5: Improve CLI and validation usability where it adds clear value.
+- [ ] Task 6: Update documentation and regenerate checked artifacts.
+- [ ] Task 7: Run mandatory Hostile Senior Reviewer critique and fix important
+      findings.
+- [ ] Task 8: Run final verification, close state files, commit, push, and
+      inspect final repository status.
+
 ## Explicitly Not Active In This Goal
 
 - [ ] Hosted backend web service.

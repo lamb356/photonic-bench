@@ -39,6 +39,29 @@ These rows are paper-reported targets and direct unit conversions from those tar
 | A10 single-cycle latency comparison | >= 2300.000 ns |
 
 
+## Source Quality Index
+
+These rows summarize source evidence coverage for this published reference card. They do not turn local surrogate estimates into paper measurements.
+
+| Field | Value |
+| --- | --- |
+| Reported metric types | throughput, energy_efficiency, latency, precision, component_count |
+| Local surrogate type | direct_64x64_matrix_vector_calibration |
+| Confidence grade | A |
+
+| Dimension | Coverage |
+| --- | --- |
+| Throughput | reported |
+| Energy | reported |
+| Accuracy | not_applicable |
+| Area | derived |
+| Precision | reported |
+
+Source-quality notes:
+
+- Direct 64x64 matrix-vector calibration card with paper-reported TOPS, TOPS/W, latency, ENOB, and component-count evidence.
+
+
 
 ## Workload
 
@@ -97,6 +120,8 @@ movements, not published measurements and not a cache simulator.
 
 | Metric | Value |
 | --- | ---: |
+| System profile | default |
+| Profile tier overrides | none |
 | Local compute/conversion energy | 872.832 pJ |
 | Total movement energy | 42324.480 pJ |
 | Total system energy | 43197.312 pJ |

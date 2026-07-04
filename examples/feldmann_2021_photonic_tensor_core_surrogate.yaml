@@ -49,6 +49,21 @@ published_calibration:
     reported_bandwidth_ghz_min: 14
     reported_tops_note: PhotonicBench converts the paper's 10^12 MAC/s statement to 2 TOPS using 2 equivalent ops per MAC.
     surrogate_mapping: m=1, k=64, n=16 is a small dense tile surrogate; not an exact convolutional tensor-core dataflow reproduction.
+source_quality:
+  reported_metrics:
+    - throughput
+    - bandwidth
+    - architecture
+  local_surrogate_type: dense_convolution_tile_surrogate
+  coverage:
+    throughput: reported
+    energy: not_reported
+    accuracy: not_reported
+    area: not_reported
+    precision: not_reported
+  confidence_grade: C
+  notes:
+    - Source-backed throughput and bandwidth are useful, but energy, precision, area, and accuracy coverage are not encoded in this card.
 assumptions:
   - Source reports tera-MAC/s operation and bandwidth exceeding 14 GHz; this config stores that as a published reference and uses a reciprocal 14 GHz local cycle only as an illustrative timing assumption.
   - Local device energy, ADC, DAC, and noise settings are PhotonicBench assumptions, not extracted device-level measurements from the paper.

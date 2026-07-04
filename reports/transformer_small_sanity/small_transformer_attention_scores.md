@@ -1,6 +1,7 @@
 # PhotonicBench Benchmark Card: Small transformer sanity layer - Attention scores
 
-Tiny dense transformer layer shape for exact MAC-count sanity checks. This is a synthetic helper example, not a published accelerator calibration card. Generated decomposed card for Attention scores. Formula: B * heads * S * S * head_dim. Matmul shape is 4 x 4 times 4 x 4; operation multiplicity is 4. The right operand is activation data for attention, so cross-batch weight-stationary reuse is disabled in this generated card.
+Tiny dense transformer layer shape for exact MAC-count sanity checks. This is a synthetic helper example, not a published accelerator calibration card. Generated decomposed card for Attention scores. Formula: B * heads * S_query * S_context * head_dim. Matmul shape is 4 x 4 times 4 x 4; operation multiplicity is 4. The right operand is activation data for attention, so cross-batch weight-stationary reuse is disabled in this generated card.
+
 
 
 
@@ -62,6 +63,8 @@ movements, not published measurements and not a cache simulator.
 
 | Metric | Value |
 | --- | ---: |
+| System profile | default |
+| Profile tier overrides | none |
 | Local compute/conversion energy | 69.632 pJ |
 | Total movement energy | 1923.840 pJ |
 | Total system energy | 1993.472 pJ |
@@ -124,9 +127,9 @@ movements, not published measurements and not a cache simulator.
 - Dense full-sequence transformer accounting is used.
 - This tiny shape is intended for manual MAC-count verification.
 - Transformer operation: Attention scores.
-- Transformer formula: B * heads * S * S * head_dim.
+- Transformer formula: B * heads * S_query * S_context * head_dim.
 - Transformer batch/head multiplicity is represented by the generated card's execution.batch_size.
-- Layer shape: batch=2, sequence=4, hidden=8, heads=2, head_dim=4, intermediate=16.
+- Layer shape: batch=2, sequence=4, hidden=8, heads=2, head_dim=4, attention_context=4, intermediate=16.
 - Dense attention accounting is used; decoder/causal labels do not halve attention MAC counts.
 - Non-matmul costs such as softmax, layer norm, bias adds, activations, dropout, masking, KV-cache incremental decoding, and non-matmul memory traffic are excluded.
 - The benchmark models 4 operation(s) per batch.

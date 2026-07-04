@@ -15,6 +15,8 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
       "hidden_size": 8,
       "num_heads": 2,
       "head_dim": 4,
+      "attention_context_length": 4,
+      "kv_cache_enabled": false,
       "mlp_intermediate_size": 16
     }
   },
@@ -50,6 +52,8 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
       "note": "Summed from decomposed per-matmul interface traffic. This is not a full memory hierarchy simulation."
     },
     "system": {
+      "profile": "default",
+      "profile_overrides": [],
       "local_compute_and_conversion_energy_pj": 574.592,
       "total_movement_energy_pj": 14749.44,
       "total_system_energy_pj": 15324.032000000001,
@@ -138,7 +142,7 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
       {
         "operation_key": "attention_scores",
         "label": "Attention scores",
-        "formula": "B * heads * S * S * head_dim",
+        "formula": "B * heads * S_query * S_context * head_dim",
         "expected_macs": 256,
         "json_macs": 256,
         "expected_equivalent_ops": 512,
@@ -147,7 +151,7 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
       {
         "operation_key": "attention_value",
         "label": "Attention-value",
-        "formula": "B * heads * S * S * head_dim",
+        "formula": "B * heads * S_query * S_context * head_dim",
         "expected_macs": 256,
         "json_macs": 256,
         "expected_equivalent_ops": 512,
@@ -227,6 +231,8 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
           }
         },
         "system": {
+          "profile": "default",
+          "profile_overrides": [],
           "sram": {
             "read_energy_pj_per_byte": 0.02,
             "write_energy_pj_per_byte": 0.02,
@@ -270,6 +276,8 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
           "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
         },
         "system": {
+          "profile": "default",
+          "profile_overrides": [],
           "tiers": {
             "sram": {
               "name": "sram",
@@ -355,7 +363,7 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
         "Transformer operation: QKV projection.",
         "Transformer formula: 3 * B * S * H * H.",
         "Transformer batch/head multiplicity is represented by the generated card's execution.batch_size.",
-        "Layer shape: batch=2, sequence=4, hidden=8, heads=2, head_dim=4, intermediate=16.",
+        "Layer shape: batch=2, sequence=4, hidden=8, heads=2, head_dim=4, attention_context=4, intermediate=16.",
         "Dense attention accounting is used; decoder/causal labels do not halve attention MAC counts.",
         "Non-matmul costs such as softmax, layer norm, bias adds, activations, dropout, masking, KV-cache incremental decoding, and non-matmul memory traffic are excluded.",
         "The benchmark models 2 operation(s) per batch.",
@@ -370,11 +378,11 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
     {
       "operation_key": "attention_scores",
       "label": "Attention scores",
-      "formula": "B * heads * S * S * head_dim",
+      "formula": "B * heads * S_query * S_context * head_dim",
       "json_report": "small_transformer_attention_scores.json",
       "benchmark": {
         "name": "Small transformer sanity layer - Attention scores",
-        "description": "Tiny dense transformer layer shape for exact MAC-count sanity checks. This is a synthetic helper example, not a published accelerator calibration card. Generated decomposed card for Attention scores. Formula: B * heads * S * S * head_dim. Matmul shape is 4 x 4 times 4 x 4; operation multiplicity is 4. The right operand is activation data for attention, so cross-batch weight-stationary reuse is disabled in this generated card."
+        "description": "Tiny dense transformer layer shape for exact MAC-count sanity checks. This is a synthetic helper example, not a published accelerator calibration card. Generated decomposed card for Attention scores. Formula: B * heads * S_query * S_context * head_dim. Matmul shape is 4 x 4 times 4 x 4; operation multiplicity is 4. The right operand is activation data for attention, so cross-batch weight-stationary reuse is disabled in this generated card."
       },
       "workload": {
         "type": "matmul",
@@ -420,6 +428,8 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
           }
         },
         "system": {
+          "profile": "default",
+          "profile_overrides": [],
           "sram": {
             "read_energy_pj_per_byte": 0.02,
             "write_energy_pj_per_byte": 0.02,
@@ -463,6 +473,8 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
           "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
         },
         "system": {
+          "profile": "default",
+          "profile_overrides": [],
           "tiers": {
             "sram": {
               "name": "sram",
@@ -546,9 +558,9 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
         "Dense full-sequence transformer accounting is used.",
         "This tiny shape is intended for manual MAC-count verification.",
         "Transformer operation: Attention scores.",
-        "Transformer formula: B * heads * S * S * head_dim.",
+        "Transformer formula: B * heads * S_query * S_context * head_dim.",
         "Transformer batch/head multiplicity is represented by the generated card's execution.batch_size.",
-        "Layer shape: batch=2, sequence=4, hidden=8, heads=2, head_dim=4, intermediate=16.",
+        "Layer shape: batch=2, sequence=4, hidden=8, heads=2, head_dim=4, attention_context=4, intermediate=16.",
         "Dense attention accounting is used; decoder/causal labels do not halve attention MAC counts.",
         "Non-matmul costs such as softmax, layer norm, bias adds, activations, dropout, masking, KV-cache incremental decoding, and non-matmul memory traffic are excluded.",
         "The benchmark models 4 operation(s) per batch.",
@@ -563,11 +575,11 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
     {
       "operation_key": "attention_value",
       "label": "Attention-value",
-      "formula": "B * heads * S * S * head_dim",
+      "formula": "B * heads * S_query * S_context * head_dim",
       "json_report": "small_transformer_attention_value.json",
       "benchmark": {
         "name": "Small transformer sanity layer - Attention-value",
-        "description": "Tiny dense transformer layer shape for exact MAC-count sanity checks. This is a synthetic helper example, not a published accelerator calibration card. Generated decomposed card for Attention-value. Formula: B * heads * S * S * head_dim. Matmul shape is 4 x 4 times 4 x 4; operation multiplicity is 4. The right operand is activation data for attention, so cross-batch weight-stationary reuse is disabled in this generated card."
+        "description": "Tiny dense transformer layer shape for exact MAC-count sanity checks. This is a synthetic helper example, not a published accelerator calibration card. Generated decomposed card for Attention-value. Formula: B * heads * S_query * S_context * head_dim. Matmul shape is 4 x 4 times 4 x 4; operation multiplicity is 4. The right operand is activation data for attention, so cross-batch weight-stationary reuse is disabled in this generated card."
       },
       "workload": {
         "type": "matmul",
@@ -613,6 +625,8 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
           }
         },
         "system": {
+          "profile": "default",
+          "profile_overrides": [],
           "sram": {
             "read_energy_pj_per_byte": 0.02,
             "write_energy_pj_per_byte": 0.02,
@@ -656,6 +670,8 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
           "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
         },
         "system": {
+          "profile": "default",
+          "profile_overrides": [],
           "tiers": {
             "sram": {
               "name": "sram",
@@ -739,9 +755,9 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
         "Dense full-sequence transformer accounting is used.",
         "This tiny shape is intended for manual MAC-count verification.",
         "Transformer operation: Attention-value.",
-        "Transformer formula: B * heads * S * S * head_dim.",
+        "Transformer formula: B * heads * S_query * S_context * head_dim.",
         "Transformer batch/head multiplicity is represented by the generated card's execution.batch_size.",
-        "Layer shape: batch=2, sequence=4, hidden=8, heads=2, head_dim=4, intermediate=16.",
+        "Layer shape: batch=2, sequence=4, hidden=8, heads=2, head_dim=4, attention_context=4, intermediate=16.",
         "Dense attention accounting is used; decoder/causal labels do not halve attention MAC counts.",
         "Non-matmul costs such as softmax, layer norm, bias adds, activations, dropout, masking, KV-cache incremental decoding, and non-matmul memory traffic are excluded.",
         "The benchmark models 4 operation(s) per batch.",
@@ -806,6 +822,8 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
           }
         },
         "system": {
+          "profile": "default",
+          "profile_overrides": [],
           "sram": {
             "read_energy_pj_per_byte": 0.02,
             "write_energy_pj_per_byte": 0.02,
@@ -849,6 +867,8 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
           "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
         },
         "system": {
+          "profile": "default",
+          "profile_overrides": [],
           "tiers": {
             "sram": {
               "name": "sram",
@@ -934,7 +954,7 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
         "Transformer operation: MLP up-projection.",
         "Transformer formula: B * S * H * intermediate.",
         "Transformer batch/head multiplicity is represented by the generated card's execution.batch_size.",
-        "Layer shape: batch=2, sequence=4, hidden=8, heads=2, head_dim=4, intermediate=16.",
+        "Layer shape: batch=2, sequence=4, hidden=8, heads=2, head_dim=4, attention_context=4, intermediate=16.",
         "Dense attention accounting is used; decoder/causal labels do not halve attention MAC counts.",
         "Non-matmul costs such as softmax, layer norm, bias adds, activations, dropout, masking, KV-cache incremental decoding, and non-matmul memory traffic are excluded.",
         "The benchmark models 2 operation(s) per batch.",
@@ -999,6 +1019,8 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
           }
         },
         "system": {
+          "profile": "default",
+          "profile_overrides": [],
           "sram": {
             "read_energy_pj_per_byte": 0.02,
             "write_energy_pj_per_byte": 0.02,
@@ -1042,6 +1064,8 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
           "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
         },
         "system": {
+          "profile": "default",
+          "profile_overrides": [],
           "tiers": {
             "sram": {
               "name": "sram",
@@ -1127,7 +1151,7 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
         "Transformer operation: MLP down-projection.",
         "Transformer formula: B * S * intermediate * H.",
         "Transformer batch/head multiplicity is represented by the generated card's execution.batch_size.",
-        "Layer shape: batch=2, sequence=4, hidden=8, heads=2, head_dim=4, intermediate=16.",
+        "Layer shape: batch=2, sequence=4, hidden=8, heads=2, head_dim=4, attention_context=4, intermediate=16.",
         "Dense attention accounting is used; decoder/causal labels do not halve attention MAC counts.",
         "Non-matmul costs such as softmax, layer norm, bias adds, activations, dropout, masking, KV-cache incremental decoding, and non-matmul memory traffic are excluded.",
         "The benchmark models 2 operation(s) per batch.",

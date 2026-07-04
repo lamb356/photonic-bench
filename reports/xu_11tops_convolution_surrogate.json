@@ -48,6 +48,8 @@
       }
     },
     "system": {
+      "profile": "default",
+      "profile_overrides": [],
       "sram": {
         "read_energy_pj_per_byte": 0.02,
         "write_energy_pj_per_byte": 0.02,
@@ -91,6 +93,8 @@
       "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
     },
     "system": {
+      "profile": "default",
+      "profile_overrides": [],
       "tiers": {
         "sram": {
           "name": "sram",
@@ -185,6 +189,29 @@
       }
     },
     "derived_unit_conversions": {},
+    "source_quality": {
+      "source_reference": "11 TOPS photonic convolutional accelerator for optical neural networks",
+      "source_doi": "10.1038/s41586-020-03063-0",
+      "reported_metrics": [
+        "throughput",
+        "workload_shape",
+        "precision",
+        "accuracy"
+      ],
+      "local_surrogate_type": "dense_vector_by_kernel_matmul_surrogate",
+      "coverage": {
+        "throughput": "reported",
+        "energy": "not_reported",
+        "accuracy": "reported",
+        "area": "not_reported",
+        "precision": "reported"
+      },
+      "confidence_grade": "B",
+      "notes": [
+        "Strong source-backed throughput and task metric coverage, but the local workload is a dense matmul surrogate for vector convolution."
+      ],
+      "note": "Source quality grades summarize evidence coverage for the published reference card. They do not upgrade local surrogate estimates into paper measurements."
+    },
     "separation_note": "Published values are paper-reported references or direct unit conversions, not local component-model estimates."
   },
   "calibration_fit": null,

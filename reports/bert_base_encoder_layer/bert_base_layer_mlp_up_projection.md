@@ -5,6 +5,7 @@ Dense one-layer BERT-base style encoder benchmark shape with hidden size 768, 12
 
 
 
+
 ## Workload
 
 | Metric | Value |
@@ -62,6 +63,8 @@ movements, not published measurements and not a cache simulator.
 
 | Metric | Value |
 | --- | ---: |
+| System profile | default |
+| Profile tier overrides | none |
 | Local compute/conversion energy | 1877999.616 pJ |
 | Total movement energy | 28565176.320 pJ |
 | Total system energy | 30443175.936 pJ |
@@ -126,7 +129,7 @@ movements, not published measurements and not a cache simulator.
 - Transformer operation: MLP up-projection.
 - Transformer formula: B * S * H * intermediate.
 - Transformer batch/head multiplicity is represented by the generated card's execution.batch_size.
-- Layer shape: batch=1, sequence=128, hidden=768, heads=12, head_dim=64, intermediate=3072.
+- Layer shape: batch=1, sequence=128, hidden=768, heads=12, head_dim=64, attention_context=128, intermediate=3072.
 - Dense attention accounting is used; decoder/causal labels do not halve attention MAC counts.
 - Non-matmul costs such as softmax, layer norm, bias adds, activations, dropout, masking, KV-cache incremental decoding, and non-matmul memory traffic are excluded.
 - The benchmark models 1 operation(s) per batch.

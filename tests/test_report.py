@@ -1,6 +1,10 @@
 from tests.test_model import unit_config
 
-from photonic_bench.config import ProvenanceConfig, PublishedCalibrationConfig
+from photonic_bench.config import (
+    ProvenanceConfig,
+    PublishedCalibrationConfig,
+    SourceQualityConfig,
+)
 from photonic_bench.model import CalibrationFitRequest, evaluate
 from photonic_bench.report import render_markdown
 
@@ -25,6 +29,8 @@ def test_render_markdown_exposes_assumptions_and_totals() -> None:
         "| Off-chip/DRAM | 24 bytes | 32 bytes | 560.000 pJ | 3.500 ns | 16.000 bytes/ns |"
         in markdown
     )
+    assert "| System profile | default |" in markdown
+    assert "| Profile tier overrides | none |" in markdown
     assert "| Total movement energy | 561.120 pJ |" in markdown
     assert "| Total system energy | 582.368 pJ |" in markdown
     assert "| Bandwidth-limited batch latency | 5.000 ns |" in markdown
@@ -56,6 +62,19 @@ def test_render_markdown_includes_optional_provenance_and_published_calibration(
             pace_total_time_us=2.7,
             gpu_total_time_us=798.1,
         ),
+        source_quality=SourceQualityConfig(
+            reported_metrics=("throughput", "energy_efficiency", "precision"),
+            local_surrogate_type="direct_matrix_vector",
+            coverage={
+                "throughput": "reported",
+                "energy": "reported",
+                "accuracy": "not_applicable",
+                "area": "derived",
+                "precision": "reported",
+            },
+            confidence_grade="A",
+            notes=("Direct source-backed calibration.",),
+        ),
     )
     result = evaluate(config)
 
@@ -67,6 +86,9 @@ def test_render_markdown_includes_optional_provenance_and_published_calibration(
     assert "## Published Calibration" in markdown
     assert "| Reported ENOB | 7.610 bits |" in markdown
     assert "| Reported component count | >= 16000 |" in markdown
+    assert "## Source Quality Index" in markdown
+    assert "| Confidence grade | A |" in markdown
+    assert "| Precision | reported |" in markdown
 
 
 def test_render_markdown_includes_calibration_fit() -> None:

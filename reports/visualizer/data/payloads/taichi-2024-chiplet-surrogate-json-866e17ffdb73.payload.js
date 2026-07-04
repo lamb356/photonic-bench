@@ -49,6 +49,8 @@ window.PhotonicBenchPayloadRegistry["taichi_2024_chiplet_surrogate.json"] = {
       }
     },
     "system": {
+      "profile": "default",
+      "profile_overrides": [],
       "sram": {
         "read_energy_pj_per_byte": 0.02,
         "write_energy_pj_per_byte": 0.02,
@@ -92,6 +94,8 @@ window.PhotonicBenchPayloadRegistry["taichi_2024_chiplet_surrogate.json"] = {
       "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
     },
     "system": {
+      "profile": "default",
+      "profile_overrides": [],
       "tiers": {
         "sram": {
           "name": "sram",
@@ -191,6 +195,29 @@ window.PhotonicBenchPayloadRegistry["taichi_2024_chiplet_surrogate.json"] = {
       "energy_per_mac_including_lasers_pj": 0.0125,
       "total_energy_including_lasers_pj": 3276.8,
       "model_to_published_including_lasers_ratio": 1.2974999999999999
+    },
+    "source_quality": {
+      "source_reference": "Large-scale photonic chiplet Taichi empowers 160-TOPS/W artificial general intelligence",
+      "source_doi": "10.1126/science.adl1203",
+      "reported_metrics": [
+        "energy_efficiency",
+        "area_efficiency",
+        "accuracy",
+        "scale"
+      ],
+      "local_surrogate_type": "dense_photonic_chiplet_surrogate",
+      "coverage": {
+        "throughput": "derived",
+        "energy": "reported",
+        "accuracy": "reported",
+        "area": "reported",
+        "precision": "not_reported"
+      },
+      "confidence_grade": "B",
+      "notes": [
+        "Strong energy, area, scale, and task-metric coverage, but no exact dense-matmul local reproduction of the Taichi protocol is claimed."
+      ],
+      "note": "Source quality grades summarize evidence coverage for the published reference card. They do not upgrade local surrogate estimates into paper measurements."
     },
     "separation_note": "Published values are paper-reported references or direct unit conversions, not local component-model estimates."
   },

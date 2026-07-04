@@ -27,6 +27,29 @@ These rows are paper-reported targets and direct unit conversions from those tar
 | Surrogate mapping | m=1, k=64, n=16 is a small dense tile surrogate; not an exact convolutional tensor-core dataflow reproduction. |
 
 
+## Source Quality Index
+
+These rows summarize source evidence coverage for this published reference card. They do not turn local surrogate estimates into paper measurements.
+
+| Field | Value |
+| --- | --- |
+| Reported metric types | throughput, bandwidth, architecture |
+| Local surrogate type | dense_convolution_tile_surrogate |
+| Confidence grade | C |
+
+| Dimension | Coverage |
+| --- | --- |
+| Throughput | reported |
+| Energy | not_reported |
+| Accuracy | not_reported |
+| Area | not_reported |
+| Precision | not_reported |
+
+Source-quality notes:
+
+- Source-backed throughput and bandwidth are useful, but energy, precision, area, and accuracy coverage are not encoded in this card.
+
+
 
 ## Workload
 
@@ -85,6 +108,8 @@ movements, not published measurements and not a cache simulator.
 
 | Metric | Value |
 | --- | ---: |
+| System profile | default |
+| Profile tier overrides | none |
 | Local compute/conversion energy | 227.808 pJ |
 | Total movement energy | 11062.080 pJ |
 | Total system energy | 11289.888 pJ |

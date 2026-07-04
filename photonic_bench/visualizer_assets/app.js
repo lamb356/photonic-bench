@@ -20,6 +20,7 @@
     externalIds: new Set(),
     externalMessage: "",
     externalMessageIsWarning: false,
+    externalDiagnostics: [],
   };
   const USER_PRESETS_KEY = "photonic-bench-comparison-presets:v1";
   const COMPARISON_EXPORT_SCHEMA = "photonic-bench-comparison-export-v1";
@@ -193,6 +194,13 @@
 
   function yesNo(value) {
     return value ? "yes" : "no";
+  }
+
+  function formatProfileOverrides(value) {
+    if (!Array.isArray(value) || value.length === 0) {
+      return "none";
+    }
+    return value.join(", ");
   }
 
   function kindLabel(kind) {
@@ -403,6 +411,34 @@
     message.textContent = state.externalMessage;
     message.classList.toggle("warn", state.externalMessageIsWarning);
     document.getElementById("clear-external").disabled = state.externalIds.size === 0;
+    renderExternalDiagnostics();
+  }
+
+  function renderExternalDiagnostics() {
+    const panel = document.getElementById("external-diagnostics");
+    if (!state.externalDiagnostics.length) {
+      panel.innerHTML = "";
+      return;
+    }
+    panel.innerHTML = state.externalDiagnostics
+      .map((diagnostic) => {
+        const issues = [...diagnostic.errors, ...diagnostic.warnings];
+        const issueRows = issues.length
+          ? `<ul>${issues
+              .map((issue) => `<li>${escapeHtml(issue)}</li>`)
+              .join("")}</ul>`
+          : "";
+        const schema = diagnostic.schema_version || "schema not detected";
+        const status = diagnostic.accepted ? "accepted" : "rejected";
+        return `
+          <div class="external-diagnostic${diagnostic.accepted ? "" : " error"}">
+            <strong>${escapeHtml(diagnostic.fileName)}: ${escapeHtml(status)}</strong>
+            <div>${escapeHtml(diagnostic.schema_label || schema)}</div>
+            ${issueRows}
+          </div>
+        `;
+      })
+      .join("");
   }
 
   function loadExternalFiles(files) {
@@ -412,6 +448,7 @@
     }
     Promise.all(files.map((file) => readExternalFile(file)))
       .then((results) => {
+        state.externalDiagnostics = results.map((result) => result.diagnostic);
         const accepted = results.filter((result) => result.ok);
         const rejected = results.filter((result) => !result.ok);
         accepted.forEach((result) => addExternalArtifact(result.artifact));
@@ -439,6 +476,14 @@
   }
 
   function readExternalFile(file) {
+    const diagnostic = {
+      fileName: file.name,
+      accepted: false,
+      schema_version: null,
+      schema_label: "",
+      errors: [],
+      warnings: [],
+    };
     return file
       .text()
       .then((text) => {
@@ -449,13 +494,31 @@
           throw new Error(`invalid JSON: ${error.message}`);
         }
         const sourcePath = `external/${file.name}`;
+        const validation = validateExternalPayload(payload, sourcePath);
+        diagnostic.schema_version = validation.schema_version;
+        diagnostic.schema_label = validation.schema_label;
+        diagnostic.errors = validation.errors;
+        diagnostic.warnings = validation.warnings;
+        if (validation.errors.length) {
+          throw new Error(validation.errors.join("; "));
+        }
         const artifact = summarizeExternalPayload(payload, sourcePath, file.name);
-        return { ok: true, fileName: file.name, artifact };
+        diagnostic.accepted = true;
+        if (!diagnostic.warnings.length) {
+          diagnostic.warnings.push("Accepted schema and required fields.");
+        }
+        return { ok: true, fileName: file.name, artifact, diagnostic };
       })
       .catch((error) => ({
         ok: false,
         fileName: file.name,
         message: error.message || "unreadable file",
+        diagnostic: {
+          ...diagnostic,
+          errors: diagnostic.errors.length
+            ? diagnostic.errors
+            : [error.message || "unreadable file"],
+        },
       }));
   }
 
@@ -503,6 +566,224 @@
     render();
   }
 
+  function validateExternalPayload(payload, sourcePath) {
+    const diagnostic = {
+      schema_version: null,
+      schema_label: "",
+      errors: [],
+      warnings: [],
+    };
+    if (!isPlainObject(payload)) {
+      diagnostic.errors.push("Expected a JSON object.");
+      return diagnostic;
+    }
+    if (typeof payload.schema_version !== "string") {
+      diagnostic.errors.push("Missing required field: schema_version.");
+      return diagnostic;
+    }
+    diagnostic.schema_version = payload.schema_version;
+
+    const schema = externalSchemaSpec(payload.schema_version);
+    if (!schema) {
+      diagnostic.errors.push(
+        `Unsupported schema/version: ${payload.schema_version}.`
+      );
+      return diagnostic;
+    }
+    diagnostic.schema_label = `${schema.label} (${payload.schema_version})`;
+
+    for (const requirement of schema.required) {
+      const problem = validatePathRequirement(payload, requirement);
+      if (problem) diagnostic.errors.push(problem);
+    }
+    const unexpected = Object.keys(payload).filter(
+      (key) => !schema.allowedTopLevel.includes(key)
+    );
+    if (unexpected.length) {
+      diagnostic.warnings.push(
+        `Unexpected top-level field(s): ${unexpected.join(", ")}.`
+      );
+    }
+    if (!diagnostic.errors.length) {
+      diagnostic.warnings.push(`Detected and accepted ${diagnostic.schema_label}.`);
+    }
+    return diagnostic;
+  }
+
+  function externalSchemaSpec(schemaVersion) {
+    const commonTopLevel = [
+      "schema_version",
+      "benchmark",
+      "workload",
+      "model_inputs",
+      "local_model",
+      "published_reference",
+      "calibration_fit",
+      "assumptions",
+      "provenance",
+    ];
+    if (schemaVersion === REPORT_SCHEMA_VERSION) {
+      return {
+        label: "Per-matmul report",
+        allowedTopLevel: commonTopLevel,
+        required: [
+          ["benchmark", "name", "string"],
+          ["benchmark", "description", "string"],
+          ["workload", "type", "string", "matmul"],
+          ["workload", "shape", "object"],
+          ["workload", "shape", "m", "integer"],
+          ["workload", "shape", "k", "integer"],
+          ["workload", "shape", "n", "integer"],
+          ["workload", "macs", "integer"],
+          ["workload", "equivalent_ops", "integer"],
+          ["workload", "output_elements", "integer"],
+          ["local_model", "energy", "object"],
+          ["local_model", "energy", "total_pj", "number"],
+          ["local_model", "energy", "energy_per_op_pj", "number"],
+          ["local_model", "timing", "object"],
+          ["local_model", "timing", "batch_latency_ns", "number"],
+          [
+            "local_model",
+            "timing",
+            "steady_state_equivalent_ops_per_second",
+            "number",
+          ],
+          ["assumptions", "array"],
+        ],
+      };
+    }
+    if (schemaVersion === TRANSFORMER_LAYER_SCHEMA_VERSION) {
+      return {
+        label: "Transformer-layer aggregate",
+        allowedTopLevel: [
+          ...commonTopLevel,
+          "artifact_type",
+          "transformer_layer",
+          "aggregate_semantics",
+          "formula_audit",
+          "matmuls",
+          "exclusions",
+        ],
+        required: [
+          ["artifact_type", "string", "transformer_layer_aggregate"],
+          ["benchmark", "name", "string"],
+          ["benchmark", "description", "string"],
+          ["workload", "type", "string", "transformer_layer"],
+          ["workload", "macs", "integer"],
+          ["workload", "equivalent_ops", "integer"],
+          ["workload", "output_elements", "integer"],
+          ["transformer_layer", "shape", "object"],
+          ["local_model", "energy", "total_pj", "number"],
+          ["local_model", "energy", "energy_per_op_pj", "number"],
+          ["local_model", "timing", "serial_batch_latency_ns", "number"],
+          [
+            "local_model",
+            "timing",
+            "serial_effective_equivalent_ops_per_second",
+            "number",
+          ],
+          ["local_model", "noise", "note", "string"],
+          ["aggregate_semantics", "object"],
+          ["formula_audit", "object"],
+          ["matmuls", "array"],
+          ["exclusions", "array"],
+          ["assumptions", "array"],
+        ],
+      };
+    }
+    if (schemaVersion === TRANSFORMER_MODEL_SCHEMA_VERSION) {
+      return {
+        label: "Transformer-model aggregate",
+        allowedTopLevel: [
+          ...commonTopLevel,
+          "artifact_type",
+          "aggregate_semantics",
+          "model_components",
+          "layers",
+          "exclusions",
+        ],
+        required: [
+          ["artifact_type", "string", "transformer_model_aggregate"],
+          ["benchmark", "name", "string"],
+          ["benchmark", "description", "string"],
+          ["workload", "type", "string", "transformer_model"],
+          ["workload", "macs", "integer"],
+          ["workload", "equivalent_ops", "integer"],
+          ["workload", "output_elements", "integer"],
+          ["local_model", "energy", "total_pj", "number"],
+          ["local_model", "energy", "energy_per_op_pj", "number"],
+          ["local_model", "timing", "serial_batch_latency_ns", "number"],
+          [
+            "local_model",
+            "timing",
+            "serial_effective_equivalent_ops_per_second",
+            "number",
+          ],
+          ["local_model", "memory_traffic", "object"],
+          ["local_model", "activation_memory_traffic", "object"],
+          ["local_model", "noise", "note", "string"],
+          ["aggregate_semantics", "object"],
+          ["model_components", "object"],
+          ["layers", "array"],
+          ["exclusions", "array"],
+          ["assumptions", "array"],
+        ],
+      };
+    }
+    return null;
+  }
+
+  function validatePathRequirement(root, requirement) {
+    const knownTypes = ["array", "integer", "number", "object", "string"];
+    const expected = requirement[requirement.length - 1];
+    const hasConst =
+      requirement.length >= 3 &&
+      knownTypes.includes(requirement[requirement.length - 2]);
+    const type = hasConst
+      ? requirement[requirement.length - 2]
+      : expected;
+    const path = requirement.slice(0, hasConst ? -2 : -1);
+    const expectedConst = hasConst ? expected : null;
+    let current = root;
+    for (const key of path) {
+      if (!isPlainObject(current) || !(key in current)) {
+        return `Missing required field: ${path.join(".")}.`;
+      }
+      current = current[key];
+    }
+    const typeProblem = validateExternalType(current, type, path.join("."));
+    if (typeProblem) return typeProblem;
+    if (expectedConst !== null && current !== expectedConst) {
+      return `${path.join(".")} must be ${expectedConst}.`;
+    }
+    return "";
+  }
+
+  function validateExternalType(value, type, path) {
+    if (type === "object" && !isPlainObject(value)) {
+      return `${path} must be an object.`;
+    }
+    if (type === "array" && !Array.isArray(value)) {
+      return `${path} must be a list.`;
+    }
+    if (type === "string" && typeof value !== "string") {
+      return `${path} must be a string.`;
+    }
+    if (type === "number" && (typeof value !== "number" || !Number.isFinite(value))) {
+      return `${path} must be numeric and finite.`;
+    }
+    if (
+      type === "integer" &&
+      (typeof value !== "number" ||
+        !Number.isFinite(value) ||
+        !Number.isInteger(value) ||
+        value < 0)
+    ) {
+      return `${path} must be a non-negative integer.`;
+    }
+    return "";
+  }
+
   function summarizeExternalPayload(payload, sourcePath, fileName) {
     if (!isPlainObject(payload)) {
       throw new Error("expected a JSON object");
@@ -522,6 +803,9 @@
 
   function externalMatmulArtifact(payload, sourcePath, fileName) {
     const workload = requiredObject(payload, sourcePath, "workload");
+    if (requiredString(workload, sourcePath, "type") !== "matmul") {
+      throw new Error("workload.type must be matmul");
+    }
     const localModel = requiredObject(payload, sourcePath, "local_model");
     const energy = requiredObject(localModel, sourcePath, "energy");
     const timing = requiredObject(localModel, sourcePath, "timing");
@@ -715,6 +999,7 @@
   ) {
     const localModel = requiredObject(payload, sourcePath, "local_model");
     const assumptions = requiredArray(payload, sourcePath, "assumptions");
+    const sourceQuality = sourceQualitySummary(payload);
     return {
       id: uniqueExternalId(fileName),
       kind,
@@ -759,11 +1044,20 @@
         "system",
         "movement_energy_share"
       ),
+      system_profile: optionalString(localModel, sourcePath, "system", "profile"),
+      system_profile_overrides: optionalStringArray(
+        localModel,
+        sourcePath,
+        "system",
+        "profile_overrides"
+      ),
       bandwidth_limited_latency_ns: values.bandwidth_limited_latency_ns,
       bandwidth_limited_throughput_equivalent_ops_per_second:
         values.bandwidth_limited_throughput_equivalent_ops_per_second,
       provenance_status: provenanceStatusValue,
       has_published_reference: hasPublishedReference,
+      source_quality_grade: sourceQuality.grade,
+      source_surrogate_type: sourceQuality.surrogateType,
       assumptions_count: assumptions.length,
       has_calibration_fit: hasCalibrationFit,
       boundary_tags: boundaryTags(
@@ -811,6 +1105,23 @@
     return "local model artifact";
   }
 
+  function sourceQualitySummary(payload) {
+    const quality = payload?.published_reference?.source_quality;
+    if (!isPlainObject(quality)) {
+      return { grade: null, surrogateType: null };
+    }
+    return {
+      grade:
+        typeof quality.confidence_grade === "string"
+          ? quality.confidence_grade
+          : null,
+      surrogateType:
+        typeof quality.local_surrogate_type === "string"
+          ? quality.local_surrogate_type
+          : null,
+    };
+  }
+
   function requiredObject(root, sourcePath, ...keys) {
     const value = requiredValue(root, sourcePath, ...keys);
     if (!isPlainObject(value)) {
@@ -855,6 +1166,41 @@
       throw new Error(`${sourcePath}: ${keys.join(".")} must be numeric and finite`);
     }
     return current;
+  }
+
+  function optionalString(root, sourcePath, ...keys) {
+    let current = root;
+    for (const key of keys) {
+      if (!isPlainObject(current) || !(key in current)) {
+        return null;
+      }
+      current = current[key];
+    }
+    if (typeof current !== "string") {
+      throw new Error(`${sourcePath}: ${keys.join(".")} must be a string`);
+    }
+    return current;
+  }
+
+  function optionalStringArray(root, sourcePath, ...keys) {
+    let current = root;
+    for (const key of keys) {
+      if (!isPlainObject(current) || !(key in current)) {
+        return [];
+      }
+      current = current[key];
+    }
+    if (!Array.isArray(current)) {
+      throw new Error(`${sourcePath}: ${keys.join(".")} must be a list`);
+    }
+    return current.map((value, index) => {
+      if (typeof value !== "string") {
+        throw new Error(
+          `${sourcePath}: ${keys.join(".")}[${index}] must be a string`
+        );
+      }
+      return value;
+    });
   }
 
   function requiredValue(root, sourcePath, ...keys) {
@@ -1023,6 +1369,8 @@
               <span class="badge">${escapeHtml(summary.schema_version)}</span>
               ${summary.is_external ? '<span class="badge mix">external file</span>' : ""}
               ${summary.has_calibration_fit ? '<span class="badge mix">calibration fit</span>' : ""}
+              ${summary.system_profile ? `<span class="badge">profile: ${escapeHtml(summary.system_profile)}</span>` : ""}
+              ${summary.source_quality_grade ? `<span class="badge good">source grade: ${escapeHtml(summary.source_quality_grade)}</span>` : ""}
             </div>
             <h2>${escapeHtml(summary.benchmark_name)}</h2>
             <div class="description">${escapeHtml(summary.description)}</div>
@@ -1110,6 +1458,8 @@
         ];
       });
     const summaryRows = [
+      ["System profile", system.profile || "n/a"],
+      ["Profile tier overrides", formatProfileOverrides(system.profile_overrides)],
       ["Local compute/conversion energy", formatPj(system.local_compute_and_conversion_energy_pj)],
       ["Total movement energy", formatPj(system.total_movement_energy_pj)],
       ["Total system energy", formatPj(system.total_system_energy_pj)],
@@ -1146,6 +1496,41 @@
           summaryRows.map(([label, value]) => [escapeHtml(label), escapeHtml(value)])
         )}
       </section>
+    `;
+  }
+
+  function renderSourceQuality(sourceQuality) {
+    const reportedMetrics = Array.isArray(sourceQuality.reported_metrics)
+      ? sourceQuality.reported_metrics.join(", ")
+      : "n/a";
+    const coverage = isPlainObject(sourceQuality.coverage)
+      ? sourceQuality.coverage
+      : {};
+    const coverageRows = Object.entries(coverage).map(([dimension, status]) => [
+      escapeHtml(dimension),
+      escapeHtml(status),
+    ]);
+    const notes = Array.isArray(sourceQuality.notes)
+      ? sourceQuality.notes
+      : [];
+    return `
+      ${simpleTable([{ label: "Field" }, { label: "Value" }], [
+        ["Source DOI", escapeHtml(sourceQuality.source_doi || "n/a")],
+        ["Reported metrics", escapeHtml(reportedMetrics)],
+        ["Local surrogate type", escapeHtml(sourceQuality.local_surrogate_type || "n/a")],
+        ["Confidence grade", escapeHtml(sourceQuality.confidence_grade || "n/a")],
+      ])}
+      ${simpleTable(
+        [{ label: "Dimension" }, { label: "Coverage" }],
+        coverageRows.length ? coverageRows : [["n/a", "n/a"]]
+      )}
+      ${
+        notes.length
+          ? `<div class="notes">${notes
+              .map((note) => `<p>${escapeHtml(note)}</p>`)
+              .join("")}</div>`
+          : ""
+      }
     `;
   }
 
@@ -1232,6 +1617,7 @@
     const timingRows = objectRows(payload.local_model.timing);
     const memoryRows = objectRows(payload.local_model.memory_traffic);
     const published = payload.published_reference;
+    const sourceQuality = published?.source_quality;
     const provenance = payload.provenance;
 
     return `
@@ -1271,6 +1657,16 @@
               : '<div class="notes"><p>No published_reference block is attached to this local model card.</p></div>'
           }
         </section>
+        <section class="panel">
+          <h3>Source Quality Index</h3>
+          ${
+            sourceQuality
+              ? renderSourceQuality(sourceQuality)
+              : '<div class="notes"><p>No source_quality block is attached to this card.</p></div>'
+          }
+        </section>
+      </div>
+      <div class="grid-2">
         <section class="panel">
           <h3>Provenance</h3>
           ${
@@ -1433,7 +1829,9 @@
     const summary = artifact.summary;
     const timing = payload.local_model.timing;
     const memory = payload.local_model.memory_traffic;
+    const activationMemory = payload.local_model.activation_memory_traffic;
     const noise = payload.local_model.noise;
+    const components = payload.model_components;
     const sourceDir = summary.browser_path.split("/").slice(0, -1).join("/");
     const layerRows = payload.layers.map((layer) => {
       const href = sourceDir ? `${sourceDir}/${layer.json_report}` : layer.json_report;
@@ -1461,6 +1859,43 @@
           ["output elements", escapeHtml(formatNumber(payload.workload.output_elements))],
         ])}
       </section>
+      ${
+        components
+          ? `<section class="panel">
+              <h3>Model Components</h3>
+              ${simpleTable(
+                [{ label: "Component" }, { label: "Status" }, { label: "Quantity", num: true }],
+                [
+                  [
+                    "Embeddings",
+                    components.embeddings?.enabled ? "enabled" : "disabled",
+                    formatBytes(components.embeddings?.total_embedding_read_bytes),
+                  ],
+                  [
+                    "Output projection",
+                    components.output_projection ? "enabled" : "disabled",
+                    components.output_projection
+                      ? formatNumber(components.output_projection.workload.macs)
+                      : "0",
+                  ],
+                  [
+                    "Activation tensors",
+                    activationMemory?.enabled ? "enabled" : "disabled",
+                    formatBytes(activationMemory?.total_tensor_bytes),
+                  ],
+                  [
+                    "KV cache",
+                    components.kv_cache?.enabled ? components.kv_cache.mode : "disabled",
+                    formatBytes(
+                      (components.kv_cache?.cache_read_bytes || 0) +
+                        (components.kv_cache?.cache_write_bytes || 0)
+                    ),
+                  ],
+                ]
+              )}
+            </section>`
+          : ""
+      }
       <div class="grid-2">
         <section class="panel">
           <h3>Interface Memory Traffic</h3>
@@ -1476,6 +1911,18 @@
           ${simpleTable([{ label: "Field" }, { label: "Value", num: true }], objectRows(timing))}
         </section>
       </div>
+      ${
+        activationMemory
+          ? `<section class="panel">
+              <h3>Activation And KV-Cache Tensor Traffic</h3>
+              <div class="notes"><p>${escapeHtml(activationMemory.note || "Tensor traffic is a local model-level assumption.")}</p></div>
+              ${simpleTable(
+                [{ label: "Field" }, { label: "Value", num: true }],
+                objectRows(activationMemory)
+              )}
+            </section>`
+          : ""
+      }
       ${renderSystemModel(payload.local_model.system, "Bandwidth-limited model latency")}
       <section class="panel">
         <h3>Layer Specs</h3>
@@ -1593,6 +2040,11 @@
       ["Energy per op", (summary) => formatPj(summary.energy_per_op_pj)],
       ["System total energy", (summary) => formatPj(summary.system_total_energy_pj)],
       ["System energy per op", (summary) => formatPj(summary.system_energy_per_op_pj)],
+      ["System profile", (summary) => summary.system_profile || "n/a"],
+      [
+        "Profile tier overrides",
+        (summary) => formatProfileOverrides(summary.system_profile_overrides),
+      ],
       ["Movement energy", (summary) => formatPj(summary.movement_energy_pj)],
       ["Movement share", (summary) => formatPercent(summary.movement_energy_share)],
       ["Latency label", (summary) => summary.latency_label],
@@ -1610,6 +2062,8 @@
         formatOpsPerByte(summary.operational_intensity_ops_per_byte)],
       ["Assumptions", (summary) => formatNumber(summary.assumptions_count)],
       ["Published reference", (summary) => yesNo(summary.has_published_reference)],
+      ["Source quality grade", (summary) => summary.source_quality_grade || "n/a"],
+      ["Local surrogate type", (summary) => summary.source_surrogate_type || "n/a"],
       ["Calibration fit", (summary) => yesNo(summary.has_calibration_fit)],
       ["Provenance", (summary) => summary.provenance_status],
       ["Boundary tags", (summary) => (summary.boundary_tags || []).join(", ")],
@@ -2193,6 +2647,8 @@
         local_energy_per_op_pj: artifact.summary.energy_per_op_pj,
         system_total_energy_pj: artifact.summary.system_total_energy_pj,
         system_energy_per_op_pj: artifact.summary.system_energy_per_op_pj,
+        system_profile: artifact.summary.system_profile,
+        system_profile_overrides: artifact.summary.system_profile_overrides || [],
         movement_energy_pj: artifact.summary.movement_energy_pj,
         movement_energy_share: artifact.summary.movement_energy_share,
         latency_label: artifact.summary.latency_label,
@@ -2207,6 +2663,8 @@
           artifact.summary.operational_intensity_ops_per_byte,
         provenance_status: artifact.summary.provenance_status,
         has_published_reference: artifact.summary.has_published_reference,
+        source_quality_grade: artifact.summary.source_quality_grade,
+        source_surrogate_type: artifact.summary.source_surrogate_type,
         has_calibration_fit: artifact.summary.has_calibration_fit,
         boundary_tags: artifact.summary.boundary_tags || [],
       })),
@@ -2238,6 +2696,8 @@
           summary.source_path,
           formatPj(summary.energy_per_op_pj),
           formatPj(summary.system_energy_per_op_pj),
+          summary.system_profile || "n/a",
+          formatProfileOverrides(summary.system_profile_overrides),
           formatNs(summary.latency_ns),
           formatThroughput(summary.throughput_equivalent_ops_per_second),
           formatThroughput(
@@ -2247,6 +2707,8 @@
           formatOpsPerByte(summary.operational_intensity_ops_per_byte),
           formatPercent(summary.movement_energy_share),
           summary.has_published_reference ? "yes" : "no",
+          summary.source_quality_grade || "n/a",
+          summary.source_surrogate_type || "n/a",
           summary.provenance_status,
         ];
       })
@@ -2259,8 +2721,8 @@ Pinned reference: ${
       pinnedArtifact ? pinnedArtifact.summary.benchmark_name : "none"
     }
 
-| Benchmark | Kind | Source | Local pJ/op | System pJ/op | Latency | Throughput | BW-limited throughput | Interface traffic | Eq ops/byte | Movement share | Published reference | Provenance |
-| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| Benchmark | Kind | Source | Local pJ/op | System pJ/op | System profile | Profile overrides | Latency | Throughput | BW-limited throughput | Interface traffic | Eq ops/byte | Movement share | Published reference | Source grade | Surrogate type | Provenance |
+| --- | --- | --- | ---: | ---: | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- |
 ${rows}
 
 ## Boundary Notes

@@ -24,6 +24,17 @@
         "weight_stationary_64x64_batch.json"
       ],
       "pinned_id": "matmul_64x64.json"
+    },
+    {
+      "name": "System profile sensitivity",
+      "description": "Same 64x64 workload and photonic component assumptions under on-chip SRAM, HBM, DDR, and PCIe-attached system profiles.",
+      "artifact_ids": [
+        "profile_sensitivity_64x64_on_chip_sram.json",
+        "profile_sensitivity_64x64_hbm.json",
+        "profile_sensitivity_64x64_ddr.json",
+        "profile_sensitivity_64x64_pcie_attached.json"
+      ],
+      "pinned_id": "profile_sensitivity_64x64_ddr.json"
     }
   ]
 }

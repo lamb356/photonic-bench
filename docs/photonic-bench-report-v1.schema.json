@@ -287,6 +287,7 @@
             "provenance",
             "reported",
             "derived_unit_conversions",
+            "source_quality",
             "separation_note"
           ],
           "properties": {
@@ -294,6 +295,12 @@
             "provenance": {"type": ["object", "null"]},
             "reported": {"type": "object"},
             "derived_unit_conversions": {"type": "object"},
+            "source_quality": {
+              "oneOf": [
+                {"type": "null"},
+                {"$ref": "#/$defs/sourceQuality"}
+              ]
+            },
             "separation_note": {"type": "string"}
           }
         }
@@ -340,11 +347,57 @@
     },
     "systemInputs": {
       "type": "object",
-      "required": ["sram", "off_chip"],
+      "required": ["profile", "profile_overrides", "sram", "off_chip"],
       "additionalProperties": false,
       "properties": {
+        "profile": {"type": "string"},
+        "profile_overrides": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
         "sram": {"$ref": "#/$defs/systemTierInputs"},
         "off_chip": {"$ref": "#/$defs/systemTierInputs"}
+      }
+    },
+    "sourceQuality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_reference",
+        "source_doi",
+        "reported_metrics",
+        "local_surrogate_type",
+        "coverage",
+        "confidence_grade",
+        "notes",
+        "note"
+      ],
+      "properties": {
+        "source_reference": {"type": ["string", "null"]},
+        "source_doi": {"type": ["string", "null"]},
+        "reported_metrics": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "local_surrogate_type": {"type": "string"},
+        "coverage": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["throughput", "energy", "accuracy", "area", "precision"],
+          "properties": {
+            "throughput": {"type": "string"},
+            "energy": {"type": "string"},
+            "accuracy": {"type": "string"},
+            "area": {"type": "string"},
+            "precision": {"type": "string"}
+          }
+        },
+        "confidence_grade": {"enum": ["A", "B", "C", "D"]},
+        "notes": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "note": {"type": "string"}
       }
     },
     "systemTierInputs": {
@@ -368,6 +421,8 @@
     "systemResult": {
       "type": "object",
       "required": [
+        "profile",
+        "profile_overrides",
         "tiers",
         "local_compute_and_conversion_energy_pj",
         "total_movement_energy_pj",
@@ -383,6 +438,11 @@
       ],
       "additionalProperties": false,
       "properties": {
+        "profile": {"type": "string"},
+        "profile_overrides": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
         "tiers": {
           "type": "object",
           "required": ["sram", "off_chip"],

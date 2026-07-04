@@ -29,6 +29,29 @@ These rows are paper-reported targets and direct unit conversions from those tar
 | Surrogate mapping | m=1, k=250000, n=10 represents one dense vector-by-kernel surrogate; not an exact convolution dataflow reproduction. |
 
 
+## Source Quality Index
+
+These rows summarize source evidence coverage for this published reference card. They do not turn local surrogate estimates into paper measurements.
+
+| Field | Value |
+| --- | --- |
+| Reported metric types | throughput, workload_shape, precision, accuracy |
+| Local surrogate type | dense_vector_by_kernel_matmul_surrogate |
+| Confidence grade | B |
+
+| Dimension | Coverage |
+| --- | --- |
+| Throughput | reported |
+| Energy | not_reported |
+| Accuracy | reported |
+| Area | not_reported |
+| Precision | reported |
+
+Source-quality notes:
+
+- Strong source-backed throughput and task metric coverage, but the local workload is a dense matmul surrogate for vector convolution.
+
+
 
 ## Workload
 
@@ -87,6 +110,8 @@ movements, not published measurements and not a cache simulator.
 
 | Metric | Value |
 | --- | ---: |
+| System profile | default |
+| Profile tier overrides | none |
 | Local compute/conversion energy | 555005.100 pJ |
 | Total movement energy | 27555100.200 pJ |
 | Total system energy | 28110105.300 pJ |

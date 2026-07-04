@@ -35,6 +35,29 @@ These rows are paper-reported targets and direct unit conversions from those tar
 | Surrogate mapping | m=16, k=16, n=16 is a dense tile surrogate for the 16x16 AWGR engine; not an exact MbTM schedule. |
 
 
+## Source Quality Index
+
+These rows summarize source evidence coverage for this published reference card. They do not turn local surrogate estimates into paper measurements.
+
+| Field | Value |
+| --- | --- |
+| Reported metric types | throughput, energy_per_op, data_rate, accuracy |
+| Local surrogate type | dense_awgr_tile_surrogate |
+| Confidence grade | B |
+
+| Dimension | Coverage |
+| --- | --- |
+| Throughput | reported |
+| Energy | reported |
+| Accuracy | reported |
+| Area | not_reported |
+| Precision | not_reported |
+
+Source-quality notes:
+
+- Good throughput, energy, and task-metric coverage; local dense tile is still a surrogate for the reported AWGR MbTM schedule.
+
+
 
 ## Workload
 
@@ -93,6 +116,8 @@ movements, not published measurements and not a cache simulator.
 
 | Metric | Value |
 | --- | ---: |
+| System profile | default |
+| Profile tier overrides | none |
 | Local compute/conversion energy | 241.152 pJ |
 | Total movement energy | 7695.360 pJ |
 | Total system energy | 7936.512 pJ |

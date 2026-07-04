@@ -201,6 +201,35 @@ h1 {
   color: var(--amber);
 }
 
+.external-diagnostics {
+  display: grid;
+  gap: 6px;
+}
+
+.external-diagnostic {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fbfcfa;
+  padding: 7px;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.external-diagnostic strong {
+  display: block;
+  color: var(--ink);
+  margin-bottom: 3px;
+}
+
+.external-diagnostic.error {
+  border-color: color-mix(in srgb, var(--amber), var(--line) 45%);
+}
+
+.external-diagnostic ul {
+  margin: 4px 0 0;
+  padding-left: 16px;
+}
+
 .file-picker {
   display: grid;
   gap: 6px;

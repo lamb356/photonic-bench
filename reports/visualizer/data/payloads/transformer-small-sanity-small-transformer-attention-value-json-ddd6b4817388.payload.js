@@ -3,7 +3,7 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
   "schema_version": "photonic-bench-report-v1",
   "benchmark": {
     "name": "Small transformer sanity layer - Attention-value",
-    "description": "Tiny dense transformer layer shape for exact MAC-count sanity checks. This is a synthetic helper example, not a published accelerator calibration card. Generated decomposed card for Attention-value. Formula: B * heads * S * S * head_dim. Matmul shape is 4 x 4 times 4 x 4; operation multiplicity is 4. The right operand is activation data for attention, so cross-batch weight-stationary reuse is disabled in this generated card."
+    "description": "Tiny dense transformer layer shape for exact MAC-count sanity checks. This is a synthetic helper example, not a published accelerator calibration card. Generated decomposed card for Attention-value. Formula: B * heads * S_query * S_context * head_dim. Matmul shape is 4 x 4 times 4 x 4; operation multiplicity is 4. The right operand is activation data for attention, so cross-batch weight-stationary reuse is disabled in this generated card."
   },
   "workload": {
     "type": "matmul",
@@ -49,6 +49,8 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
       }
     },
     "system": {
+      "profile": "default",
+      "profile_overrides": [],
       "sram": {
         "read_energy_pj_per_byte": 0.02,
         "write_energy_pj_per_byte": 0.02,
@@ -92,6 +94,8 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
       "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
     },
     "system": {
+      "profile": "default",
+      "profile_overrides": [],
       "tiers": {
         "sram": {
           "name": "sram",
@@ -177,9 +181,9 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
     "Dense full-sequence transformer accounting is used.",
     "This tiny shape is intended for manual MAC-count verification.",
     "Transformer operation: Attention-value.",
-    "Transformer formula: B * heads * S * S * head_dim.",
+    "Transformer formula: B * heads * S_query * S_context * head_dim.",
     "Transformer batch/head multiplicity is represented by the generated card's execution.batch_size.",
-    "Layer shape: batch=2, sequence=4, hidden=8, heads=2, head_dim=4, intermediate=16.",
+    "Layer shape: batch=2, sequence=4, hidden=8, heads=2, head_dim=4, attention_context=4, intermediate=16.",
     "Dense attention accounting is used; decoder/causal labels do not halve attention MAC counts.",
     "Non-matmul costs such as softmax, layer norm, bias adds, activations, dropout, masking, KV-cache incremental decoding, and non-matmul memory traffic are excluded.",
     "The benchmark models 4 operation(s) per batch.",

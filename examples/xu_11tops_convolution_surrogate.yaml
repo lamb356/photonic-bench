@@ -50,3 +50,19 @@ published_calibration:
     input_resolution_bits: 8
     digit_recognition_accuracy_percent: 88
     surrogate_mapping: m=1, k=250000, n=10 represents one dense vector-by-kernel surrogate; not an exact convolution dataflow reproduction.
+source_quality:
+  reported_metrics:
+    - throughput
+    - workload_shape
+    - precision
+    - accuracy
+  local_surrogate_type: dense_vector_by_kernel_matmul_surrogate
+  coverage:
+    throughput: reported
+    energy: not_reported
+    accuracy: reported
+    area: not_reported
+    precision: reported
+  confidence_grade: B
+  notes:
+    - Strong source-backed throughput and task metric coverage, but the local workload is a dense matmul surrogate for vector convolution.

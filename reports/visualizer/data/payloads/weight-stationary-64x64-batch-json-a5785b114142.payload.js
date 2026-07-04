@@ -49,6 +49,8 @@ window.PhotonicBenchPayloadRegistry["weight_stationary_64x64_batch.json"] = {
       }
     },
     "system": {
+      "profile": "default",
+      "profile_overrides": [],
       "sram": {
         "read_energy_pj_per_byte": 0.02,
         "write_energy_pj_per_byte": 0.02,
@@ -92,6 +94,8 @@ window.PhotonicBenchPayloadRegistry["weight_stationary_64x64_batch.json"] = {
       "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
     },
     "system": {
+      "profile": "default",
+      "profile_overrides": [],
       "tiers": {
         "sram": {
           "name": "sram",

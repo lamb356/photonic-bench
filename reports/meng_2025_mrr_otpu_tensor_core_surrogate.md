@@ -28,6 +28,29 @@ These rows are paper-reported targets and direct unit conversions from those tar
 | Surrogate mapping | m=16, k=16, n=16 is a dense local surrogate for an MRR OTPU tensor-convolution result; not an exact multidomain convolution schedule. |
 
 
+## Source Quality Index
+
+These rows summarize source evidence coverage for this published reference card. They do not turn local surrogate estimates into paper measurements.
+
+| Field | Value |
+| --- | --- |
+| Reported metric types | computing_density, accuracy, architecture |
+| Local surrogate type | dense_mrr_tensor_convolution_surrogate |
+| Confidence grade | C |
+
+| Dimension | Coverage |
+| --- | --- |
+| Throughput | derived |
+| Energy | not_reported |
+| Accuracy | reported |
+| Area | reported |
+| Precision | not_reported |
+
+Source-quality notes:
+
+- Computing-density and task accuracy are source-backed, but no scalar TOPS or TOPS/W value is encoded.
+
+
 
 ## Workload
 
@@ -86,6 +109,8 @@ movements, not published measurements and not a cache simulator.
 
 | Metric | Value |
 | --- | ---: |
+| System profile | default |
+| Profile tier overrides | none |
 | Local compute/conversion energy | 241.152 pJ |
 | Total movement energy | 7695.360 pJ |
 | Total system energy | 7936.512 pJ |

@@ -5,6 +5,7 @@ Audit-sized 64x64 photonic matmul example. This is not yet a calibrated reproduc
 
 
 
+
 ## Workload
 
 | Metric | Value |
@@ -62,6 +63,8 @@ movements, not published measurements and not a cache simulator.
 
 | Metric | Value |
 | --- | ---: |
+| System profile | default |
+| Profile tier overrides | none |
 | Local compute/conversion energy | 4251.648 pJ |
 | Total movement energy | 123125.760 pJ |
 | Total system energy | 127377.408 pJ |

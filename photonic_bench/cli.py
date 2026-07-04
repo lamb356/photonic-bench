@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import sys
 
+from photonic_bench.artifacts import verify_artifact_freshness
 from photonic_bench.comparison import load_comparison_cards, render_comparison_markdown
 from photonic_bench.config import (
     TransformerLayerConfig,
@@ -60,6 +61,8 @@ def main(argv: list[str] | None = None) -> int:
                 args.host,
                 args.port,
             )
+        if args.command == "verify-artifacts":
+            return _verify_artifacts(args.examples_dir, args.reports_dir, args.verbose)
     except (OSError, ValueError) as exc:
         parser.exit(2, f"error: {exc}\n")
 
@@ -186,6 +189,28 @@ def _build_parser() -> argparse.ArgumentParser:
         type=int,
         default=8000,
         help="Port for --serve; use 0 to select an available port",
+    )
+
+    verify = subparsers.add_parser(
+        "verify-artifacts",
+        help="Check that checked-in generated artifacts match current examples",
+    )
+    verify.add_argument(
+        "--examples-dir",
+        type=Path,
+        default=Path("examples"),
+        help="Directory containing checked example YAML inputs",
+    )
+    verify.add_argument(
+        "--reports-dir",
+        type=Path,
+        default=Path("reports"),
+        help="Directory containing checked generated report artifacts",
+    )
+    verify.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Print every checked generated artifact path on success",
     )
     return parser
 
@@ -378,6 +403,26 @@ def _visualize(
     for issue in data.issues:
         print(f"warning: {issue.source_path}: {issue.message}", file=sys.stderr)
     return 0
+
+
+def _verify_artifacts(
+    examples_dir: Path,
+    reports_dir: Path,
+    verbose: bool,
+) -> int:
+    result = verify_artifact_freshness(
+        examples_dir=examples_dir,
+        reports_dir=reports_dir,
+    )
+    if result.is_fresh:
+        print(result.success_message())
+        if verbose:
+            for path in result.checked_files:
+                print(f"checked: {path}")
+        return 0
+
+    print(result.failure_report(), file=sys.stderr)
+    return 1
 
 
 if __name__ == "__main__":

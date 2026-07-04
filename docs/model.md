@@ -87,6 +87,7 @@ deliberately simple and visible:
 
 ```yaml
 system:
+  profile: default
   sram:
     read_energy_pj_per_byte: 0.02
     write_energy_pj_per_byte: 0.02
@@ -100,6 +101,32 @@ system:
     read_fraction: 1.0
     write_fraction: 1.0
 ```
+
+The named profiles are convenience presets for sensitivity analysis. They are
+local assumptions, not measured hardware:
+
+| Profile | SRAM pJ/byte read/write | SRAM bandwidth | Off-chip pJ/byte read/write | Off-chip bandwidth | Off-chip fractions |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `default` | 0.02 / 0.02 | 1024 bytes/ns | 10 / 10 | 16 bytes/ns | 1.0 / 1.0 |
+| `on_chip_sram` | 0.02 / 0.02 | 2048 bytes/ns | 10 / 10 | 16 bytes/ns | 0.0 / 0.0 |
+| `hbm` | 0.02 / 0.02 | 1024 bytes/ns | 3 / 3 | 512 bytes/ns | 1.0 / 1.0 |
+| `ddr` | 0.02 / 0.02 | 1024 bytes/ns | 10 / 10 | 16 bytes/ns | 1.0 / 1.0 |
+| `pcie_attached` | 0.02 / 0.02 | 1024 bytes/ns | 50 / 50 | 8 bytes/ns | 1.0 / 1.0 |
+
+Configs can select a profile and optionally override tier fields:
+
+```yaml
+system:
+  profile: hbm
+  off_chip:
+    bandwidth_bytes_per_ns: 256
+    read_fraction: 0.5
+```
+
+When `system.profile` is omitted but explicit tier sections are present,
+PhotonicBench labels the report as `manual` and preserves the supplied tier
+values. Generated JSON records `profile` and `profile_overrides` under both
+`model_inputs.system` and `local_model.system`.
 
 For each tier:
 
@@ -249,14 +276,14 @@ QKV projection:
   MACs = 3 * B * S * H * H
 
 Attention scores:
-  workload = S x head_dim times head_dim x S
+  workload = S_query x head_dim times head_dim x S_context
   generated execution.batch_size = B * heads
-  MACs = B * heads * S * S * head_dim
+  MACs = B * heads * S_query * S_context * head_dim
 
 Attention-value:
-  workload = S x S times S x head_dim
+  workload = S_query x S_context times S_context x head_dim
   generated execution.batch_size = B * heads
-  MACs = B * heads * S * S * head_dim
+  MACs = B * heads * S_query * S_context * head_dim
 
 MLP up-projection:
   workload = S x H times H x intermediate
@@ -317,10 +344,17 @@ and attention-value operations treat the right operand as activation data, so
 their generated cards force `weight_stationary: false`,
 `weight_reuse_factor: 1`, and `vector_reuse_factor: 1`.
 
+For normal layer helpers, `S_query = S_context = sequence_length`.
+Transformer-model KV-cache mode can explicitly set decoder representative
+layers to `S_query = sequence_length` and
+`S_context = kv_cache.context_length + sequence_length`. The resulting layer
+summary records both `attention_context_length` and `kv_cache_enabled`.
+
 The transformer helper does not count softmax, layer norm, bias adds, nonlinear
-activations, dropout, masking, KV-cache incremental decoding, causal triangular
-halving, or non-matmul tensor traffic. Decoder labels are recorded as
-assumptions; they do not silently change dense attention MAC counts.
+activations, dropout, masking, causal triangular halving, or non-matmul tensor
+traffic unless a full-model option below explicitly adds that tensor traffic.
+Decoder labels are recorded as assumptions; they do not silently change dense
+attention MAC counts.
 
 Transformer-layer configs may include `provenance`, but they currently reject
 `published_calibration`. That prevents a layer-level paper target from being
@@ -344,6 +378,21 @@ transformer_model:
       num_heads: 12
       head_dim: 64
       mlp_intermediate_size: 3072
+  embeddings:
+    enabled: true
+    vocab_size: 30522
+    bits_per_element: 16
+  output_projection:
+    enabled: true
+    vocab_size: 30522
+    tied_to_token_embedding: true
+  activation_memory:
+    enabled: true
+    bits_per_element: 16
+  pipeline_overlap:
+    enabled: true
+    overlap_fraction: 0.25
+    label: local_layer_overlap_assumption
 ```
 
 The `transformer-model` command generates one normal decomposed
@@ -368,10 +417,21 @@ are recomputed from model totals. The summary preserves auditability by storing
 `layers[].json_report` for each representative layer summary and
 `layers[].matmul_reports` for the decomposed per-matmul cards behind that layer.
 
-Full-model summaries remain local serial accounting artifacts. They do not model
-operator fusion, layer overlap, activation lifetime, cache residency, KV-cache
-reuse, embeddings, tokenizer work, loss heads, poolers, or non-matmul operators
-unless those costs appear in the decomposed layer summaries.
+Full-model summaries remain local accounting artifacts. The serial baseline is
+always preserved, while optional sections add explicitly labeled local
+assumptions:
+
+- embeddings are tensor-read bytes, not optical matmuls;
+- output projection is a local matmul added to MAC, energy, interface-traffic,
+  system, and timing totals;
+- activation memory is reported as separate hidden-state tensor traffic;
+- decoder KV-cache mode increases attention context length and reports cache
+  read/write bytes;
+- pipeline overlap adds overlap-adjusted timing fields without replacing the
+  serial baseline.
+
+These assumptions do not model tokenizer work, poolers, losses, operator
+fusion, measured layer scheduling, or a full cache hierarchy.
 
 ## Provenance And Published Calibration
 
@@ -411,6 +471,33 @@ published_calibration:
     input_resolution_bits: 8
     digit_recognition_accuracy_percent: 88
 ```
+
+Published cards can also include a `source_quality` section. This records the
+audit status of the paper/card relationship, not a new model result:
+
+```yaml
+source_quality:
+  reported_metrics:
+    - throughput
+    - energy
+    - precision
+  local_surrogate_type: direct_64x64_matrix_vector_calibration
+  confidence_grade: A
+  coverage:
+    throughput: reported
+    energy: reported
+    accuracy: reported
+    area: reported
+    precision: reported
+  notes:
+    - Direct matrix-vector shape match to the local benchmark card.
+```
+
+Allowed coverage values are `reported`, `derived`, `estimated`,
+`not_reported`, and `not_applicable`. Grades are conservative `A` through `D`
+labels for source/card coverage. The generated report copies the DOI/reference
+from `provenance` into `published_reference.source_quality` so a published card
+can be audited without mixing paper-reported metrics into `local_model`.
 
 PhotonicBench only derives energy units when the corresponding TOPS/W fields are present. Throughput-only published cards remain valid, but their `derived_unit_conversions` section is empty.
 

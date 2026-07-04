@@ -57,8 +57,12 @@ class ArtifactSummary:
     movement_energy_share: float | None
     bandwidth_limited_latency_ns: float | None
     bandwidth_limited_throughput_equivalent_ops_per_second: float | None
+    system_profile: str | None
+    system_profile_overrides: tuple[str, ...]
     provenance_status: str
     has_published_reference: bool
+    source_quality_grade: str | None
+    source_surrogate_type: str | None
     assumptions_count: int
     has_calibration_fit: bool
     boundary_tags: tuple[str, ...]
@@ -121,6 +125,7 @@ class VisualizerData:
                 "Transformer-layer exclusions are not modeled matmul costs.",
                 "Interface memory traffic is derived from converter bit widths and reuse counts, not a full memory hierarchy simulation.",
                 "System movement energy is a local SRAM/off-chip tier estimate added separately from core photonic compute/conversion energy.",
+                "System profile names are local sensitivity presets, not measured hardware configurations.",
             ],
         }
 
@@ -412,6 +417,7 @@ def _load_matmul_artifact(
 
     has_published_reference = payload.get("published_reference") is not None
     has_calibration_fit = payload.get("calibration_fit") is not None
+    source_quality = _source_quality(payload)
     summary = ArtifactSummary(
         id=source_path,
         kind="matmul_card",
@@ -513,8 +519,27 @@ def _load_matmul_artifact(
             "bandwidth_limited_equivalent_ops_per_second",
             source=source_path,
         ),
+        system_profile=_optional_str(
+            _dict_or_empty(_get_optional(payload, "local_model", "system")),
+            "profile",
+            source=source_path,
+            field="local_model.system.profile",
+        ),
+        system_profile_overrides=_system_profile_overrides(payload, source_path),
         provenance_status=_provenance_status(payload),
         has_published_reference=has_published_reference,
+        source_quality_grade=_optional_str(
+            source_quality,
+            "confidence_grade",
+            source=source_path,
+            field="published_reference.source_quality.confidence_grade",
+        ),
+        source_surrogate_type=_optional_str(
+            source_quality,
+            "local_surrogate_type",
+            source=source_path,
+            field="published_reference.source_quality.local_surrogate_type",
+        ),
         assumptions_count=len(_required_list(payload, "assumptions", source=source_path)),
         has_calibration_fit=has_calibration_fit,
         boundary_tags=_boundary_tags(
@@ -646,8 +671,17 @@ def _load_transformer_layer_artifact(
             "bandwidth_limited_serial_effective_equivalent_ops_per_second",
             source=source_path,
         ),
+        system_profile=_optional_str(
+            _dict_or_empty(_get_optional(payload, "local_model", "system")),
+            "profile",
+            source=source_path,
+            field="local_model.system.profile",
+        ),
+        system_profile_overrides=_system_profile_overrides(payload, source_path),
         provenance_status=provenance_status,
         has_published_reference=has_published_reference,
+        source_quality_grade=None,
+        source_surrogate_type=None,
         assumptions_count=len(_required_list(payload, "assumptions", source=source_path)),
         has_calibration_fit=has_calibration_fit,
         boundary_tags=_boundary_tags(
@@ -677,6 +711,13 @@ def _load_transformer_model_artifact(
     workload = _required_dict(payload, "workload", source=source_path)
     if _required_str(workload, "type", source=source_path) != "transformer_model":
         raise ValueError(f"{source_path}: workload.type must be 'transformer_model'")
+    _required_dict(payload, "model_components", source=source_path)
+    _required_dict(
+        payload,
+        "local_model",
+        "activation_memory_traffic",
+        source=source_path,
+    )
 
     has_published_reference = payload.get("published_reference") is not None
     has_calibration_fit = payload.get("calibration_fit") is not None
@@ -782,8 +823,17 @@ def _load_transformer_model_artifact(
             "bandwidth_limited_serial_effective_equivalent_ops_per_second",
             source=source_path,
         ),
+        system_profile=_optional_str(
+            _dict_or_empty(_get_optional(payload, "local_model", "system")),
+            "profile",
+            source=source_path,
+            field="local_model.system.profile",
+        ),
+        system_profile_overrides=_system_profile_overrides(payload, source_path),
         provenance_status=provenance_status,
         has_published_reference=has_published_reference,
+        source_quality_grade=None,
+        source_surrogate_type=None,
         assumptions_count=len(_required_list(payload, "assumptions", source=source_path)),
         has_calibration_fit=has_calibration_fit,
         boundary_tags=_boundary_tags(
@@ -898,6 +948,26 @@ def _boundary_tags(
     return tuple(tags)
 
 
+def _system_profile_overrides(
+    payload: dict[str, Any],
+    source_path: str,
+) -> tuple[str, ...]:
+    value = _get_optional(payload, "local_model", "system", "profile_overrides")
+    if value is None:
+        return ()
+    if not isinstance(value, list):
+        raise ValueError(f"{source_path}: local_model.system.profile_overrides must be a list")
+    overrides = []
+    for index, item in enumerate(value):
+        if not isinstance(item, str):
+            raise ValueError(
+                f"{source_path}: local_model.system.profile_overrides[{index}] "
+                "must be a string"
+            )
+        overrides.append(item)
+    return tuple(overrides)
+
+
 def _load_json_object(path: Path) -> dict[str, Any]:
     try:
         raw_text = path.read_text(encoding="utf-8")
@@ -918,6 +988,21 @@ def _load_json_object(path: Path) -> dict[str, Any]:
     return payload
 
 
+def _get_optional(payload: dict[str, Any], *keys: str) -> Any:
+    current: Any = payload
+    for key in keys:
+        if not isinstance(current, dict):
+            return None
+        if key not in current:
+            return None
+        current = current[key]
+    return current
+
+
+def _dict_or_empty(value: Any) -> dict[str, Any]:
+    return value if isinstance(value, dict) else {}
+
+
 def _reject_json_constant(value: str) -> None:
     raise ValueError(f"unsupported non-finite JSON value {value!r}")
 
@@ -932,6 +1017,10 @@ def _provenance_status(payload: dict[str, Any]) -> str:
         if isinstance(source_title, str) and source_title:
             return source_title
     return "local model artifact"
+
+
+def _source_quality(payload: dict[str, Any]) -> dict[str, Any]:
+    return _dict_or_empty(_get_optional(payload, "published_reference", "source_quality"))
 
 
 def _source_path(path: Path, reports_root: Path) -> str:

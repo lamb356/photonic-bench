@@ -49,6 +49,8 @@ window.PhotonicBenchPayloadRegistry["hitop_2025_optical_tensor_processor_surroga
       }
     },
     "system": {
+      "profile": "default",
+      "profile_overrides": [],
       "sram": {
         "read_energy_pj_per_byte": 0.02,
         "write_energy_pj_per_byte": 0.02,
@@ -92,6 +94,8 @@ window.PhotonicBenchPayloadRegistry["hitop_2025_optical_tensor_processor_surroga
       "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
     },
     "system": {
+      "profile": "default",
+      "profile_overrides": [],
       "tiers": {
         "sram": {
           "name": "sram",
@@ -190,6 +194,29 @@ window.PhotonicBenchPayloadRegistry["hitop_2025_optical_tensor_processor_surroga
       "energy_per_mac_including_lasers_pj": 0.05,
       "total_energy_including_lasers_pj": 13107.2,
       "model_to_published_including_lasers_ratio": 0.32437499999999997
+    },
+    "source_quality": {
+      "source_reference": "Hypermultiplexed integrated photonics-based optical tensor processor",
+      "source_doi": "10.1126/sciadv.adu0228",
+      "reported_metrics": [
+        "energy_efficiency",
+        "scale",
+        "model_size",
+        "dataset"
+      ],
+      "local_surrogate_type": "dense_hypermultiplexed_tensor_surrogate",
+      "coverage": {
+        "throughput": "derived",
+        "energy": "reported",
+        "accuracy": "not_reported",
+        "area": "not_reported",
+        "precision": "not_reported"
+      },
+      "confidence_grade": "C",
+      "notes": [
+        "Useful efficiency and scale evidence, but this card does not encode a single reported TOPS value or exact HITOP streaming schedule."
+      ],
+      "note": "Source quality grades summarize evidence coverage for the published reference card. They do not upgrade local surrogate estimates into paper measurements."
     },
     "separation_note": "Published values are paper-reported references or direct unit conversions, not local component-model estimates."
   },

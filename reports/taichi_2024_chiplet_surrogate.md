@@ -34,6 +34,29 @@ These rows are paper-reported targets and direct unit conversions from those tar
 | Surrogate mapping | m=64, k=64, n=64 is a dense local surrogate for comparison only; not the Taichi distributed optical protocol. |
 
 
+## Source Quality Index
+
+These rows summarize source evidence coverage for this published reference card. They do not turn local surrogate estimates into paper measurements.
+
+| Field | Value |
+| --- | --- |
+| Reported metric types | energy_efficiency, area_efficiency, accuracy, scale |
+| Local surrogate type | dense_photonic_chiplet_surrogate |
+| Confidence grade | B |
+
+| Dimension | Coverage |
+| --- | --- |
+| Throughput | derived |
+| Energy | reported |
+| Accuracy | reported |
+| Area | reported |
+| Precision | not_reported |
+
+Source-quality notes:
+
+- Strong energy, area, scale, and task-metric coverage, but no exact dense-matmul local reproduction of the Taichi protocol is claimed.
+
+
 
 ## Workload
 
@@ -92,6 +115,8 @@ movements, not published measurements and not a cache simulator.
 
 | Metric | Value |
 | --- | ---: |
+| System profile | default |
+| Profile tier overrides | none |
 | Local compute/conversion energy | 4251.648 pJ |
 | Total movement energy | 123125.760 pJ |
 | Total system energy | 127377.408 pJ |

@@ -35,6 +35,7 @@ def render_markdown(result: BenchmarkResult) -> str:
 
 {_render_provenance(config)}
 {_render_published_calibration(result)}
+{_render_source_quality(result)}
 {_render_calibration_fit(result)}
 ## Workload
 
@@ -93,6 +94,8 @@ movements, not published measurements and not a cache simulator.
 
 | Metric | Value |
 | --- | ---: |
+| System profile | {config.system.profile} |
+| Profile tier overrides | {_profile_overrides(config.system.profile_overrides)} |
 | Local compute/conversion energy | {_pj(system.local_compute_and_conversion_energy_pj)} |
 | Total movement energy | {_pj(system.total_movement_energy_pj)} |
 | Total system energy | {_pj(system.total_system_energy_pj)} |
@@ -165,6 +168,10 @@ def _bytes(value: float) -> str:
 
 def _bytes_per_ns(value: float) -> str:
     return f"{value:.3f} bytes/ns"
+
+
+def _profile_overrides(overrides: tuple[str, ...]) -> str:
+    return ", ".join(overrides) if overrides else "none"
 
 
 def _render_provenance(config) -> str:
@@ -290,6 +297,35 @@ These rows are paper-reported targets and direct unit conversions from those tar
 | --- | ---: |
 {table}
 
+"""
+
+
+def _render_source_quality(result: BenchmarkResult) -> str:
+    quality = result.config.source_quality
+    if quality is None:
+        return ""
+
+    coverage_rows = "\n".join(
+        f"| {_humanize_metric_name(dimension)} | {status} |"
+        for dimension, status in quality.coverage.items()
+    )
+    notes = "\n".join(f"- {note}" for note in quality.notes)
+    notes_block = f"\nSource-quality notes:\n\n{notes}\n" if notes else ""
+
+    return f"""## Source Quality Index
+
+These rows summarize source evidence coverage for this published reference card. They do not turn local surrogate estimates into paper measurements.
+
+| Field | Value |
+| --- | --- |
+| Reported metric types | {", ".join(quality.reported_metrics)} |
+| Local surrogate type | {quality.local_surrogate_type} |
+| Confidence grade | {quality.confidence_grade} |
+
+| Dimension | Coverage |
+| --- | --- |
+{coverage_rows}
+{notes_block}
 """
 
 

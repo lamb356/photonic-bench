@@ -48,6 +48,8 @@
       }
     },
     "system": {
+      "profile": "default",
+      "profile_overrides": [],
       "sram": {
         "read_energy_pj_per_byte": 0.02,
         "write_energy_pj_per_byte": 0.02,
@@ -91,6 +93,8 @@
       "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
     },
     "system": {
+      "profile": "default",
+      "profile_overrides": [],
       "tiers": {
         "sram": {
           "name": "sram",
@@ -193,6 +197,30 @@
       "total_energy_excluding_lasers_pj": 1945.8432304038006,
       "total_energy_including_lasers_pj": 3442.016806722689,
       "model_to_published_including_lasers_ratio": 0.25358156249999997
+    },
+    "source_quality": {
+      "source_reference": "An integrated large-scale photonic accelerator with ultralow latency",
+      "source_doi": "10.1038/s41586-025-08786-6",
+      "reported_metrics": [
+        "throughput",
+        "energy_efficiency",
+        "latency",
+        "precision",
+        "component_count"
+      ],
+      "local_surrogate_type": "direct_64x64_matrix_vector_calibration",
+      "coverage": {
+        "throughput": "reported",
+        "energy": "reported",
+        "accuracy": "not_applicable",
+        "area": "derived",
+        "precision": "reported"
+      },
+      "confidence_grade": "A",
+      "notes": [
+        "Direct 64x64 matrix-vector calibration card with paper-reported TOPS, TOPS/W, latency, ENOB, and component-count evidence."
+      ],
+      "note": "Source quality grades summarize evidence coverage for the published reference card. They do not upgrade local surrogate estimates into paper measurements."
     },
     "separation_note": "Published values are paper-reported references or direct unit conversions, not local component-model estimates."
   },

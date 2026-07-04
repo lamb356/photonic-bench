@@ -49,6 +49,8 @@ window.PhotonicBenchPayloadRegistry["feldmann_2021_photonic_tensor_core_surrogat
       }
     },
     "system": {
+      "profile": "default",
+      "profile_overrides": [],
       "sram": {
         "read_energy_pj_per_byte": 0.02,
         "write_energy_pj_per_byte": 0.02,
@@ -92,6 +94,8 @@ window.PhotonicBenchPayloadRegistry["feldmann_2021_photonic_tensor_core_surrogat
       "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
     },
     "system": {
+      "profile": "default",
+      "profile_overrides": [],
       "tiers": {
         "sram": {
           "name": "sram",
@@ -184,6 +188,28 @@ window.PhotonicBenchPayloadRegistry["feldmann_2021_photonic_tensor_core_surrogat
       }
     },
     "derived_unit_conversions": {},
+    "source_quality": {
+      "source_reference": "Parallel convolutional processing using an integrated photonic tensor core",
+      "source_doi": "10.1038/s41586-020-03070-1",
+      "reported_metrics": [
+        "throughput",
+        "bandwidth",
+        "architecture"
+      ],
+      "local_surrogate_type": "dense_convolution_tile_surrogate",
+      "coverage": {
+        "throughput": "reported",
+        "energy": "not_reported",
+        "accuracy": "not_reported",
+        "area": "not_reported",
+        "precision": "not_reported"
+      },
+      "confidence_grade": "C",
+      "notes": [
+        "Source-backed throughput and bandwidth are useful, but energy, precision, area, and accuracy coverage are not encoded in this card."
+      ],
+      "note": "Source quality grades summarize evidence coverage for the published reference card. They do not upgrade local surrogate estimates into paper measurements."
+    },
     "separation_note": "Published values are paper-reported references or direct unit conversions, not local component-model estimates."
   },
   "calibration_fit": null,

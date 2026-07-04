@@ -12,6 +12,8 @@ from photonic_bench.config import (
     ExecutionConfig,
     TransformerLayerConfig,
     TransformerLayerShapeConfig,
+    TransformerModelEmbeddingsConfig,
+    TransformerModelOutputProjectionConfig,
     TransformerModelConfig,
     TransformerModelLayerConfig,
     load_transformer_layer_config,
@@ -180,6 +182,8 @@ def test_transformer_layer_report_to_dict_aggregates_decomposed_json_cards() -> 
         "hidden_size": 8,
         "num_heads": 2,
         "head_dim": 4,
+        "attention_context_length": 4,
+        "kv_cache_enabled": False,
         "mlp_intermediate_size": 16,
     }
     assert payload["workload"] == {
@@ -571,6 +575,78 @@ def test_load_transformer_model_config_supports_counted_layers(tmp_path: Path) -
     assert config.layers[0].count == 3
     assert config.layers[0].transformer_layer.hidden_size == 8
     assert config.layers[0].transformer_layer.head_dim == 4
+    assert config.embeddings.enabled is False
+    assert config.output_projection.enabled is False
+    assert config.activation_memory.enabled is False
+    assert config.kv_cache.enabled is False
+    assert config.pipeline.overlap_enabled is False
+
+
+def test_load_transformer_model_config_supports_realism_sections(tmp_path: Path) -> None:
+    config_path = tmp_path / "transformer_model.yaml"
+    config_path.write_text(
+        _small_transformer_model_yaml().replace(
+            "device:\n",
+            """
+  embeddings:
+    enabled: true
+    vocab_size: 32
+    bits_per_element: 12
+  output_projection:
+    enabled: true
+    vocab_size: 32
+    tied_to_token_embedding: true
+  activation_memory:
+    enabled: true
+    bits_per_element: 16
+  pipeline_overlap:
+    enabled: true
+    overlap_fraction: 0.25
+    label: local_overlap
+device:
+""",
+        ),
+        encoding="utf-8",
+    )
+
+    config = load_transformer_model_config(config_path)
+
+    assert config.embeddings.enabled is True
+    assert config.embeddings.vocab_size == 32
+    assert config.output_projection.enabled is True
+    assert config.output_projection.vocab_size == 32
+    assert config.output_projection.tied_to_token_embedding is True
+    assert config.activation_memory.enabled is True
+    assert config.pipeline.overlap_enabled is True
+    assert config.pipeline.overlap_fraction == pytest.approx(0.25)
+
+
+def test_load_transformer_model_config_supports_decoder_kv_cache(tmp_path: Path) -> None:
+    config_path = tmp_path / "transformer_model.yaml"
+    config_path.write_text(
+        _small_transformer_model_yaml()
+        .replace("layer_type: encoder", "layer_type: decoder")
+        .replace("sequence_length: 4", "sequence_length: 1")
+        .replace(
+            "device:\n",
+            """
+  kv_cache:
+    enabled: true
+    mode: decoder_incremental
+    context_length: 7
+device:
+""",
+        ),
+        encoding="utf-8",
+    )
+
+    config = load_transformer_model_config(config_path)
+
+    shape = config.layers[0].transformer_layer
+    assert shape.kv_cache_enabled is True
+    assert shape.sequence_length == 1
+    assert shape.attention_context_length == 8
+    assert attention_scores_macs(shape) == 2 * 2 * 1 * 8 * 4
 
 
 def test_load_transformer_model_config_rejects_duplicate_layers(
@@ -761,11 +837,90 @@ def test_transformer_model_example_config_has_expected_totals() -> None:
     config = load_transformer_model_config(Path("examples/bert_base_12layer_model.yaml"))
     layers = small_transformer_model_layer_artifacts(config)
     payload = transformer_model_report_to_dict(config, layers)
+    output_projection_macs = 128 * 768 * 30_522
 
     assert payload["workload"]["unique_layer_specs"] == 1
     assert payload["workload"]["layer_count"] == 12
-    assert payload["workload"]["macs"] == 12 * 855_638_016
-    assert payload["workload"]["equivalent_ops"] == 12 * 1_711_276_032
+    assert payload["workload"]["macs"] == 12 * 855_638_016 + output_projection_macs
+    assert payload["workload"]["equivalent_ops"] == (
+        12 * 1_711_276_032 + 2 * output_projection_macs
+    )
+    assert payload["model_components"]["embeddings"]["enabled"] is True
+    assert payload["model_components"]["output_projection"]["workload"]["macs"] == (
+        output_projection_macs
+    )
+    assert payload["local_model"]["activation_memory_traffic"]["total_tensor_bytes"] > 0
+    assert payload["local_model"]["timing"]["schedule_assumption"] == (
+        "local_layer_overlap_assumption"
+    )
+
+
+def test_transformer_model_uses_input_embedding_and_final_projection_shapes() -> None:
+    base = small_transformer_layer_config()
+    input_shape = TransformerLayerShapeConfig(
+        batch_size=2,
+        sequence_length=5,
+        hidden_size=8,
+        num_heads=2,
+        head_dim=4,
+        mlp_intermediate_size=16,
+    )
+    final_shape = TransformerLayerShapeConfig(
+        batch_size=1,
+        sequence_length=3,
+        hidden_size=16,
+        num_heads=4,
+        head_dim=4,
+        mlp_intermediate_size=32,
+    )
+    config = TransformerModelConfig(
+        benchmark=BenchmarkMeta(
+            name="mixed-shape transformer model",
+            description="Regression test for model-level tensor shape choices.",
+        ),
+        layers=(
+            TransformerModelLayerConfig(
+                name="input_block",
+                count=1,
+                transformer_layer=input_shape,
+            ),
+            TransformerModelLayerConfig(
+                name="final_block",
+                count=1,
+                transformer_layer=final_shape,
+            ),
+        ),
+        device=base.device,
+        timing=base.timing,
+        noise=base.noise,
+        execution=base.execution,
+        system=base.system,
+        embeddings=TransformerModelEmbeddingsConfig(
+            enabled=True,
+            vocab_size=128,
+            include_token_embedding=True,
+            include_position_embedding=False,
+            bits_per_element=16,
+        ),
+        output_projection=TransformerModelOutputProjectionConfig(
+            enabled=True,
+            vocab_size=64,
+        ),
+    )
+
+    payload = transformer_model_report_to_dict(
+        config,
+        small_transformer_model_layer_artifacts(config),
+    )
+
+    assert payload["model_components"]["embeddings"][
+        "token_embedding_read_bytes"
+    ] == (2 * 5 * 8 * 2)
+    assert payload["model_components"]["output_projection"]["workload"]["shape"] == {
+        "m": 3,
+        "k": 16,
+        "n": 64,
+    }
 
 
 def _small_transformer_yaml(*, include_head_dim: bool = True) -> str:

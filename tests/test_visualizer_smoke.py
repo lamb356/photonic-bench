@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import pytest
@@ -14,6 +15,33 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
     output_path = tmp_path / "visualizer" / "index.html"
     bad_external = tmp_path / "bad_external.json"
     bad_external.write_text("{not json", encoding="utf-8")
+    missing_field_external = tmp_path / "missing_field_external.json"
+    missing_field_external.write_text(
+        json.dumps(
+            {
+                "schema_version": "photonic-bench-report-v1",
+                "benchmark": {
+                    "name": "broken external",
+                    "description": "missing workload type",
+                },
+                "workload": {
+                    "shape": {"m": 1, "k": 1, "n": 1},
+                    "macs": 1,
+                    "equivalent_ops": 2,
+                    "output_elements": 1,
+                },
+                "local_model": {
+                    "energy": {"total_pj": 1.0, "energy_per_op_pj": 0.5},
+                    "timing": {
+                        "batch_latency_ns": 1.0,
+                        "steady_state_equivalent_ops_per_second": 2.0,
+                    },
+                },
+                "assumptions": [],
+            }
+        ),
+        encoding="utf-8",
+    )
     write_visualizer(Path("reports"), output_path)
 
     page_errors: list[str] = []
@@ -38,8 +66,23 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
                 str(Path("reports/nature_pace_64x64.json").resolve())
             )
             page.get_by_text("Loaded external report(s): nature_pace_64x64.json").wait_for()
+            page.get_by_text("nature_pace_64x64.json: accepted").wait_for()
+            page.locator(".external-diagnostic > div").filter(
+                has_text="Per-matmul report (photonic-bench-report-v1)"
+            ).wait_for()
+            page.get_by_text("Detected and accepted").wait_for()
             page.get_by_text("external/nature_pace_64x64.json").first.wait_for()
             assert int(page.locator("#artifact-count").text_content()) == initial_count + 1
+            page.locator("#external-report-file").set_input_files(
+                str(missing_field_external)
+            )
+            page.get_by_text(
+                "Rejected missing_field_external.json: Missing required field: workload.type."
+            ).wait_for()
+            page.get_by_text("missing_field_external.json: rejected").wait_for()
+            page.locator(".external-diagnostic li").filter(
+                has_text="Missing required field: workload.type."
+            ).wait_for()
             page.locator("#external-report-file").set_input_files(str(bad_external))
             page.get_by_text("Rejected bad_external.json: invalid JSON").wait_for()
             page.get_by_role("button", name="Clear external").click()

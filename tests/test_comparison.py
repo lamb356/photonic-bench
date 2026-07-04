@@ -31,11 +31,17 @@ def test_render_comparison_markdown_summarizes_local_and_published_cards() -> No
     assert "Eq ops/byte" in markdown
     assert "System total pJ" in markdown
     assert "System pJ/op" in markdown
+    assert "System profile" in markdown
     assert "Movement pJ" in markdown
     assert "Bandwidth-limited eq ops/s" in markdown
+    assert "Source grade" in markdown
+    assert "Surrogate type" in markdown
+    assert "Coverage" in markdown
     assert "582.368" in markdown
     assert "2.28571" in markdown
     assert "image_pixels=250000" in markdown
+    assert "dense_vector_by_kernel_matmul_surrogate" in markdown
+    assert "throughput=reported" in markdown
     assert "n/a" in markdown
 
 
@@ -105,4 +111,5 @@ def test_cli_compare_writes_markdown_report(tmp_path: Path) -> None:
     assert "unit matmul" in markdown
     assert "Eq ops/byte" in markdown
     assert "System pJ/op" in markdown
+    assert "System profile" in markdown
     assert "11" in markdown

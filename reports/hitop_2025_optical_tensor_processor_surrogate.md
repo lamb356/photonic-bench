@@ -33,6 +33,29 @@ These rows are paper-reported targets and direct unit conversions from those tar
 | Surrogate mapping | m=64, k=64, n=64 is a dense local surrogate for HITOP tensor processing; not an exact space-time-wavelength streaming schedule. |
 
 
+## Source Quality Index
+
+These rows summarize source evidence coverage for this published reference card. They do not turn local surrogate estimates into paper measurements.
+
+| Field | Value |
+| --- | --- |
+| Reported metric types | energy_efficiency, scale, model_size, dataset |
+| Local surrogate type | dense_hypermultiplexed_tensor_surrogate |
+| Confidence grade | C |
+
+| Dimension | Coverage |
+| --- | --- |
+| Throughput | derived |
+| Energy | reported |
+| Accuracy | not_reported |
+| Area | not_reported |
+| Precision | not_reported |
+
+Source-quality notes:
+
+- Useful efficiency and scale evidence, but this card does not encode a single reported TOPS value or exact HITOP streaming schedule.
+
+
 
 ## Workload
 
@@ -91,6 +114,8 @@ movements, not published measurements and not a cache simulator.
 
 | Metric | Value |
 | --- | ---: |
+| System profile | default |
+| Profile tier overrides | none |
 | Local compute/conversion energy | 4251.648 pJ |
 | Total movement energy | 123125.760 pJ |
 | Total system energy | 127377.408 pJ |

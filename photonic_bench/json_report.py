@@ -7,6 +7,8 @@ from photonic_bench.config import (
     BenchmarkConfig,
     ProvenanceConfig,
     PublishedCalibrationConfig,
+    SourceQualityConfig,
+    system_config_to_dict,
 )
 from photonic_bench.model import (
     BenchmarkResult,
@@ -95,10 +97,7 @@ def _model_inputs(config: BenchmarkConfig) -> dict[str, Any]:
                 "cycle_time_ns": config.execution.pipeline.cycle_time_ns,
             },
         },
-        "system": {
-            "sram": _system_tier_inputs(config.system.sram),
-            "off_chip": _system_tier_inputs(config.system.off_chip),
-        },
+        "system": system_config_to_dict(config.system),
         "timing": {
             "optical_latency_ns": config.timing.optical_latency_ns,
             "adc_latency_ns": config.timing.adc_latency_ns,
@@ -137,6 +136,8 @@ def _local_model(result: BenchmarkResult) -> dict[str, Any]:
             ),
         },
         "system": {
+            "profile": result.config.system.profile,
+            "profile_overrides": list(result.config.system.profile_overrides),
             "tiers": {
                 "sram": _system_tier_result(result.system.sram),
                 "off_chip": _system_tier_result(result.system.off_chip),
@@ -201,18 +202,6 @@ def _local_model(result: BenchmarkResult) -> dict[str, Any]:
             ),
         },
     }
-
-
-def _system_tier_inputs(tier) -> dict[str, float]:
-    return {
-        "read_energy_pj_per_byte": tier.read_energy_pj_per_byte,
-        "write_energy_pj_per_byte": tier.write_energy_pj_per_byte,
-        "bandwidth_bytes_per_ns": tier.bandwidth_bytes_per_ns,
-        "read_fraction": tier.read_fraction,
-        "write_fraction": tier.write_fraction,
-    }
-
-
 def _system_tier_result(tier) -> dict[str, float | str]:
     return {
         "name": tier.name,
@@ -243,6 +232,7 @@ def _published_reference(
         "provenance": _provenance(config.provenance),
         "reported": _reported_calibration(calibration),
         "derived_unit_conversions": _derived_calibration(derived),
+        "source_quality": _source_quality(config.source_quality, config.provenance),
         "separation_note": (
             "Published values are paper-reported references or direct unit "
             "conversions, not local component-model estimates."
@@ -315,6 +305,28 @@ def _provenance(provenance: ProvenanceConfig | None) -> dict[str, str] | None:
         "doi": provenance.doi,
         "venue": provenance.venue,
         "claim_status": provenance.claim_status,
+    }
+
+
+def _source_quality(
+    quality: SourceQualityConfig | None,
+    provenance: ProvenanceConfig | None,
+) -> dict[str, Any] | None:
+    if quality is None:
+        return None
+    return {
+        "source_reference": provenance.source_title if provenance else None,
+        "source_doi": provenance.doi if provenance else None,
+        "reported_metrics": list(quality.reported_metrics),
+        "local_surrogate_type": quality.local_surrogate_type,
+        "coverage": dict(quality.coverage),
+        "confidence_grade": quality.confidence_grade,
+        "notes": list(quality.notes),
+        "note": (
+            "Source quality grades summarize evidence coverage for the published "
+            "reference card. They do not upgrade local surrogate estimates into "
+            "paper measurements."
+        ),
     }
 
 
