@@ -25,6 +25,8 @@ INDEX_SCRIPT_PATH = "data/index.js"
 PAYLOAD_DIR_PATH = "data/payloads"
 STYLE_PATH = "assets/styles.css"
 APP_SCRIPT_PATH = "assets/app.js"
+PRESETS_JSON_PATH = "visualizer_presets.json"
+PRESET_SCHEMA_VERSION = "photonic-bench-comparison-presets-v1"
 
 
 @dataclass(frozen=True)
@@ -44,6 +46,8 @@ class ArtifactSummary:
     latency_label: str
     latency_ns: float
     throughput_equivalent_ops_per_second: float
+    memory_traffic_bytes: float | None
+    operational_intensity_ops_per_byte: float | None
     provenance_status: str
     has_published_reference: bool
     assumptions_count: int
@@ -51,6 +55,15 @@ class ArtifactSummary:
     boundary_tags: tuple[str, ...]
     payload_path: str = ""
     payload_script_path: str = ""
+
+
+@dataclass(frozen=True)
+class ComparisonPreset:
+    name: str
+    description: str
+    artifact_ids: tuple[str, ...]
+    pinned_id: str | None
+    source_path: str
 
 
 @dataclass(frozen=True)
@@ -70,6 +83,7 @@ class VisualizerData:
     reports_dir: str
     artifacts: tuple[VisualizerArtifact, ...]
     issues: tuple[ArtifactIssue, ...]
+    comparison_presets: tuple[ComparisonPreset, ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -81,6 +95,9 @@ class VisualizerData:
                 {"summary": asdict(artifact.summary)} for artifact in self.artifacts
             ],
             "issues": [asdict(issue) for issue in self.issues],
+            "comparison_presets": [
+                asdict(preset) for preset in self.comparison_presets
+            ],
             "data_layout": {
                 "index_json": INDEX_JSON_PATH,
                 "index_script": INDEX_SCRIPT_PATH,
@@ -92,6 +109,7 @@ class VisualizerData:
                 "Transformer aggregate timing is serial, not a fused scheduler claim.",
                 "Transformer aggregate noise is diagnostic and non-additive.",
                 "Transformer-layer exclusions are not modeled matmul costs.",
+                "Interface memory traffic is derived from converter bit widths and reuse counts, not a full memory hierarchy simulation.",
             ],
         }
 
@@ -126,6 +144,8 @@ def discover_visualizer_data(
     for path in sorted(reports_root.rglob("*.json")):
         if _is_below_any(path.resolve(), excluded_roots):
             continue
+        if path.name == PRESETS_JSON_PATH:
+            continue
         source_path = _source_path(path, reports_root)
         browser_path = _browser_path(path, link_base)
         try:
@@ -140,10 +160,12 @@ def discover_visualizer_data(
             issues.append(ArtifactIssue(source_path=source_path, message=str(exc)))
 
     artifacts.sort(key=lambda artifact: (artifact.summary.kind, artifact.summary.id))
+    presets = _load_comparison_presets(reports_root, artifacts, issues)
     return VisualizerData(
         reports_dir=reports_dir.as_posix(),
         artifacts=tuple(artifacts),
         issues=tuple(issues),
+        comparison_presets=presets,
     )
 
 
@@ -262,6 +284,7 @@ def _with_payload_paths(
         reports_dir=data.reports_dir,
         artifacts=tuple(artifacts),
         issues=data.issues,
+        comparison_presets=data.comparison_presets,
     )
 
 
@@ -417,6 +440,20 @@ def _load_matmul_artifact(
             "steady_state_equivalent_ops_per_second",
             source=source_path,
         ),
+        memory_traffic_bytes=_optional_number(
+            payload,
+            "local_model",
+            "memory_traffic",
+            "total_interface_bytes",
+            source=source_path,
+        ),
+        operational_intensity_ops_per_byte=_optional_number(
+            payload,
+            "local_model",
+            "memory_traffic",
+            "equivalent_ops_per_byte",
+            source=source_path,
+        ),
         provenance_status=_provenance_status(payload),
         has_published_reference=has_published_reference,
         assumptions_count=len(_required_list(payload, "assumptions", source=source_path)),
@@ -494,6 +531,20 @@ def _load_transformer_layer_artifact(
             "serial_effective_equivalent_ops_per_second",
             source=source_path,
         ),
+        memory_traffic_bytes=_optional_number(
+            payload,
+            "local_model",
+            "memory_traffic",
+            "total_interface_bytes",
+            source=source_path,
+        ),
+        operational_intensity_ops_per_byte=_optional_number(
+            payload,
+            "local_model",
+            "memory_traffic",
+            "equivalent_ops_per_byte",
+            source=source_path,
+        ),
         provenance_status=provenance_status,
         has_published_reference=has_published_reference,
         assumptions_count=len(_required_list(payload, "assumptions", source=source_path)),
@@ -509,6 +560,89 @@ def _load_transformer_layer_artifact(
     _required_dict(payload, "formula_audit", source=source_path)
     _required_list(payload, "exclusions", source=source_path)
     return VisualizerArtifact(summary=summary, payload=payload)
+
+
+def _load_comparison_presets(
+    reports_root: Path,
+    artifacts: list[VisualizerArtifact],
+    issues: list[ArtifactIssue],
+) -> tuple[ComparisonPreset, ...]:
+    presets_path = reports_root / PRESETS_JSON_PATH
+    if not presets_path.exists():
+        return ()
+
+    source_path = _source_path(presets_path, reports_root)
+    known_ids = {artifact.summary.id for artifact in artifacts}
+    try:
+        payload = _load_json_object(presets_path)
+        schema_version = _required_str(payload, "schema_version", source=source_path)
+        if schema_version != PRESET_SCHEMA_VERSION:
+            raise ValueError(
+                f"{source_path}: unsupported schema_version {schema_version!r}"
+            )
+        raw_presets = _required_list(payload, "presets", source=source_path)
+        presets: list[ComparisonPreset] = []
+        for index, raw_preset in enumerate(raw_presets):
+            if not isinstance(raw_preset, dict):
+                raise ValueError(f"{source_path}: presets[{index}] must be an object")
+            name = _required_str(raw_preset, "name", source=source_path)
+            description = _optional_str(
+                raw_preset,
+                "description",
+                source=source_path,
+                field=f"presets[{index}].description",
+            )
+            raw_ids = _required_list(raw_preset, "artifact_ids", source=source_path)
+            artifact_ids: list[str] = []
+            for id_index, artifact_id in enumerate(raw_ids):
+                if not isinstance(artifact_id, str) or not artifact_id.strip():
+                    raise ValueError(
+                        f"{source_path}: presets[{index}].artifact_ids[{id_index}] "
+                        "must be a non-empty string"
+                    )
+                artifact_ids.append(artifact_id)
+
+            pinned_id = _optional_str(
+                raw_preset,
+                "pinned_id",
+                source=source_path,
+                field=f"presets[{index}].pinned_id",
+            )
+            stale_ids = [
+                artifact_id for artifact_id in artifact_ids if artifact_id not in known_ids
+            ]
+            if stale_ids:
+                issues.append(
+                    ArtifactIssue(
+                        source_path=source_path,
+                        message=(
+                            f"preset {name!r} references missing artifact id(s): "
+                            f"{', '.join(stale_ids)}"
+                        ),
+                    )
+                )
+            if pinned_id is not None and pinned_id not in known_ids:
+                issues.append(
+                    ArtifactIssue(
+                        source_path=source_path,
+                        message=f"preset {name!r} pins missing artifact id: {pinned_id}",
+                    )
+                )
+
+            presets.append(
+                ComparisonPreset(
+                    name=name,
+                    description=description or "",
+                    artifact_ids=tuple(artifact_ids),
+                    pinned_id=pinned_id,
+                    source_path=source_path,
+                )
+            )
+    except ValueError as exc:
+        issues.append(ArtifactIssue(source_path=source_path, message=str(exc)))
+        return ()
+
+    return tuple(presets)
 
 
 def _boundary_tags(
@@ -667,6 +801,32 @@ def _required_number(
     if not math.isfinite(number):
         raise ValueError(f"{source}: {_field(keys)} must be numeric and finite")
     return number
+
+
+def _optional_number(
+    payload: dict[str, Any],
+    *keys: str,
+    source: str,
+) -> float | None:
+    try:
+        return _required_number(payload, *keys, source=source)
+    except ValueError:
+        return None
+
+
+def _optional_str(
+    payload: dict[str, Any],
+    key: str,
+    *,
+    source: str,
+    field: str,
+) -> str | None:
+    value = payload.get(key)
+    if value is None:
+        return None
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{source}: {field} must be a non-empty string when provided")
+    return value
 
 
 def _required_value(

@@ -67,6 +67,16 @@ class NoiseResult:
 
 
 @dataclass(frozen=True)
+class MemoryTrafficResult:
+    vector_operand_read_bytes: int
+    weight_operand_read_bytes: int
+    output_write_bytes: int
+    total_interface_bytes: int
+    macs_per_byte: float
+    equivalent_ops_per_byte: float
+
+
+@dataclass(frozen=True)
 class PublishedCalibrationResult:
     energy_per_op_excluding_lasers_pj: float | None
     energy_per_op_including_lasers_pj: float | None
@@ -117,6 +127,7 @@ class BenchmarkResult:
     energy: EnergyResult
     timing: TimingResult
     noise: NoiseResult
+    memory_traffic: MemoryTrafficResult
     published_calibration: PublishedCalibrationResult | None = None
     calibration_fit: CalibrationFitResult | None = None
 
@@ -162,6 +173,14 @@ def _evaluate_core(config: BenchmarkConfig) -> BenchmarkResult:
         * math.ceil(operations_per_batch / weight_reuse_factor)
     )
     dac_conversions = vector_dac_conversions + weight_dac_conversions
+    memory_traffic = _memory_traffic(
+        config,
+        macs=macs,
+        equivalent_ops=equivalent_ops,
+        output_elements=output_elements,
+        vector_dac_conversions=vector_dac_conversions,
+        weight_dac_conversions=weight_dac_conversions,
+    )
 
     optical_compute_pj = macs * device.optical_mac_energy_fj / 1000.0
     laser_electrical_pj = optical_compute_pj / device.laser_wall_plug_efficiency
@@ -254,8 +273,44 @@ def _evaluate_core(config: BenchmarkConfig) -> BenchmarkResult:
             drift_rms_rad=drift_rms_rad,
             estimated_relative_error_rms=estimated_relative_error_rms,
         ),
+        memory_traffic=memory_traffic,
         published_calibration=published_calibration,
     )
+
+
+def _memory_traffic(
+    config: BenchmarkConfig,
+    *,
+    macs: int,
+    equivalent_ops: int,
+    output_elements: int,
+    vector_dac_conversions: int,
+    weight_dac_conversions: int,
+) -> MemoryTrafficResult:
+    vector_operand_read_bytes = (
+        vector_dac_conversions * _bytes_per_scalar(config.device.vector_dac.bits)
+    )
+    weight_operand_read_bytes = (
+        weight_dac_conversions * _bytes_per_scalar(config.device.weight_dac.bits)
+    )
+    output_write_bytes = output_elements * _bytes_per_scalar(config.device.adc.bits)
+    total_interface_bytes = (
+        vector_operand_read_bytes + weight_operand_read_bytes + output_write_bytes
+    )
+    return MemoryTrafficResult(
+        vector_operand_read_bytes=vector_operand_read_bytes,
+        weight_operand_read_bytes=weight_operand_read_bytes,
+        output_write_bytes=output_write_bytes,
+        total_interface_bytes=total_interface_bytes,
+        macs_per_byte=macs / total_interface_bytes if total_interface_bytes else 0.0,
+        equivalent_ops_per_byte=(
+            equivalent_ops / total_interface_bytes if total_interface_bytes else 0.0
+        ),
+    )
+
+
+def _bytes_per_scalar(bits: int) -> int:
+    return math.ceil(bits / 8)
 
 
 def _evaluate_published_calibration(

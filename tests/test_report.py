@@ -16,6 +16,9 @@ def test_render_markdown_exposes_assumptions_and_totals() -> None:
     assert "| ADC energy | 16.000 pJ |" in markdown
     assert "| DAC energy | 4.800 pJ |" in markdown
     assert "| Total latency | 5.000 ns |" in markdown
+    assert "## Interface Memory Traffic" in markdown
+    assert "| Total interface traffic | 56 bytes |" in markdown
+    assert "| Equivalent ops per interface byte | 2.28571 |" in markdown
     assert "## Assumptions" in markdown
     assert "optical MAC energy" in markdown
     assert "laser wall-plug efficiency" in markdown

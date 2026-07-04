@@ -34,6 +34,21 @@ Synthetic component-model example that exercises operand reuse, weight-stationar
 | Pipeline stages | 4 |
 | Pipeline cycle time | 2.000 ns |
 
+## Interface Memory Traffic
+
+These rows estimate operand reads and output writes at the converter interface
+from DAC/ADC bit widths and reuse counts. They are not a full memory hierarchy
+simulation.
+
+| Metric | Value |
+| --- | ---: |
+| Vector operand reads | 65536 bytes |
+| Weight operand reads | 4096 bytes |
+| Output writes | 65536 bytes |
+| Total interface traffic | 135168 bytes |
+| MACs per interface byte | 31.0303 |
+| Equivalent ops per interface byte | 62.0606 |
+
 ## Energy
 
 | Metric | Value |
@@ -86,3 +101,4 @@ Synthetic component-model example that exercises operand reuse, weight-stationar
 - Vector DAC conversions are counted as ceil(batch_size / vector_reuse_factor) * m * k.
 - Weight DAC conversions are counted once per batch because weight_stationary is true.
 - The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.
+- Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.

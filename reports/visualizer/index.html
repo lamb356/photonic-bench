@@ -19,7 +19,7 @@
 
       <div class="counts" aria-label="Artifact counts">
         <div class="count-box">
-          <strong id="artifact-count">23</strong>
+          <strong id="artifact-count">26</strong>
           <span>loaded artifacts</span>
         </div>
         <div class="count-box">
@@ -31,6 +31,21 @@
       <div class="mode-tabs" aria-label="View mode">
         <button id="detail-mode" class="mode-tab active" type="button">Detail</button>
         <button id="compare-mode" class="mode-tab" type="button">Compare <span id="compare-count">0</span></button>
+      </div>
+
+      <div class="preset-panel" aria-label="Comparison presets">
+        <select id="preset-select" aria-label="Saved comparison presets">
+          <option value="">Comparison presets</option>
+        </select>
+        <div class="preset-actions">
+          <button id="load-preset" class="action-button" type="button">Load</button>
+          <button id="delete-preset" class="action-button" type="button">Delete</button>
+        </div>
+        <div class="save-preset-row">
+          <input id="preset-name" type="text" placeholder="Preset name" aria-label="Preset name">
+          <button id="save-preset" class="action-button primary" type="button">Save</button>
+        </div>
+        <div id="preset-message" class="preset-message" aria-live="polite"></div>
       </div>
 
       <div class="filters">
@@ -50,6 +65,7 @@
         <select id="sort-filter" aria-label="Sort artifacts">
           <option value="name">Sort by name</option>
           <option value="energy">Sort by local energy</option>
+          <option value="intensity">Sort by ops per byte</option>
           <option value="latency">Sort by latency</option>
           <option value="ops">Sort by equivalent ops</option>
         </select>

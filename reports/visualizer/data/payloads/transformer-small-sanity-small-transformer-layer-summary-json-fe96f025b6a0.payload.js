@@ -28,6 +28,7 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
   "aggregate_semantics": {
     "source": "Generated from decomposed per-matmul JSON cards emitted by the transformer-layer command.",
     "energy": "Additive local_model.energy components are summed; energy_per_mac_pj, energy_per_op_pj, and peripheral_share are recomputed from summed layer quantities.",
+    "memory_traffic": "Interface memory traffic is summed from decomposed cards and operational intensity is recomputed from aggregate MAC/equivalent-op counts. It is not a full memory hierarchy simulation.",
     "timing": "serial_* timing fields assume the decomposed matmuls execute one after another. No parallel hardware scheduler or fused layer pipeline is modeled.",
     "noise": "Noise is not an additive layer total. Per-matmul noise remains in matmuls[].local_model.noise; aggregate noise fields are labeled diagnostic extrema."
   },
@@ -37,6 +38,15 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
       "vector_dac_conversions": 384,
       "weight_dac_conversions": 576,
       "dac_conversions": 960
+    },
+    "memory_traffic": {
+      "vector_operand_read_bytes": 384,
+      "weight_operand_read_bytes": 576,
+      "output_write_bytes": 512,
+      "total_interface_bytes": 1472,
+      "macs_per_byte": 2.782608695652174,
+      "equivalent_ops_per_byte": 5.565217391304348,
+      "note": "Summed from decomposed per-matmul interface traffic. This is not a full memory hierarchy simulation."
     },
     "energy": {
       "optical_compute_pj": 2.048,
@@ -197,6 +207,15 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
           "weight_dac_conversions": 192,
           "dac_conversions": 256
         },
+        "memory_traffic": {
+          "vector_operand_read_bytes": 64,
+          "weight_operand_read_bytes": 192,
+          "output_write_bytes": 192,
+          "total_interface_bytes": 448,
+          "macs_per_byte": 3.4285714285714284,
+          "equivalent_ops_per_byte": 6.857142857142857,
+          "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
+        },
         "energy": {
           "optical_compute_pj": 0.768,
           "laser_electrical_pj": 3.072,
@@ -248,7 +267,8 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
         "The benchmark models 2 operation(s) per batch.",
         "Vector DAC conversions are counted as ceil(batch_size / vector_reuse_factor) * m * k.",
         "Weight DAC conversions are counted once per batch because weight_stationary is true.",
-        "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time."
+        "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
+        "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation."
       ],
       "provenance": null
     },
@@ -322,6 +342,15 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
           "weight_dac_conversions": 64,
           "dac_conversions": 128
         },
+        "memory_traffic": {
+          "vector_operand_read_bytes": 64,
+          "weight_operand_read_bytes": 64,
+          "output_write_bytes": 64,
+          "total_interface_bytes": 192,
+          "macs_per_byte": 1.3333333333333333,
+          "equivalent_ops_per_byte": 2.6666666666666665,
+          "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
+        },
         "energy": {
           "optical_compute_pj": 0.128,
           "laser_electrical_pj": 0.512,
@@ -373,7 +402,8 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
         "The benchmark models 4 operation(s) per batch.",
         "Vector DAC conversions are counted as ceil(batch_size / vector_reuse_factor) * m * k.",
         "Weight DAC conversions are counted every 1 operation(s).",
-        "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time."
+        "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
+        "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation."
       ],
       "provenance": null
     },
@@ -447,6 +477,15 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
           "weight_dac_conversions": 64,
           "dac_conversions": 128
         },
+        "memory_traffic": {
+          "vector_operand_read_bytes": 64,
+          "weight_operand_read_bytes": 64,
+          "output_write_bytes": 64,
+          "total_interface_bytes": 192,
+          "macs_per_byte": 1.3333333333333333,
+          "equivalent_ops_per_byte": 2.6666666666666665,
+          "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
+        },
         "energy": {
           "optical_compute_pj": 0.128,
           "laser_electrical_pj": 0.512,
@@ -498,7 +537,8 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
         "The benchmark models 4 operation(s) per batch.",
         "Vector DAC conversions are counted as ceil(batch_size / vector_reuse_factor) * m * k.",
         "Weight DAC conversions are counted every 1 operation(s).",
-        "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time."
+        "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
+        "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation."
       ],
       "provenance": null
     },
@@ -572,6 +612,15 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
           "weight_dac_conversions": 128,
           "dac_conversions": 192
         },
+        "memory_traffic": {
+          "vector_operand_read_bytes": 64,
+          "weight_operand_read_bytes": 128,
+          "output_write_bytes": 128,
+          "total_interface_bytes": 320,
+          "macs_per_byte": 3.2,
+          "equivalent_ops_per_byte": 6.4,
+          "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
+        },
         "energy": {
           "optical_compute_pj": 0.512,
           "laser_electrical_pj": 2.048,
@@ -623,7 +672,8 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
         "The benchmark models 2 operation(s) per batch.",
         "Vector DAC conversions are counted as ceil(batch_size / vector_reuse_factor) * m * k.",
         "Weight DAC conversions are counted once per batch because weight_stationary is true.",
-        "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time."
+        "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
+        "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation."
       ],
       "provenance": null
     },
@@ -697,6 +747,15 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
           "weight_dac_conversions": 128,
           "dac_conversions": 256
         },
+        "memory_traffic": {
+          "vector_operand_read_bytes": 128,
+          "weight_operand_read_bytes": 128,
+          "output_write_bytes": 64,
+          "total_interface_bytes": 320,
+          "macs_per_byte": 3.2,
+          "equivalent_ops_per_byte": 6.4,
+          "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
+        },
         "energy": {
           "optical_compute_pj": 0.512,
           "laser_electrical_pj": 2.048,
@@ -748,7 +807,8 @@ window.PhotonicBenchPayloadRegistry["transformer_small_sanity/small_transformer_
         "The benchmark models 2 operation(s) per batch.",
         "Vector DAC conversions are counted as ceil(batch_size / vector_reuse_factor) * m * k.",
         "Weight DAC conversions are counted once per batch because weight_stationary is true.",
-        "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time."
+        "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
+        "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation."
       ],
       "provenance": null
     }

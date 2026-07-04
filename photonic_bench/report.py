@@ -19,6 +19,7 @@ def render_markdown(result: BenchmarkResult) -> str:
     energy = result.energy
     timing = result.timing
     noise = result.noise
+    memory = result.memory_traffic
     workload = config.workload
     execution = config.execution
 
@@ -61,6 +62,21 @@ def render_markdown(result: BenchmarkResult) -> str:
 | Weight stationary | {execution.weight_stationary} |
 | Pipeline stages | {execution.pipeline.stages} |
 | Pipeline cycle time | {_ns(timing.pipeline_cycle_time_ns)} |
+
+## Interface Memory Traffic
+
+These rows estimate operand reads and output writes at the converter interface
+from DAC/ADC bit widths and reuse counts. They are not a full memory hierarchy
+simulation.
+
+| Metric | Value |
+| --- | ---: |
+| Vector operand reads | {_bytes(memory.vector_operand_read_bytes)} |
+| Weight operand reads | {_bytes(memory.weight_operand_read_bytes)} |
+| Output writes | {_bytes(memory.output_write_bytes)} |
+| Total interface traffic | {_bytes(memory.total_interface_bytes)} |
+| MACs per interface byte | {memory.macs_per_byte:.6g} |
+| Equivalent ops per interface byte | {memory.equivalent_ops_per_byte:.6g} |
 
 ## Energy
 
@@ -113,6 +129,10 @@ def _pj(value: float) -> str:
 
 def _ns(value: float) -> str:
     return f"{value:.3f} ns"
+
+
+def _bytes(value: int) -> str:
+    return f"{value} bytes"
 
 
 def _render_provenance(config) -> str:
@@ -297,6 +317,11 @@ def result_assumptions(result: BenchmarkResult) -> tuple[str, ...]:
             "The pipeline model reports single-operation latency, total batch "
             "latency including fill/drain, and steady-state throughput from the "
             "configured cycle time."
+        ),
+        (
+            "Interface memory traffic is estimated from vector/weight DAC load "
+            "counts, ADC output sample counts, and converter bit widths; it is "
+            "not a full memory hierarchy simulation."
         ),
     )
 

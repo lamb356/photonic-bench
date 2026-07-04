@@ -65,6 +65,15 @@
       "weight_dac_conversions": 2500000,
       "dac_conversions": 2750000
     },
+    "memory_traffic": {
+      "vector_operand_read_bytes": 250000,
+      "weight_operand_read_bytes": 2500000,
+      "output_write_bytes": 10,
+      "total_interface_bytes": 2750010,
+      "macs_per_byte": 0.9090876033178061,
+      "equivalent_ops_per_byte": 1.8181752066356123,
+      "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
+    },
     "energy": {
       "optical_compute_pj": 1250.0,
       "laser_electrical_pj": 5000.0,
@@ -133,7 +142,8 @@
     "The benchmark models 1 operation(s) per batch.",
     "Vector DAC conversions are counted as ceil(batch_size / vector_reuse_factor) * m * k.",
     "Weight DAC conversions are counted once per batch because weight_stationary is true.",
-    "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time."
+    "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
+    "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation."
   ],
   "provenance": {
     "source_title": "11 TOPS photonic convolutional accelerator for optical neural networks",

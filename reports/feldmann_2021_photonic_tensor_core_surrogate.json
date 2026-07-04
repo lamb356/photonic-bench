@@ -1,0 +1,156 @@
+{
+  "schema_version": "photonic-bench-report-v1",
+  "benchmark": {
+    "name": "Feldmann 2021 photonic tensor core surrogate",
+    "description": "Source-backed card for Feldmann et al. Nature 2021. The published reference is an integrated photonic tensor core for convolutional processing; this config uses a small dense matmul tile as a PhotonicBench surrogate and does not claim to reproduce the paper dataflow."
+  },
+  "workload": {
+    "type": "matmul",
+    "shape": {
+      "m": 1,
+      "k": 64,
+      "n": 16
+    },
+    "macs": 1024,
+    "equivalent_ops": 2048,
+    "output_elements": 16
+  },
+  "model_inputs": {
+    "device": {
+      "optical_mac_energy_fj": 0.5,
+      "laser_wall_plug_efficiency": 0.25,
+      "photodetector_energy_fj_per_sample": 10.0,
+      "adc": {
+        "bits": 8,
+        "energy_pj_per_conversion": 0.5
+      },
+      "dac": {
+        "bits": 8,
+        "energy_pj_per_conversion": 0.2
+      },
+      "vector_dac": {
+        "bits": 8,
+        "energy_pj_per_conversion": 0.2
+      },
+      "weight_dac": {
+        "bits": 8,
+        "energy_pj_per_conversion": 0.2
+      }
+    },
+    "execution": {
+      "batch_size": 1,
+      "vector_reuse_factor": 1,
+      "weight_reuse_factor": 1,
+      "weight_stationary": true,
+      "pipeline": {
+        "stages": 1,
+        "cycle_time_ns": 0.071428571
+      }
+    },
+    "timing": {
+      "optical_latency_ns": 0.071428571,
+      "adc_latency_ns": 0.0,
+      "dac_latency_ns": 0.0
+    },
+    "noise": {
+      "phase_noise_rad_rms": 0.02,
+      "drift_rad_per_second": 0.1,
+      "integration_time_ns": 0.071428571
+    }
+  },
+  "local_model": {
+    "conversion_counts": {
+      "adc_conversions": 16,
+      "vector_dac_conversions": 64,
+      "weight_dac_conversions": 1024,
+      "dac_conversions": 1088
+    },
+    "memory_traffic": {
+      "vector_operand_read_bytes": 64,
+      "weight_operand_read_bytes": 1024,
+      "output_write_bytes": 16,
+      "total_interface_bytes": 1104,
+      "macs_per_byte": 0.927536231884058,
+      "equivalent_ops_per_byte": 1.855072463768116,
+      "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
+    },
+    "energy": {
+      "optical_compute_pj": 0.512,
+      "laser_electrical_pj": 2.048,
+      "detector_pj": 0.16,
+      "adc_pj": 8.0,
+      "vector_dac_pj": 12.8,
+      "weight_dac_pj": 204.8,
+      "dac_pj": 217.60000000000002,
+      "total_pj": 227.80800000000002,
+      "energy_per_mac_pj": 0.22246875000000002,
+      "energy_per_op_pj": 0.11123437500000001,
+      "peripheral_share": 0.9910099733108583
+    },
+    "timing": {
+      "optical_latency_ns": 0.071428571,
+      "adc_latency_ns": 0.0,
+      "dac_latency_ns": 0.0,
+      "total_latency_ns": 0.071428571,
+      "pipeline_stages": 1,
+      "pipeline_cycle_time_ns": 0.071428571,
+      "batch_latency_ns": 0.071428571,
+      "steady_state_operations_per_second": 14000000084.000002,
+      "steady_state_equivalent_ops_per_second": 28672000172032.004
+    },
+    "noise": {
+      "quantization_snr_db": 49.919999999999995,
+      "quantization_rms": 0.0011320593513522075,
+      "phase_noise_rad_rms": 0.02,
+      "drift_rms_rad": 7.1428571000000005e-12,
+      "estimated_relative_error_rms": 0.020032013338029307
+    }
+  },
+  "published_reference": {
+    "source_type": "published_calibration",
+    "provenance": {
+      "source_title": "Parallel convolutional processing using an integrated photonic tensor core",
+      "source_url": "https://www.nature.com/articles/s41586-020-03070-1",
+      "doi": "10.1038/s41586-020-03070-1",
+      "venue": "Nature 589, 52-58 (2021)",
+      "claim_status": "paper-reported throughput/bandwidth; matmul-surrogate local model"
+    },
+    "reported": {
+      "architecture": "Integrated photonic tensor core with PCM memory arrays and soliton microcombs",
+      "reported_tops": 2.0,
+      "additional_metrics": {
+        "reported_macs_per_second": 1000000000000,
+        "reported_bandwidth_ghz_min": 14,
+        "reported_tops_note": "PhotonicBench converts the paper's 10^12 MAC/s statement to 2 TOPS using 2 equivalent ops per MAC.",
+        "surrogate_mapping": "m=1, k=64, n=16 is a small dense tile surrogate; not an exact convolutional tensor-core dataflow reproduction."
+      }
+    },
+    "derived_unit_conversions": {},
+    "separation_note": "Published values are paper-reported references or direct unit conversions, not local component-model estimates."
+  },
+  "calibration_fit": null,
+  "assumptions": [
+    "The optical MAC energy is treated as delivered optical energy per multiply-accumulate.",
+    "The laser wall-plug efficiency converts delivered optical energy into electrical laser energy.",
+    "ADC conversions are counted once per output element.",
+    "DAC conversions are counted once per input value for the left and right matmul operands.",
+    "Detector energy is counted once per output sample.",
+    "The first noise model combines ADC quantization RMS, phase noise RMS, and drift RMS as independent terms.",
+    "Total latency is a transparent sum of DAC, optical, and ADC latency rather than a pipelined throughput model.",
+    "Source reports tera-MAC/s operation and bandwidth exceeding 14 GHz; this config stores that as a published reference and uses a reciprocal 14 GHz local cycle only as an illustrative timing assumption.",
+    "Local device energy, ADC, DAC, and noise settings are PhotonicBench assumptions, not extracted device-level measurements from the paper.",
+    "Weight-stationary mode approximates the paper's in-memory weighting concept for one dense surrogate tile.",
+    "The benchmark models 1 operation(s) per batch.",
+    "Vector DAC conversions are counted as ceil(batch_size / vector_reuse_factor) * m * k.",
+    "Weight DAC conversions are counted once per batch because weight_stationary is true.",
+    "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
+    "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation."
+  ],
+  "provenance": {
+    "source_title": "Parallel convolutional processing using an integrated photonic tensor core",
+    "source_url": "https://www.nature.com/articles/s41586-020-03070-1",
+    "doi": "10.1038/s41586-020-03070-1",
+    "venue": "Nature 589, 52-58 (2021)",
+    "claim_status": "paper-reported throughput/bandwidth; matmul-surrogate local model"
+  }
+}

@@ -26,10 +26,10 @@ Rows are decomposed transformer matmul cards loaded from machine-readable JSON r
 | MLP down-projection | `B * S * intermediate * H` | 2415919104 | 4831838208 |
 | Aggregate layer total | sum of decomposed JSON cards | 8254390272 | 16508780544 |
 
-| Benchmark | Source DOI | Calibration fit | MACs | Eq ops | Local total pJ | Local pJ/op | Batch latency ns | Steady eq ops/s | Published TOPS | Published TOPS/W incl lasers | Published pJ/op incl lasers | Published metrics |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| GPT-style decoder layer - QKV projection | n/a | none | 1811939328 | 3623878656 | 5.71775e+06 | 0.0015778 | 5 | 1.81194e+18 | n/a | n/a | n/a | none |
-| GPT-style decoder layer - Attention scores | n/a | none | 805306368 | 1610612736 | 8.47616e+06 | 0.0052627 | 27 | 6.71089e+16 | n/a | n/a | n/a | none |
-| GPT-style decoder layer - Attention-value | n/a | none | 805306368 | 1610612736 | 3.87554e+06 | 0.00240625 | 27 | 6.71089e+16 | n/a | n/a | n/a | none |
-| GPT-style decoder layer - MLP up-projection | n/a | none | 2415919104 | 4831838208 | 7.59221e+06 | 0.00157129 | 5 | 2.41592e+18 | n/a | n/a | n/a | none |
-| GPT-style decoder layer - MLP down-projection | n/a | none | 2415919104 | 4831838208 | 6.67209e+06 | 0.00138086 | 5 | 2.41592e+18 | n/a | n/a | n/a | none |
+| Benchmark | Source DOI | Calibration fit | MACs | Eq ops | Local total pJ | Local pJ/op | Interface bytes | Eq ops/byte | Batch latency ns | Steady eq ops/s | Published TOPS | Published TOPS/W incl lasers | Published pJ/op incl lasers | Published metrics |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| GPT-style decoder layer - QKV projection | n/a | none | 1811939328 | 3623878656 | 5.71775e+06 | 0.0015778 | 4915200 | 737.28 | 5 | 1.81194e+18 | n/a | n/a | n/a | none |
+| GPT-style decoder layer - Attention scores | n/a | none | 805306368 | 1610612736 | 8.47616e+06 | 0.0052627 | 14155776 | 113.778 | 27 | 6.71089e+16 | n/a | n/a | n/a | none |
+| GPT-style decoder layer - Attention-value | n/a | none | 805306368 | 1610612736 | 3.87554e+06 | 0.00240625 | 14155776 | 113.778 | 27 | 6.71089e+16 | n/a | n/a | n/a | none |
+| GPT-style decoder layer - MLP up-projection | n/a | none | 2415919104 | 4831838208 | 7.59221e+06 | 0.00157129 | 6291456 | 768 | 5 | 2.41592e+18 | n/a | n/a | n/a | none |
+| GPT-style decoder layer - MLP down-projection | n/a | none | 2415919104 | 4831838208 | 6.67209e+06 | 0.00138086 | 6291456 | 768 | 5 | 2.41592e+18 | n/a | n/a | n/a | none |

@@ -26,10 +26,10 @@ Rows are decomposed transformer matmul cards loaded from machine-readable JSON r
 | MLP down-projection | `B * S * intermediate * H` | 301989888 | 603979776 |
 | Aggregate layer total | sum of decomposed JSON cards | 855638016 | 1711276032 |
 
-| Benchmark | Source DOI | Calibration fit | MACs | Eq ops | Local total pJ | Local pJ/op | Batch latency ns | Steady eq ops/s | Published TOPS | Published TOPS/W incl lasers | Published pJ/op incl lasers | Published metrics |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| BERT-base style encoder layer - QKV projection | n/a | none | 226492416 | 452984832 | 1.41145e+06 | 0.00311589 | 5 | 2.26492e+17 | n/a | n/a | n/a | none |
-| BERT-base style encoder layer - Attention scores | n/a | none | 12582912 | 25165824 | 181469 | 0.00721094 | 27 | 1.04858e+15 | n/a | n/a | n/a | none |
-| BERT-base style encoder layer - Attention-value | n/a | none | 12582912 | 25165824 | 143131 | 0.0056875 | 27 | 1.04858e+15 | n/a | n/a | n/a | none |
-| BERT-base style encoder layer - MLP up-projection | n/a | none | 301989888 | 603979776 | 1.878e+06 | 0.00310937 | 5 | 3.0199e+17 | n/a | n/a | n/a | none |
-| BERT-base style encoder layer - MLP down-projection | n/a | none | 301989888 | 603979776 | 1.76298e+06 | 0.00291895 | 5 | 3.0199e+17 | n/a | n/a | n/a | none |
+| Benchmark | Source DOI | Calibration fit | MACs | Eq ops | Local total pJ | Local pJ/op | Interface bytes | Eq ops/byte | Batch latency ns | Steady eq ops/s | Published TOPS | Published TOPS/W incl lasers | Published pJ/op incl lasers | Published metrics |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| BERT-base style encoder layer - QKV projection | n/a | none | 226492416 | 452984832 | 1.41145e+06 | 0.00311589 | 2162688 | 209.455 | 5 | 2.26492e+17 | n/a | n/a | n/a | none |
+| BERT-base style encoder layer - Attention scores | n/a | none | 12582912 | 25165824 | 181469 | 0.00721094 | 393216 | 64 | 27 | 1.04858e+15 | n/a | n/a | n/a | none |
+| BERT-base style encoder layer - Attention-value | n/a | none | 12582912 | 25165824 | 143131 | 0.0056875 | 393216 | 64 | 27 | 1.04858e+15 | n/a | n/a | n/a | none |
+| BERT-base style encoder layer - MLP up-projection | n/a | none | 301989888 | 603979776 | 1.878e+06 | 0.00310937 | 2850816 | 211.862 | 5 | 3.0199e+17 | n/a | n/a | n/a | none |
+| BERT-base style encoder layer - MLP down-projection | n/a | none | 301989888 | 603979776 | 1.76298e+06 | 0.00291895 | 2850816 | 211.862 | 5 | 3.0199e+17 | n/a | n/a | n/a | none |

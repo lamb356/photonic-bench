@@ -1,0 +1,26 @@
+{
+  "schema_version": "photonic-bench-comparison-presets-v1",
+  "presets": [
+    {
+      "name": "Published reference surrogate cards",
+      "description": "Source-backed cards with paper metrics kept as published references and local workloads labeled as surrogates.",
+      "artifact_ids": [
+        "nature_pace_64x64.json",
+        "xu_11tops_convolution_surrogate.json",
+        "feldmann_2021_photonic_tensor_core_surrogate.json",
+        "pappas_2025_awgr_262tops_surrogate.json",
+        "taichi_2024_chiplet_surrogate.json"
+      ],
+      "pinned_id": "nature_pace_64x64.json"
+    },
+    {
+      "name": "Local reuse sensitivity",
+      "description": "Compare the simple local 64x64 card against the batch weight-stationary variant.",
+      "artifact_ids": [
+        "matmul_64x64.json",
+        "weight_stationary_64x64_batch.json"
+      ],
+      "pinned_id": "matmul_64x64.json"
+    }
+  ]
+}

@@ -32,6 +32,23 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
             page.goto(output_path.resolve().as_uri())
             page.get_by_text("Serial Timing").first.wait_for()
 
+            page.locator("#preset-select").select_option(
+                label="Published reference surrogate cards (generated)"
+            )
+            page.get_by_role("button", name="Load").click()
+            page.get_by_role("heading", name="Artifact Comparison").wait_for()
+            page.get_by_role("heading", name="Comparison Brief").wait_for()
+            page.get_by_text("Operational intensity").first.wait_for()
+            page.get_by_text("Interface traffic").first.wait_for()
+
+            with page.expect_download() as json_download:
+                page.get_by_role("button", name="Download JSON").click()
+            assert json_download.value.suggested_filename.endswith(".json")
+
+            with page.expect_download() as markdown_download:
+                page.get_by_role("button", name="Download Markdown").click()
+            assert markdown_download.value.suggested_filename.endswith(".md")
+
             page.locator('button[data-id="nature_pace_64x64.json"]').click()
             page.get_by_role("heading", name="Published Reference").wait_for()
 

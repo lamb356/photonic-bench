@@ -28,7 +28,7 @@ summarizes a whole layer rather than one matmul card. Its current
 | `benchmark` | yes | object | Name and description from the YAML config. |
 | `workload` | yes | object | Matmul dimensions and total workload size. |
 | `model_inputs` | yes | object | Device, execution, timing, and noise assumptions used by the local model. |
-| `local_model` | yes | object | PhotonicBench-computed conversion counts, energy, timing, and noise. |
+| `local_model` | yes | object | PhotonicBench-computed conversion counts, interface memory traffic, energy, timing, and noise. |
 | `published_reference` | yes | object or null | Paper-reported values and direct unit conversions, when present. |
 | `calibration_fit` | yes | object or null | Optional one-parameter calibration fit result. |
 | `assumptions` | yes | string array | Human-readable assumptions that apply to this card. |
@@ -61,7 +61,7 @@ Schema version: `photonic-bench-transformer-layer-report-v1`
 | `transformer_layer` | yes | object | Layer type, attention mode, and shape fields. |
 | `workload` | yes | object | Layer-level matmul count, MACs, equivalent ops, and summed generated output elements. |
 | `aggregate_semantics` | yes | object | Text labels explaining source cards, energy aggregation, timing aggregation, and noise handling. |
-| `local_model` | yes | object | Summed conversion counts, summed energy, serial timing summary, and non-additive noise diagnostics. |
+| `local_model` | yes | object | Summed conversion counts, summed interface traffic, summed energy, serial timing summary, and non-additive noise diagnostics. |
 | `published_reference` | yes | null | Always null for current transformer-layer configs, which reject `published_calibration`. |
 | `calibration_fit` | yes | null | Always null for current aggregate layer reports. |
 | `formula_audit` | yes | object | Expected helper totals, JSON totals, match booleans, and per-operation formula rows. |
@@ -88,6 +88,12 @@ messages include the card path and JSON field path where practical.
 Energy component fields under `local_model.energy` are summed directly.
 `energy_per_mac_pj`, `energy_per_op_pj`, and `peripheral_share` are recomputed
 from the summed layer quantities.
+
+Interface memory traffic fields under `local_model.memory_traffic` are summed
+from decomposed cards where additive, and `macs_per_byte` plus
+`equivalent_ops_per_byte` are recomputed from aggregate layer totals. These
+fields describe converter-interface traffic, not full cache, SRAM, DRAM, NoC,
+or non-matmul tensor traffic.
 
 Timing fields are explicitly serial summaries. `serial_batch_latency_ns` sums
 the per-matmul `batch_latency_ns` values. The effective layer throughputs divide
@@ -135,6 +141,9 @@ local-model decomposed cards.
 | `local_model.energy.*_pj` | pJ |
 | `local_model.energy.energy_per_mac_pj` | pJ/MAC |
 | `local_model.energy.energy_per_op_pj` | pJ/equivalent op |
+| `local_model.memory_traffic.*_bytes` | bytes |
+| `local_model.memory_traffic.macs_per_byte` | MACs/byte |
+| `local_model.memory_traffic.equivalent_ops_per_byte` | equivalent ops/byte |
 | `local_model.timing.*_ns` | ns |
 | `local_model.timing.serial_batch_latency_ns` | ns |
 | `local_model.timing.serial_effective_macs_per_second` | MACs/second |
@@ -192,8 +201,9 @@ from pathlib import Path
 card = json.loads(Path("reports/nature_pace_64x64.json").read_text())
 name = card["benchmark"]["name"]
 total_pj = card["local_model"]["energy"]["total_pj"]
+eq_ops_per_byte = card["local_model"]["memory_traffic"]["equivalent_ops_per_byte"]
 published = card["published_reference"]
-print(name, total_pj, published is not None)
+print(name, total_pj, eq_ops_per_byte, published is not None)
 ```
 
 Minimal aggregate-layer pattern:
@@ -207,8 +217,9 @@ layer = json.loads(
 )
 assert layer["schema_version"] == "photonic-bench-transformer-layer-report-v1"
 total_macs = layer["workload"]["macs"]
+total_interface_bytes = layer["local_model"]["memory_traffic"]["total_interface_bytes"]
 rows = layer["formula_audit"]["rows"]
-print(total_macs, [row["operation_key"] for row in rows])
+print(total_macs, total_interface_bytes, [row["operation_key"] for row in rows])
 ```
 
 ## Comparison Tables

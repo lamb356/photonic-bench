@@ -118,3 +118,91 @@ def test_xu_11tops_convolution_surrogate_card_is_source_backed() -> None:
         == "m=1, k=250000, n=10 represents one dense vector-by-kernel surrogate; not an exact convolution dataflow reproduction."
     )
     assert payload["published_reference"]["derived_unit_conversions"] == {}
+
+
+def test_feldmann_2021_tensor_core_surrogate_card_is_source_backed() -> None:
+    config = load_config(Path("examples/feldmann_2021_photonic_tensor_core_surrogate.yaml"))
+    result = evaluate(config)
+    payload = report_to_dict(result)
+
+    assert config.provenance is not None
+    assert config.provenance.doi == "10.1038/s41586-020-03070-1"
+    assert config.published_calibration is not None
+    assert config.published_calibration.reported_tops == pytest.approx(2)
+    assert (
+        config.published_calibration.additional_metrics["reported_macs_per_second"]
+        == 1_000_000_000_000
+    )
+    assert result.macs == 1024
+    assert result.equivalent_ops == 2048
+    assert result.published_calibration is not None
+    assert result.published_calibration.energy_per_op_including_lasers_pj is None
+    assert "not an exact convolutional tensor-core dataflow" in (
+        payload["published_reference"]["reported"]["additional_metrics"][
+            "surrogate_mapping"
+        ]
+    )
+
+
+def test_pappas_2025_awgr_surrogate_card_is_source_backed() -> None:
+    config = load_config(Path("examples/pappas_2025_awgr_262tops_surrogate.yaml"))
+    result = evaluate(config)
+    payload = report_to_dict(result)
+
+    assert config.provenance is not None
+    assert config.provenance.doi == "10.1063/5.0271374"
+    assert config.published_calibration is not None
+    assert config.published_calibration.reported_tops == pytest.approx(262)
+    assert (
+        config.published_calibration.energy_efficiency_including_lasers_tops_per_watt
+        == pytest.approx(1 / 0.273)
+    )
+    assert result.macs == 4096
+    assert result.equivalent_ops == 8192
+    assert result.published_calibration is not None
+    assert result.published_calibration.energy_per_op_including_lasers_pj == pytest.approx(
+        0.273
+    )
+    assert result.published_calibration.total_energy_including_lasers_pj == pytest.approx(
+        8192 * 0.273
+    )
+    assert (
+        payload["published_reference"]["reported"]["additional_metrics"][
+            "mnist_accuracy_percent"
+        ]
+        == pytest.approx(92.14)
+    )
+
+
+def test_taichi_2024_chiplet_surrogate_card_is_source_backed() -> None:
+    config = load_config(Path("examples/taichi_2024_chiplet_surrogate.yaml"))
+    result = evaluate(config)
+    payload = report_to_dict(result)
+
+    assert config.provenance is not None
+    assert config.provenance.doi == "10.1126/science.adl1203"
+    assert config.published_calibration is not None
+    assert (
+        config.published_calibration.energy_efficiency_including_lasers_tops_per_watt
+        == pytest.approx(160)
+    )
+    assert result.macs == 262_144
+    assert result.equivalent_ops == 524_288
+    assert result.published_calibration is not None
+    assert result.published_calibration.energy_per_op_including_lasers_pj == pytest.approx(
+        1 / 160
+    )
+    assert result.published_calibration.total_energy_including_lasers_pj == pytest.approx(
+        524_288 / 160
+    )
+    assert (
+        payload["published_reference"]["reported"]["additional_metrics"][
+            "experimental_omniglot_accuracy_percent"
+        ]
+        == pytest.approx(91.89)
+    )
+    assert "not the Taichi distributed optical protocol" in (
+        payload["published_reference"]["reported"]["additional_metrics"][
+            "surrogate_mapping"
+        ]
+    )

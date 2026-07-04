@@ -30,6 +30,7 @@ def test_json_schema_file_documents_report_v1_contract() -> None:
         "provenance",
     }
     assert "energy" in schema["properties"]["local_model"]["properties"]
+    assert "memory_traffic" in schema["properties"]["local_model"]["required"]
 
 
 def test_transformer_layer_json_schema_file_documents_aggregate_contract() -> None:
@@ -66,6 +67,8 @@ def test_transformer_layer_json_schema_file_documents_aggregate_contract() -> No
     assert "serial_batch_latency_ns" in schema["properties"]["local_model"][
         "properties"
     ]["timing"]["required"]
+    assert "memory_traffic" in schema["properties"]["aggregate_semantics"]["required"]
+    assert "memory_traffic" in schema["properties"]["local_model"]["required"]
     assert "rows" in schema["properties"]["formula_audit"]["required"]
     assert schema["properties"]["workload"]["properties"]["matmul_count"]["const"] == 5
     assert (
@@ -86,6 +89,8 @@ def test_json_schema_docs_describe_units_nullability_and_examples() -> None:
     assert "`formula_audit` | yes | object" in docs
     assert "`matmuls` | yes | array" in docs
     assert "`local_model.energy.*_pj` | pJ" in docs
+    assert "`local_model.memory_traffic.*_bytes` | bytes" in docs
+    assert "converter-interface traffic, not full cache" in docs
     assert "`local_model.timing.serial_batch_latency_ns` | ns" in docs
     assert "Transformer-Layer Config Validation" in docs
     assert "matches decomposed cards by the `Transformer operation: ...`" in docs
