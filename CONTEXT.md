@@ -1,171 +1,130 @@
-# PhotonicBench PR9 Merge, Visualizer, And System Modeling Context
+# PhotonicBench Production-Ready Review Context
 
 ## Repository State
 
 - Workspace: `C:\Users\burba\OneDrive\Documents\Photonic Acceleration`
 - Package: `photonic_bench`
-- Current branch after PR #9 merge: `master`
+- Active branch: `codex/decision-grade-analysis-tool`
 - Base branch: `master`
 - Remote: `https://github.com/lamb356/photonic-bench.git`
-- GitHub CLI auth was previously verified for account `lamb356` with `repo`
-  and `workflow` scopes.
-- PR #9 at cycle start: `https://github.com/lamb356/photonic-bench/pull/9`
-  - title: `Add tier bottleneck diagnostics and visualizer stack`;
-  - base: `master`;
-  - head: `codex/pr8-followup-improvements`;
-  - state: open, non-draft, mergeable;
-  - head commit: `b75d4e409aa6594c6941aa1a97e34fb470e91c24`;
-  - checks at setup:
-    - `Ruff, package, and pytest`: success;
-    - `macOS visual regression`: success.
-- PR #9 merge:
-  - state: merged;
-  - merge commit: `0f9ba2acc893ffbe5c5fbfd163481e4f69052328`;
-  - merged at: `2026-07-04T17:38:23Z`;
-  - post-merge master CI run: `28714312225`, passed;
-  - local post-merge verification on clean `master`: `python -m pytest -q`
-    passed with 130 tests, and `python -m photonic_bench.cli verify-artifacts`
-    passed with 258 fresh generated files;
-  - branch cleanup: no local or remote `codex/pr8-followup-improvements`
-    branch remains after pruning.
+- Current state at this goal start:
+  - branch `codex/decision-grade-analysis-tool`;
+  - many dirty tracked/generated files plus new decision-packet schema,
+    reviewer workflow doc, new example cards, and new generated visualizer
+    payloads;
+  - previous decision-grade implementation is locally verified but not yet
+    committed, pushed, or opened as a PR.
 
-## PR #9 Work To Merge First
+## Prior Implementation Now Being Productized
 
-- Protected publish commits:
-  - `6e80186 Add tier bottleneck diagnostics and visualizer stack`;
-  - `50fe226 Refresh bottleneck diagnostic artifacts`.
-- Follow-up implementation commit:
-  - `d452cf8 Add hierarchy bandwidth headroom diagnostics`.
-- Closeout state commit:
-  - `b75d4e4 Close PR9 follow-up state`.
-- Durable GBrain note from the prior loop:
-  - `photonicbench-pr9-bandwidth-headroom-followup-2026-07-04`.
+The branch already contains the previous decision-grade analysis pass:
 
-## Current PR #9 Feature Surface
+- decision-packet JSON/Markdown export;
+- full analysis-intent presets and reviewer notes;
+- local-triage rank explanations for recommendations, Energy Stack, and
+  Bottleneck Stack;
+- named memory scenarios and contention presets;
+- first-class usable bandwidth under load and hierarchy energy outputs;
+- Shen 2017, Tait 2017, and ChipAI 2025 source-backed surrogate cards;
+- `actions/upload-artifact@v6`, changelog updates, and reviewer workflow docs;
+- generated reports, schemas, visualizer payloads, and visual baselines.
 
-- Visualizer:
-  - Bottleneck Stack comparison panel.
-  - Worst tier pressure and largest tier movement-share diagnostics.
-  - Bandwidth utilization, headroom, and saturation-tier analytics in
-    Contention Insight, Bottleneck Stack, Review Queue, comparison summary,
-    scoring, JSON export, Markdown export, and CSV export.
-  - Local-model boundary language preserved for hierarchy, contention, and
-    bandwidth-headroom diagnostics.
-- System model:
-  - Per-tier calibrated transfer time, traffic share, movement-energy share,
-    transfer share, pressure ratios, compute-window required bandwidth,
-    contention bandwidth utilization, bandwidth headroom in bytes/ns, and
-    bandwidth headroom ratio.
-  - Top-level dominant traffic tier, dominant movement-energy tier,
-    nominal/contention memory bottleneck tiers, max pressure ratios, max
-    movement-energy share, saturation tier, max bandwidth utilization, and
-    minimum traffic-tier headroom ratio.
-  - Exposure through matmul JSON/Markdown, comparison Markdown/exports,
-    transformer layer/model aggregate JSON/Markdown, strict schemas, docs,
-    tests, checked reports, and visualizer payloads.
+The new goal must preserve those changes, commit them cleanly, and extend them
+into a production-ready review workflow.
 
-## Follow-Up Implementation In This Goal
+## Durable Context Used
 
-- Implementation commit:
-  `8be7316725fd0ef2fd00e54e96d7bb9e7ef473a7`
-  (`Add system energy stack diagnostics`).
-- Visualizer changes:
-  - Added Energy Stack in comparison mode, ranking selected artifacts by local
-    movement-to-compute energy ratio and largest hierarchy-tier share of total
-    local system energy.
-  - Added Comparison Review Checklist in comparison mode and JSON/Markdown
-    exports for pinned baseline, schema compatibility, published-reference
-    coverage, source-quality coverage, provenance coverage, system metric
-    coverage, energy split coverage, bandwidth phase coverage, transformer
-    boundaries, and external/legacy payload review.
-  - Clarified guardbanded versus contention-only loaded bandwidth labels and
-    added `guardbanded_loaded_hierarchy_bandwidth_bytes_per_ns` to comparison
-    JSON exports while preserving the old
-    `loaded_hierarchy_bandwidth_bytes_per_ns` alias.
-- System-model changes:
-  - Added per-tier `system_energy_share`.
-  - Added local compute/conversion energy share,
-    movement-to-compute energy ratio, dominant total-system energy component,
-    max tier system-energy share, and contention-only loaded hierarchy
-    bandwidth.
-  - Preserved the existing guardbanded
-    `contention_adjusted_loaded_bandwidth_bytes_per_ns` meaning.
-- Exposure:
-  - Per-matmul JSON/Markdown reports.
-  - Comparison Markdown and CLI table.
-  - Transformer layer/model aggregate JSON/Markdown.
-  - Visualizer summaries, comparison dashboards, score profiles, JSON export,
-    Markdown export, CSV export, and generated static payloads.
-  - Strict report schemas and comparison-export schema docs.
-- Verification after the hostile-review fix:
-  - `python -m ruff check`;
-  - `python -m pytest -q` (130 tests);
-  - `python -m build`;
-  - `python -m photonic_bench.cli verify-artifacts` (258 fresh files);
-  - `node --check photonic_bench\visualizer_assets\app.js`;
-  - `node --check reports\visualizer\assets\app.js`;
-  - `python -m pytest tests\test_visualizer.py tests\test_visualizer_smoke.py -q`;
-  - `python -m pytest tests\test_visualizer_accessibility.py tests\test_visualizer_visual_regression.py -q`;
-  - `git diff --check`.
-- Hostile Senior Reviewer finding fixed:
-  - Ambiguous "loaded hierarchy bandwidth" labels/key were corrected to
-    explicitly distinguish guardbanded loaded bandwidth from contention-only
-    loaded bandwidth.
-- Publication path:
-  - Direct push to protected `master` was rejected with GH006 because required
-    status check `Ruff, package, and pytest` is expected.
-  - Follow-up work is published through PR #10:
-    `https://github.com/lamb356/photonic-bench/pull/10`
-    from `codex/pr9-merge-energy-stack`.
-  - PR #10 CI, merge, branch cleanup, and final synced `master` status are
-    reported in the final response after this state update.
+- GBrain page:
+  - `photonicbench-decision-grade-analysis-tool-2026-07-04`
+    - Confirms the previous decision-grade pass was locally verified, with the
+      remaining risk that it was not committed, pushed, or opened as a PR.
+- GBrain page:
+  - `photonicbench-pr9-bandwidth-headroom-followup-2026-07-04`
+    - Records bandwidth/headroom diagnostics and the boundary that those fields
+      are local PhotonicBench diagnostics, not published paper measurements.
+- Local memory:
+  - `MEMORY.md` confirms the static visualizer contract:
+    `index.html`, split assets, `data/index.json`, payload JSON, and payload
+    JS wrappers so `file://` works without browser `fetch()`.
+  - `MEMORY.md` confirms the modeling-boundary contract:
+    `published_reference` stays separate from `local_model`, transformer serial
+    timing remains labeled as serial sum, and non-additive noise remains
+    diagnostic only.
+  - `MEMORY.md` records the mandatory Hostile Senior Reviewer critique pattern
+    and state-file re-read requirement for PhotonicBench loops.
 
 ## Relevant Code Surfaces
 
-- CI and PR flow:
-  - `.github/workflows/ci.yml`
+- Git/CI/review:
+  - `.github/workflows/*.yml`
+  - `.github/pull_request_template.md` or `.github/PULL_REQUEST_TEMPLATE/*`
+  - `README.md`
+  - `CHANGELOG.md`
+  - `docs/reviewer_workflow.md`
 - Visualizer:
+  - `photonic_bench/visualizer.py`
   - `photonic_bench/visualizer_assets/app.js`
   - `photonic_bench/visualizer_assets/styles.css`
   - `photonic_bench/visualizer_assets/template.html`
-  - `photonic_bench/visualizer.py`
-- Model/report/JSON:
+  - `reports/visualizer/**`
+- Model/report/JSON/schema:
+  - `photonic_bench/config.py`
   - `photonic_bench/model.py`
-  - `photonic_bench/report.py`
   - `photonic_bench/json_report.py`
+  - `photonic_bench/report.py`
   - `photonic_bench/comparison.py`
   - `photonic_bench/transformer.py`
-- CLI/artifacts:
-  - `photonic_bench/cli.py`
-  - `photonic_bench/artifacts.py`
-- Docs and schemas:
-  - `README.md`
-  - `CHANGELOG.md`
-  - `docs/*.schema.json`
+  - `docs/*schema*.json`
   - `docs/json_schema.md`
   - `docs/model.md`
-- Examples and reports:
+- Examples/artifacts:
   - `examples/*.yaml`
   - `reports/*.json`
   - `reports/*.md`
-  - `reports/visualizer/**`
+  - `reports/**/_summary.json`
+  - `reports/**/_summary.md`
 - Tests:
-  - `tests/test_visualizer*.py`
+  - `tests/test_config.py`
   - `tests/test_model.py`
-  - `tests/test_report.py`
   - `tests/test_json_report.py`
+  - `tests/test_report.py`
+  - `tests/test_comparison.py`
   - `tests/test_transformer.py`
+  - `tests/test_visualizer*.py`
   - `tests/test_cli.py`
   - `tests/test_artifacts.py`
+  - `tests/test_schema_docs.py`
 
-## Constraints
+## Implementation Constraints
 
-- Merge PR #9 and verify `master` before starting new feature work.
-- Do not push or merge with known failing lint, tests, artifact freshness, or
-  GitHub Actions checks.
-- Do not fabricate published values, measured hardware data, or macOS
-  screenshots.
-- Keep local estimates and paper-reported values visibly separate.
-- Generated artifacts must be refreshed after source/model/visualizer changes.
-- The visualizer remains directly openable from disk via static JS payload
-  wrappers.
+- Keep the visualizer directly openable from disk.
+- Preserve split index/payload architecture; avoid browser `fetch()` dependence
+  for local file viewing.
+- Keep decision-packet import/replay entirely local-browser compatible.
+- Keep published-card facts source-backed. Use surrogate/local-model fields and
+  assumption notes when papers do not publish all required PhotonicBench inputs.
+- Scenario provenance packs must cite sources or clearly identify local
+  assumptions. They must not imply measured end-to-end hardware behavior.
+- Source-audit metadata must keep quoted source metrics, derived conversions,
+  and local assumptions in distinct structured fields.
+- Preserve backward compatibility unless schema versioning policy explicitly
+  calls out a version bump.
+- Generated artifacts must be regenerated after source, model, schema, example,
+  or visualizer changes.
+- Do not weaken CI checks to remove warnings; update workflow plumbing while
+  preserving or improving coverage.
+
+## Starting Risks
+
+- The dirty branch is large; committing requires care to avoid losing generated
+  artifacts or mixing unrelated state updates.
+- Remote CI may expose visual-regression portability issues not visible in the
+  local run.
+- Decision-packet replay can mislead reviewers if stale artifact IDs are
+  silently restored. Replay must show validation status clearly.
+- Scenario sensitivity can overclaim if it looks like measured hardware sweep
+  data. It must be labeled as local model analysis.
+- Provenance packs and source audits must be structured enough to survive JSON
+  review, not just Markdown prose.
+- Adding more cards without materially different memory behavior would dilute
+  comparison value.

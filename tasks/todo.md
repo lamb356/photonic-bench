@@ -591,6 +591,86 @@
       branch cleanup, and clean synced git status are reported in the final
       response.
 
+## Completed Goal: Decision-Grade Analysis Tool
+
+- [x] Task 0: Roll state files forward and create the prioritized checklist.
+      Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
+      `RUBRIC.md`, and `tasks/todo.md`; exposed GBrain; searched and read
+      relevant GBrain context; searched local memory; confirmed clean synced
+      `master`; created branch `codex/decision-grade-analysis-tool`; and
+      created the active four-workstream checklist.
+- [x] Task 1: Map the current visualizer review workflow, scenario/modeling,
+      published-card, CI, and release-hygiene surfaces.
+      Mapped and updated visualizer, model/report/schema/comparison,
+      published-card, workflow, CI, and release-note surfaces.
+- [x] Task 2: Turn the visualizer into a review workflow with decision-packet
+      export, full analysis-intent presets, and local-triage rank explanations.
+      Added decision-packet JSON/Markdown export, full-intent presets,
+      reviewer notes, and rank explanations with browser/schema tests.
+- [x] Task 3: Move system modeling from diagnostics to calibrated memory
+      scenarios with named scenarios, contention presets, first-class usable
+      bandwidth under load, and hierarchy energy outputs.
+      Added named memory scenarios, contention presets, usable-bandwidth
+      outputs, hierarchy energy breakdowns, schemas, docs, and tests.
+- [x] Task 4: Add 2-4 source-backed published cards that stress memory
+      hierarchy differences and regenerate their artifacts.
+      Added Shen 2017, Tait 2017, and ChipAI 2025 cards with YAML,
+      generated Markdown/JSON, source-quality metadata, and visualizer payloads.
+- [x] Task 5: Fix CI/release hygiene: Node 20 deprecation warning, release
+      note/changelog, and reviewer docs for artifact freshness plus visual
+      regression.
+      Updated `upload-artifact@v6`, changelog, README, and
+      `docs/reviewer_workflow.md`; workflow parse and action tags verified.
+- [x] Task 6: Update docs and schemas, regenerate checked artifacts, and run
+      focused plus full verification.
+      Final gates passed: Ruff, full pytest with 134 tests, build,
+      artifact freshness over 278 files, JS syntax, browser smoke/accessibility/
+      visual regression, workflow checks, example validation, and diff hygiene.
+- [x] Task 7: Run mandatory Hostile Senior Reviewer critique focused on
+      usability, modeling clarity, source boundaries, maintainability, CI
+      artifact usability, and visual regression portability; fix important
+      findings.
+      Fixed mobile recommendation/table overflow with no-horizontal-overflow
+      visual coverage and fixed customized contention-preset descriptions.
+- [x] Task 8: Close final state files, write durable GBrain note, inspect git
+      status, and report remaining risks.
+      State files closed; durable GBrain note written after this update; final
+      git status reported in final response.
+
+## Active Goal: Production-Ready Reviewable Decision-Grade Tool
+
+- [x] Task 0: Roll state files forward and create the prioritized checklist.
+      Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
+      `RUBRIC.md`, and `tasks/todo.md`; exposed GBrain; read
+      `photonicbench-decision-grade-analysis-tool-2026-07-04`; searched local
+      memory; confirmed the branch has the prior locally verified
+      decision-grade work as dirty changes; and created the new 10-task
+      checklist.
+- [ ] Task 1: Commit the current work on branch
+      `codex/decision-grade-analysis-tool` and open a pull request to
+      `master`.
+- [ ] Task 2: Run remote CI on the PR and inspect generated screenshot
+      artifacts.
+- [ ] Task 3: Add calibrated scenario provenance packs with source-backed
+      justification for memory hierarchy scenarios and contention presets.
+- [ ] Task 4: Add a scenario sensitivity dashboard in the visualizer for
+      sweeping one card across memory scenarios.
+- [ ] Task 5: Add decision-packet import/replay to restore full review state.
+- [ ] Task 6: Add card source-audit depth with quoted metrics, local
+      assumptions, conversion math, and confidence flags.
+- [ ] Task 7: Expand memory-stressing card coverage with 2-4 more
+      source-backed cards chosen for distinct memory behavior.
+- [ ] Task 8: Version report schemas more formally with compatibility policy
+      and clear versioning rules.
+- [ ] Task 9: Add PR-template checklist entries for artifact freshness, visual
+      regression, decision packets, and schema changes.
+- [ ] Task 10: Add a small release candidate tag or versioned release note
+      after the work is merged.
+- [ ] Task 11: Run mandatory Hostile Senior Reviewer critique and fix important
+      findings.
+- [ ] Task 12: Run final local and remote verification, close state files,
+      write durable notes, and inspect final repo/PR/release status.
+
 ## Explicitly Not Active In This Goal
 
 - [ ] Hosted backend web service.
