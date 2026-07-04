@@ -95,7 +95,7 @@ recorded as residual risks with rationale.
 
 ## Current Rubric Status
 
-- Required outcome: active, not yet satisfied.
-- Quality bar: active.
-- Verification expectations: active.
-- Hostile-review pass: pending.
+- Required outcome: satisfied.
+- Quality bar: satisfied.
+- Verification expectations: satisfied.
+- Hostile-review pass: complete.

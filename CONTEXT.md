@@ -4,10 +4,17 @@
 
 - Workspace: `C:\Users\burba\OneDrive\Documents\Photonic Acceleration`
 - Package: `photonic_bench`
-- Active branch: `codex/decision-grade-analysis-tool`
-- Base branch: `master`
+- Active branch: `master`
+- Completed feature branch: `codex/decision-grade-analysis-tool`
 - Remote: `https://github.com/lamb356/photonic-bench.git`
-- Current state at this goal start:
+- Current state at this goal close:
+  - PR #11 is merged into `master` at
+    `98e980357ed20c5e51187623f44bfd194fd58b14`;
+  - post-merge `master` CI run `28718374339` passed;
+  - release-candidate tag `v0.1.0-rc.1` is pushed to `origin`;
+  - durable GBrain closeout note:
+    `photonicbench-pr11-production-ready-review-closeout-2026-07-04`.
+- State at this goal start:
   - branch `codex/decision-grade-analysis-tool`;
   - many dirty tracked/generated files plus new decision-packet schema,
     reviewer workflow doc, new example cards, and new generated visualizer
