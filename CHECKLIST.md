@@ -212,7 +212,7 @@ Status key:
 
 ## Task 11: Final Closeout
 
-- [ ] IN PROGRESS: Close state files and inspect final repository status.
+- [x] DONE: Close state files and inspect final repository status.
   - Done when:
     - All checklist items are DONE with proof.
     - `CONTEXT.md`, `PROGRESS.md`, `RUBRIC.md`, and `tasks/todo.md` reflect the
@@ -220,3 +220,14 @@ Status key:
     - Final `git status --short --branch` is inspected.
     - Commit/PR/merge is completed through the protected-branch workflow if the
       goal produces committable changes.
+  - Proof:
+    - Created implementation commit `32eea26` on
+      `codex/system-model-pareto`.
+    - Pushed branch to `origin/codex/system-model-pareto`.
+    - Created PR #2:
+      `https://github.com/lamb356/photonic-bench/pull/2`.
+    - GitHub check `Ruff, package, and pytest` passed on PR #2 before this
+      final state-only closeout update.
+    - Final state files now record completion status and verification proof;
+      the final closeout commit is pushed through the same PR and protected
+      check before merge.
