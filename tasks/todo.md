@@ -107,15 +107,13 @@
 - [x] Task 3: Add and verify Dependabot configuration for GitHub Actions and
       Python dependencies.
 - [x] Task 4: Commit, push, and verify the updated GitHub Actions run passes.
-- [ ] Task 5: Enable and verify `master` branch protection requiring CI.
-      Blocked by GitHub plan gate while the repository remains private:
-      branch protection and rulesets return HTTP 403 requiring GitHub Pro or a
-      public repository. Rechecked in Cycles 5 and 6 with the same result.
+- [x] Task 5: Enable and verify `master` branch protection requiring CI.
+      Completed after user explicitly authorized making the repository public.
+      Branch protection now requires `Ruff, package, and pytest`.
 - [x] Task 6: Run hostile senior reviewer critique and fix significant issues.
-- [ ] Task 7: Close final state files and inspect clean synced git status.
-      Blocked because branch protection cannot be enabled under the current
-      private-repo plan gate. Cycle 5 is the second consecutive blocked audit,
-      and Cycle 6 is the third consecutive blocked audit.
+- [x] Task 7: Close final state files and inspect clean synced git status.
+      Final closeout state update is state-only; post-push CI is verified after
+      this commit and reported in the final response.
 
 ## Explicitly Not Active In This Goal
 

@@ -4,8 +4,8 @@ Date started: 2026-07-04
 
 ## Objective
 
-Improve repository quality and automation for the private
-`lamb356/photonic-bench` repository by adding:
+Improve repository quality and automation for `lamb356/photonic-bench` by
+adding:
 
 1. branch protection on `master` that requires the CI workflow to pass before
    merging;
@@ -15,7 +15,10 @@ Improve repository quality and automation for the private
 
 ## Required Outcomes
 
-1. Keep the repository private throughout the phase.
+1. Repository visibility:
+   - original requirement: keep the repository private;
+   - updated user authorization on 2026-07-04: making the repository public is
+     allowed to complete branch protection.
 2. Add a clear CI status badge near the top of `README.md` that points at the
    main CI workflow.
 3. Add `.github/dependabot.yml` with sensible update schedules for:
@@ -32,7 +35,7 @@ Improve repository quality and automation for the private
    the workflow.
 8. Configure branch protection on `master` with `gh` so the CI status check is
    required before merging.
-9. Verify branch protection, repository privacy, badge URL, and Dependabot
+9. Verify branch protection, repository visibility, badge URL, and Dependabot
    configuration.
 10. Run a mandatory Hostile Senior Reviewer critique focused on long-term
     repository maintainability and safety, then fix important findings.
@@ -52,7 +55,6 @@ In scope:
 
 Out of scope:
 
-- Changing repository visibility to public.
 - Hosted application deployment.
 - Formal MLCommons submission.
 - Benchmark feature development.
@@ -65,7 +67,8 @@ Stop only when all of the following are true:
 - `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and `RUBRIC.md` have
   been re-read at the start of each cycle.
 - All checklist items are marked DONE with proof.
-- The repository is verified private.
+- The repository visibility is verified after the user-authorized public
+  visibility change.
 - `README.md` contains a working CI badge for `.github/workflows/ci.yml`.
 - `.github/dependabot.yml` configures GitHub Actions and Python dependency
   updates.

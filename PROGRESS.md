@@ -408,3 +408,88 @@
     the goal.
 - After this state update is committed, pushed, and CI-verified, the active
   thread goal should be marked blocked under the strict blocked-audit rule.
+
+## 2026-07-04 Cycle 7: Public Visibility Authorization And Branch Protection
+
+### State Re-Read
+
+- Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
+  `RUBRIC.md` at the start of the cycle.
+- Re-read applicable GitHub and commit workflow instructions.
+- Checked `git status --short --branch`:
+  - clean and synchronized before this state update.
+
+### User Authorization
+
+- User explicitly authorized making the repository public:
+  - `you can just make the repo public`.
+- This supersedes the earlier private-repository constraint for the purpose of
+  completing branch protection.
+
+### Visibility Change
+
+- Ran:
+  - `gh repo edit lamb356/photonic-bench --visibility public
+    --accept-visibility-change-consequences`.
+- Result:
+  - command succeeded.
+- Verified with:
+  - `gh repo view lamb356/photonic-bench --json
+    isPrivate,visibility,defaultBranchRef,nameWithOwner,url`.
+- Result:
+  - `visibility`: `PUBLIC`;
+  - `isPrivate`: `false`;
+  - default branch: `master`.
+
+### Branch Protection
+
+- Ran `gh api --method PUT
+  repos/lamb356/photonic-bench/branches/master/protection` with:
+  - strict required status checks enabled;
+  - required context `Ruff, package, and pytest`;
+  - force pushes disabled;
+  - deletions disabled.
+- Result:
+  - command succeeded.
+- Verified with `gh api
+  repos/lamb356/photonic-bench/branches/master/protection`:
+  - required status checks are strict;
+  - contexts include `Ruff, package, and pytest`;
+  - check maps to GitHub Actions app ID `15368`;
+  - force pushes are disabled;
+  - deletions are disabled.
+- Verified with `gh api
+  repos/lamb356/photonic-bench/branches/master/protection/required_status_checks`:
+  - `strict`: `true`;
+  - context: `Ruff, package, and pytest`.
+
+### Final Verification Inputs
+
+- Ran `gh run view 28695065125 --repo lamb356/photonic-bench --json
+  conclusion,url,jobs`:
+  - conclusion: success;
+  - job `Ruff, package, and pytest`: success;
+  - steps `Run Ruff`, `Build package`, and `Run pytest`: success.
+- Ran `gh api repos/lamb356/photonic-bench/actions/workflows/ci.yml`:
+  - workflow `CI` is active;
+  - workflow path is `.github/workflows/ci.yml`;
+  - badge URL is
+    `https://github.com/lamb356/photonic-bench/workflows/CI/badge.svg`.
+- Ran unauthenticated public badge fetch:
+  - `https://github.com/lamb356/photonic-bench/workflows/CI/badge.svg?branch=master`;
+  - returned HTTP 200 with SVG content.
+- Ran local assertions:
+  - workflow contains Ruff, package build, and pytest;
+  - Dependabot contains `github-actions` and `pip` ecosystems;
+  - README contains the CI badge.
+
+### Closeout Status
+
+- All original automation work is complete.
+- The prior branch-protection blocker is resolved by user-authorized public
+  repository visibility.
+- Remaining work:
+  - commit and push this state-file closeout;
+  - verify the CI run triggered by that final state-only commit;
+  - mark the active goal complete if final evidence still proves every
+    requirement.

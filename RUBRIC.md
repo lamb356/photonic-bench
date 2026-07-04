@@ -3,11 +3,13 @@
 Use this rubric for checklist completion decisions and the mandatory Hostile
 Senior Reviewer critique.
 
-## Repository Privacy
+## Repository Visibility
 
-- The repository remains private.
-- Visibility is verified before and after remote changes.
-- No command changes visibility unless explicitly requested by the user.
+- Original private visibility is not changed unless explicitly requested by the
+  user.
+- If the user authorizes public visibility, the public state is verified before
+  completing branch protection.
+- Visibility is verified after remote changes.
 
 ## CI Badge Quality
 

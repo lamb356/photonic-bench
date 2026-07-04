@@ -14,12 +14,13 @@
 - Latest pushed automation-hardening commit:
   - `0829c96924f7dcf6ba0d177c696c2c242304125d`
 - Latest verified CI run for this phase:
-  - `28694933630`
-  - URL: `https://github.com/lamb356/photonic-bench/actions/runs/28694933630`
+  - `28695065125`
+  - URL: `https://github.com/lamb356/photonic-bench/actions/runs/28695065125`
   - result: passed
   - required status check context candidate: `Ruff, package, and pytest`
 - Repository visibility:
-  - `PRIVATE`, verified with `gh repo view`.
+  - `PUBLIC`, verified with `gh repo view` after explicit user authorization
+    to make the repository public.
 - Existing CI workflow:
   - `.github/workflows/ci.yml`
   - workflow name: `CI`
@@ -78,12 +79,18 @@
   - The same HTTP 403 blocker repeated again in Cycle 6 for branch protection
     update, rulesets readback, and branch protection readback.
   - Cycle 6 is the third consecutive goal turn with this blocker.
-  - The user explicitly required the repository to remain private, so making it
-    public is not an allowed workaround.
+  - User then explicitly authorized making the repository public.
+- Branch protection final state:
+  - `master` protection is enabled.
+  - Required status checks are strict.
+  - Required context is `Ruff, package, and pytest`.
+  - Force pushes are disabled.
+  - Deletions are disabled.
 
 ## Constraints
 
-- Do not change repository visibility to public.
+- Repository visibility was changed to public only after explicit user
+  authorization.
 - Use `gh` to configure and verify branch protection.
 - Do not mark checklist items DONE until implementation and verification proof
   are recorded.

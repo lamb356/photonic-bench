@@ -142,7 +142,7 @@ Status key:
 
 ## Task 5: Branch Protection
 
-- [ ] BLOCKED: Enable and verify `master` branch protection.
+- [x] DONE: Enable and verify `master` branch protection.
   - Done when:
     - `gh` is used to configure branch protection on `master`.
     - Required status checks are enabled.
@@ -151,7 +151,8 @@ Status key:
     - Branch protection requires the branch to be up to date before merging.
     - Force pushes and deletions are disabled.
     - `gh` verifies the resulting protection rule.
-    - Repository visibility remains private.
+    - Repository visibility is verified after the user-authorized public
+      visibility change.
   - Proof:
     - Attempted to configure protection with `gh api --method PUT
       repos/lamb356/photonic-bench/branches/master/protection`.
@@ -177,6 +178,22 @@ Status key:
       calls again in Cycle 6; all returned the same HTTP 403 plan-gate message
       while the repository remained `PRIVATE`.
     - Cycle 6 is the third consecutive goal turn with this same blocker.
+    - User explicitly authorized making the repository public after Cycle 6.
+    - Ran `gh repo edit lamb356/photonic-bench --visibility public
+      --accept-visibility-change-consequences`: succeeded.
+    - Verified with `gh repo view`: repository visibility is `PUBLIC` and
+      `isPrivate` is `false`.
+    - Re-ran `gh api --method PUT
+      repos/lamb356/photonic-bench/branches/master/protection` with strict
+      required status checks for context `Ruff, package, and pytest`: succeeded.
+    - Verified `gh api
+      repos/lamb356/photonic-bench/branches/master/protection` reports:
+      `strict: true`, context `Ruff, package, and pytest`, force pushes
+      disabled, and deletions disabled.
+    - Verified `gh api
+      repos/lamb356/photonic-bench/branches/master/protection/required_status_checks`
+      reports context `Ruff, package, and pytest` with GitHub Actions app ID
+      `15368`.
 
 ## Task 6: Mandatory Hostile Senior Reviewer Critique
 
@@ -218,7 +235,7 @@ Status key:
 
 ## Task 7: Final Closeout
 
-- [ ] BLOCKED: Close state files and final status.
+- [x] DONE: Close state files and final status.
   - Done when:
     - All checklist items are DONE with proof.
     - `CONTEXT.md`, `PROGRESS.md`, `RUBRIC.md`, and `tasks/todo.md` reflect the
@@ -235,3 +252,10 @@ Status key:
     - Cycle 6 repeated the same blocker, satisfying the strict blocked-status
       threshold. The active thread goal should be marked blocked after this
       state update is committed, pushed, and CI-verified.
+    - User then authorized public visibility to unblock branch protection.
+    - Updated state files to record the visibility change, verified public
+      status, verified branch protection, and completed closeout.
+    - Final closeout state update is intentionally state-only; because CI runs
+      on every push to `master`, the post-closeout run is verified after this
+      commit and reported in the final response to avoid an infinite
+      self-referential ledger loop.
