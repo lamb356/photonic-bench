@@ -17,14 +17,19 @@ python -m photonic_bench.cli run examples/weight_stationary_64x64_batch.yaml --r
 python -m photonic_bench.cli run examples/feldmann_2021_photonic_tensor_core_surrogate.yaml --report reports/feldmann_2021_photonic_tensor_core_surrogate.md --json-report reports/feldmann_2021_photonic_tensor_core_surrogate.json
 python -m photonic_bench.cli run examples/pappas_2025_awgr_262tops_surrogate.yaml --report reports/pappas_2025_awgr_262tops_surrogate.md --json-report reports/pappas_2025_awgr_262tops_surrogate.json
 python -m photonic_bench.cli run examples/taichi_2024_chiplet_surrogate.yaml --report reports/taichi_2024_chiplet_surrogate.md --json-report reports/taichi_2024_chiplet_surrogate.json
+python -m photonic_bench.cli run examples/hitop_2025_optical_tensor_processor_surrogate.yaml --report reports/hitop_2025_optical_tensor_processor_surrogate.md --json-report reports/hitop_2025_optical_tensor_processor_surrogate.json
+python -m photonic_bench.cli run examples/lin_2024_tfln_120gops_tensor_core_surrogate.yaml --report reports/lin_2024_tfln_120gops_tensor_core_surrogate.md --json-report reports/lin_2024_tfln_120gops_tensor_core_surrogate.json
+python -m photonic_bench.cli run examples/meng_2025_mrr_otpu_tensor_core_surrogate.yaml --report reports/meng_2025_mrr_otpu_tensor_core_surrogate.md --json-report reports/meng_2025_mrr_otpu_tensor_core_surrogate.json
 python -m photonic_bench.cli transformer-layer examples/transformer_small_sanity.yaml --output-dir reports/transformer_small_sanity --prefix small_transformer
 python -m photonic_bench.cli transformer-layer examples/bert_base_encoder_layer.yaml --output-dir reports/bert_base_encoder_layer --prefix bert_base_layer
 python -m photonic_bench.cli transformer-layer examples/gpt_style_decoder_layer.yaml --output-dir reports/gpt_style_decoder_layer --prefix gpt_decoder_layer
 python -m photonic_bench.cli transformer-model examples/bert_base_12layer_model.yaml --output-dir reports/bert_base_12layer_model --prefix bert_base_12layer
+python -m photonic_bench.cli transformer-model examples/gpt_style_decoder_kv_cache_model.yaml --output-dir reports/gpt_style_decoder_kv_cache_model --prefix gpt_decoder_kv_cache
 python -m photonic_bench.cli run examples/nature_pace_64x64.yaml --report reports/nature_pace_64x64.md --json-report reports/nature_pace_64x64.json
 python -m photonic_bench.cli run examples/nature_pace_64x64.yaml --report reports/nature_pace_64x64_calibrated.md --json-report reports/nature_pace_64x64_calibrated.json --fit-target published-including-lasers --fit-parameter device.dac.energy_pj_per_conversion
 python -m photonic_bench.cli compare reports/matmul_64x64.json reports/nature_pace_64x64.json reports/nature_pace_64x64_calibrated.json reports/xu_11tops_convolution_surrogate.json reports/weight_stationary_64x64_batch.json reports/feldmann_2021_photonic_tensor_core_surrogate.json reports/pappas_2025_awgr_262tops_surrogate.json reports/taichi_2024_chiplet_surrogate.json reports/hitop_2025_optical_tensor_processor_surrogate.json reports/lin_2024_tfln_120gops_tensor_core_surrogate.json reports/meng_2025_mrr_otpu_tensor_core_surrogate.json --report reports/comparison.md
 python -m photonic_bench.cli visualize --reports-dir reports --output reports/visualizer/index.html
+python -m photonic_bench.cli verify-artifacts
 ```
 
 After the commands run, open `reports/matmul_64x64.md` and `reports/nature_pace_64x64.md`.
@@ -59,28 +64,62 @@ and converter bit widths. It is useful for comparing local operational
 intensity and feeds the optional tier model, but it is not a cache simulator,
 NoC router, instruction model, or nonlinear tensor traffic model.
 
-Configs can also include explicit system tiers. Defaults are supplied when the
-section is omitted:
+Configs can also include a named system profile, explicit system tiers, or both.
+Defaults are supplied when the section is omitted:
 
 ```yaml
 system:
+  profile: default
+  memory_timing_mode: overlapped
   sram:
     read_energy_pj_per_byte: 0.02
     write_energy_pj_per_byte: 0.02
     bandwidth_bytes_per_ns: 1024
+  intermediate:
+    read_energy_pj_per_byte: 0.2
+    write_energy_pj_per_byte: 0.2
+    bandwidth_bytes_per_ns: 256
   off_chip:
     read_energy_pj_per_byte: 10.0
     write_energy_pj_per_byte: 10.0
     bandwidth_bytes_per_ns: 16
 ```
 
+Named profiles are local modeling presets, not measured hardware claims:
+
+| Profile | Intent |
+| --- | --- |
+| `default` | SRAM plus intermediate/cache plus generic DDR-style off-chip defaults. |
+| `on_chip_sram` | Keeps modeled converter-interface traffic on SRAM by setting intermediate and off-chip read/write fractions to zero. |
+| `hbm` | Uses an intermediate/cache tier plus a higher-bandwidth, lower-energy off-chip tier for HBM-style sensitivity checks. |
+| `ddr` | Uses the generic DDR-class off-chip tier with an intermediate/cache tier. |
+| `pcie_attached` | Uses a lower-bandwidth, higher-energy host/PCIe-attached tier and serialized memory timing. |
+
+Profile selection can be combined with tier overrides:
+
+```yaml
+system:
+  profile: hbm
+  memory_timing_mode: serialized
+  off_chip:
+    bandwidth_bytes_per_ns: 256
+    read_fraction: 0.5
+```
+
 Each tier can also set `read_fraction` and `write_fraction` between `0` and `1`.
-Reports expose `local_model.system` with SRAM/off-chip read bytes, write bytes,
-movement energy, transfer time, total movement energy, total system energy,
-system energy per MAC/op, movement-energy share, and bandwidth-limited
-throughput. These are local PhotonicBench estimates and remain separate from
-paper-reported values and from the older `local_model.energy.total_pj`
-compute/conversion estimate.
+Reports expose `local_model.system` with SRAM/intermediate/off-chip read bytes,
+write bytes, movement energy, transfer time, total movement energy, total system
+energy, system energy per MAC/op, movement-energy share, selected profile
+metadata, memory timing mode, and bandwidth-limited throughput. `overlapped`
+timing uses the slowest tier transfer; `serialized` timing sums the tier
+transfer times for a conservative contention-style bound. These are local
+PhotonicBench estimates and remain separate from paper-reported values and from
+the older `local_model.energy.total_pj` compute/conversion estimate.
+
+The checked examples include a profile sensitivity preset built from identical
+64x64 workloads under `on_chip_sram`, `hbm`, `ddr`, and `pcie_attached`.
+Open the visualizer and choose `System profile sensitivity` from the comparison
+preset list to compare the movement-energy and bandwidth-limited effects.
 
 Timing now reports both single-operation latency and batch/pipeline behavior. With a pipeline cycle time, batch latency is:
 
@@ -149,8 +188,8 @@ The dense transformer MAC formulas are:
 
 ```text
 QKV projection MACs       = 3 * B * S * H * H
-Attention scores MACs    = B * heads * S * S * head_dim
-Attention-value MACs     = B * heads * S * S * head_dim
+Attention scores MACs    = B * heads * S_query * S_context * head_dim
+Attention-value MACs     = B * heads * S_query * S_context * head_dim
 MLP up-projection MACs   = B * S * H * intermediate
 MLP down-projection MACs = B * S * intermediate * H
 Layer equivalent ops     = 2 * summed MACs
@@ -161,10 +200,14 @@ weight-stationary settings. Attention-score and attention-value cards treat the
 right operand as activation data, so cross-batch weight-stationary reuse is
 disabled for those cards.
 
-The helper intentionally excludes softmax, layer norm, bias adds, activation
-functions, dropout, masking, KV-cache incremental decoding, causal triangular
-shortcuts, and non-matmul tensor traffic. A `decoder` layer label is preserved
-in assumptions but does not halve dense attention MAC counts.
+For ordinary layer helpers, `S_query` and `S_context` are both the configured
+`sequence_length`. Transformer-model KV-cache mode can explicitly set decoder
+representative layers to `S_query = sequence_length` and
+`S_context = kv_cache.context_length + sequence_length`; this is visible in the
+layer JSON as `attention_context_length` and `kv_cache_enabled`. The helper
+still excludes softmax, layer norm, bias adds, activation functions, dropout,
+masking, causal triangular shortcuts, and non-matmul tensor traffic unless a
+full-model option explicitly accounts for the tensor traffic.
 
 Transformer-layer configs may include provenance, but `published_calibration` is
 not accepted for this helper yet; decomposed per-matmul cards remain local-model
@@ -177,6 +220,7 @@ instead of only a single representative layer:
 
 ```powershell
 python -m photonic_bench.cli transformer-model examples/bert_base_12layer_model.yaml --output-dir reports/bert_base_12layer_model --prefix bert_base_12layer
+python -m photonic_bench.cli transformer-model examples/gpt_style_decoder_kv_cache_model.yaml --output-dir reports/gpt_style_decoder_kv_cache_model --prefix gpt_decoder_kv_cache
 ```
 
 Transformer-model YAML uses a `transformer_model.layers` list. Each entry uses
@@ -195,6 +239,21 @@ transformer_model:
       num_heads: 12
       head_dim: 64
       mlp_intermediate_size: 3072
+  embeddings:
+    enabled: true
+    vocab_size: 30522
+    bits_per_element: 16
+  output_projection:
+    enabled: true
+    vocab_size: 30522
+    tied_to_token_embedding: true
+  activation_memory:
+    enabled: true
+    bits_per_element: 16
+  pipeline_overlap:
+    enabled: true
+    overlap_fraction: 0.25
+    label: local_layer_overlap_assumption
 ```
 
 The command generates one representative transformer-layer artifact tree per
@@ -205,10 +264,23 @@ fields are recomputed from model totals. The summary links back to
 `layers[].json_report` and `layers[].matmul_reports` so the model total remains
 auditable through decomposed layer/card artifacts.
 
-This is serial full-model accounting. It does not claim a fused scheduler,
-operator overlap, activation lifetime, KV-cache reuse, embeddings, poolers,
-classification heads, or non-matmul operators unless those costs are explicitly
-present in lower-level artifacts.
+Transformer-model summaries can add explicit local realism assumptions beyond
+serial layer matmul aggregation:
+
+- `embeddings`: records token and optional position embedding tensor-read bytes.
+- `output_projection`: models a vocabulary projection as an additional local
+  matmul and adds its MACs, energy, interface traffic, system movement, and
+  timing to model totals.
+- `activation_memory`: reports estimated hidden-state read/write bytes
+  separately from optical matmul interface traffic.
+- `kv_cache`: for decoder incremental inference, increases dense attention
+  score/value context length and reports KV-cache read/write bytes.
+- `pipeline_overlap`: preserves serial baseline timing and adds separate
+  overlap-adjusted latency/throughput fields from a named local assumption.
+
+These fields are local PhotonicBench assumptions. They are not hidden scheduler
+behavior, paper-measured behavior, tokenizer work, poolers, losses, or a full
+memory hierarchy.
 
 ### Common Transformer-Layer Validation Failures
 
@@ -263,7 +335,7 @@ The Xu 2021 example uses the Nature paper "11 TOPS photonic convolutional accele
 
 Because that source is a vector convolution accelerator, PhotonicBench labels the local workload as a dense matmul surrogate (`m=1`, `k=250000`, `n=10`). The card carries the paper numbers as published references, not as local model results.
 
-This repository also includes six additional source-backed published-card
+This repository also includes ten additional source-backed published-card
 surrogates:
 
 - Feldmann et al., "Parallel convolutional processing using an integrated
@@ -296,10 +368,37 @@ surrogates:
   Science & Applications 14, 27 (2025), DOI: `10.1038/s41377-024-01706-9`.
   The card records 34.04 TOPS/mm2 computing density and 96.41% MNIST accuracy
   while using a 16x16 dense local surrogate.
+- Zhang et al., "Direct tensor processing with coherent light", Nature
+  Photonics 20, 102-108 (2026), DOI: `10.1038/s41566-025-01799-7`. The card
+  records POMMM matrix-size, numerical-error, code, and dataset references
+  while using the reported 20x20 matrix-matrix demonstration as a dense local
+  surrogate.
+- Chen et al., "FSR-GeMM: A Scalable FSR-Parallel Photonic Accelerator for
+  Real-Valued GeMM Computing", DATE 2026, DOI:
+  `10.23919/DATE69613.2026.11539161`. The card records relative FSR-GeMM area,
+  energy, and speedup metrics while using a 64x64 dense GEMM surrogate.
+- Ning et al., "Hardware-efficient photonic tensor core: accelerating deep
+  neural networks with structured compression", Optica 12, 1079-1089 (2025),
+  DOI: `10.1364/OPTICA.559604`. The card records projected power efficiency,
+  computing density, parameter reduction, and co-design improvement metrics
+  while using a 16x16 dense local surrogate.
+- Kovaios et al., "On-chip 1 TOPS Hyperdimensional Photonic Tensor Core Using
+  a WDM Silicon Photonic Coherent Crossbar", Journal of Lightwave Technology
+  43, 8799-8805 (2025), DOI: `10.1109/JLT.2025.3589088`. The card records the
+  0.96 TOPS throughput claim, 4x2x1 primitive shape, average error, data-rate,
+  and Iris classification metrics while using the demonstrated primitive shape
+  as the local workload.
 
 ## Current Boundary
 
 This repo now carries multiple source-backed cards, but it still does not claim independent device-level reproduction of the source papers. Published calibration/reference tables are paper-derived; component-model tables remain transparent local assumption sets.
+
+Published cards can also carry a Source Quality Index under
+`published_reference.source_quality`. The index records the DOI/reference,
+paper-reported metric types, local surrogate type, coverage for throughput,
+energy, accuracy, area, and precision, and a conservative `A` through `D`
+confidence grade. This table is an audit aid only; it does not change local
+model math or promote a surrogate card into a measured reproduction.
 
 ## Machine-Readable JSON
 
@@ -315,10 +414,11 @@ The JSON card includes:
 - benchmark metadata and workload dimensions
 - model input assumptions
 - local component-model energy, timing, noise, and conversion-count outputs
-- optional published reference data and provenance
+- optional published reference data, source quality, and provenance
 - a `calibration_fit` field reserved for fitted calibration results
 
-Published reference values remain under `published_reference`; local estimates remain under `local_model`.
+Published reference values and source-quality metadata remain under
+`published_reference`; local estimates remain under `local_model`.
 
 Transformer-layer aggregate JSON uses the separate schema version
 `photonic-bench-transformer-layer-report-v1` and is written by default as
@@ -333,8 +433,9 @@ Transformer-model aggregate JSON uses schema version
 `photonic-bench-transformer-model-report-v1` and is written by default as
 `<prefix>_model_summary.json` when running `transformer-model`. It includes
 count-weighted workload totals, energy, system movement, serial timing,
-non-additive noise diagnostics, layer summary references, and decomposed matmul
-report references.
+non-additive noise diagnostics, activation tensor traffic, model-component
+assumption details, optional overlap-adjusted timing fields, layer summary
+references, and decomposed matmul report references.
 
 Schema documentation:
 
@@ -402,12 +503,14 @@ discovery so regenerating the visualizer does not index its own payload copies.
 
 The Detail view lazy-loads the selected artifact payload. Per-matmul cards show
 workload shape, local energy components, multi-tier system movement, timing,
-published-reference separation, provenance, and assumptions. Transformer-layer
+published-reference separation, source-quality index when present, provenance,
+and assumptions. Transformer-layer
 summaries show layer shape, aggregate workload totals, local energy, interface
 traffic, aggregate system movement, serial timing, non-additive noise
 diagnostics, aggregate semantics, formula audit rows, per-matmul breakdowns,
 assumptions, exclusions, and provenance. Transformer-model summaries show
-count-weighted model totals, system movement, serial timing, layer-spec
+count-weighted model totals, system movement, serial and overlap-adjusted
+timing, model components, activation/KV-cache tensor traffic, layer-spec
 references, aggregate semantics, assumptions, exclusions, and provenance.
 
 The Compare view lets you select multiple artifacts from the rail, pin one as
@@ -452,14 +555,15 @@ grouped best-metric analysis, provenance status, and modeling-boundary notes.
 `Download Markdown` and `Copy Markdown` produce a human-readable table suitable
 for reviews or notes.
 
-The visualizer also has a limited external-report loading foundation. Use
-`Load external JSON reports` to select one or more local PhotonicBench JSON
-files in the browser. Files are parsed client-side, validated against the
-supported per-matmul, transformer-layer, or transformer-model schema shape, and
-added to the current session as `external/...` artifacts. This does not upload
-files, write into `reports/`, or change the generated static index. Malformed
-JSON, unsupported `schema_version` values, and missing required fields are
-reported inline while valid generated artifacts continue to work.
+The visualizer can load external local JSON reports. Use
+`Load external JSON reports` to select one or more PhotonicBench JSON files in
+the browser. Files are parsed client-side, validated against the supported
+per-matmul, transformer-layer, or transformer-model schema shape, and added to
+the current session as `external/...` artifacts. This does not upload files,
+write into `reports/`, or change the generated static index. The import panel
+keeps visible per-file diagnostics: detected schema/version, accepted status,
+missing required fields, unsupported schema reasons, and unexpected top-level
+field warnings.
 
 Source layout for the visualizer:
 
@@ -485,6 +589,23 @@ Markdown exports, checks representative transformer and per-matmul detail flows,
 pins a comparison reference, and verifies delta/ratio comparison labels while
 failing on page or console errors.
 
+## Artifact Freshness
+
+Checked-in reports and visualizer outputs can be verified without mutating the
+working tree:
+
+```powershell
+python -m photonic_bench.cli verify-artifacts
+```
+
+The command regenerates the checked example artifact set into a temporary
+directory, copies `reports/visualizer_presets.json` as a visualizer input, and
+byte-compares the expected outputs against `reports/`. It covers per-card
+Markdown/JSON reports, transformer-layer and transformer-model artifacts,
+`reports/comparison.md`, and the static `reports/visualizer/` bundle. Failures
+list missing, unexpected, and stale paths with SHA-256 prefixes. CI runs this
+command after Ruff, package build, and pytest.
+
 ## MLCommons-Style Proposal Draft
 
 PhotonicBench now includes initial proposal foundation artifacts for a future
@@ -507,15 +628,16 @@ references, calibration fits, and future measured-system submissions.
 Use the `compare` command to generate a Markdown table from JSON cards:
 
 ```powershell
-python -m photonic_bench.cli compare reports/matmul_64x64.json reports/nature_pace_64x64.json reports/nature_pace_64x64_calibrated.json reports/xu_11tops_convolution_surrogate.json reports/weight_stationary_64x64_batch.json reports/feldmann_2021_photonic_tensor_core_surrogate.json reports/pappas_2025_awgr_262tops_surrogate.json reports/taichi_2024_chiplet_surrogate.json --report reports/comparison.md
+python -m photonic_bench.cli compare reports/matmul_64x64.json reports/nature_pace_64x64.json reports/nature_pace_64x64_calibrated.json reports/xu_11tops_convolution_surrogate.json reports/weight_stationary_64x64_batch.json reports/feldmann_2021_photonic_tensor_core_surrogate.json reports/pappas_2025_awgr_262tops_surrogate.json reports/taichi_2024_chiplet_surrogate.json reports/hitop_2025_optical_tensor_processor_surrogate.json reports/lin_2024_tfln_120gops_tensor_core_surrogate.json reports/meng_2025_mrr_otpu_tensor_core_surrogate.json --report reports/comparison.md
 ```
 
 The comparison table is generated from `local_model`, `published_reference`,
 `calibration_fit`, and `provenance` fields in JSON. It includes local energy,
 system energy, movement energy, movement share, interface bytes, operational
 intensity, timing, throughput, bandwidth-limited throughput, and selected
-published metrics. Missing optional paper metrics are rendered as `n/a` instead
-of guessed.
+published metrics. For published cards it also shows source grade, surrogate
+type, and key-dimension coverage. Missing optional paper or quality fields are
+rendered as `n/a` instead of guessed.
 
 ## Calibration Fitting
 

@@ -280,3 +280,86 @@ def test_meng_2025_mrr_otpu_tensor_core_card_is_source_backed() -> None:
     assert "not an exact multidomain convolution schedule" in (
         metrics["surrogate_mapping"]
     )
+
+
+def test_zhang_2026_pommm_card_is_source_backed() -> None:
+    config = load_config(Path("examples/zhang_2026_pommm_surrogate.yaml"))
+    result = evaluate(config)
+    payload = report_to_dict(result)
+
+    assert config.provenance is not None
+    assert config.provenance.doi == "10.1038/s41566-025-01799-7"
+    assert config.published_calibration is not None
+    assert result.macs == 8000
+    assert result.equivalent_ops == 16_000
+    metrics = payload["published_reference"]["reported"]["additional_metrics"]
+    assert metrics["demonstrated_nonnegative_matrix_size"] == 20
+    assert metrics["demonstrated_real_valued_matrix_size"] == 10
+    assert metrics["random_matrix_pairs_per_size"] == 50
+    assert metrics["data_doi"] == "10.6084/m9.figshare.30173512"
+    assert "not a full optical-field propagation" in metrics["surrogate_mapping"]
+
+
+def test_chen_2026_fsr_gemm_card_is_source_backed() -> None:
+    config = load_config(Path("examples/chen_2026_fsr_gemm_surrogate.yaml"))
+    result = evaluate(config)
+    payload = report_to_dict(result)
+
+    assert config.provenance is not None
+    assert config.provenance.doi == "10.23919/DATE69613.2026.11539161"
+    assert config.published_calibration is not None
+    assert result.macs == 262_144
+    assert result.equivalent_ops == 524_288
+    metrics = payload["published_reference"]["reported"]["additional_metrics"]
+    assert metrics["area_efficiency_improvement_x"] == pytest.approx(57)
+    assert metrics["energy_efficiency_gain_x"] == pytest.approx(13.8)
+    assert metrics["energy_reduction_percent_vs_mrr"] == pytest.approx(70)
+    assert metrics["speedup_vs_leading_photonic_gemm_x"] == pytest.approx(21)
+    assert metrics["supports_dynamic_real_valued_operands"] is True
+    assert "not the paper's full FSR-parallel hardware schedule" in (
+        metrics["surrogate_mapping"]
+    )
+
+
+def test_ning_2025_cirptc_card_is_source_backed() -> None:
+    config = load_config(Path("examples/ning_2025_cirptc_surrogate.yaml"))
+    result = evaluate(config)
+    payload = report_to_dict(result)
+
+    assert config.provenance is not None
+    assert config.provenance.doi == "10.1364/OPTICA.559604"
+    assert config.published_calibration is not None
+    assert result.macs == 4096
+    assert result.equivalent_ops == 8192
+    metrics = payload["published_reference"]["reported"]["additional_metrics"]
+    assert metrics["projected_power_efficiency_tops_per_watt"] == pytest.approx(47.94)
+    assert metrics["computational_density_tops_per_mm2"] == pytest.approx(5.84)
+    assert metrics["trainable_parameter_reduction_percent"] == pytest.approx(74.91)
+    assert metrics["hardware_software_codesign_improvement_x"] == pytest.approx(6.87)
+    assert "does not encode the block-circulant training" in (
+        metrics["surrogate_mapping"]
+    )
+
+
+def test_kovaios_2025_wdm_tensor_core_card_is_source_backed() -> None:
+    config = load_config(
+        Path("examples/kovaios_2025_wdm_1tops_tensor_core_surrogate.yaml")
+    )
+    result = evaluate(config)
+    payload = report_to_dict(result)
+
+    assert config.provenance is not None
+    assert config.provenance.doi == "10.1109/JLT.2025.3589088"
+    assert config.published_calibration is not None
+    assert config.published_calibration.reported_tops == pytest.approx(0.96)
+    assert result.macs == 8
+    assert result.equivalent_ops == 16
+    metrics = payload["published_reference"]["reported"]["additional_metrics"]
+    assert metrics["tensor_vector_unit_shape"] == "4x2x1"
+    assert metrics["average_error_percent"] == pytest.approx(3.9)
+    assert metrics["eam_bandwidth_ghz"] == pytest.approx(56)
+    assert metrics["iris_accuracy_percent_4x10_to_4x30_gbd"] == pytest.approx(93.3)
+    assert metrics["iris_accuracy_percent_4x60_gbd"] == pytest.approx(83.3)
+    assert "not the full hyperdimensional scaling analysis" in (
+        metrics["surrogate_mapping"]
+    )

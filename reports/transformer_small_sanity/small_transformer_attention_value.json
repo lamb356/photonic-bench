@@ -2,7 +2,7 @@
   "schema_version": "photonic-bench-report-v1",
   "benchmark": {
     "name": "Small transformer sanity layer - Attention-value",
-    "description": "Tiny dense transformer layer shape for exact MAC-count sanity checks. This is a synthetic helper example, not a published accelerator calibration card. Generated decomposed card for Attention-value. Formula: B * heads * S * S * head_dim. Matmul shape is 4 x 4 times 4 x 4; operation multiplicity is 4. The right operand is activation data for attention, so cross-batch weight-stationary reuse is disabled in this generated card."
+    "description": "Tiny dense transformer layer shape for exact MAC-count sanity checks. This is a synthetic helper example, not a published accelerator calibration card. Generated decomposed card for Attention-value. Formula: B * heads * S_query * S_context * head_dim. Matmul shape is 4 x 4 times 4 x 4; operation multiplicity is 4. The right operand is activation data for attention, so cross-batch weight-stationary reuse is disabled in this generated card."
   },
   "workload": {
     "type": "matmul",
@@ -48,10 +48,20 @@
       }
     },
     "system": {
+      "profile": "default",
+      "profile_overrides": [],
+      "memory_timing_mode": "overlapped",
       "sram": {
         "read_energy_pj_per_byte": 0.02,
         "write_energy_pj_per_byte": 0.02,
         "bandwidth_bytes_per_ns": 1024.0,
+        "read_fraction": 1.0,
+        "write_fraction": 1.0
+      },
+      "intermediate": {
+        "read_energy_pj_per_byte": 0.2,
+        "write_energy_pj_per_byte": 0.2,
+        "bandwidth_bytes_per_ns": 256.0,
         "read_fraction": 1.0,
         "write_fraction": 1.0
       },
@@ -91,6 +101,9 @@
       "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
     },
     "system": {
+      "profile": "default",
+      "profile_overrides": [],
+      "memory_timing_mode": "overlapped",
       "tiers": {
         "sram": {
           "name": "sram",
@@ -102,6 +115,19 @@
           "total_energy_pj": 3.84,
           "bandwidth_bytes_per_ns": 1024.0,
           "transfer_time_ns": 0.1875,
+          "read_fraction": 1.0,
+          "write_fraction": 1.0
+        },
+        "intermediate": {
+          "name": "intermediate",
+          "read_bytes": 128.0,
+          "write_bytes": 64.0,
+          "total_bytes": 192.0,
+          "read_energy_pj": 25.6,
+          "write_energy_pj": 12.8,
+          "total_energy_pj": 38.400000000000006,
+          "bandwidth_bytes_per_ns": 256.0,
+          "transfer_time_ns": 0.75,
           "read_fraction": 1.0,
           "write_fraction": 1.0
         },
@@ -120,16 +146,18 @@
         }
       },
       "local_compute_and_conversion_energy_pj": 69.632,
-      "total_movement_energy_pj": 1923.84,
-      "total_system_energy_pj": 1993.472,
-      "system_energy_per_mac_pj": 7.787,
-      "system_energy_per_op_pj": 3.8935,
-      "movement_energy_share": 0.9650699884422755,
+      "total_movement_energy_pj": 1962.24,
+      "total_system_energy_pj": 2031.872,
+      "system_energy_per_mac_pj": 7.937,
+      "system_energy_per_op_pj": 3.9685,
+      "movement_energy_share": 0.9657301247322666,
       "max_transfer_time_ns": 12.0,
+      "serial_transfer_time_ns": 12.9375,
+      "effective_transfer_time_ns": 12.0,
       "bandwidth_limited_batch_latency_ns": 12.0,
       "bandwidth_limited_equivalent_ops_per_second": 42666666666.666664,
       "bandwidth_limited_tier": "off_chip",
-      "note": "System movement energy is a local estimate over explicit SRAM and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
+      "note": "System movement energy is a local estimate over explicit SRAM, intermediate, and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
     },
     "energy": {
       "optical_compute_pj": 0.128,
@@ -176,9 +204,9 @@
     "Dense full-sequence transformer accounting is used.",
     "This tiny shape is intended for manual MAC-count verification.",
     "Transformer operation: Attention-value.",
-    "Transformer formula: B * heads * S * S * head_dim.",
+    "Transformer formula: B * heads * S_query * S_context * head_dim.",
     "Transformer batch/head multiplicity is represented by the generated card's execution.batch_size.",
-    "Layer shape: batch=2, sequence=4, hidden=8, heads=2, head_dim=4, intermediate=16.",
+    "Layer shape: batch=2, sequence=4, hidden=8, heads=2, head_dim=4, attention_context=4, intermediate=16.",
     "Dense attention accounting is used; decoder/causal labels do not halve attention MAC counts.",
     "Non-matmul costs such as softmax, layer norm, bias adds, activations, dropout, masking, KV-cache incremental decoding, and non-matmul memory traffic are excluded.",
     "The benchmark models 4 operation(s) per batch.",
@@ -186,7 +214,7 @@
     "Weight DAC conversions are counted every 1 operation(s).",
     "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
     "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.",
-    "The multi-tier system model adds explicit SRAM and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
+    "The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
   ],
   "provenance": null
 }

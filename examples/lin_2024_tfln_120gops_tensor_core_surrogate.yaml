@@ -50,6 +50,22 @@ published_calibration:
     image_pixels: 12544
     physical_components_note: two TFLN modulators, III-V laser, and charge-integration photoreceiver
     surrogate_mapping: m=16, k=16, n=16 is a dense local surrogate for the large fan-in TFLN tensor core; not an exact time-domain integration schedule.
+source_quality:
+  reported_metrics:
+    - throughput
+    - weight_update_speed
+    - fan_in
+    - architecture
+  local_surrogate_type: dense_tfln_fan_in_surrogate
+  coverage:
+    throughput: reported
+    energy: not_reported
+    accuracy: not_reported
+    area: not_reported
+    precision: not_reported
+  confidence_grade: C
+  notes:
+    - Source-backed speed and fan-in evidence are present, but energy and task-quality coverage are not encoded in this card.
 assumptions:
   - Source reports 120 GOPS computational speed and 60 GHz weight update speed; this card stores those values as published references.
   - Local workload and component energy values are PhotonicBench assumptions selected for comparable dense-card analysis.

@@ -11,6 +11,7 @@
     "workload",
     "aggregate_semantics",
     "local_model",
+    "model_components",
     "layers",
     "published_reference",
     "calibration_fit",
@@ -62,6 +63,7 @@
         "layer_counts",
         "energy",
         "memory_traffic",
+        "activation_memory_traffic",
         "system",
         "timing",
         "noise"
@@ -71,6 +73,7 @@
         "layer_counts": {"type": "string"},
         "energy": {"type": "string"},
         "memory_traffic": {"type": "string"},
+        "activation_memory_traffic": {"type": "string"},
         "system": {"type": "string"},
         "timing": {"type": "string"},
         "noise": {"type": "string"}
@@ -82,6 +85,7 @@
       "required": [
         "conversion_counts",
         "memory_traffic",
+        "activation_memory_traffic",
         "system",
         "energy",
         "timing",
@@ -90,12 +94,14 @@
       "properties": {
         "conversion_counts": {"$ref": "#/$defs/conversionCounts"},
         "memory_traffic": {"$ref": "#/$defs/memoryTraffic"},
+        "activation_memory_traffic": {"$ref": "#/$defs/activationMemoryTraffic"},
         "system": {"$ref": "#/$defs/modelSystem"},
         "energy": {"$ref": "#/$defs/energy"},
         "timing": {"$ref": "#/$defs/modelTiming"},
         "noise": {"$ref": "#/$defs/modelNoise"}
       }
     },
+    "model_components": {"$ref": "#/$defs/modelComponents"},
     "layers": {
       "type": "array",
       "minItems": 1,
@@ -182,10 +188,70 @@
         "peripheral_share": {"type": "number", "minimum": 0}
       }
     },
+    "activationMemoryTraffic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "bits_per_element",
+        "embedding_read_bytes",
+        "layer_input_read_bytes",
+        "layer_output_write_bytes",
+        "attention_score_bytes",
+        "mlp_intermediate_bytes",
+        "kv_cache_read_bytes",
+        "kv_cache_write_bytes",
+        "total_tensor_read_bytes",
+        "total_tensor_write_bytes",
+        "total_tensor_bytes",
+        "note"
+      ],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "bits_per_element": {"type": "integer", "minimum": 1},
+        "embedding_read_bytes": {"type": "integer", "minimum": 0},
+        "layer_input_read_bytes": {"type": "integer", "minimum": 0},
+        "layer_output_write_bytes": {"type": "integer", "minimum": 0},
+        "attention_score_bytes": {"type": "integer", "minimum": 0},
+        "mlp_intermediate_bytes": {"type": "integer", "minimum": 0},
+        "kv_cache_read_bytes": {"type": "integer", "minimum": 0},
+        "kv_cache_write_bytes": {"type": "integer", "minimum": 0},
+        "total_tensor_read_bytes": {"type": "integer", "minimum": 0},
+        "total_tensor_write_bytes": {"type": "integer", "minimum": 0},
+        "total_tensor_bytes": {"type": "integer", "minimum": 0},
+        "note": {"type": "string"}
+      }
+    },
+    "modelComponents": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "embeddings",
+        "output_projection",
+        "activation_memory",
+        "kv_cache",
+        "pipeline_overlap",
+        "notes"
+      ],
+      "properties": {
+        "embeddings": {"type": "object"},
+        "output_projection": {"type": ["object", "null"]},
+        "activation_memory": {"type": "object"},
+        "kv_cache": {"type": "object"},
+        "pipeline_overlap": {"type": "object"},
+        "notes": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
     "modelSystem": {
       "type": "object",
       "additionalProperties": false,
       "required": [
+        "profile",
+        "profile_overrides",
+        "memory_timing_mode",
         "local_compute_and_conversion_energy_pj",
         "total_movement_energy_pj",
         "total_system_energy_pj",
@@ -201,15 +267,22 @@
         "note"
       ],
       "properties": {
+        "profile": {"type": "string"},
+        "profile_overrides": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "memory_timing_mode": {"enum": ["overlapped", "serialized"]},
         "local_compute_and_conversion_energy_pj": {"type": "number", "minimum": 0},
         "total_movement_energy_pj": {"type": "number", "minimum": 0},
         "total_system_energy_pj": {"type": "number", "minimum": 0},
         "tiers": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["sram", "off_chip"],
+          "required": ["sram", "intermediate", "off_chip"],
           "properties": {
             "sram": {"$ref": "#/$defs/modelSystemTier"},
+            "intermediate": {"$ref": "#/$defs/modelSystemTier"},
             "off_chip": {"$ref": "#/$defs/modelSystemTier"}
           }
         },
@@ -265,7 +338,14 @@
         "serial_batch_latency_ns",
         "serial_effective_macs_per_second",
         "serial_effective_equivalent_ops_per_second",
-        "max_per_layer_serial_batch_latency_ns"
+        "max_per_layer_serial_batch_latency_ns",
+        "schedule_assumption",
+        "overlap_fraction",
+        "overlap_adjusted_batch_latency_ns",
+        "overlap_adjusted_effective_equivalent_ops_per_second",
+        "bandwidth_limited_overlap_adjusted_batch_latency_ns",
+        "bandwidth_limited_overlap_adjusted_equivalent_ops_per_second",
+        "schedule_note"
       ],
       "properties": {
         "timing_model": {"const": "serial_sum_of_weighted_layer_summaries"},
@@ -275,7 +355,23 @@
           "type": "number",
           "minimum": 0
         },
-        "max_per_layer_serial_batch_latency_ns": {"type": "number", "minimum": 0}
+        "max_per_layer_serial_batch_latency_ns": {"type": "number", "minimum": 0},
+        "schedule_assumption": {"type": "string"},
+        "overlap_fraction": {"type": "number", "minimum": 0, "maximum": 1},
+        "overlap_adjusted_batch_latency_ns": {"type": "number", "minimum": 0},
+        "overlap_adjusted_effective_equivalent_ops_per_second": {
+          "type": "number",
+          "minimum": 0
+        },
+        "bandwidth_limited_overlap_adjusted_batch_latency_ns": {
+          "type": "number",
+          "minimum": 0
+        },
+        "bandwidth_limited_overlap_adjusted_equivalent_ops_per_second": {
+          "type": "number",
+          "minimum": 0
+        },
+        "schedule_note": {"type": "string"}
       }
     },
     "modelNoise": {

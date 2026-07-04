@@ -64,6 +64,9 @@ def render_comparison_markdown(
         "Local pJ/op",
         "System total pJ",
         "System pJ/op",
+        "System profile",
+        "Memory timing",
+        "Effective transfer ns",
         "Movement pJ",
         "Movement share",
         "Bandwidth-limited eq ops/s",
@@ -75,6 +78,9 @@ def render_comparison_markdown(
         "Published TOPS/W incl lasers",
         "Published pJ/op incl lasers",
         "Published metrics",
+        "Source grade",
+        "Surrogate type",
+        "Coverage",
     ]
     rows = [_row(card) for card in cards]
     table = _markdown_table(headers, rows)
@@ -100,6 +106,7 @@ def _row(card: ComparisonCard) -> list[str]:
     published = _dict_or_empty(payload.get("published_reference"))
     reported = _dict_or_empty(published.get("reported"))
     derived = _dict_or_empty(published.get("derived_unit_conversions"))
+    source_quality = _dict_or_empty(published.get("source_quality"))
     provenance = _dict_or_empty(payload.get("provenance"))
     local_energy = _dict_or_empty(_get(payload, "local_model", "energy"))
     memory = _dict_or_empty(_get(payload, "local_model", "memory_traffic"))
@@ -116,6 +123,9 @@ def _row(card: ComparisonCard) -> list[str]:
         _fmt(local_energy.get("energy_per_op_pj")),
         _fmt(system.get("total_system_energy_pj")),
         _fmt(system.get("system_energy_per_op_pj")),
+        _fmt(system.get("profile")),
+        _fmt(system.get("memory_timing_mode")),
+        _fmt(system.get("effective_transfer_time_ns")),
         _fmt(system.get("total_movement_energy_pj")),
         _fmt(system.get("movement_energy_share")),
         _fmt(system.get("bandwidth_limited_equivalent_ops_per_second")),
@@ -127,6 +137,9 @@ def _row(card: ComparisonCard) -> list[str]:
         _fmt(reported.get("energy_efficiency_including_lasers_tops_per_watt")),
         _fmt(derived.get("energy_per_op_including_lasers_pj")),
         _published_metrics_label(reported),
+        _fmt(source_quality.get("confidence_grade")),
+        _fmt(source_quality.get("local_surrogate_type")),
+        _coverage_label(_dict_or_empty(source_quality.get("coverage"))),
     ]
 
 
@@ -180,6 +193,12 @@ def _published_metrics_label(reported: dict[str, Any]) -> str:
             selected.append(f"{key}={metrics[key]}")
 
     return "; ".join(selected) if selected else "see JSON"
+
+
+def _coverage_label(coverage: dict[str, Any]) -> str:
+    if not coverage:
+        return "n/a"
+    return "; ".join(f"{key}={value}" for key, value in coverage.items())
 
 
 def _fmt(value: Any) -> str:

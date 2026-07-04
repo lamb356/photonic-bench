@@ -50,6 +50,22 @@ published_calibration:
     multiplexing_dimensions: space-time-wavelength
     dataset_url: https://datadryad.org/dataset/doi:10.5061/dryad.kprr4xhgj
     surrogate_mapping: m=64, k=64, n=64 is a dense local surrogate for HITOP tensor processing; not an exact space-time-wavelength streaming schedule.
+source_quality:
+  reported_metrics:
+    - energy_efficiency
+    - scale
+    - model_size
+    - dataset
+  local_surrogate_type: dense_hypermultiplexed_tensor_surrogate
+  coverage:
+    throughput: derived
+    energy: reported
+    accuracy: not_reported
+    area: not_reported
+    precision: not_reported
+  confidence_grade: C
+  notes:
+    - Useful efficiency and scale evidence, but this card does not encode a single reported TOPS value or exact HITOP streaming schedule.
 assumptions:
   - Source reports HITOP operating at 40 TOPS/W and trillion-operation-per-second scale; PhotonicBench keeps those values as published references.
   - Local timing, converter energy, system tiers, and noise settings are generic PhotonicBench assumptions, not HITOP device extraction.

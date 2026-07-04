@@ -40,3 +40,6 @@ jobs:
 
       - name: Run pytest
         run: python -m pytest
+
+      - name: Verify generated artifacts are fresh
+        run: python -m photonic_bench.cli verify-artifacts

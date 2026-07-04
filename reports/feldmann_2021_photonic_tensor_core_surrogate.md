@@ -27,6 +27,29 @@ These rows are paper-reported targets and direct unit conversions from those tar
 | Surrogate mapping | m=1, k=64, n=16 is a small dense tile surrogate; not an exact convolutional tensor-core dataflow reproduction. |
 
 
+## Source Quality Index
+
+These rows summarize source evidence coverage for this published reference card. They do not turn local surrogate estimates into paper measurements.
+
+| Field | Value |
+| --- | --- |
+| Reported metric types | throughput, bandwidth, architecture |
+| Local surrogate type | dense_convolution_tile_surrogate |
+| Confidence grade | C |
+
+| Dimension | Coverage |
+| --- | --- |
+| Throughput | reported |
+| Energy | not_reported |
+| Accuracy | not_reported |
+| Area | not_reported |
+| Precision | not_reported |
+
+Source-quality notes:
+
+- Source-backed throughput and bandwidth are useful, but energy, precision, area, and accuracy coverage are not encoded in this card.
+
+
 
 ## Workload
 
@@ -75,23 +98,30 @@ simulation.
 ## Multi-Tier System Movement
 
 These rows add an explicit local system movement estimate on top of the
-photonic core/converter model. SRAM and off-chip traffic are cumulative tier
-movements, not published measurements and not a cache simulator.
+photonic core/converter model. SRAM, intermediate, and off-chip traffic are
+cumulative tier movements, not published measurements and not a cache
+simulator.
 
 | Tier | Read bytes | Write bytes | Movement energy | Transfer time | Bandwidth |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | SRAM | 1088 bytes | 16 bytes | 22.080 pJ | 1.078 ns | 1024.000 bytes/ns |
+| Intermediate/cache | 1088 bytes | 16 bytes | 220.800 pJ | 4.312 ns | 256.000 bytes/ns |
 | Off-chip/DRAM | 1088 bytes | 16 bytes | 11040.000 pJ | 69.000 ns | 16.000 bytes/ns |
 
 | Metric | Value |
 | --- | ---: |
+| System profile | default |
+| Profile tier overrides | none |
+| Memory timing mode | overlapped |
 | Local compute/conversion energy | 227.808 pJ |
-| Total movement energy | 11062.080 pJ |
-| Total system energy | 11289.888 pJ |
-| System energy per MAC | 11.025 pJ |
-| System energy per equivalent op | 5.513 pJ |
-| Movement energy share | 97.98% |
+| Total movement energy | 11282.880 pJ |
+| Total system energy | 11510.688 pJ |
+| System energy per MAC | 11.241 pJ |
+| System energy per equivalent op | 5.620 pJ |
+| Movement energy share | 98.02% |
 | Max transfer time | 69.000 ns |
+| Serialized transfer time | 74.391 ns |
+| Effective transfer time | 69.000 ns |
 | Bandwidth-limited tier | off_chip |
 | Bandwidth-limited batch latency | 69.000 ns |
 | Bandwidth-limited equivalent ops/s | 29681159420.290 |
@@ -152,4 +182,4 @@ movements, not published measurements and not a cache simulator.
 - Weight DAC conversions are counted once per batch because weight_stationary is true.
 - The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.
 - Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.
-- The multi-tier system model adds explicit SRAM and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.
+- The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.

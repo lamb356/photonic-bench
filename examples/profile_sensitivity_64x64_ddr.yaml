@@ -1,0 +1,31 @@
+benchmark:
+  name: 64x64 profile sensitivity - DDR
+  description: Same 64x64 photonic matmul workload as the starter card, using the ddr system profile to isolate movement-tier sensitivity.
+workload:
+  type: matmul
+  m: 64
+  n: 64
+  k: 64
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 6
+    energy_pj_per_conversion: 0.5
+  dac:
+    bits: 6
+    energy_pj_per_conversion: 0.2
+system:
+  profile: ddr
+timing:
+  optical_latency_ns: 3
+  adc_latency_ns: 1
+  dac_latency_ns: 1
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 3
+assumptions:
+  - Profile sensitivity card; component, timing, and noise assumptions match the starter 64x64 card.
+  - The ddr profile is a local modeling preset, not a measured hardware configuration.

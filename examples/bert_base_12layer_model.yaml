@@ -13,6 +13,26 @@ transformer_model:
       num_heads: 12
       head_dim: 64
       mlp_intermediate_size: 3072
+  embeddings:
+    enabled: true
+    vocab_size: 30522
+    include_token_embedding: true
+    include_position_embedding: true
+    bits_per_element: 16
+  output_projection:
+    enabled: true
+    vocab_size: 30522
+    tied_to_token_embedding: true
+  activation_memory:
+    enabled: true
+    bits_per_element: 16
+    include_layer_inputs: true
+    include_attention_scores: true
+    include_mlp_intermediate: true
+  pipeline_overlap:
+    enabled: true
+    overlap_fraction: 0.25
+    label: local_layer_overlap_assumption
 device:
   optical_mac_energy_fj: 0.5
   laser_wall_plug_efficiency: 0.25
@@ -44,4 +64,4 @@ noise:
 assumptions:
   - Dense full-sequence encoder self-attention is used.
   - BERT-base style means common public model dimensions, not a source-backed photonic accelerator claim.
-  - The model summary multiplies one representative encoder-layer artifact by 12 and does not model embeddings, pooler, classifier head, layer norm, softmax, or activation functions.
+  - Embeddings, vocabulary projection, activation tensor traffic, and overlap timing are local transformer-model assumptions, not a measured scheduler.

@@ -1,0 +1,76 @@
+benchmark:
+  name: Kovaios 2025 WDM 1 TOPS tensor core surrogate
+  description: Source-backed card for the Journal of Lightwave Technology 2025 WDM silicon photonic coherent crossbar. The local workload mirrors the reported 4x2x1 tensor-vector primitive while published metrics remain separate.
+workload:
+  type: matmul
+  m: 4
+  n: 1
+  k: 2
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 8
+    energy_pj_per_conversion: 0.5
+  vector_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+  weight_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+execution:
+  batch_size: 1
+  vector_reuse_factor: 1
+  weight_reuse_factor: 1
+  weight_stationary: false
+  pipeline:
+    stages: 1
+timing:
+  optical_latency_ns: 1
+  adc_latency_ns: 0
+  dac_latency_ns: 0
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 1
+provenance:
+  source_title: On-chip 1 TOPS Hyperdimensional Photonic Tensor Core Using a WDM Silicon Photonic Coherent Crossbar
+  source_url: https://doi.org/10.1109/JLT.2025.3589088
+  doi: 10.1109/JLT.2025.3589088
+  venue: Journal of Lightwave Technology 43, 8799-8805 (2025)
+  claim_status: paper-reported throughput/error/classification metrics; primitive-shape local model
+published_calibration:
+  architecture: Time-space-wavelength multiplexed WDM silicon photonic coherent crossbar
+  reported_tops: 0.96
+  additional_metrics:
+    tensor_vector_unit_shape: 4x2x1
+    average_error_percent: 3.9
+    eam_bandwidth_ghz: 56
+    channels: 4
+    inputs_per_channel: 2
+    iris_accuracy_percent_4x10_to_4x30_gbd: 93.3
+    iris_accuracy_percent_4x60_gbd: 83.3
+    zenodo_doi: 10.5281/zenodo.20052485
+    surrogate_mapping: m=4, k=2, n=1 mirrors the reported 4x2x1 tensor-vector primitive; it is not the full hyperdimensional scaling analysis.
+source_quality:
+  reported_metrics:
+    - throughput
+    - error
+    - data_rate
+    - classification_accuracy
+  local_surrogate_type: primitive_wdm_tensor_vector_surrogate
+  coverage:
+    throughput: reported
+    energy: not_reported
+    accuracy: reported
+    area: not_reported
+    precision: reported
+  confidence_grade: B
+  notes:
+    - The local shape tracks the demonstrated primitive, while the reported 0.96 TOPS system claim is kept as published reference data.
+assumptions:
+  - Source-reported throughput, error, data-rate, and Iris classification metrics remain under published_calibration.
+  - Local energy and system movement are PhotonicBench assumptions for a tiny primitive-shaped matmul workload.
+  - This card does not model POPS-scale extrapolation, wavelength routing, or time-space-wavelength scheduling.
+

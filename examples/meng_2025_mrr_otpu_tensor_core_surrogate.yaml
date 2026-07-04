@@ -49,6 +49,21 @@ published_calibration:
     multiplexing_domains: time-wavelength-microwave-frequency
     optical_core: single microring resonator
     surrogate_mapping: m=16, k=16, n=16 is a dense local surrogate for an MRR OTPU tensor-convolution result; not an exact multidomain convolution schedule.
+source_quality:
+  reported_metrics:
+    - computing_density
+    - accuracy
+    - architecture
+  local_surrogate_type: dense_mrr_tensor_convolution_surrogate
+  coverage:
+    throughput: derived
+    energy: not_reported
+    accuracy: reported
+    area: reported
+    precision: not_reported
+  confidence_grade: C
+  notes:
+    - Computing-density and task accuracy are source-backed, but no scalar TOPS or TOPS/W value is encoded.
 assumptions:
   - Source reports 34.04 TOPS/mm2 computing density and 96.41 percent MNIST accuracy; this card keeps those values as published references.
   - No scalar total TOPS or TOPS/W value is encoded because the cited paper metric is computing density rather than absolute throughput or energy efficiency.

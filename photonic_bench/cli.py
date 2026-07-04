@@ -5,12 +5,15 @@ import json
 from pathlib import Path
 import sys
 
+from photonic_bench.artifacts import verify_artifact_freshness
 from photonic_bench.comparison import load_comparison_cards, render_comparison_markdown
 from photonic_bench.config import (
+    SYSTEM_PROFILES,
     TransformerLayerConfig,
     load_config,
     load_transformer_layer_config,
     load_transformer_model_config,
+    system_config_to_dict,
 )
 from photonic_bench.json_report import render_json
 from photonic_bench.model import (
@@ -60,6 +63,10 @@ def main(argv: list[str] | None = None) -> int:
                 args.host,
                 args.port,
             )
+        if args.command == "system-profiles":
+            return _system_profiles(args.json)
+        if args.command == "verify-artifacts":
+            return _verify_artifacts(args.examples_dir, args.reports_dir, args.verbose)
     except (OSError, ValueError) as exc:
         parser.exit(2, f"error: {exc}\n")
 
@@ -186,6 +193,37 @@ def _build_parser() -> argparse.ArgumentParser:
         type=int,
         default=8000,
         help="Port for --serve; use 0 to select an available port",
+    )
+
+    verify = subparsers.add_parser(
+        "verify-artifacts",
+        help="Check that checked-in generated artifacts match current examples",
+    )
+    verify.add_argument(
+        "--examples-dir",
+        type=Path,
+        default=Path("examples"),
+        help="Directory containing checked example YAML inputs",
+    )
+    verify.add_argument(
+        "--reports-dir",
+        type=Path,
+        default=Path("reports"),
+        help="Directory containing checked generated report artifacts",
+    )
+    verify.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Print every checked generated artifact path on success",
+    )
+    profiles = subparsers.add_parser(
+        "system-profiles",
+        help="List built-in system memory profile assumptions",
+    )
+    profiles.add_argument(
+        "--json",
+        action="store_true",
+        help="Emit machine-readable profile data instead of a Markdown table",
     )
     return parser
 
@@ -378,6 +416,69 @@ def _visualize(
     for issue in data.issues:
         print(f"warning: {issue.source_path}: {issue.message}", file=sys.stderr)
     return 0
+
+
+def _verify_artifacts(
+    examples_dir: Path,
+    reports_dir: Path,
+    verbose: bool,
+) -> int:
+    result = verify_artifact_freshness(
+        examples_dir=examples_dir,
+        reports_dir=reports_dir,
+    )
+    if result.is_fresh:
+        print(result.success_message())
+        if verbose:
+            for path in result.checked_files:
+                print(f"checked: {path}")
+        return 0
+
+    print(result.failure_report(), file=sys.stderr)
+    return 1
+
+
+def _system_profiles(json_output: bool) -> int:
+    rows = []
+    for profile in SYSTEM_PROFILES.values():
+        system = profile.to_system_config()
+        rows.append(
+            {
+                "name": profile.name,
+                "description": profile.description,
+                "memory_timing_mode": system.memory_timing_mode,
+                "system": system_config_to_dict(system),
+            }
+        )
+
+    if json_output:
+        print(json.dumps({"profiles": rows}, indent=2))
+        return 0
+
+    print("| Profile | Timing | SRAM pJ/B | Intermediate pJ/B | Off-chip pJ/B | Description |")
+    print("| --- | --- | ---: | ---: | ---: | --- |")
+    for row in rows:
+        system = row["system"]
+        sram = system["sram"]
+        intermediate = system["intermediate"]
+        off_chip = system["off_chip"]
+        print(
+            "| "
+            f"{row['name']} | "
+            f"{row['memory_timing_mode']} | "
+            f"{_tier_energy_label(sram)} | "
+            f"{_tier_energy_label(intermediate)} | "
+            f"{_tier_energy_label(off_chip)} | "
+            f"{row['description']} |"
+        )
+    return 0
+
+
+def _tier_energy_label(tier: dict[str, float]) -> str:
+    return (
+        f"{tier['read_energy_pj_per_byte']:.6g}/"
+        f"{tier['write_energy_pj_per_byte']:.6g}"
+    )
 
 
 if __name__ == "__main__":

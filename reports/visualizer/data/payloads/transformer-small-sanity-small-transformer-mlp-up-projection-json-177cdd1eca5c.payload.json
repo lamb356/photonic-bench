@@ -48,10 +48,20 @@
       }
     },
     "system": {
+      "profile": "default",
+      "profile_overrides": [],
+      "memory_timing_mode": "overlapped",
       "sram": {
         "read_energy_pj_per_byte": 0.02,
         "write_energy_pj_per_byte": 0.02,
         "bandwidth_bytes_per_ns": 1024.0,
+        "read_fraction": 1.0,
+        "write_fraction": 1.0
+      },
+      "intermediate": {
+        "read_energy_pj_per_byte": 0.2,
+        "write_energy_pj_per_byte": 0.2,
+        "bandwidth_bytes_per_ns": 256.0,
         "read_fraction": 1.0,
         "write_fraction": 1.0
       },
@@ -91,6 +101,9 @@
       "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
     },
     "system": {
+      "profile": "default",
+      "profile_overrides": [],
+      "memory_timing_mode": "overlapped",
       "tiers": {
         "sram": {
           "name": "sram",
@@ -102,6 +115,19 @@
           "total_energy_pj": 6.4,
           "bandwidth_bytes_per_ns": 1024.0,
           "transfer_time_ns": 0.3125,
+          "read_fraction": 1.0,
+          "write_fraction": 1.0
+        },
+        "intermediate": {
+          "name": "intermediate",
+          "read_bytes": 192.0,
+          "write_bytes": 128.0,
+          "total_bytes": 320.0,
+          "read_energy_pj": 38.400000000000006,
+          "write_energy_pj": 25.6,
+          "total_energy_pj": 64.0,
+          "bandwidth_bytes_per_ns": 256.0,
+          "transfer_time_ns": 1.25,
           "read_fraction": 1.0,
           "write_fraction": 1.0
         },
@@ -120,16 +146,18 @@
         }
       },
       "local_compute_and_conversion_energy_pj": 132.608,
-      "total_movement_energy_pj": 3206.4,
-      "total_system_energy_pj": 3339.0080000000003,
-      "system_energy_per_mac_pj": 3.2607500000000003,
-      "system_energy_per_op_pj": 1.6303750000000001,
-      "movement_energy_share": 0.9602852104577168,
+      "total_movement_energy_pj": 3270.4,
+      "total_system_energy_pj": 3403.0080000000003,
+      "system_energy_per_mac_pj": 3.3232500000000003,
+      "system_energy_per_op_pj": 1.6616250000000001,
+      "movement_energy_share": 0.9610321221695629,
       "max_transfer_time_ns": 20.0,
+      "serial_transfer_time_ns": 21.5625,
+      "effective_transfer_time_ns": 20.0,
       "bandwidth_limited_batch_latency_ns": 20.0,
       "bandwidth_limited_equivalent_ops_per_second": 102400000000.0,
       "bandwidth_limited_tier": "off_chip",
-      "note": "System movement energy is a local estimate over explicit SRAM and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
+      "note": "System movement energy is a local estimate over explicit SRAM, intermediate, and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
     },
     "energy": {
       "optical_compute_pj": 0.512,
@@ -178,7 +206,7 @@
     "Transformer operation: MLP up-projection.",
     "Transformer formula: B * S * H * intermediate.",
     "Transformer batch/head multiplicity is represented by the generated card's execution.batch_size.",
-    "Layer shape: batch=2, sequence=4, hidden=8, heads=2, head_dim=4, intermediate=16.",
+    "Layer shape: batch=2, sequence=4, hidden=8, heads=2, head_dim=4, attention_context=4, intermediate=16.",
     "Dense attention accounting is used; decoder/causal labels do not halve attention MAC counts.",
     "Non-matmul costs such as softmax, layer norm, bias adds, activations, dropout, masking, KV-cache incremental decoding, and non-matmul memory traffic are excluded.",
     "The benchmark models 2 operation(s) per batch.",
@@ -186,7 +214,7 @@
     "Weight DAC conversions are counted once per batch because weight_stationary is true.",
     "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
     "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.",
-    "The multi-tier system model adds explicit SRAM and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
+    "The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
   ],
   "provenance": null
 }

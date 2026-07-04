@@ -1,0 +1,225 @@
+window.PhotonicBenchPayloadRegistry = window.PhotonicBenchPayloadRegistry || {};
+window.PhotonicBenchPayloadRegistry["gpt_style_decoder_kv_cache_model/decoder_block/gpt_decoder_kv_cache_decoder_block_mlp_up_projection.json"] = {
+  "schema_version": "photonic-bench-report-v1",
+  "benchmark": {
+    "name": "GPT-style decoder KV-cache model - decoder_block - MLP up-projection",
+    "description": "Representative transformer layer spec 'decoder_block' used 12 time(s) in full-model aggregation. GPT-2-small style decoder inference summary with 12 identical decoder layers, one generated query token, and a 1024-token KV-cache context. This is a transformer-model workflow example, not a published accelerator calibration card. Generated decomposed card for MLP up-projection. Formula: B * S * H * intermediate. Matmul shape is 1 x 768 times 768 x 3072; operation multiplicity is 1. The right operand is a learned model-weight matrix."
+  },
+  "workload": {
+    "type": "matmul",
+    "shape": {
+      "m": 1,
+      "k": 768,
+      "n": 3072
+    },
+    "macs": 2359296,
+    "equivalent_ops": 4718592,
+    "output_elements": 3072
+  },
+  "model_inputs": {
+    "device": {
+      "optical_mac_energy_fj": 0.5,
+      "laser_wall_plug_efficiency": 0.25,
+      "photodetector_energy_fj_per_sample": 10.0,
+      "adc": {
+        "bits": 6,
+        "energy_pj_per_conversion": 0.5
+      },
+      "dac": {
+        "bits": 6,
+        "energy_pj_per_conversion": 0.12
+      },
+      "vector_dac": {
+        "bits": 6,
+        "energy_pj_per_conversion": 0.12
+      },
+      "weight_dac": {
+        "bits": 8,
+        "energy_pj_per_conversion": 0.45
+      }
+    },
+    "execution": {
+      "batch_size": 1,
+      "vector_reuse_factor": 1,
+      "weight_reuse_factor": 1,
+      "weight_stationary": true,
+      "pipeline": {
+        "stages": 4,
+        "cycle_time_ns": 2.0
+      }
+    },
+    "system": {
+      "profile": "default",
+      "profile_overrides": [],
+      "memory_timing_mode": "overlapped",
+      "sram": {
+        "read_energy_pj_per_byte": 0.02,
+        "write_energy_pj_per_byte": 0.02,
+        "bandwidth_bytes_per_ns": 1024.0,
+        "read_fraction": 1.0,
+        "write_fraction": 1.0
+      },
+      "intermediate": {
+        "read_energy_pj_per_byte": 0.2,
+        "write_energy_pj_per_byte": 0.2,
+        "bandwidth_bytes_per_ns": 256.0,
+        "read_fraction": 1.0,
+        "write_fraction": 1.0
+      },
+      "off_chip": {
+        "read_energy_pj_per_byte": 10.0,
+        "write_energy_pj_per_byte": 10.0,
+        "bandwidth_bytes_per_ns": 16.0,
+        "read_fraction": 1.0,
+        "write_fraction": 1.0
+      }
+    },
+    "timing": {
+      "optical_latency_ns": 3.0,
+      "adc_latency_ns": 1.0,
+      "dac_latency_ns": 1.0
+    },
+    "noise": {
+      "phase_noise_rad_rms": 0.02,
+      "drift_rad_per_second": 0.1,
+      "integration_time_ns": 3.0
+    }
+  },
+  "local_model": {
+    "conversion_counts": {
+      "adc_conversions": 3072,
+      "vector_dac_conversions": 768,
+      "weight_dac_conversions": 2359296,
+      "dac_conversions": 2360064
+    },
+    "memory_traffic": {
+      "vector_operand_read_bytes": 768,
+      "weight_operand_read_bytes": 2359296,
+      "output_write_bytes": 3072,
+      "total_interface_bytes": 2363136,
+      "macs_per_byte": 0.9983750406239844,
+      "equivalent_ops_per_byte": 1.9967500812479688,
+      "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
+    },
+    "system": {
+      "profile": "default",
+      "profile_overrides": [],
+      "memory_timing_mode": "overlapped",
+      "tiers": {
+        "sram": {
+          "name": "sram",
+          "read_bytes": 2360064.0,
+          "write_bytes": 3072.0,
+          "total_bytes": 2363136.0,
+          "read_energy_pj": 47201.28,
+          "write_energy_pj": 61.44,
+          "total_energy_pj": 47262.72,
+          "bandwidth_bytes_per_ns": 1024.0,
+          "transfer_time_ns": 2307.75,
+          "read_fraction": 1.0,
+          "write_fraction": 1.0
+        },
+        "intermediate": {
+          "name": "intermediate",
+          "read_bytes": 2360064.0,
+          "write_bytes": 3072.0,
+          "total_bytes": 2363136.0,
+          "read_energy_pj": 472012.80000000005,
+          "write_energy_pj": 614.4000000000001,
+          "total_energy_pj": 472627.20000000007,
+          "bandwidth_bytes_per_ns": 256.0,
+          "transfer_time_ns": 9231.0,
+          "read_fraction": 1.0,
+          "write_fraction": 1.0
+        },
+        "off_chip": {
+          "name": "off_chip",
+          "read_bytes": 2360064.0,
+          "write_bytes": 3072.0,
+          "total_bytes": 2363136.0,
+          "read_energy_pj": 23600640.0,
+          "write_energy_pj": 30720.0,
+          "total_energy_pj": 23631360.0,
+          "bandwidth_bytes_per_ns": 16.0,
+          "transfer_time_ns": 147696.0,
+          "read_fraction": 1.0,
+          "write_fraction": 1.0
+        }
+      },
+      "local_compute_and_conversion_energy_pj": 1068060.6719999998,
+      "total_movement_energy_pj": 24151249.92,
+      "total_system_energy_pj": 25219310.592,
+      "system_energy_per_mac_pj": 10.689337239583333,
+      "system_energy_per_op_pj": 5.344668619791666,
+      "movement_energy_share": 0.9576490932175281,
+      "max_transfer_time_ns": 147696.0,
+      "serial_transfer_time_ns": 159234.75,
+      "effective_transfer_time_ns": 147696.0,
+      "bandwidth_limited_batch_latency_ns": 147696.0,
+      "bandwidth_limited_equivalent_ops_per_second": 31948001299.9675,
+      "bandwidth_limited_tier": "off_chip",
+      "note": "System movement energy is a local estimate over explicit SRAM, intermediate, and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
+    },
+    "energy": {
+      "optical_compute_pj": 1179.648,
+      "laser_electrical_pj": 4718.592,
+      "detector_pj": 30.72,
+      "adc_pj": 1536.0,
+      "vector_dac_pj": 92.16,
+      "weight_dac_pj": 1061683.2,
+      "dac_pj": 1061775.3599999999,
+      "total_pj": 1068060.6719999998,
+      "energy_per_mac_pj": 0.45270312499999993,
+      "energy_per_op_pj": 0.22635156249999996,
+      "peripheral_share": 0.9955820936734201
+    },
+    "timing": {
+      "optical_latency_ns": 3.0,
+      "adc_latency_ns": 1.0,
+      "dac_latency_ns": 1.0,
+      "total_latency_ns": 5.0,
+      "pipeline_stages": 4,
+      "pipeline_cycle_time_ns": 2.0,
+      "batch_latency_ns": 5.0,
+      "steady_state_operations_per_second": 500000000.0,
+      "steady_state_equivalent_ops_per_second": 2359296000000000.0
+    },
+    "noise": {
+      "quantization_snr_db": 37.879999999999995,
+      "quantization_rms": 0.004582144993568459,
+      "phase_noise_rad_rms": 0.02,
+      "drift_rms_rad": 3.0000000000000005e-10,
+      "estimated_relative_error_rms": 0.02051818833966792
+    }
+  },
+  "published_reference": null,
+  "calibration_fit": null,
+  "assumptions": [
+    "The optical MAC energy is treated as delivered optical energy per multiply-accumulate.",
+    "The laser wall-plug efficiency converts delivered optical energy into electrical laser energy.",
+    "ADC conversions are counted once per output element.",
+    "DAC conversions are counted once per input value for the left and right matmul operands.",
+    "Detector energy is counted once per output sample.",
+    "The first noise model combines ADC quantization RMS, phase noise RMS, and drift RMS as independent terms.",
+    "Total latency is a transparent sum of DAC, optical, and ADC latency rather than a pipelined throughput model.",
+    "Decoder incremental inference uses one query token and a 1024-token KV-cache context.",
+    "GPT-style means common public decoder dimensions, not a source-backed photonic accelerator claim.",
+    "Embeddings, vocabulary projection, activation tensor traffic, KV-cache traffic, and overlap timing are local transformer-model assumptions.",
+    "Full transformer model layer spec: decoder_block.",
+    "Full transformer model layer count: 12.",
+    "Transformer operation: MLP up-projection.",
+    "Transformer formula: B * S * H * intermediate.",
+    "Transformer batch/head multiplicity is represented by the generated card's execution.batch_size.",
+    "Layer shape: batch=1, sequence=1, hidden=768, heads=12, head_dim=64, attention_context=1025, intermediate=3072.",
+    "Decoder KV-cache attention accounting is enabled: attention uses query length 1 and context length 1025. Cache read/write traffic is reported at the transformer-model level.",
+    "Non-matmul costs such as softmax, layer norm, bias adds, activations, dropout, masking, and non-matmul memory traffic are excluded. KV-cache read/write traffic is reported only in the transformer-model aggregate.",
+    "The benchmark models 1 operation(s) per batch.",
+    "Vector DAC conversions are counted as ceil(batch_size / vector_reuse_factor) * m * k.",
+    "Weight DAC conversions are counted once per batch because weight_stationary is true.",
+    "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
+    "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.",
+    "The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
+  ],
+  "provenance": null
+}
+;

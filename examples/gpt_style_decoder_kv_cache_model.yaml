@@ -1,0 +1,74 @@
+benchmark:
+  name: GPT-style decoder KV-cache model
+  description: GPT-2-small style decoder inference summary with 12 identical decoder layers, one generated query token, and a 1024-token KV-cache context. This is a transformer-model workflow example, not a published accelerator calibration card.
+transformer_model:
+  layers:
+    - name: decoder_block
+      count: 12
+      layer_type: decoder
+      attention_mode: dense
+      batch_size: 1
+      sequence_length: 1
+      hidden_size: 768
+      num_heads: 12
+      head_dim: 64
+      mlp_intermediate_size: 3072
+  embeddings:
+    enabled: true
+    vocab_size: 50257
+    include_token_embedding: true
+    include_position_embedding: true
+    bits_per_element: 16
+  output_projection:
+    enabled: true
+    vocab_size: 50257
+    tied_to_token_embedding: true
+  activation_memory:
+    enabled: true
+    bits_per_element: 16
+    include_layer_inputs: true
+    include_attention_scores: true
+    include_mlp_intermediate: true
+  kv_cache:
+    enabled: true
+    mode: decoder_incremental
+    context_length: 1024
+    include_cache_reads: true
+    include_cache_writes: true
+    bits_per_element: 16
+  pipeline_overlap:
+    enabled: true
+    overlap_fraction: 0.5
+    label: local_decoder_pipeline_overlap_assumption
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 6
+    energy_pj_per_conversion: 0.5
+  vector_dac:
+    bits: 6
+    energy_pj_per_conversion: 0.12
+  weight_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.45
+execution:
+  vector_reuse_factor: 1
+  weight_reuse_factor: 1
+  weight_stationary: true
+  pipeline:
+    stages: 4
+    cycle_time_ns: 2
+timing:
+  optical_latency_ns: 3
+  adc_latency_ns: 1
+  dac_latency_ns: 1
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 3
+assumptions:
+  - Decoder incremental inference uses one query token and a 1024-token KV-cache context.
+  - GPT-style means common public decoder dimensions, not a source-backed photonic accelerator claim.
+  - Embeddings, vocabulary projection, activation tensor traffic, KV-cache traffic, and overlap timing are local transformer-model assumptions.

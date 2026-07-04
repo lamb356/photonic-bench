@@ -42,3 +42,20 @@ published_calibration:
   a10_latency_ns_min: 2300
   pace_total_time_us: 2.7
   gpu_total_time_us: 798.1
+source_quality:
+  reported_metrics:
+    - throughput
+    - energy_efficiency
+    - latency
+    - precision
+    - component_count
+  local_surrogate_type: direct_64x64_matrix_vector_calibration
+  coverage:
+    throughput: reported
+    energy: reported
+    accuracy: not_applicable
+    area: derived
+    precision: reported
+  confidence_grade: A
+  notes:
+    - Direct 64x64 matrix-vector calibration card with paper-reported TOPS, TOPS/W, latency, ENOB, and component-count evidence.

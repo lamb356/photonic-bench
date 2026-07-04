@@ -1,0 +1,186 @@
+# PhotonicBench Benchmark Card: Ning 2025 CirPTC structured tensor core surrogate
+
+Source-backed card for the Optica 2025 block-circulant photonic tensor core. The paper reports structured-compression and projected efficiency metrics; this config uses a 16x16 dense local tile as a conservative comparison surrogate only.
+
+## Provenance
+
+| Field | Value |
+| --- | --- |
+| Source | Hardware-efficient photonic tensor core: accelerating deep neural networks with structured compression |
+| URL | https://opg.optica.org/optica/abstract.cfm?uri=optica-12-7-1079 |
+| DOI | 10.1364/OPTICA.559604 |
+| Venue | Optica 12, 1079-1089 (2025) |
+| Claim status | paper-reported structured-compression and projected efficiency metrics; matmul-surrogate local model |
+
+
+## Published Calibration
+
+These rows are paper-reported targets and direct unit conversions from those targets. They are not an independent device-level reproduction.
+
+| Metric | Value |
+| --- | ---: |
+| Architecture | Block-circulant photonic tensor core for structure-compressed optical neural networks |
+| Projected power efficiency tops per watt | 47.94 |
+| Computational density tops per mm2 | 5.84 |
+| Trainable parameter reduction percent | 74.91 |
+| Hardware software codesign improvement x | 6.87 |
+| Structure | block-circulant |
+| Surrogate mapping | m=16, k=16, n=16 is a dense local tile for a structured-compressed tensor core; it does not encode the block-circulant training or compression schedule. |
+
+
+## Source Quality Index
+
+These rows summarize source evidence coverage for this published reference card. They do not turn local surrogate estimates into paper measurements.
+
+| Field | Value |
+| --- | --- |
+| Reported metric types | projected_power_efficiency, computing_density, parameter_reduction, architecture |
+| Local surrogate type | dense_block_circulant_tensor_core_surrogate |
+| Confidence grade | C |
+
+| Dimension | Coverage |
+| --- | --- |
+| Throughput | derived |
+| Energy | derived |
+| Accuracy | reported |
+| Area | derived |
+| Precision | not_reported |
+
+Source-quality notes:
+
+- Efficiency and density are performance-analysis projections, so this card keeps them as additional metrics rather than converting them into measured published energy.
+
+
+
+## Workload
+
+| Metric | Value |
+| --- | ---: |
+| Type | matmul |
+| Shape | 16 x 16 times 16 x 16 |
+| Operations per batch | 1 |
+| MACs per operation | 4096 |
+| MACs | 4096 |
+| Equivalent ops per operation | 8192 |
+| Equivalent ops | 8192 |
+| Output elements per operation | 256 |
+| Output elements | 256 |
+| Vector DAC conversions | 256 |
+| Weight DAC conversions | 256 |
+| DAC conversions | 512 |
+| ADC conversions | 256 |
+
+## Execution Model
+
+| Metric | Value |
+| --- | ---: |
+| Batch size | 1 |
+| Vector reuse factor | 1 |
+| Weight reuse factor | 1 |
+| Weight stationary | True |
+| Pipeline stages | 1 |
+| Pipeline cycle time | 1.000 ns |
+
+## Interface Memory Traffic
+
+These rows estimate operand reads and output writes at the converter interface
+from DAC/ADC bit widths and reuse counts. They are not a full memory hierarchy
+simulation.
+
+| Metric | Value |
+| --- | ---: |
+| Vector operand reads | 256 bytes |
+| Weight operand reads | 256 bytes |
+| Output writes | 256 bytes |
+| Total interface traffic | 768 bytes |
+| MACs per interface byte | 5.33333 |
+| Equivalent ops per interface byte | 10.6667 |
+
+## Multi-Tier System Movement
+
+These rows add an explicit local system movement estimate on top of the
+photonic core/converter model. SRAM, intermediate, and off-chip traffic are
+cumulative tier movements, not published measurements and not a cache
+simulator.
+
+| Tier | Read bytes | Write bytes | Movement energy | Transfer time | Bandwidth |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| SRAM | 512 bytes | 256 bytes | 15.360 pJ | 0.750 ns | 1024.000 bytes/ns |
+| Intermediate/cache | 512 bytes | 256 bytes | 153.600 pJ | 3.000 ns | 256.000 bytes/ns |
+| Off-chip/DRAM | 512 bytes | 256 bytes | 7680.000 pJ | 48.000 ns | 16.000 bytes/ns |
+
+| Metric | Value |
+| --- | ---: |
+| System profile | default |
+| Profile tier overrides | none |
+| Memory timing mode | overlapped |
+| Local compute/conversion energy | 241.152 pJ |
+| Total movement energy | 7848.960 pJ |
+| Total system energy | 8090.112 pJ |
+| System energy per MAC | 1.975 pJ |
+| System energy per equivalent op | 0.988 pJ |
+| Movement energy share | 97.02% |
+| Max transfer time | 48.000 ns |
+| Serialized transfer time | 51.750 ns |
+| Effective transfer time | 48.000 ns |
+| Bandwidth-limited tier | off_chip |
+| Bandwidth-limited batch latency | 48.000 ns |
+| Bandwidth-limited equivalent ops/s | 170666666666.667 |
+
+## Energy
+
+| Metric | Value |
+| --- | ---: |
+| Optical compute delivered | 2.048 pJ |
+| Laser electrical energy | 8.192 pJ |
+| Detector energy | 2.560 pJ |
+| ADC energy | 128.000 pJ |
+| Vector DAC energy | 51.200 pJ |
+| Weight DAC energy | 51.200 pJ |
+| DAC energy | 102.400 pJ |
+| Total energy | 241.152 pJ |
+| Energy per MAC | 0.059 pJ |
+| Energy per equivalent op | 0.029 pJ |
+| Peripheral share | 96.60% |
+
+## Timing
+
+| Metric | Value |
+| --- | ---: |
+| Optical latency | 1.000 ns |
+| ADC latency | 0.000 ns |
+| DAC latency | 0.000 ns |
+| Total latency | 1.000 ns |
+| Pipeline cycle time | 1.000 ns |
+| Batch latency | 1.000 ns |
+| Steady-state operations/s | 1000000000.000 |
+| Steady-state equivalent ops/s | 8192000000000.000 |
+
+## Noise
+
+| Metric | Value |
+| --- | ---: |
+| ADC quantization SNR | 49.92 dB |
+| ADC quantization RMS | 0.001132 |
+| Phase noise RMS | 0.020000 rad |
+| Drift RMS during integration | 0.000000000100 rad |
+| Estimated relative error RMS | 2.0032% |
+
+## Assumptions
+
+- The optical MAC energy is treated as delivered optical energy per multiply-accumulate.
+- The laser wall-plug efficiency converts delivered optical energy into electrical laser energy.
+- ADC conversions are counted once per output element.
+- DAC conversions are counted once per input value for the left and right matmul operands.
+- Detector energy is counted once per output sample.
+- The first noise model combines ADC quantization RMS, phase noise RMS, and drift RMS as independent terms.
+- Total latency is a transparent sum of DAC, optical, and ADC latency rather than a pipelined throughput model.
+- Source-reported projected efficiency, density, and compression metrics are preserved as paper references.
+- The dense local tile is intentionally conservative and does not model block-circulant parameter sharing or hardware-aware training.
+- Local timing, converter energy, system tiers, and noise settings are generic PhotonicBench assumptions.
+- The benchmark models 1 operation(s) per batch.
+- Vector DAC conversions are counted as ceil(batch_size / vector_reuse_factor) * m * k.
+- Weight DAC conversions are counted once per batch because weight_stationary is true.
+- The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.
+- Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.
+- The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.

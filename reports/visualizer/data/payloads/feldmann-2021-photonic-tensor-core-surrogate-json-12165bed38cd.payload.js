@@ -49,10 +49,20 @@ window.PhotonicBenchPayloadRegistry["feldmann_2021_photonic_tensor_core_surrogat
       }
     },
     "system": {
+      "profile": "default",
+      "profile_overrides": [],
+      "memory_timing_mode": "overlapped",
       "sram": {
         "read_energy_pj_per_byte": 0.02,
         "write_energy_pj_per_byte": 0.02,
         "bandwidth_bytes_per_ns": 1024.0,
+        "read_fraction": 1.0,
+        "write_fraction": 1.0
+      },
+      "intermediate": {
+        "read_energy_pj_per_byte": 0.2,
+        "write_energy_pj_per_byte": 0.2,
+        "bandwidth_bytes_per_ns": 256.0,
         "read_fraction": 1.0,
         "write_fraction": 1.0
       },
@@ -92,6 +102,9 @@ window.PhotonicBenchPayloadRegistry["feldmann_2021_photonic_tensor_core_surrogat
       "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
     },
     "system": {
+      "profile": "default",
+      "profile_overrides": [],
+      "memory_timing_mode": "overlapped",
       "tiers": {
         "sram": {
           "name": "sram",
@@ -103,6 +116,19 @@ window.PhotonicBenchPayloadRegistry["feldmann_2021_photonic_tensor_core_surrogat
           "total_energy_pj": 22.080000000000002,
           "bandwidth_bytes_per_ns": 1024.0,
           "transfer_time_ns": 1.078125,
+          "read_fraction": 1.0,
+          "write_fraction": 1.0
+        },
+        "intermediate": {
+          "name": "intermediate",
+          "read_bytes": 1088.0,
+          "write_bytes": 16.0,
+          "total_bytes": 1104.0,
+          "read_energy_pj": 217.60000000000002,
+          "write_energy_pj": 3.2,
+          "total_energy_pj": 220.8,
+          "bandwidth_bytes_per_ns": 256.0,
+          "transfer_time_ns": 4.3125,
           "read_fraction": 1.0,
           "write_fraction": 1.0
         },
@@ -121,16 +147,18 @@ window.PhotonicBenchPayloadRegistry["feldmann_2021_photonic_tensor_core_surrogat
         }
       },
       "local_compute_and_conversion_energy_pj": 227.80800000000002,
-      "total_movement_energy_pj": 11062.08,
-      "total_system_energy_pj": 11289.888,
-      "system_energy_per_mac_pj": 11.02528125,
-      "system_energy_per_op_pj": 5.512640625,
-      "movement_energy_share": 0.9798219433177724,
+      "total_movement_energy_pj": 11282.88,
+      "total_system_energy_pj": 11510.688,
+      "system_energy_per_mac_pj": 11.24090625,
+      "system_energy_per_op_pj": 5.620453125,
+      "movement_energy_share": 0.9802090022768404,
       "max_transfer_time_ns": 69.0,
+      "serial_transfer_time_ns": 74.390625,
+      "effective_transfer_time_ns": 69.0,
       "bandwidth_limited_batch_latency_ns": 69.0,
       "bandwidth_limited_equivalent_ops_per_second": 29681159420.289852,
       "bandwidth_limited_tier": "off_chip",
-      "note": "System movement energy is a local estimate over explicit SRAM and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
+      "note": "System movement energy is a local estimate over explicit SRAM, intermediate, and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
     },
     "energy": {
       "optical_compute_pj": 0.512,
@@ -184,6 +212,28 @@ window.PhotonicBenchPayloadRegistry["feldmann_2021_photonic_tensor_core_surrogat
       }
     },
     "derived_unit_conversions": {},
+    "source_quality": {
+      "source_reference": "Parallel convolutional processing using an integrated photonic tensor core",
+      "source_doi": "10.1038/s41586-020-03070-1",
+      "reported_metrics": [
+        "throughput",
+        "bandwidth",
+        "architecture"
+      ],
+      "local_surrogate_type": "dense_convolution_tile_surrogate",
+      "coverage": {
+        "throughput": "reported",
+        "energy": "not_reported",
+        "accuracy": "not_reported",
+        "area": "not_reported",
+        "precision": "not_reported"
+      },
+      "confidence_grade": "C",
+      "notes": [
+        "Source-backed throughput and bandwidth are useful, but energy, precision, area, and accuracy coverage are not encoded in this card."
+      ],
+      "note": "Source quality grades summarize evidence coverage for the published reference card. They do not upgrade local surrogate estimates into paper measurements."
+    },
     "separation_note": "Published values are paper-reported references or direct unit conversions, not local component-model estimates."
   },
   "calibration_fit": null,
@@ -203,7 +253,7 @@ window.PhotonicBenchPayloadRegistry["feldmann_2021_photonic_tensor_core_surrogat
     "Weight DAC conversions are counted once per batch because weight_stationary is true.",
     "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
     "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.",
-    "The multi-tier system model adds explicit SRAM and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
+    "The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
   ],
   "provenance": {
     "source_title": "Parallel convolutional processing using an integrated photonic tensor core",

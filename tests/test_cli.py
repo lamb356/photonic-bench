@@ -301,3 +301,48 @@ def test_cli_compare_reports_non_finite_json_constants(tmp_path: Path) -> None:
 
     assert completed.returncode == 2
     assert "unsupported non-finite JSON value" in completed.stderr
+
+
+def test_cli_system_profiles_lists_human_readable_profiles() -> None:
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "photonic_bench.cli",
+            "system-profiles",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    assert "| Profile | Timing | SRAM pJ/B | Intermediate pJ/B | Off-chip pJ/B |" in (
+        completed.stdout
+    )
+    assert "default" in completed.stdout
+    assert "pcie_attached" in completed.stdout
+    assert "serialized" in completed.stdout
+
+
+def test_cli_system_profiles_can_emit_json() -> None:
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "photonic_bench.cli",
+            "system-profiles",
+            "--json",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    payload = json.loads(completed.stdout)
+    profiles = {profile["name"]: profile for profile in payload["profiles"]}
+    assert profiles["default"]["system"]["intermediate"][
+        "bandwidth_bytes_per_ns"
+    ] == 256.0
+    assert profiles["pcie_attached"]["memory_timing_mode"] == "serialized"

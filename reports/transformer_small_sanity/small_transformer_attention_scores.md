@@ -1,6 +1,7 @@
 # PhotonicBench Benchmark Card: Small transformer sanity layer - Attention scores
 
-Tiny dense transformer layer shape for exact MAC-count sanity checks. This is a synthetic helper example, not a published accelerator calibration card. Generated decomposed card for Attention scores. Formula: B * heads * S * S * head_dim. Matmul shape is 4 x 4 times 4 x 4; operation multiplicity is 4. The right operand is activation data for attention, so cross-batch weight-stationary reuse is disabled in this generated card.
+Tiny dense transformer layer shape for exact MAC-count sanity checks. This is a synthetic helper example, not a published accelerator calibration card. Generated decomposed card for Attention scores. Formula: B * heads * S_query * S_context * head_dim. Matmul shape is 4 x 4 times 4 x 4; operation multiplicity is 4. The right operand is activation data for attention, so cross-batch weight-stationary reuse is disabled in this generated card.
+
 
 
 
@@ -52,23 +53,30 @@ simulation.
 ## Multi-Tier System Movement
 
 These rows add an explicit local system movement estimate on top of the
-photonic core/converter model. SRAM and off-chip traffic are cumulative tier
-movements, not published measurements and not a cache simulator.
+photonic core/converter model. SRAM, intermediate, and off-chip traffic are
+cumulative tier movements, not published measurements and not a cache
+simulator.
 
 | Tier | Read bytes | Write bytes | Movement energy | Transfer time | Bandwidth |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | SRAM | 128 bytes | 64 bytes | 3.840 pJ | 0.188 ns | 1024.000 bytes/ns |
+| Intermediate/cache | 128 bytes | 64 bytes | 38.400 pJ | 0.750 ns | 256.000 bytes/ns |
 | Off-chip/DRAM | 128 bytes | 64 bytes | 1920.000 pJ | 12.000 ns | 16.000 bytes/ns |
 
 | Metric | Value |
 | --- | ---: |
+| System profile | default |
+| Profile tier overrides | none |
+| Memory timing mode | overlapped |
 | Local compute/conversion energy | 69.632 pJ |
-| Total movement energy | 1923.840 pJ |
-| Total system energy | 1993.472 pJ |
-| System energy per MAC | 7.787 pJ |
-| System energy per equivalent op | 3.893 pJ |
-| Movement energy share | 96.51% |
+| Total movement energy | 1962.240 pJ |
+| Total system energy | 2031.872 pJ |
+| System energy per MAC | 7.937 pJ |
+| System energy per equivalent op | 3.969 pJ |
+| Movement energy share | 96.57% |
 | Max transfer time | 12.000 ns |
+| Serialized transfer time | 12.938 ns |
+| Effective transfer time | 12.000 ns |
 | Bandwidth-limited tier | off_chip |
 | Bandwidth-limited batch latency | 12.000 ns |
 | Bandwidth-limited equivalent ops/s | 42666666666.667 |
@@ -124,9 +132,9 @@ movements, not published measurements and not a cache simulator.
 - Dense full-sequence transformer accounting is used.
 - This tiny shape is intended for manual MAC-count verification.
 - Transformer operation: Attention scores.
-- Transformer formula: B * heads * S * S * head_dim.
+- Transformer formula: B * heads * S_query * S_context * head_dim.
 - Transformer batch/head multiplicity is represented by the generated card's execution.batch_size.
-- Layer shape: batch=2, sequence=4, hidden=8, heads=2, head_dim=4, intermediate=16.
+- Layer shape: batch=2, sequence=4, hidden=8, heads=2, head_dim=4, attention_context=4, intermediate=16.
 - Dense attention accounting is used; decoder/causal labels do not halve attention MAC counts.
 - Non-matmul costs such as softmax, layer norm, bias adds, activations, dropout, masking, KV-cache incremental decoding, and non-matmul memory traffic are excluded.
 - The benchmark models 4 operation(s) per batch.
@@ -134,4 +142,4 @@ movements, not published measurements and not a cache simulator.
 - Weight DAC conversions are counted every 1 operation(s).
 - The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.
 - Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.
-- The multi-tier system model adds explicit SRAM and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.
+- The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.

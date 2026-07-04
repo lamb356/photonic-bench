@@ -12,7 +12,11 @@
         "taichi_2024_chiplet_surrogate.json",
         "hitop_2025_optical_tensor_processor_surrogate.json",
         "lin_2024_tfln_120gops_tensor_core_surrogate.json",
-        "meng_2025_mrr_otpu_tensor_core_surrogate.json"
+        "meng_2025_mrr_otpu_tensor_core_surrogate.json",
+        "zhang_2026_pommm_surrogate.json",
+        "chen_2026_fsr_gemm_surrogate.json",
+        "ning_2025_cirptc_surrogate.json",
+        "kovaios_2025_wdm_1tops_tensor_core_surrogate.json"
       ],
       "pinned_id": "nature_pace_64x64.json"
     },
@@ -24,6 +28,17 @@
         "weight_stationary_64x64_batch.json"
       ],
       "pinned_id": "matmul_64x64.json"
+    },
+    {
+      "name": "System profile sensitivity",
+      "description": "Same 64x64 workload and photonic component assumptions under on-chip SRAM, HBM, DDR, and PCIe-attached system profiles.",
+      "artifact_ids": [
+        "profile_sensitivity_64x64_on_chip_sram.json",
+        "profile_sensitivity_64x64_hbm.json",
+        "profile_sensitivity_64x64_ddr.json",
+        "profile_sensitivity_64x64_pcie_attached.json"
+      ],
+      "pinned_id": "profile_sensitivity_64x64_ddr.json"
     }
   ]
 }

@@ -1,6 +1,7 @@
 # PhotonicBench Benchmark Card: BERT-base style encoder layer - Attention scores
 
-Dense one-layer BERT-base style encoder benchmark shape with hidden size 768, 12 attention heads, sequence length 128, and MLP intermediate size 3072. This is a shape helper example, not a published accelerator calibration card. Generated decomposed card for Attention scores. Formula: B * heads * S * S * head_dim. Matmul shape is 128 x 64 times 64 x 128; operation multiplicity is 12. The right operand is activation data for attention, so cross-batch weight-stationary reuse is disabled in this generated card.
+Dense one-layer BERT-base style encoder benchmark shape with hidden size 768, 12 attention heads, sequence length 128, and MLP intermediate size 3072. This is a shape helper example, not a published accelerator calibration card. Generated decomposed card for Attention scores. Formula: B * heads * S_query * S_context * head_dim. Matmul shape is 128 x 64 times 64 x 128; operation multiplicity is 12. The right operand is activation data for attention, so cross-batch weight-stationary reuse is disabled in this generated card.
+
 
 
 
@@ -52,23 +53,30 @@ simulation.
 ## Multi-Tier System Movement
 
 These rows add an explicit local system movement estimate on top of the
-photonic core/converter model. SRAM and off-chip traffic are cumulative tier
-movements, not published measurements and not a cache simulator.
+photonic core/converter model. SRAM, intermediate, and off-chip traffic are
+cumulative tier movements, not published measurements and not a cache
+simulator.
 
 | Tier | Read bytes | Write bytes | Movement energy | Transfer time | Bandwidth |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | SRAM | 196608 bytes | 196608 bytes | 7864.320 pJ | 384.000 ns | 1024.000 bytes/ns |
+| Intermediate/cache | 196608 bytes | 196608 bytes | 78643.200 pJ | 1536.000 ns | 256.000 bytes/ns |
 | Off-chip/DRAM | 196608 bytes | 196608 bytes | 3932160.000 pJ | 24576.000 ns | 16.000 bytes/ns |
 
 | Metric | Value |
 | --- | ---: |
+| System profile | default |
+| Profile tier overrides | none |
+| Memory timing mode | overlapped |
 | Local compute/conversion energy | 181469.184 pJ |
-| Total movement energy | 3940024.320 pJ |
-| Total system energy | 4121493.504 pJ |
-| System energy per MAC | 0.328 pJ |
-| System energy per equivalent op | 0.164 pJ |
-| Movement energy share | 95.60% |
+| Total movement energy | 4018667.520 pJ |
+| Total system energy | 4200136.704 pJ |
+| System energy per MAC | 0.334 pJ |
+| System energy per equivalent op | 0.167 pJ |
+| Movement energy share | 95.68% |
 | Max transfer time | 24576.000 ns |
+| Serialized transfer time | 26496.000 ns |
+| Effective transfer time | 24576.000 ns |
 | Bandwidth-limited tier | off_chip |
 | Bandwidth-limited batch latency | 24576.000 ns |
 | Bandwidth-limited equivalent ops/s | 1024000000000.000 |
@@ -124,9 +132,9 @@ movements, not published measurements and not a cache simulator.
 - Dense full-sequence encoder self-attention is used.
 - BERT-base style means common public model dimensions, not a source-backed photonic accelerator claim.
 - Transformer operation: Attention scores.
-- Transformer formula: B * heads * S * S * head_dim.
+- Transformer formula: B * heads * S_query * S_context * head_dim.
 - Transformer batch/head multiplicity is represented by the generated card's execution.batch_size.
-- Layer shape: batch=1, sequence=128, hidden=768, heads=12, head_dim=64, intermediate=3072.
+- Layer shape: batch=1, sequence=128, hidden=768, heads=12, head_dim=64, attention_context=128, intermediate=3072.
 - Dense attention accounting is used; decoder/causal labels do not halve attention MAC counts.
 - Non-matmul costs such as softmax, layer norm, bias adds, activations, dropout, masking, KV-cache incremental decoding, and non-matmul memory traffic are excluded.
 - The benchmark models 12 operation(s) per batch.
@@ -134,4 +142,4 @@ movements, not published measurements and not a cache simulator.
 - Weight DAC conversions are counted every 1 operation(s).
 - The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.
 - Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.
-- The multi-tier system model adds explicit SRAM and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.
+- The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.

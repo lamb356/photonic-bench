@@ -1,0 +1,75 @@
+benchmark:
+  name: Zhang 2026 POMMM coherent matrix multiplication surrogate
+  description: Source-backed card for the Nature Photonics 2026 parallel optical matrix-matrix multiplication result. The paper demonstrates coherent optical matrix-matrix multiplication across multiple sizes; this config uses the reported 20x20 dense matrix-matrix demonstration as a local PhotonicBench surrogate only.
+workload:
+  type: matmul
+  m: 20
+  n: 20
+  k: 20
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 8
+    energy_pj_per_conversion: 0.5
+  vector_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+  weight_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+execution:
+  batch_size: 1
+  vector_reuse_factor: 1
+  weight_reuse_factor: 1
+  weight_stationary: true
+  pipeline:
+    stages: 1
+timing:
+  optical_latency_ns: 1
+  adc_latency_ns: 0
+  dac_latency_ns: 0
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 1
+provenance:
+  source_title: Direct tensor processing with coherent light
+  source_url: https://www.nature.com/articles/s41566-025-01799-7
+  doi: 10.1038/s41566-025-01799-7
+  venue: Nature Photonics 20, 102-108 (2026)
+  claim_status: paper-reported optical matrix-matrix multiplication; matmul-surrogate local model
+published_calibration:
+  architecture: Parallel optical matrix-matrix multiplication with coherent light
+  additional_metrics:
+    demonstrated_nonnegative_matrix_size: 20
+    demonstrated_real_valued_matrix_size: 10
+    quantitative_matrix_sizes: 10,20,30,40,50
+    random_matrix_pairs_per_size: 50
+    mean_absolute_error_less_than: 0.15
+    normalized_rmse_less_than: 0.1
+    data_doi: 10.6084/m9.figshare.30173512
+    code_url: https://github.com/DecadeBin/POMMM.git
+    surrogate_mapping: m=20, k=20, n=20 matches the reported non-negative POMMM matrix-matrix demonstration; it is not a full optical-field propagation or camera-readout reproduction.
+source_quality:
+  reported_metrics:
+    - matrix_size
+    - numerical_error
+    - code
+    - data
+  local_surrogate_type: dense_pommm_matrix_matrix_surrogate
+  coverage:
+    throughput: not_reported
+    energy: not_reported
+    accuracy: reported
+    area: not_reported
+    precision: derived
+  confidence_grade: B
+  notes:
+    - The source directly demonstrates matrix-matrix multiplication and publishes code/data, but no scalar TOPS or TOPS/W value is encoded in this card.
+assumptions:
+  - Source-reported accuracy/error and matrix-size evidence are preserved as published references.
+  - Local optical MAC energy, converter energy, SRAM/intermediate/off-chip tiers, and one-nanosecond latency are generic PhotonicBench assumptions.
+  - Weight-stationary mode approximates reusing the right operand within the local dense tile and does not model coherent field propagation, imaging, or camera readout.
+

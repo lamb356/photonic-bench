@@ -5,6 +5,7 @@ Representative transformer layer spec 'encoder_block' used 12 time(s) in full-mo
 
 
 
+
 ## Workload
 
 | Metric | Value |
@@ -52,23 +53,30 @@ simulation.
 ## Multi-Tier System Movement
 
 These rows add an explicit local system movement estimate on top of the
-photonic core/converter model. SRAM and off-chip traffic are cumulative tier
-movements, not published measurements and not a cache simulator.
+photonic core/converter model. SRAM, intermediate, and off-chip traffic are
+cumulative tier movements, not published measurements and not a cache
+simulator.
 
 | Tier | Read bytes | Write bytes | Movement energy | Transfer time | Bandwidth |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | SRAM | 2457600 bytes | 393216 bytes | 57016.320 pJ | 2784.000 ns | 1024.000 bytes/ns |
+| Intermediate/cache | 2457600 bytes | 393216 bytes | 570163.200 pJ | 11136.000 ns | 256.000 bytes/ns |
 | Off-chip/DRAM | 2457600 bytes | 393216 bytes | 28508160.000 pJ | 178176.000 ns | 16.000 bytes/ns |
 
 | Metric | Value |
 | --- | ---: |
+| System profile | default |
+| Profile tier overrides | none |
+| Memory timing mode | overlapped |
 | Local compute/conversion energy | 1877999.616 pJ |
-| Total movement energy | 28565176.320 pJ |
-| Total system energy | 30443175.936 pJ |
-| System energy per MAC | 0.101 pJ |
-| System energy per equivalent op | 0.050 pJ |
-| Movement energy share | 93.83% |
+| Total movement energy | 29135339.520 pJ |
+| Total system energy | 31013339.136 pJ |
+| System energy per MAC | 0.103 pJ |
+| System energy per equivalent op | 0.051 pJ |
+| Movement energy share | 93.94% |
 | Max transfer time | 178176.000 ns |
+| Serialized transfer time | 192096.000 ns |
+| Effective transfer time | 178176.000 ns |
 | Bandwidth-limited tier | off_chip |
 | Bandwidth-limited batch latency | 178176.000 ns |
 | Bandwidth-limited equivalent ops/s | 3389793103448.275 |
@@ -123,13 +131,13 @@ movements, not published measurements and not a cache simulator.
 - Total latency is a transparent sum of DAC, optical, and ADC latency rather than a pipelined throughput model.
 - Dense full-sequence encoder self-attention is used.
 - BERT-base style means common public model dimensions, not a source-backed photonic accelerator claim.
-- The model summary multiplies one representative encoder-layer artifact by 12 and does not model embeddings, pooler, classifier head, layer norm, softmax, or activation functions.
+- Embeddings, vocabulary projection, activation tensor traffic, and overlap timing are local transformer-model assumptions, not a measured scheduler.
 - Full transformer model layer spec: encoder_block.
 - Full transformer model layer count: 12.
 - Transformer operation: MLP up-projection.
 - Transformer formula: B * S * H * intermediate.
 - Transformer batch/head multiplicity is represented by the generated card's execution.batch_size.
-- Layer shape: batch=1, sequence=128, hidden=768, heads=12, head_dim=64, intermediate=3072.
+- Layer shape: batch=1, sequence=128, hidden=768, heads=12, head_dim=64, attention_context=128, intermediate=3072.
 - Dense attention accounting is used; decoder/causal labels do not halve attention MAC counts.
 - Non-matmul costs such as softmax, layer norm, bias adds, activations, dropout, masking, KV-cache incremental decoding, and non-matmul memory traffic are excluded.
 - The benchmark models 1 operation(s) per batch.
@@ -137,4 +145,4 @@ movements, not published measurements and not a cache simulator.
 - Weight DAC conversions are counted once per batch because weight_stationary is true.
 - The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.
 - Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.
-- The multi-tier system model adds explicit SRAM and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.
+- The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.

@@ -27,6 +27,11 @@ def test_discover_visualizer_data_loads_root_and_nested_reports() -> None:
     assert "bert_base_12layer_model/bert_base_12layer_model_summary.json" in summaries
     assert summaries["nature_pace_64x64.json"].kind == "matmul_card"
     assert summaries["nature_pace_64x64.json"].has_published_reference is True
+    assert summaries["nature_pace_64x64.json"].source_quality_grade == "A"
+    assert (
+        summaries["nature_pace_64x64.json"].source_surrogate_type
+        == "direct_64x64_matrix_vector_calibration"
+    )
     assert "published reference" in summaries["nature_pace_64x64.json"].boundary_tags
     layer = summaries["transformer_small_sanity/small_transformer_layer_summary.json"]
     assert layer.kind == "transformer_layer"
@@ -42,16 +47,25 @@ def test_discover_visualizer_data_loads_root_and_nested_reports() -> None:
     assert layer.movement_energy_share is not None
     assert layer.bandwidth_limited_latency_ns is not None
     assert layer.bandwidth_limited_throughput_equivalent_ops_per_second is not None
+    assert layer.system_profile == "default"
+    assert layer.system_profile_overrides == ()
     model = summaries["bert_base_12layer_model/bert_base_12layer_model_summary.json"]
     assert model.kind == "transformer_model"
     assert model.latency_label == "Model serial batch latency"
-    assert model.equivalent_ops == 12 * 1_711_276_032
+    assert model.equivalent_ops == (12 * 1_711_276_032) + (
+        2 * 128 * 768 * 30_522
+    )
     assert "serial timing" in model.boundary_tags
     assert model.system_energy_per_op_pj is not None
+    assert model.system_profile == "default"
+    profile = summaries["profile_sensitivity_64x64_hbm.json"]
+    assert profile.kind == "matmul_card"
+    assert profile.system_profile == "hbm"
 
     assert [preset.name for preset in data.comparison_presets] == [
         "Published reference surrogate cards",
         "Local reuse sensitivity",
+        "System profile sensitivity",
     ]
     assert data.comparison_presets[0].artifact_ids == (
         "nature_pace_64x64.json",
@@ -62,6 +76,20 @@ def test_discover_visualizer_data_loads_root_and_nested_reports() -> None:
         "hitop_2025_optical_tensor_processor_surrogate.json",
         "lin_2024_tfln_120gops_tensor_core_surrogate.json",
         "meng_2025_mrr_otpu_tensor_core_surrogate.json",
+        "zhang_2026_pommm_surrogate.json",
+        "chen_2026_fsr_gemm_surrogate.json",
+        "ning_2025_cirptc_surrogate.json",
+        "kovaios_2025_wdm_1tops_tensor_core_surrogate.json",
+    )
+    assert data.comparison_presets[2].artifact_ids == (
+        "profile_sensitivity_64x64_on_chip_sram.json",
+        "profile_sensitivity_64x64_hbm.json",
+        "profile_sensitivity_64x64_ddr.json",
+        "profile_sensitivity_64x64_pcie_attached.json",
+    )
+    assert (
+        data.comparison_presets[2].pinned_id
+        == "profile_sensitivity_64x64_ddr.json"
     )
 
 
@@ -145,7 +173,9 @@ def test_write_visualizer_emits_index_payloads_and_static_assets(
     )
     assert "Interface memory traffic" in " ".join(index["modeling_boundaries"])
     assert "System movement energy" in " ".join(index["modeling_boundaries"])
+    assert "System profile names" in " ".join(index["modeling_boundaries"])
     assert "Transformer model timing" in " ".join(index["modeling_boundaries"])
+    assert index["artifacts"][0]["summary"]["system_profile"] is not None
 
     layer = next(
         artifact
@@ -184,6 +214,8 @@ def test_static_app_contains_comparison_and_boundary_labels() -> None:
     assert "Ratio vs pinned" in app_js
     assert "Comparison Insights" in app_js
     assert "Comparison Brief" in app_js
+    assert "Decision Scorecard" in app_js
+    assert "decision_scorecard" in app_js
     assert "Download JSON" in app_js
     assert "Download Markdown" in app_js
     assert "Copy Markdown" in app_js
@@ -191,6 +223,8 @@ def test_static_app_contains_comparison_and_boundary_labels() -> None:
     assert "Operational intensity" in app_js
     assert "Interface Memory Traffic" in app_js
     assert "Multi-Tier System Model" in app_js
+    assert "System profile" in app_js
+    assert "Profile tier overrides" in app_js
     assert "System energy per op" in app_js
     assert "Movement share" in app_js
     assert "Pareto Trade-Offs" in app_js
@@ -210,7 +244,15 @@ def test_static_app_contains_comparison_and_boundary_labels() -> None:
     assert "Non-additive Noise" in app_js
     assert "Transformer Exclusions" in app_js
     assert "Published references" in app_js
+    assert "Source Quality Index" in app_js
+    assert "source_quality_grade" in app_js
+    assert "validateExternalPayload" in app_js
+    assert "Unexpected top-level field" in app_js
+    assert "Detected and accepted" in app_js
     assert "Load external JSON reports" in Path(
+        "photonic_bench/visualizer_assets/template.html"
+    ).read_text(encoding="utf-8")
+    assert "external-diagnostics" in Path(
         "photonic_bench/visualizer_assets/template.html"
     ).read_text(encoding="utf-8")
     assert "summarizeExternalPayload" in app_js

@@ -2,7 +2,11 @@ import json
 
 import pytest
 
-from photonic_bench.config import ProvenanceConfig, PublishedCalibrationConfig
+from photonic_bench.config import (
+    ProvenanceConfig,
+    PublishedCalibrationConfig,
+    SourceQualityConfig,
+)
 from photonic_bench.json_report import REPORT_SCHEMA_VERSION, render_json, report_to_dict
 from photonic_bench.model import CalibrationFitRequest, evaluate
 from tests.test_model import unit_config
@@ -55,6 +59,16 @@ def test_report_to_dict_exposes_json_schema_sections() -> None:
         "read_fraction": 1.0,
         "write_fraction": 1.0,
     }
+    assert payload["model_inputs"]["system"]["profile"] == "default"
+    assert payload["model_inputs"]["system"]["profile_overrides"] == []
+    assert payload["model_inputs"]["system"]["memory_timing_mode"] == "overlapped"
+    assert payload["model_inputs"]["system"]["intermediate"] == {
+        "read_energy_pj_per_byte": 0.2,
+        "write_energy_pj_per_byte": 0.2,
+        "bandwidth_bytes_per_ns": 256.0,
+        "read_fraction": 1.0,
+        "write_fraction": 1.0,
+    }
     assert payload["model_inputs"]["system"]["off_chip"] == {
         "read_energy_pj_per_byte": 10.0,
         "write_energy_pj_per_byte": 10.0,
@@ -81,15 +95,23 @@ def test_report_to_dict_exposes_json_schema_sections() -> None:
         ),
     }
     system = payload["local_model"]["system"]
+    assert system["profile"] == "default"
+    assert system["profile_overrides"] == []
+    assert system["memory_timing_mode"] == "overlapped"
     assert system["tiers"]["sram"]["read_bytes"] == pytest.approx(24)
     assert system["tiers"]["sram"]["write_bytes"] == pytest.approx(32)
     assert system["tiers"]["sram"]["total_energy_pj"] == pytest.approx(1.12)
+    assert system["tiers"]["intermediate"]["total_energy_pj"] == pytest.approx(11.2)
     assert system["tiers"]["off_chip"]["total_energy_pj"] == pytest.approx(560)
     assert system["local_compute_and_conversion_energy_pj"] == pytest.approx(21.248)
-    assert system["total_movement_energy_pj"] == pytest.approx(561.12)
-    assert system["total_system_energy_pj"] == pytest.approx(582.368)
-    assert system["system_energy_per_op_pj"] == pytest.approx(582.368 / 128)
-    assert system["movement_energy_share"] == pytest.approx(561.12 / 582.368)
+    assert system["total_movement_energy_pj"] == pytest.approx(572.32)
+    assert system["total_system_energy_pj"] == pytest.approx(593.568)
+    assert system["system_energy_per_op_pj"] == pytest.approx(593.568 / 128)
+    assert system["movement_energy_share"] == pytest.approx(572.32 / 593.568)
+    assert system["serial_transfer_time_ns"] == pytest.approx(
+        (56 / 1024) + (56 / 256) + (56 / 16)
+    )
+    assert system["effective_transfer_time_ns"] == pytest.approx(56 / 16)
     assert system["bandwidth_limited_batch_latency_ns"] == pytest.approx(5.0)
     assert "not a published measurement" in system["note"]
     assert payload["local_model"]["energy"]["vector_dac_pj"] == pytest.approx(1.6)
@@ -127,6 +149,19 @@ def test_report_to_dict_keeps_published_reference_separate() -> None:
             pace_total_time_us=2.7,
             gpu_total_time_us=798.1,
         ),
+        source_quality=SourceQualityConfig(
+            reported_metrics=("throughput", "energy_efficiency"),
+            local_surrogate_type="direct_matrix_vector",
+            coverage={
+                "throughput": "reported",
+                "energy": "reported",
+                "accuracy": "not_applicable",
+                "area": "derived",
+                "precision": "reported",
+            },
+            confidence_grade="A",
+            notes=("Direct source-backed calibration.",),
+        ),
     )
     result = evaluate(config)
 
@@ -138,6 +173,11 @@ def test_report_to_dict_keeps_published_reference_separate() -> None:
     assert "not local component-model estimates" in reference["separation_note"]
     assert reference["provenance"]["doi"] == "10.1038/s41586-025-08786-6"
     assert reference["reported"]["reported_tops"] == pytest.approx(8.19)
+    assert reference["source_quality"]["confidence_grade"] == "A"
+    assert reference["source_quality"]["local_surrogate_type"] == (
+        "direct_matrix_vector"
+    )
+    assert reference["source_quality"]["coverage"]["throughput"] == "reported"
     assert reference["derived_unit_conversions"][
         "energy_per_op_including_lasers_pj"
     ] == pytest.approx(1 / 2.38)

@@ -49,10 +49,20 @@ window.PhotonicBenchPayloadRegistry["bert_base_encoder_layer/bert_base_layer_mlp
       }
     },
     "system": {
+      "profile": "default",
+      "profile_overrides": [],
+      "memory_timing_mode": "overlapped",
       "sram": {
         "read_energy_pj_per_byte": 0.02,
         "write_energy_pj_per_byte": 0.02,
         "bandwidth_bytes_per_ns": 1024.0,
+        "read_fraction": 1.0,
+        "write_fraction": 1.0
+      },
+      "intermediate": {
+        "read_energy_pj_per_byte": 0.2,
+        "write_energy_pj_per_byte": 0.2,
+        "bandwidth_bytes_per_ns": 256.0,
         "read_fraction": 1.0,
         "write_fraction": 1.0
       },
@@ -92,6 +102,9 @@ window.PhotonicBenchPayloadRegistry["bert_base_encoder_layer/bert_base_layer_mlp
       "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
     },
     "system": {
+      "profile": "default",
+      "profile_overrides": [],
+      "memory_timing_mode": "overlapped",
       "tiers": {
         "sram": {
           "name": "sram",
@@ -103,6 +116,19 @@ window.PhotonicBenchPayloadRegistry["bert_base_encoder_layer/bert_base_layer_mlp
           "total_energy_pj": 57016.32,
           "bandwidth_bytes_per_ns": 1024.0,
           "transfer_time_ns": 2784.0,
+          "read_fraction": 1.0,
+          "write_fraction": 1.0
+        },
+        "intermediate": {
+          "name": "intermediate",
+          "read_bytes": 2457600.0,
+          "write_bytes": 393216.0,
+          "total_bytes": 2850816.0,
+          "read_energy_pj": 491520.0,
+          "write_energy_pj": 78643.20000000001,
+          "total_energy_pj": 570163.2,
+          "bandwidth_bytes_per_ns": 256.0,
+          "transfer_time_ns": 11136.0,
           "read_fraction": 1.0,
           "write_fraction": 1.0
         },
@@ -121,16 +147,18 @@ window.PhotonicBenchPayloadRegistry["bert_base_encoder_layer/bert_base_layer_mlp
         }
       },
       "local_compute_and_conversion_energy_pj": 1877999.616,
-      "total_movement_energy_pj": 28565176.32,
-      "total_system_energy_pj": 30443175.936,
-      "system_energy_per_mac_pj": 0.10080859375000001,
-      "system_energy_per_op_pj": 0.050404296875000004,
-      "movement_energy_share": 0.9383113108846437,
+      "total_movement_energy_pj": 29135339.52,
+      "total_system_energy_pj": 31013339.136,
+      "system_energy_per_mac_pj": 0.10269661458333333,
+      "system_energy_per_op_pj": 0.051348307291666666,
+      "movement_energy_share": 0.9394454235397041,
       "max_transfer_time_ns": 178176.0,
+      "serial_transfer_time_ns": 192096.0,
+      "effective_transfer_time_ns": 178176.0,
       "bandwidth_limited_batch_latency_ns": 178176.0,
       "bandwidth_limited_equivalent_ops_per_second": 3389793103448.2754,
       "bandwidth_limited_tier": "off_chip",
-      "note": "System movement energy is a local estimate over explicit SRAM and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
+      "note": "System movement energy is a local estimate over explicit SRAM, intermediate, and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
     },
     "energy": {
       "optical_compute_pj": 150994.944,
@@ -179,7 +207,7 @@ window.PhotonicBenchPayloadRegistry["bert_base_encoder_layer/bert_base_layer_mlp
     "Transformer operation: MLP up-projection.",
     "Transformer formula: B * S * H * intermediate.",
     "Transformer batch/head multiplicity is represented by the generated card's execution.batch_size.",
-    "Layer shape: batch=1, sequence=128, hidden=768, heads=12, head_dim=64, intermediate=3072.",
+    "Layer shape: batch=1, sequence=128, hidden=768, heads=12, head_dim=64, attention_context=128, intermediate=3072.",
     "Dense attention accounting is used; decoder/causal labels do not halve attention MAC counts.",
     "Non-matmul costs such as softmax, layer norm, bias adds, activations, dropout, masking, KV-cache incremental decoding, and non-matmul memory traffic are excluded.",
     "The benchmark models 1 operation(s) per batch.",
@@ -187,7 +215,7 @@ window.PhotonicBenchPayloadRegistry["bert_base_encoder_layer/bert_base_layer_mlp
     "Weight DAC conversions are counted once per batch because weight_stationary is true.",
     "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
     "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.",
-    "The multi-tier system model adds explicit SRAM and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
+    "The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
   ],
   "provenance": null
 }

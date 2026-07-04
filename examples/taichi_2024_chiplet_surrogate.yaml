@@ -51,6 +51,22 @@ published_calibration:
     experimental_mini_imagenet_accuracy_percent: 87.74
     reported_energy_efficiency_note: Source reports 160 TOPS/W on-chip energy efficiency.
     surrogate_mapping: m=64, k=64, n=64 is a dense local surrogate for comparison only; not the Taichi distributed optical protocol.
+source_quality:
+  reported_metrics:
+    - energy_efficiency
+    - area_efficiency
+    - accuracy
+    - scale
+  local_surrogate_type: dense_photonic_chiplet_surrogate
+  coverage:
+    throughput: derived
+    energy: reported
+    accuracy: reported
+    area: reported
+    precision: not_reported
+  confidence_grade: B
+  notes:
+    - Strong energy, area, scale, and task-metric coverage, but no exact dense-matmul local reproduction of the Taichi protocol is claimed.
 assumptions:
   - Source reports 64x64 input/output chiplet dimensions and 160 TOPS/W energy efficiency; this card keeps those values as published references.
   - Local timing, device energy, converter, and noise settings are PhotonicBench assumptions, not extracted Taichi device-level measurements.

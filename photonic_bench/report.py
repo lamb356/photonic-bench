@@ -35,6 +35,7 @@ def render_markdown(result: BenchmarkResult) -> str:
 
 {_render_provenance(config)}
 {_render_published_calibration(result)}
+{_render_source_quality(result)}
 {_render_calibration_fit(result)}
 ## Workload
 
@@ -83,16 +84,21 @@ simulation.
 ## Multi-Tier System Movement
 
 These rows add an explicit local system movement estimate on top of the
-photonic core/converter model. SRAM and off-chip traffic are cumulative tier
-movements, not published measurements and not a cache simulator.
+photonic core/converter model. SRAM, intermediate, and off-chip traffic are
+cumulative tier movements, not published measurements and not a cache
+simulator.
 
 | Tier | Read bytes | Write bytes | Movement energy | Transfer time | Bandwidth |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | SRAM | {_bytes(system.sram.read_bytes)} | {_bytes(system.sram.write_bytes)} | {_pj(system.sram.total_energy_pj)} | {_ns(system.sram.transfer_time_ns)} | {_bytes_per_ns(system.sram.bandwidth_bytes_per_ns)} |
+| Intermediate/cache | {_bytes(system.intermediate.read_bytes)} | {_bytes(system.intermediate.write_bytes)} | {_pj(system.intermediate.total_energy_pj)} | {_ns(system.intermediate.transfer_time_ns)} | {_bytes_per_ns(system.intermediate.bandwidth_bytes_per_ns)} |
 | Off-chip/DRAM | {_bytes(system.off_chip.read_bytes)} | {_bytes(system.off_chip.write_bytes)} | {_pj(system.off_chip.total_energy_pj)} | {_ns(system.off_chip.transfer_time_ns)} | {_bytes_per_ns(system.off_chip.bandwidth_bytes_per_ns)} |
 
 | Metric | Value |
 | --- | ---: |
+| System profile | {config.system.profile} |
+| Profile tier overrides | {_profile_overrides(config.system.profile_overrides)} |
+| Memory timing mode | {system.memory_timing_mode} |
 | Local compute/conversion energy | {_pj(system.local_compute_and_conversion_energy_pj)} |
 | Total movement energy | {_pj(system.total_movement_energy_pj)} |
 | Total system energy | {_pj(system.total_system_energy_pj)} |
@@ -100,6 +106,8 @@ movements, not published measurements and not a cache simulator.
 | System energy per equivalent op | {_pj(system.system_energy_per_op_pj)} |
 | Movement energy share | {movement_percent:.2f}% |
 | Max transfer time | {_ns(system.max_transfer_time_ns)} |
+| Serialized transfer time | {_ns(system.serial_transfer_time_ns)} |
+| Effective transfer time | {_ns(system.effective_transfer_time_ns)} |
 | Bandwidth-limited tier | {system.bandwidth_limited_tier} |
 | Bandwidth-limited batch latency | {_ns(system.bandwidth_limited_batch_latency_ns)} |
 | Bandwidth-limited equivalent ops/s | {system.bandwidth_limited_equivalent_ops_per_second:.3f} |
@@ -165,6 +173,10 @@ def _bytes(value: float) -> str:
 
 def _bytes_per_ns(value: float) -> str:
     return f"{value:.3f} bytes/ns"
+
+
+def _profile_overrides(overrides: tuple[str, ...]) -> str:
+    return ", ".join(overrides) if overrides else "none"
 
 
 def _render_provenance(config) -> str:
@@ -293,6 +305,35 @@ These rows are paper-reported targets and direct unit conversions from those tar
 """
 
 
+def _render_source_quality(result: BenchmarkResult) -> str:
+    quality = result.config.source_quality
+    if quality is None:
+        return ""
+
+    coverage_rows = "\n".join(
+        f"| {_humanize_metric_name(dimension)} | {status} |"
+        for dimension, status in quality.coverage.items()
+    )
+    notes = "\n".join(f"- {note}" for note in quality.notes)
+    notes_block = f"\nSource-quality notes:\n\n{notes}\n" if notes else ""
+
+    return f"""## Source Quality Index
+
+These rows summarize source evidence coverage for this published reference card. They do not turn local surrogate estimates into paper measurements.
+
+| Field | Value |
+| --- | --- |
+| Reported metric types | {", ".join(quality.reported_metrics)} |
+| Local surrogate type | {quality.local_surrogate_type} |
+| Confidence grade | {quality.confidence_grade} |
+
+| Dimension | Coverage |
+| --- | --- |
+{coverage_rows}
+{notes_block}
+"""
+
+
 def _render_calibration_fit(result: BenchmarkResult) -> str:
     fit = result.calibration_fit
     if fit is None:
@@ -356,9 +397,10 @@ def result_assumptions(result: BenchmarkResult) -> tuple[str, ...]:
             "not a full memory hierarchy simulation."
         ),
         (
-            "The multi-tier system model adds explicit SRAM and off-chip movement "
-            "energy/timing estimates to the local photonic core/converter energy; "
-            "tier values are local assumptions, not published measurements."
+            "The multi-tier system model adds explicit SRAM, intermediate/cache, "
+            "and off-chip movement energy/timing estimates to the local photonic "
+            "core/converter energy; tier values are local assumptions, not "
+            "published measurements."
         ),
     )
 
