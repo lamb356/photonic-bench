@@ -18,6 +18,7 @@ python -m photonic_bench.cli transformer-layer examples/gpt_style_decoder_layer.
 python -m photonic_bench.cli run examples/nature_pace_64x64.yaml --report reports/nature_pace_64x64.md --json-report reports/nature_pace_64x64.json
 python -m photonic_bench.cli run examples/nature_pace_64x64.yaml --report reports/nature_pace_64x64_calibrated.md --json-report reports/nature_pace_64x64_calibrated.json --fit-target published-including-lasers --fit-parameter device.dac.energy_pj_per_conversion
 python -m photonic_bench.cli compare reports/matmul_64x64.json reports/nature_pace_64x64.json reports/nature_pace_64x64_calibrated.json reports/xu_11tops_convolution_surrogate.json reports/weight_stationary_64x64_batch.json --report reports/comparison.md
+python -m photonic_bench.cli visualize --reports-dir reports --output reports/visualizer/index.html
 ```
 
 After the commands run, open `reports/matmul_64x64.md` and `reports/nature_pace_64x64.md`.
@@ -227,6 +228,36 @@ Schema documentation:
 python examples/load_report_json.py reports/nature_pace_64x64.json
 ```
 
+## Web Visualizer
+
+Generate the local static visualizer from checked-in JSON reports:
+
+```powershell
+python -m photonic_bench.cli visualize --reports-dir reports --output reports/visualizer/index.html
+```
+
+Then open `reports/visualizer/index.html` in a browser. The generated page is
+self-contained, so it can be opened directly from disk without a backend server.
+
+The visualizer discovers `.json` files recursively under `reports/`, branches on
+`schema_version`, and loads both supported contracts:
+
+- `photonic-bench-report-v1`: per-matmul benchmark cards.
+- `photonic-bench-transformer-layer-report-v1`: transformer-layer aggregate
+  summaries.
+
+Unsupported or malformed JSON files are shown as index warnings instead of
+crashing the whole page. Markdown reports are not scraped; JSON is the machine
+interface.
+
+The initial transformer-layer detail view shows layer shape, aggregate workload
+totals, local energy, serial timing, non-additive noise diagnostics, formula
+audit rows, per-matmul breakdowns, assumptions, exclusions, and provenance. The
+page keeps the major modeling boundaries visible: local model estimates are
+separate from published references, `serial_*` timing is not a fused hardware
+scheduler claim, and aggregate noise is diagnostic rather than an additive
+layer-level error.
+
 ## Comparison Tables
 
 Use the `compare` command to generate a Markdown table from JSON cards:
@@ -272,6 +303,7 @@ The output records the target, target source, original value, fitted value, pre-
 - `photonic_bench/json_report.py`: machine-readable JSON card rendering.
 - `photonic_bench/comparison.py`: Markdown comparison table rendering from JSON cards.
 - `photonic_bench/transformer.py`: transformer-layer shape helpers and aggregate layer comparison rendering.
+- `photonic_bench/visualizer.py`: static web visualizer artifact discovery, schema-aware loading, and HTML rendering.
 - `docs/photonic-bench-transformer-layer-report-v1.schema.json`: machine-readable aggregate transformer-layer JSON Schema.
 - `photonic_bench/cli.py`: command-line entry point.
 - `docs/json_schema.md`: JSON schema guide, units, nullability, and examples.
@@ -284,5 +316,6 @@ The output records the target, target source, original value, fitted value, pre-
 - `examples/bert_base_encoder_layer.yaml`: BERT-base style encoder-layer shape helper example.
 - `examples/gpt_style_decoder_layer.yaml`: GPT-style decoder-layer shape helper example.
 - `examples/load_report_json.py`: small programmatic JSON loading example.
+- `reports/visualizer/index.html`: generated static web visualizer.
 - `tasks/goal-prompt.md`: first-task execution prompt.
 - `tasks/todo.md`: live task ledger.

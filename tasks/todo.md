@@ -30,13 +30,13 @@
 
 ## Active Goal: Hardened Baseline Commit And Initial Web Visualizer
 
-- [ ] Task 1: Commit the current hardened PhotonicBench baseline.
-- [ ] Task 2: Add artifact discovery and indexing over report directories.
-- [ ] Task 3: Add schema-aware loading for per-matmul and aggregate JSON.
-- [ ] Task 4: Build the initial static visualizer UI.
-- [ ] Task 5: Build a basic transformer-layer aggregate detail view.
-- [ ] Task 6: Document visualizer usage and run verification.
-- [ ] Task 7: Run mandatory hostile senior reviewer critique and fix important
+- [x] Task 1: Commit the current hardened PhotonicBench baseline.
+- [x] Task 2: Add artifact discovery and indexing over report directories.
+- [x] Task 3: Add schema-aware loading for per-matmul and aggregate JSON.
+- [x] Task 4: Build the initial static visualizer UI.
+- [x] Task 5: Build a basic transformer-layer aggregate detail view.
+- [x] Task 6: Document visualizer usage and run verification.
+- [x] Task 7: Run mandatory hostile senior reviewer critique and fix important
       findings.
 
 ## Explicitly Not Active In This Goal

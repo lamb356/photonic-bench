@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+import sys
 
 from photonic_bench.comparison import load_comparison_cards, render_comparison_markdown
 from photonic_bench.config import load_config, load_transformer_layer_config
@@ -19,6 +20,7 @@ from photonic_bench.transformer import (
     render_transformer_layer_json,
     slugify,
 )
+from photonic_bench.visualizer import write_visualizer
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -38,6 +40,8 @@ def main(argv: list[str] | None = None) -> int:
             return _compare(args.json_cards, args.report)
         if args.command == "transformer-layer":
             return _transformer_layer(args.config, args.output_dir, args.prefix)
+        if args.command == "visualize":
+            return _visualize(args.reports_dir, args.output)
     except (OSError, ValueError) as exc:
         parser.exit(2, f"error: {exc}\n")
 
@@ -111,6 +115,23 @@ def _build_parser() -> argparse.ArgumentParser:
     transformer.add_argument(
         "--prefix",
         help="Optional filename prefix; defaults to a slug of the benchmark name",
+    )
+
+    visualize = subparsers.add_parser(
+        "visualize",
+        help="Generate a static web visualizer from JSON reports",
+    )
+    visualize.add_argument(
+        "--reports-dir",
+        type=Path,
+        default=Path("reports"),
+        help="Directory containing PhotonicBench JSON reports",
+    )
+    visualize.add_argument(
+        "--output",
+        type=Path,
+        default=Path("reports/visualizer/index.html"),
+        help="HTML file to write",
     )
     return parser
 
@@ -205,6 +226,17 @@ def _transformer_layer(
     )
     print(f"Wrote transformer layer comparison to {aggregate_path}")
     print(f"Wrote transformer layer JSON summary to {aggregate_json_path}")
+    return 0
+
+
+def _visualize(reports_dir: Path, output_path: Path) -> int:
+    data = write_visualizer(reports_dir, output_path)
+    print(
+        f"Wrote web visualizer to {output_path} "
+        f"({len(data.artifacts)} artifacts, {len(data.issues)} warnings)"
+    )
+    for issue in data.issues:
+        print(f"warning: {issue.source_path}: {issue.message}", file=sys.stderr)
     return 0
 
 
