@@ -87,6 +87,18 @@
       Created private repo `lamb356/photonic-bench`, configured `origin`, and
       pushed `master`.
 
+## Active Goal: GitHub Actions CI And Repository Hygiene
+
+- [x] Task 0: Roll state files forward and create prioritized checklist.
+- [ ] Task 1: Add a GitHub Actions workflow for pushes to `master` and pull
+      requests.
+- [ ] Task 2: Verify local `ruff check` and `pytest` command path.
+- [ ] Task 3: Decide and verify repository visibility.
+- [ ] Task 4: Add and verify GitHub repository description and topics.
+- [ ] Task 5: Commit, push, and verify the GitHub Actions run passes.
+- [ ] Task 6: Run hostile senior reviewer critique and fix significant issues.
+- [ ] Task 7: Close final state files and inspect clean synced git status.
+
 ## Explicitly Not Active In This Goal
 
 - [ ] File upload workflow.

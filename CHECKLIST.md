@@ -1,4 +1,4 @@
-# PhotonicBench Commit, Push, Visualizer Polish, And Proposal Checklist
+# PhotonicBench CI And Repo Hygiene Checklist
 
 Status key:
 
@@ -10,219 +10,148 @@ Status key:
 
 - [x] DONE: Roll state files forward and create the prioritized checklist.
   - Done when:
-    - `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and `RUBRIC.md`
-      describe the commit, push, visualizer polish, and MLCommons-style
-      proposal goal.
-    - `tasks/todo.md` marks the comparison/smoke/scaling goal as complete and
-      this new goal as active.
-    - The checklist covers all four user objectives in order, plus final
-      verification, critique, commit, and push.
+    - `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
+      `RUBRIC.md` describe the CI and GitHub repository hygiene goal.
+    - `tasks/todo.md` marks the previous goal as complete and this new goal as
+      active.
+    - The checklist covers workflow creation, local verification, GitHub
+      metadata, push, Actions verification, critique, and closeout.
   - Proof:
     - Re-read all five required state files at the start of the cycle.
     - Re-read `tasks/todo.md`.
-    - Inspected `git status --short --branch`.
-    - Confirmed the current working tree contains the completed visualizer
-      comparison, smoke-test, and `--serve` scaling layer awaiting commit.
-
-## Task 1: Commit Current State
-
-- [x] DONE: Verify and commit the current project state.
-  - Done when:
-    - `git status --short --branch` and the relevant diff/stat have been
-      inspected.
-    - `python -m pytest` passes.
-    - `python -m ruff check` passes.
-    - Current working-tree files are staged explicitly.
-    - A clean descriptive commit exists for the current state.
-    - Commit hash and proof are recorded in `PROGRESS.md`.
-  - Proof:
-    - Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
-      `RUBRIC.md` before the commit cycle.
-    - Ran `git status --short --branch` and `git diff --stat`.
-    - Ran `python -m pytest`: 72 passed.
-    - Ran `python -m ruff check`: passed.
-    - Staged explicit state, doc, source, generated asset, dependency, and
-      test paths.
-    - Created commit `416f1f8 Add visualizer comparison smoke and server mode`.
-    - Confirmed `.Codex/scripts/generate-reasoning.sh` is not present in this
-      checkout.
-
-## Task 2: Push Current Commit
-
-- [x] DONE: Push the verified current-state commit.
-  - Done when:
-    - The current-state commit is pushed to the configured remote branch.
-    - The push target and resulting branch state are recorded in `PROGRESS.md`.
-    - No push is attempted if tests or ruff fail.
-  - Proof:
-    - Re-ran `python -m pytest`: 73 passed.
-    - Re-ran `python -m ruff check`: passed.
-    - Created private GitHub repository
-      `https://github.com/lamb356/photonic-bench`.
-    - Added `origin` as
+    - Inspected `pyproject.toml`, `.github` state, tracked file list, recent
+      git log, remote, and branch tracking.
+    - Confirmed no existing `.github/workflows/` directory is present.
+    - Confirmed `master` tracks `origin/master` at
       `https://github.com/lamb356/photonic-bench.git`.
-    - Pushed `master` with upstream tracking.
-    - Verified `git ls-remote origin refs/heads/master` matches local `HEAD`
-      at `faa4c0f7cd710177fcfadcaf3f003d6e221a4aba`.
 
-## Task 3: Further Visualizer Comparison Polish
+## Task 1: GitHub Actions Workflow
 
-- [x] DONE: Audit the current comparison implementation and UX.
+- [x] DONE: Add a reliable Python CI workflow.
   - Done when:
-    - The comparison JavaScript, styling, generated assets, and tests have been
-      inspected.
-    - The next improvement layer is narrowed to high-value, maintainable
-      changes.
+    - `.github/workflows/ci.yml` exists.
+    - It triggers on push to `master`.
+    - It triggers on pull requests.
+    - It uses a supported Python 3.12 setup.
+    - It installs project dev dependencies.
+    - It installs Playwright Chromium dependencies needed by the existing smoke
+      tests.
+    - It runs `python -m ruff check`.
+    - It runs `python -m pytest`.
   - Proof:
-    - Inspected `photonic_bench/visualizer_assets/app.js`,
-      `photonic_bench/visualizer_assets/styles.css`,
-      `tests/test_visualizer.py`, `tests/test_visualizer_smoke.py`, and the
-      README visualizer section.
-    - Chose an insights/compatibility layer because the existing comparison
-      mode already had pinning, deltas, ratios, and grouping but still required
-      users to parse large tables to identify meaningful winners and
-      mixed-schema caveats.
+    - Added `.github/workflows/ci.yml`.
+    - Workflow triggers on push to `master` and on pull requests.
+    - Workflow uses `actions/checkout@v4` and `actions/setup-python@v5` with
+      Python `3.12` and pip caching.
+    - Workflow installs `python -m pip install -e ".[dev]"`.
+    - Workflow installs Playwright Chromium with Linux dependencies via
+      `python -m playwright install --with-deps chromium`.
+    - Workflow runs `python -m ruff check`.
+    - Workflow runs `python -m pytest`.
+    - Parsed the workflow file locally with PyYAML and asserted the expected
+      trigger and command entries.
 
-- [x] DONE: Implement stronger comparison analytics and mixed-schema handling.
+## Task 2: Local CI Verification
+
+- [x] DONE: Verify the workflow command path locally.
   - Done when:
-    - Pinned reference state is easier to understand and act on.
-    - Compatible metrics show values, absolute deltas, percent deltas, and
-      ratios where meaningful.
-    - Same-schema grouped views help users identify best/worst selected
-      artifacts by metric.
-    - Mixed-schema selections expose compatibility/caveat information without
-      implying false equivalence.
-    - The UI remains compact, readable, and usable at desktop and mobile-ish
-      widths.
-    - Unit or browser smoke coverage exercises the new behavior.
-  - Proof:
-    - Added direction-aware metric metadata for comparison analytics.
-    - Added a `Comparison Insights` panel with per-schema lowest energy/op,
-      lowest latency, and highest throughput cues.
-    - Added a `Schema Compatibility` panel explaining which groups have a
-      compatible pinned baseline and which remain values-only.
-    - Added `Percent vs pinned` beside absolute deltas and ratios.
-    - Added direction-aware `lowest` / `highest` badges for compatible metric
-      rows.
-    - Added responsive CSS for insight cards and a success badge style.
-    - Expanded unit/static asset tests and Playwright smoke assertions for the
-      new comparison labels.
-
-- [x] DONE: Regenerate visualizer examples and update docs for the polish layer.
-  - Done when:
-    - `reports/visualizer/index.html` and generated assets are updated if
-      source assets changed.
-    - README or docs explain the new comparison behavior.
-  - Proof:
-    - Updated README compare-mode documentation for comparison insights, schema
-      compatibility, percent deltas, and per-schema ranking boundaries.
-    - Regenerated `reports\visualizer\index.html`:
-      23 artifacts, 0 warnings.
-    - Ran `python -m pytest tests\test_visualizer.py
-      tests\test_visualizer_smoke.py`: 9 passed.
-    - Ran `python -m ruff check photonic_bench\visualizer_assets
-      tests\test_visualizer.py tests\test_visualizer_smoke.py`: passed.
-
-## Task 4: MLCommons-Style Photonic Benchmark Proposal
-
-- [x] DONE: Ground the proposal in current official MLCommons context.
-  - Done when:
-    - Current official MLCommons materials relevant to benchmark process,
-      metrics, reproducibility, or submissions have been checked.
-    - Source links and takeaways are recorded in the proposal artifact or
-      progress log.
-  - Proof:
-    - Checked current official MLCommons/MLPerf benchmark, submission,
-      inference-rule, power, tiny-benchmark, datacenter-power, and audit
-      materials.
-    - Recorded source links and takeaways in
-      `docs/mlcommons_photonic_benchmark_proposal.md`.
-
-- [x] DONE: Produce substantive proposal foundation artifacts.
-  - Done when:
-    - A concrete proposal draft structure exists.
-    - Scope, workload classes, metrics, reproducibility requirements, artifact
-      requirements, and open questions are written down.
-    - The proposal explains how PhotonicBench artifacts could map into a
-      benchmark submission and what remains unresolved.
-  - Proof:
-    - Added `docs/mlcommons_photonic_benchmark_proposal.md` with source
-      context, one-page proposal, charter, non-goals, candidate divisions,
-      availability categories, workload scope, metrics registry, draft
-      structure, PhotonicBench mapping, reproducibility requirements, open
-      questions, and immediate next work.
-    - Added `docs/mlcommons_photonic_reproducibility_checklist.md` with package
-      layout, manifest fields, artifact requirements, metric requirements,
-      verification commands, review checklist, and audit questions.
-    - Updated `thoughts/plans/mlcommons_photonic_benchmark_proposal_plan.md`
-      to point at the new active proposal artifacts.
-    - Updated README to link the proposal artifacts and state their status.
-    - Added `tests/test_proposal_docs.py`.
-    - Ran `python -m pytest tests\test_proposal_docs.py -q`: 1 passed.
-    - Ran `python -m ruff check tests\test_proposal_docs.py`: passed.
-
-## Task 5: Verification And Documentation
-
-- [x] DONE: Run focused and full verification after implementation.
-  - Done when:
-    - Focused visualizer tests pass.
-    - The Playwright visualizer smoke test passes.
-    - `python -m pytest` passes.
     - `python -m ruff check` passes.
-    - Documentation and state files reflect the completed work.
+    - `python -m pytest` passes.
+    - Any workflow-relevant dependency assumptions are checked.
   - Proof:
-    - Focused visualizer tests and smoke passed: 9 passed.
-    - Proposal doc test passed: 1 passed.
-    - Full `python -m pytest`: 73 passed.
-    - Full `python -m ruff check`: passed.
-    - Extra Playwright viewport smoke passed for desktop and narrow comparison
-      views with no page errors, no console errors, and no page overflow.
-    - README, proposal docs, generated visualizer assets, and state files were
-      updated.
+    - Ran `python -m ruff check`: passed.
+    - Ran `python -m pytest`: 73 passed, 146 warnings from
+      `pytest_freezegun`/`distutils` deprecation.
+    - Re-ran workflow file content assertions after fixing the PowerShell
+      here-string invocation used for the local assertion script.
+
+## Task 3: Repository Visibility
+
+- [x] DONE: Decide and verify repository visibility.
+  - Done when:
+    - The visibility decision is recorded.
+    - `gh` verifies the repository visibility.
+    - If the actual visibility differs from the decision, `gh repo edit`
+      applies the change and the result is re-verified.
+  - Decision:
+    - Keep `lamb356/photonic-bench` private for this phase. The repository was
+      created private in the previous goal, and changing to public would expose
+      draft benchmark/proposal artifacts without an explicit public-release
+      instruction.
+  - Proof:
+    - Ran `gh repo view lamb356/photonic-bench --json
+      nameWithOwner,url,visibility,description,repositoryTopics,defaultBranchRef`.
+    - GitHub reported `visibility` as `PRIVATE`.
+    - No visibility change was needed because the decision is to keep the
+      repository private for this phase.
+
+## Task 4: GitHub Description And Topics
+
+- [x] DONE: Add professional repository metadata.
+  - Done when:
+    - A clear repository description is set on GitHub.
+    - Relevant topics are set on GitHub.
+    - `gh repo view` verifies both.
+  - Planned description:
+    - `Transparent benchmark cards, JSON artifacts, and visual tools for
+      photonic AI accelerator energy/noise claims.`
+  - Planned topics:
+    - `photonic-computing`
+    - `photonic-accelerator`
+    - `benchmarking`
+    - `machine-learning`
+    - `ai-accelerators`
+    - `optical-computing`
+    - `python`
+    - `reproducibility`
+    - `mlperf`
+    - `mlcommons`
+  - Proof:
+    - Ran `gh repo edit lamb356/photonic-bench --description ...` with ten
+      `--add-topic` values.
+    - Verified with `gh repo view lamb356/photonic-bench --json
+      nameWithOwner,url,visibility,description,repositoryTopics,defaultBranchRef`.
+    - GitHub reported description:
+      `Transparent benchmark cards, JSON artifacts, and visual tools for
+      photonic AI accelerator energy/noise claims.`
+    - GitHub reported topics:
+      `ai-accelerators`, `benchmarking`, `machine-learning`, `mlcommons`,
+      `mlperf`, `optical-computing`, `photonic-accelerator`,
+      `photonic-computing`, `python`, `reproducibility`.
+
+## Task 5: Commit, Push, And Actions Verification
+
+- [ ] TODO: Commit, push, and verify GitHub Actions passes.
+  - Done when:
+    - Final diff/status are inspected.
+    - Files are staged explicitly.
+    - A clean descriptive commit exists with no Codex attribution.
+    - The commit is pushed to `origin/master`.
+    - The triggered GitHub Actions run is found and passes.
+    - Local `HEAD` and `origin/master` match.
+  - Proof:
+    - Pending.
 
 ## Task 6: Mandatory Hostile Senior Reviewer Critique
 
-- [x] DONE: Critique the final visualizer and proposal changes, then fix major issues.
+- [ ] TODO: Critique CI reliability and repository presentation, then fix major
+  issues.
   - Done when:
     - The five required state files are re-read before the critique pass.
     - Findings are recorded in `PROGRESS.md`.
-    - Significant issues are fixed or explicitly justified.
-    - Any changed generated artifacts are regenerated.
-    - Post-fix tests, ruff, and Playwright smoke pass.
+    - Major CI or presentation issues are fixed or explicitly justified.
+    - Post-fix local verification and relevant GitHub verification pass.
   - Proof:
-    - Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
-      `RUBRIC.md` before the critique pass.
-    - Inspected `git status --short --branch` and `git diff --stat HEAD`.
-    - Reviewed the live visualizer, proposal, README, tests, and state-file
-      diffs.
-    - Finding: `CONTEXT.md` still described the pre-commit/pre-polish state.
-    - Fix: rewrote `CONTEXT.md` to record commit `416f1f8`, the no-remote
-      push blocker, the current visualizer polish layer, proposal artifacts,
-      verification, and constraints.
-    - Residual issue: push remains blocked because no remote/upstream exists;
-      this is external repository configuration, not a code/test failure.
-    - Post-fix `python -m pytest`: 73 passed.
-    - Post-fix `python -m ruff check`: passed.
+    - Pending.
 
-## Task 7: Final Commit And Push
+## Task 7: Final Closeout
 
-- [x] DONE: Commit and push the final visualizer polish and proposal work.
+- [ ] TODO: Close state files and final status.
   - Done when:
-    - Final diff/status are inspected.
-    - Final verification is recorded.
-    - Files are staged explicitly.
-    - A clean descriptive final commit exists.
-    - The final commit is pushed to the configured remote branch.
-    - Final git status is inspected and recorded.
+    - `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, `RUBRIC.md`, and
+      `tasks/todo.md` reflect final verified state.
+    - Any closeout state-file changes are committed and pushed if they occur
+      after the CI commit.
+    - Final `git status --short --branch` is clean and synchronized.
   - Proof:
-    - Final local implementation commit exists:
-      `ee90e77 Polish visualizer comparisons and draft benchmark proposal`.
-    - Remote blocker audit commits also exist and were pushed:
-      `85db200 Record remote push blocker` and
-      `faa4c0f Record final remote blocker audit`.
-    - `master` tracks `origin/master`.
-    - Local `HEAD` and remote `origin/master` matched at
-      `faa4c0f7cd710177fcfadcaf3f003d6e221a4aba` before this completion
-      ledger update.
-    - This completion ledger update is being committed and pushed as the final
-      state-file closure.
+    - Pending.

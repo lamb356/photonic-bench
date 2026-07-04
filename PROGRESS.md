@@ -1,30 +1,5 @@
 # PhotonicBench Progress
 
-## 2026-07-04 Pre-Goal Baseline
-
-Completed before this loop:
-
-- Hardened transformer-layer aggregate reports:
-  - commit `a147736 Harden transformer layer aggregate reports`.
-- Initial web visualizer:
-  - commit `ef731c9 Add initial web visualizer`.
-- Static workbench evolution:
-  - commit `c5d9816 Evolve visualizer static workbench`.
-- Visualizer comparison/smoke/scaling work is currently present in the working
-  tree and awaiting commit/push:
-  - pinned comparison references;
-  - compatible deltas and ratios;
-  - grouped same-schema and labeled mixed-schema comparisons;
-  - Playwright browser smoke test;
-  - local `visualize --serve` mode;
-  - README, tests, and generated visualizer asset updates.
-
-Latest recorded verification for that working-tree feature layer:
-
-- `python -m pytest`: 72 passed.
-- `python -m ruff check`: passed.
-- Playwright static smoke and HTTP server smoke passed.
-
 ## 2026-07-04 Cycle 1: State Rollover
 
 ### State Re-Read
@@ -32,377 +7,126 @@ Latest recorded verification for that working-tree feature layer:
 - Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
   `RUBRIC.md` at the start of the cycle.
 - Re-read `tasks/todo.md`.
-- Read applicable commit, git-commit, frontend-design, and review skill
-  instructions.
+- Read applicable GitHub, commit, and review skill instructions.
+- Checked local memory registry for PhotonicBench/Photonic Acceleration hits;
+  no relevant PhotonicBench-specific memory entries were found.
 
 ### Repository Inspection
 
-- Ran `git status --short --branch`.
-- Current branch: `master`.
-- Current working tree contains modified state/docs/source/generated assets and
-  new `tests/test_visualizer_smoke.py`.
-- The current working tree corresponds to the prior visualizer comparison,
-  smoke-test, and scaling implementation layer, which must be verified,
-  committed, and pushed before new feature work.
+- Ran `git status --short --branch`:
+  - `master` tracks `origin/master`;
+  - worktree was clean at phase start.
+- Ran `git log --oneline -n 8`:
+  - latest commit was `6358d91 Record GitHub push completion`.
+- Ran `git remote -v`:
+  - `origin` points to `https://github.com/lamb356/photonic-bench.git`.
+- Ran `git branch -vv`:
+  - `master 6358d91 [origin/master] Record GitHub push completion`.
+- Inspected `pyproject.toml`:
+  - Python `>=3.12`;
+  - dev dependencies include Playwright, pytest, and ruff.
+- Checked `.github`:
+  - no `.github/workflows/` directory exists yet.
 
 ### State File Update
 
-- Rolled the state files forward to this ordered goal:
-  1. verify and commit the current project state;
-  2. push the verified commit;
-  3. further polish visualizer comparison mode;
-  4. produce substantive MLCommons-style proposal artifacts;
-  5. verify, critique, fix, commit, and push the final work.
-- Updated `tasks/todo.md` so the prior comparison/smoke/scaling goal is
-  complete and this loop is active.
+- Rolled the phase state files forward to CI and GitHub repository hygiene.
+- Created checklist tasks for:
+  1. GitHub Actions workflow;
+  2. local CI verification;
+  3. repository visibility decision and verification;
+  4. GitHub description and topics;
+  5. commit, push, and Actions verification;
+  6. mandatory Hostile Senior Reviewer critique;
+  7. final closeout.
+- Visibility decision:
+  - keep the repo private for this phase unless the user explicitly asks to make
+    it public.
 
 ### Next Step
 
-- Run current-state verification with `python -m pytest` and
-  `python -m ruff check`.
-- Inspect the diff, stage explicit files, commit the current feature layer, and
-  push it only if verification passes.
+- Add `.github/workflows/ci.yml`.
+- Run `python -m ruff check` and `python -m pytest` locally.
+- Use `gh` to verify/apply repository visibility, description, and topics.
 
-## 2026-07-04 Cycle 2: Current-State Commit And Push Attempt
-
-### State Re-Read
-
-- Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
-  `RUBRIC.md` before the commit cycle.
-
-### Verification
-
-- Ran `git status --short --branch`.
-- Ran `git diff --stat`.
-- Ran `python -m pytest`:
-  - 72 passed.
-- Ran `python -m ruff check`:
-  - passed.
-
-### Commit
-
-- Staged explicit paths:
-  - state files;
-  - README;
-  - visualizer Python, JavaScript, and CSS assets;
-  - regenerated visualizer assets;
-  - `pyproject.toml`;
-  - visualizer tests;
-  - new Playwright smoke test.
-- Checked for `.Codex/scripts/generate-reasoning.sh`; it is not present in
-  this checkout.
-- Created commit:
-  - `416f1f8 Add visualizer comparison smoke and server mode`
-
-### Push Blocker
-
-- Ran `git branch -vv`:
-  - `master` has no upstream.
-- Ran `git remote -v`:
-  - no remotes are configured.
-- Ran `git config --get-regexp "^remote\\..*\\.url$|^branch\\.master\\.(remote|merge)$"`:
-  - no remote or branch push configuration exists.
-- Result:
-  - Push is blocked until a remote URL/upstream is configured. No push was
-    attempted because there is no target.
-
-### Next Step
-
-- Continue with visualizer polish and proposal work while preserving the push
-  blocker in the checklist.
-- If a remote is configured before the loop ends, push `416f1f8` plus the final
-  work after verification.
-
-## 2026-07-04 Cycle 3: Visualizer Comparison Polish
-
-### Audit
-
-- Inspected:
-  - `photonic_bench/visualizer_assets/app.js`;
-  - `photonic_bench/visualizer_assets/styles.css`;
-  - `tests/test_visualizer.py`;
-  - `tests/test_visualizer_smoke.py`;
-  - README visualizer documentation.
-- Finding:
-  - The previous comparison mode had pinning, deltas, ratios, grouped analytics,
-    and mixed-schema labels, but users still had to read dense tables to infer
-    the most useful same-schema winners and compatibility state.
+## 2026-07-04 Cycle 2: Workflow And Local Verification
 
 ### Implementation
 
-- Added direction-aware metric metadata in the comparison metric spec.
-- Added `Comparison Insights`:
-  - per-schema lowest energy per op;
-  - per-schema lowest latency;
-  - per-schema highest throughput.
-- Added `Schema Compatibility`:
-  - selected count by schema group;
-  - whether the pinned artifact is compatible with that group;
-  - whether deltas/percent deltas/ratios are computed or intentionally `n/a`.
-- Added `Percent vs pinned` beside absolute delta and ratio.
-- Added `lowest` / `highest` badges for direction-aware metric winners.
-- Added compact, responsive styling for insight cards.
+- Added `.github/workflows/ci.yml`.
+- Workflow properties:
+  - name: `CI`;
+  - trigger: push to `master`;
+  - trigger: pull requests;
+  - permissions: `contents: read`;
+  - runner: `ubuntu-latest`;
+  - Python: `3.12`;
+  - dependency install: `python -m pip install -e ".[dev]"`;
+  - Playwright browser install:
+    `python -m playwright install --with-deps chromium`;
+  - lint command: `python -m ruff check`;
+  - test command: `python -m pytest`.
 
-### Documentation, Regeneration, And Focused Verification
+### Local Verification
 
-- Updated README compare-mode documentation for:
-  - comparison insights;
-  - schema compatibility;
-  - percent deltas;
-  - per-schema ranking boundaries.
-- Regenerated the checked-in visualizer:
-  - `python -m photonic_bench.cli visualize --reports-dir reports --output
-    reports\visualizer\index.html`
-  - Result: 23 artifacts, 0 warnings.
-- Ran focused visualizer tests:
-  - `python -m pytest tests\test_visualizer.py tests\test_visualizer_smoke.py`
-  - Result: 9 passed.
-- Ran focused lint:
-  - `python -m ruff check photonic_bench\visualizer_assets
-    tests\test_visualizer.py tests\test_visualizer_smoke.py`
-  - Result: passed.
-
-## 2026-07-04 Cycle 4: MLCommons-Style Proposal Foundation
-
-### Current Source Context Checked
-
-- MLCommons benchmark overview:
-  - <https://mlcommons.org/benchmarks/>
-- MLPerf Inference submission guide:
-  - <https://docs.mlcommons.org/inference/submission/>
-- MLPerf Inference rules:
-  - <https://github.com/mlcommons/inference_policies/blob/master/inference_rules.adoc>
-- MLCommons Power working group:
-  - <https://mlcommons.org/working-groups/benchmarks/power/>
-- MLPerf Inference Datacenter power-result context:
-  - <https://mlcommons.org/benchmarks/inference-datacenter/>
-- MLPerf Tiny benchmark summary:
-  - <https://mlcommons.org/benchmarks/inference-tiny/>
-- MLPerf audit guidelines:
-  - <https://github.com/mlcommons/inference_policies/blob/master/MLPerf_Audit_Guidelines.adoc>
-
-### Artifacts Added
-
-- Added `docs/mlcommons_photonic_benchmark_proposal.md`:
-  - source context;
-  - one-page proposal;
-  - charter and non-goals;
-  - candidate divisions and availability categories;
-  - workload scope;
-  - metrics registry;
-  - proposal draft structure;
-  - PhotonicBench mapping;
-  - reproducibility requirements;
-  - open questions;
-  - immediate next work.
-- Added `docs/mlcommons_photonic_reproducibility_checklist.md`:
-  - package layout;
-  - manifest fields;
-  - artifact requirements;
-  - metric requirements;
-  - verification commands;
-  - review checklist;
-  - audit questions.
-- Updated `thoughts/plans/mlcommons_photonic_benchmark_proposal_plan.md` so it
-  points at the new active proposal artifacts.
-- Updated README with a proposal section and source-tree entries.
-- Added `tests/test_proposal_docs.py` to keep the proposal artifacts from
-  collapsing into placeholders.
-
-### Focused Verification
-
-- Ran `python -m pytest tests\test_proposal_docs.py -q`:
-  - 1 passed.
-- Ran `python -m ruff check tests\test_proposal_docs.py`:
-  - passed.
-
-## 2026-07-04 Cycle 5: Full Verification
-
-- Ran full tests:
-  - `python -m pytest`
-  - Result: 73 passed.
-- Ran full lint:
-  - `python -m ruff check`
-  - Result: passed.
-- Ran extra Playwright viewport smoke:
-  - generated a temporary visualizer;
-  - opened comparison mode at `1440x950` and `390x900`;
-  - verified `Comparison Insights` and `Schema Compatibility`;
-  - checked for page errors, console errors, and page-level horizontal
-    overflow.
-  - Result: passed.
-
-## 2026-07-04 Cycle 6: Hostile Senior Reviewer Critique
-
-### State Re-Read
-
-- Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
-  `RUBRIC.md` before the critique pass.
-
-### Diff Inspection
-
-- Ran `git status --short --branch`.
-- Ran `git diff --stat HEAD`.
-- Reviewed live diffs for:
-  - visualizer JavaScript and CSS;
-  - README changes;
-  - visualizer tests and Playwright smoke;
-  - proposal docs;
-  - proposal doc test;
-  - state files.
-
-### Findings
-
-1. `CONTEXT.md` still described the pre-goal/pre-commit world. It did not
-   mention current-state commit `416f1f8`, the no-remote push blocker, the
-   comparison insights layer, the proposal artifacts, or current verification.
-   This would mislead the next agent.
-2. Push remains blocked because this repository has no configured remote or
-   upstream for `master`. This is not fixable from code without a remote URL.
-
-### Fixes
-
-- Rewrote `CONTEXT.md` to include:
-  - current-state commit `416f1f8`;
-  - no-remote/no-upstream push blocker;
-  - current visualizer comparison polish layer;
-  - proposal artifacts;
-  - current verification;
-  - explicit constraint not to mark push complete until `git push` succeeds.
-- Kept the push blocker open in `CHECKLIST.md` and `tasks/todo.md`.
-
-### Post-Critique Verification
-
-- Ran `python -m pytest`:
-  - 73 passed.
 - Ran `python -m ruff check`:
   - passed.
-
-## 2026-07-04 Cycle 7: Continuation Push Audit
-
-### State Re-Read
-
-- Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
-  `RUBRIC.md` at the start of the continuation cycle.
-
-### Git State
-
-- Ran `git status --short --branch`:
-  - clean `master` worktree.
-- Ran `git log --oneline -n 5`:
-  - `ee90e77 Polish visualizer comparisons and draft benchmark proposal`
-  - `416f1f8 Add visualizer comparison smoke and server mode`
-  - `c5d9816 Evolve visualizer static workbench`
-  - `ef731c9 Add initial web visualizer`
-  - `a147736 Harden transformer layer aggregate reports`
-- Ran `git remote -v`:
-  - no remotes configured.
-- Ran `git branch -vv`:
-  - `master` has no upstream.
-
-### Result
-
-- Final implementation and proposal work are committed locally.
-- Push remains blocked because there is no configured remote/upstream. No push
-  target exists, so no `git push` command can be chosen safely.
-- Updated `CHECKLIST.md`, `CONTEXT.md`, and `PROGRESS.md` to make the current
-  state and blocker explicit.
-
-## 2026-07-04 Cycle 8: Third Remote Push Audit
-
-### State Re-Read
-
-- Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
-  `RUBRIC.md`.
-
-### Git And Remote Evidence
-
-- Ran `git status --short --branch`:
-  - clean `master` worktree.
-- Ran `git remote -v`:
-  - no remotes configured.
-- Ran `git branch -vv`:
-  - `master` has no upstream.
-- Ran `git config --show-origin --get-regexp
-  "^remote\\..*\\.url$|^branch\\.master\\.(remote|merge)$"`:
-  - no output; exit code 1.
-- Inspected `.git/config`:
-  - only `[core]` settings are present; no remote stanza.
-- Ran `gh repo view --json nameWithOwner,url`:
-  - failed with `no git remotes found`.
-- Ran `gh auth status`:
-  - authenticated to GitHub as `lamb356`.
-- Searched the authenticated account's repo list for
-  `photonic`, `photo`, `bench`, and `accel`:
-  - no PhotonicBench/Photonic Acceleration match;
-  - only broad non-matching result was `lamb356/sieve-bench-harness`.
-
-### Blocked Audit Conclusion
-
-- This is the third consecutive goal turn with the same blocker: no configured
-  remote/upstream and no safely discoverable remote repository.
-- All local implementation work remains committed.
-- The only unmet stop-condition items are push-related.
-- The goal should be marked blocked until the user provides or configures a
-  remote, for example:
-  `git remote add origin https://github.com/<owner>/<repo>.git`
-  followed by `git push -u origin master`.
-
-## 2026-07-04 Cycle 9: GitHub Remote Connected And Pushed
-
-### State Re-Read
-
-- Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
-  `RUBRIC.md`.
-- Checked local memory registry for PhotonicBench/Photonic Acceleration hits;
-  no relevant entries were found.
-
-### GitHub Discovery
-
-- GitHub connector tools were available for repository contents/commit APIs,
-  but not for creating a repository or setting this local git remote.
-- `gh auth status` had already shown the GitHub CLI authenticated as
-  `lamb356`.
-- A repo search had not found an existing unambiguous PhotonicBench repository,
-  so the conservative action was to create a new private repository.
-
-### Verification Before Push
-
 - Ran `python -m pytest`:
-  - 73 passed.
-- Ran `python -m ruff check`:
-  - passed.
+  - 73 passed;
+  - 146 warnings from `pytest_freezegun` using deprecated `distutils` version
+    classes.
+- Ran a local workflow-file assertion script:
+  - PyYAML parsed `.github/workflows/ci.yml`;
+  - asserted the expected push/PR triggers and required commands.
+- Note:
+  - the first workflow assertion attempt used Bash heredoc syntax in
+    PowerShell and failed before Python ran; it was rerun successfully with a
+    PowerShell here-string.
 
-### Remote Creation And Push
+### Next Step
 
-- Ran:
-  - `gh repo create lamb356/photonic-bench --private --source . --remote origin --push`
+- Use `gh` to verify or apply repository visibility, description, and topics.
+
+## 2026-07-04 Cycle 3: GitHub Metadata
+
+### Visibility
+
+- Ran `gh repo view lamb356/photonic-bench --json
+  nameWithOwner,url,visibility,description,repositoryTopics,defaultBranchRef`.
 - Result:
-  - created `https://github.com/lamb356/photonic-bench`;
-  - added `origin` as `https://github.com/lamb356/photonic-bench.git`;
-  - pushed `master`;
-  - configured `master` to track `origin/master`.
+  - repository: `lamb356/photonic-bench`;
+  - URL: `https://github.com/lamb356/photonic-bench`;
+  - default branch: `master`;
+  - visibility: `PRIVATE`.
+- Decision:
+  - keep the repository private for this phase.
+- Action:
+  - no visibility edit was needed because actual visibility already matched the
+    decision.
 
-### Push Verification
+### Description And Topics
 
-- Ran `git status --short --branch`:
-  - `## master...origin/master`
-- Ran `git remote -v`:
-  - fetch/push `origin` both point to
-    `https://github.com/lamb356/photonic-bench.git`.
-- Ran `git branch -vv`:
-  - `master faa4c0f [origin/master] Record final remote blocker audit`.
-- Ran `git rev-parse HEAD`:
-  - `faa4c0f7cd710177fcfadcaf3f003d6e221a4aba`.
-- Ran `git ls-remote origin refs/heads/master`:
-  - `faa4c0f7cd710177fcfadcaf3f003d6e221a4aba refs/heads/master`.
-- Ran `gh repo view lamb356/photonic-bench --json nameWithOwner,url,visibility,defaultBranchRef`:
-  - private repo;
-  - URL `https://github.com/lamb356/photonic-bench`;
-  - default branch `master`.
+- Ran `gh repo edit lamb356/photonic-bench --description ...` with topics:
+  - `photonic-computing`;
+  - `photonic-accelerator`;
+  - `benchmarking`;
+  - `machine-learning`;
+  - `ai-accelerators`;
+  - `optical-computing`;
+  - `python`;
+  - `reproducibility`;
+  - `mlperf`;
+  - `mlcommons`.
+- Re-ran `gh repo view ...`.
+- Verified description:
+  - `Transparent benchmark cards, JSON artifacts, and visual tools for photonic
+    AI accelerator energy/noise claims.`
+- Verified topics:
+  - `ai-accelerators`, `benchmarking`, `machine-learning`, `mlcommons`,
+    `mlperf`, `optical-computing`, `photonic-accelerator`,
+    `photonic-computing`, `python`, `reproducibility`.
 
-### Connector Note
+### Next Step
 
-- The GitHub connector `_fetch_commit` returned 404 for the new private repo,
-  even with the full commit SHA. The CLI/git evidence above is the
-  authoritative push verification for this local repository.
+- Inspect diff/status, commit local workflow and state-file changes, push to
+  `origin/master`, and verify the triggered GitHub Actions run passes.
