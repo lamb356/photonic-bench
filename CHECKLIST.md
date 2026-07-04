@@ -1,4 +1,4 @@
-# PhotonicBench Branch Protection And Automation Checklist
+# PhotonicBench Daily-Use Improvement Checklist
 
 Status key:
 
@@ -12,250 +12,210 @@ Status key:
 - [x] DONE: Roll state files forward and create the prioritized checklist.
   - Done when:
     - `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
-      `RUBRIC.md` describe the branch-protection, CI badge, Dependabot, and
-      packaging-check goal.
-    - `tasks/todo.md` marks the prior CI hygiene goal complete and this goal
+      `RUBRIC.md` describe the visualizer/cards/modeling daily-use goal.
+    - `tasks/todo.md` marks the branch-protection goal complete and this goal
       active.
-    - The checklist covers implementation, verification, push, branch
-      protection, critique, and closeout.
+    - The checklist prioritizes visualizer work first, then cards, then
+      modeling/transformer support.
   - Proof:
     - Re-read all five required state files at the start of the cycle.
     - Re-read `tasks/todo.md`.
-    - Inspected `.github/workflows/ci.yml`, `README.md`, `pyproject.toml`,
-      `.github` contents, git status, recent log, remotes, and GitHub
-      repository metadata.
-    - Confirmed repository `lamb356/photonic-bench` is private.
-    - Confirmed existing CI workflow is `.github/workflows/ci.yml`.
-    - Confirmed no `.github/dependabot.yml` exists yet.
-    - Confirmed the existing workflow has Ruff and pytest but no packaging
-      build step.
+    - Inspected repository root, git status, recent commits, remotes,
+      `pyproject.toml`, `README.md`, `photonic_bench/cli.py`, and
+      `photonic_bench/visualizer.py`.
+    - Confirmed current branch is clean `master` tracking `origin/master`.
+    - Confirmed latest commit is
+      `397c50b Record public branch protection completion`.
+    - Confirmed no PhotonicBench-specific memory-registry hits were found for
+      this workspace.
 
-## Task 1: CI Packaging Check
+## Task 1: Visualizer Architecture Recon
 
-- [x] DONE: Add and verify a packaging build check in CI.
+- [x] DONE: Map the current visualizer data path, UI behavior, tests, and docs.
   - Done when:
-    - `.github/workflows/ci.yml` installs package build tooling.
-    - The workflow runs `python -m build`.
-    - The build step fails the workflow if packaging is broken.
-    - Local `python -m build` succeeds.
-    - Local `python -m ruff check` and `python -m pytest` still pass.
+    - Current artifact discovery, payload loading, comparison UI, generated
+      assets, and serve/static modes are understood.
+    - Existing visualizer tests and smoke tests are identified.
+    - The implementation plan for analytics, presets, and exports is recorded
+      in `PROGRESS.md`.
   - Proof:
-    - Added `build>=1.2` to the `dev` optional dependencies in
-      `pyproject.toml`.
-    - Updated `.github/workflows/ci.yml` job name to
-      `Ruff, package, and pytest`.
-    - Added a `Build package` step that runs `python -m build`.
-    - Ran `python -m pip install -e ".[dev]"`: succeeded and installed
-      `build-1.5.0`.
-    - Ran `python -m build` after the final README badge edit:
-      successfully built `photonic_bench-0.1.0.tar.gz` and
-      `photonic_bench-0.1.0-py3-none-any.whl`.
-    - Ran `python -m ruff check`: passed.
-    - Ran `python -m pytest`: 73 passed, 146 warnings from
-      `pytest_freezegun`/`distutils` deprecation.
-    - Ran local workflow assertions confirming `python -m build`, Ruff, pytest,
-      and the expected action versions are present.
+    - Mapped Python discovery/indexing in `photonic_bench/visualizer.py`.
+    - Mapped static UI assets in `photonic_bench/visualizer_assets/`.
+    - Mapped comparison table generation in `photonic_bench/comparison.py`.
+    - Mapped model and transformer report data in `photonic_bench/model.py`,
+      `photonic_bench/json_report.py`, and `photonic_bench/transformer.py`.
+    - Identified visualizer unit coverage in `tests/test_visualizer.py` and
+      Playwright coverage in `tests/test_visualizer_smoke.py`.
+    - Recorded the implementation path in `PROGRESS.md`.
 
-## Task 2: README CI Badge
+## Task 2: Visualizer Comparison Analytics
 
-- [x] DONE: Add and verify a CI status badge.
+- [x] DONE: Add richer comparison analytics for daily use.
   - Done when:
-    - `README.md` has a clear badge near the top.
-    - The badge uses the badge URL reported by GitHub's workflow API for the
-      active `CI` workflow and is scoped to `master`.
-    - The badge links to `.github/workflows/ci.yml` through the workflow page.
-    - Direct private-repo badge fetch behavior is verified or the private-repo
-      access limitation is recorded with alternate proof.
+    - Comparison mode surfaces practical analytical summaries for selected
+      cards, including energy/op, throughput, latency, total energy, published
+      reference availability, calibration status, and provenance boundaries.
+    - Mixed matmul/transformer selections remain readable and schema-aware.
+    - Important ratios/deltas are computed deterministically and tested.
+    - Documentation describes how to interpret the new analytics.
   - Proof:
-    - Added a CI badge directly under the `# PhotonicBench` heading in
-      `README.md`.
-    - Badge image URL:
-      `https://github.com/lamb356/photonic-bench/workflows/CI/badge.svg?branch=master`.
-    - Badge link:
-      `https://github.com/lamb356/photonic-bench/actions/workflows/ci.yml`.
-    - Ran `gh api repos/lamb356/photonic-bench/actions/workflows/ci.yml`; the
-      active workflow exists and GitHub reports badge URL
-      `https://github.com/lamb356/photonic-bench/workflows/CI/badge.svg`.
-    - Local README assertion verified the exact badge Markdown.
-    - Direct SVG fetch returned 404 even with a token-backed request because
-      the repository is private; this is recorded as a GitHub private-repo badge
-      access limitation, not a syntax failure.
+    - Added comparison brief, grouped insights, operational-intensity ranking,
+      interface-traffic metrics, and boundary notes in the visualizer.
+    - Preserved mixed-schema comparison behavior with schema-aware grouping and
+      `n/a` cross-schema deltas.
+    - Updated README visualizer docs with the new analytics behavior.
+    - Verified via `tests/test_visualizer.py` and
+      `tests/test_visualizer_smoke.py`.
 
-## Task 3: Dependabot Configuration
+## Task 3: Saved Comparison Presets
 
-- [x] DONE: Add and verify Dependabot configuration.
+- [x] DONE: Add saved comparison presets.
   - Done when:
-    - `.github/dependabot.yml` exists.
-    - It uses Dependabot config `version: 2`.
-    - It configures weekly GitHub Actions updates.
-    - It configures weekly Python `pip` updates from `/`.
-    - The YAML parses locally and contains the expected ecosystems.
+    - Users can save or load named comparison selections without hand-editing
+      generated HTML.
+    - Presets survive visualizer regeneration through a documented config or
+      generated data asset.
+    - Invalid or stale preset entries degrade clearly.
+    - Tests cover preset loading and at least one stale-entry case.
   - Proof:
-    - Added `.github/dependabot.yml`.
-    - Config uses `version: 2`.
-    - Configures `github-actions` updates from `/` weekly on Monday at 09:00
-      America/Chicago.
-    - Configures `pip` updates from `/` weekly on Monday at 09:30
-      America/Chicago.
-    - Sets `open-pull-requests-limit: 5` for both ecosystems.
-    - Checked existing repo labels with `gh label list`; only default issue
-      labels exist.
-    - Removed custom Dependabot `labels:` overrides so GitHub can apply and
-      create its default dependency labels.
-    - Ran local YAML assertions confirming `version: 2`, `github-actions`,
-      `pip`, weekly schedules, PR limits, and no custom labels.
+    - Added `reports/visualizer_presets.json` with two static generated
+      presets.
+    - Added visualizer discovery/loading for
+      `photonic-bench-comparison-presets-v1`.
+    - Added browser local-storage save/load/delete support for user presets.
+    - Added stale preset ID warnings through visualizer issues.
+    - Covered preset indexing, stale IDs, and browser preset loading in tests.
 
-## Task 4: Commit, Push, And GitHub Actions Verification
+## Task 4: Exportable Comparison Results
 
-- [x] DONE: Commit, push, and verify the workflow passes remotely.
+- [x] DONE: Make comparison results exportable.
   - Done when:
-    - Final diff/status are inspected.
-    - Files are staged explicitly.
-    - A clean descriptive commit exists with no Codex attribution.
-    - The commit is pushed to `origin/master`.
-    - The triggered GitHub Actions run is found and passes.
-    - The passing run includes Ruff, pytest, and package build steps.
-    - Local `HEAD` and `origin/master` match.
+    - The visualizer can export the current comparison as machine-readable data.
+    - The visualizer can export or copy a human-readable summary/table.
+    - Exported data includes enough context to preserve local-model vs published
+      reference boundaries.
+    - Browser smoke coverage verifies the export path.
   - Proof:
-    - Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
-      `RUBRIC.md` before the commit/push cycle.
-    - Inspected `git status --short --branch` and `git diff --stat`.
-    - Staged explicit paths:
-      `.github/workflows/ci.yml`, `.github/dependabot.yml`, `README.md`,
-      `pyproject.toml`, `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`,
-      `PROGRESS.md`, `RUBRIC.md`, and `tasks/todo.md`.
-    - Created commit `0829c96 Add repository automation hardening` with no
-      Codex attribution.
-    - `.Codex/scripts/generate-reasoning.sh` was not present, so commit
-      reasoning generation was skipped.
-    - Pushed `master` to `origin`.
-    - Verified local `HEAD`, `origin/master`, and remote `refs/heads/master`
-      all point to `0829c96924f7dcf6ba0d177c696c2c242304125d`.
-    - Found pushed run `28694842190` for workflow `CI`.
-    - `gh run watch 28694842190 --exit-status` completed successfully.
-    - Verified run `28694842190` job `Ruff, package, and pytest` passed all
-      steps, including `Run Ruff`, `Build package`, and `Run pytest`.
-    - Verified GitHub check run context for branch protection:
-      `Ruff, package, and pytest`.
-    - Verified GitHub Dependabot update/validation jobs triggered and
-      completed successfully after `.github/dependabot.yml` landed.
+    - Added `photonic-bench-comparison-export-v1` browser JSON export.
+    - Added Markdown download, copy fallback, and read-only export preview.
+    - Export payload includes selected IDs, pinned reference, local metrics,
+      provenance status, boundary tags, and modeling-boundary notes.
+    - Playwright smoke verifies generated preset loading and JSON/Markdown
+      export buttons.
 
-## Task 5: Branch Protection
+## Task 5: Published Accelerator Cards
 
-- [x] DONE: Enable and verify `master` branch protection.
+- [x] DONE: Add at least 2-3 new high-quality published accelerator cards.
   - Done when:
-    - `gh` is used to configure branch protection on `master`.
-    - Required status checks are enabled.
-    - The required check matches the passing CI job context from the pushed
-      packaging-check workflow.
-    - Branch protection requires the branch to be up to date before merging.
-    - Force pushes and deletions are disabled.
-    - `gh` verifies the resulting protection rule.
-    - Repository visibility is verified after the user-authorized public
-      visibility change.
+    - At least 2-3 new YAML configs are added under `examples/`.
+    - Each new card cites a published photonic accelerator source with DOI,
+      title, venue/year where available, and paper-reported metrics.
+    - Each new card has regenerated Markdown and JSON reports.
+    - New cards are included in comparison and visualizer example artifacts.
+    - Tests or assertions cover the new example configs and generated artifacts.
   - Proof:
-    - Attempted to configure protection with `gh api --method PUT
-      repos/lamb356/photonic-bench/branches/master/protection`.
-    - Requested strict required status checks with context
-      `Ruff, package, and pytest`, force pushes disabled, and deletions
-      disabled.
-    - GitHub returned HTTP 403:
-      `Upgrade to GitHub Pro or make this repository public to enable this
-      feature.`
-    - Checked repository rulesets as a possible alternative with
-      `gh api repos/lamb356/photonic-bench/rulesets`; GitHub returned the same
-      HTTP 403 plan-gate message.
-    - Checked branch protection readback with
-      `gh api repos/lamb356/photonic-bench/branches/master/protection`; GitHub
-      returned the same HTTP 403 plan-gate message.
-    - Verified repository visibility remains `PRIVATE`.
-    - This task cannot be completed while both constraints hold:
-      keep the repository private and do not upgrade the GitHub account plan.
-    - Repeated the branch protection, ruleset, and branch-protection readback
-      calls in Cycle 5; all returned the same HTTP 403 plan-gate message while
-      the repository remained `PRIVATE`.
-    - Repeated the branch protection, ruleset, and branch-protection readback
-      calls again in Cycle 6; all returned the same HTTP 403 plan-gate message
-      while the repository remained `PRIVATE`.
-    - Cycle 6 is the third consecutive goal turn with this same blocker.
-    - User explicitly authorized making the repository public after Cycle 6.
-    - Ran `gh repo edit lamb356/photonic-bench --visibility public
-      --accept-visibility-change-consequences`: succeeded.
-    - Verified with `gh repo view`: repository visibility is `PUBLIC` and
-      `isPrivate` is `false`.
-    - Re-ran `gh api --method PUT
-      repos/lamb356/photonic-bench/branches/master/protection` with strict
-      required status checks for context `Ruff, package, and pytest`: succeeded.
-    - Verified `gh api
-      repos/lamb356/photonic-bench/branches/master/protection` reports:
-      `strict: true`, context `Ruff, package, and pytest`, force pushes
-      disabled, and deletions disabled.
-    - Verified `gh api
-      repos/lamb356/photonic-bench/branches/master/protection/required_status_checks`
-      reports context `Ruff, package, and pytest` with GitHub Actions app ID
-      `15368`.
+    - Added `examples/feldmann_2021_photonic_tensor_core_surrogate.yaml`.
+    - Added `examples/pappas_2025_awgr_262tops_surrogate.yaml`.
+    - Added `examples/taichi_2024_chiplet_surrogate.yaml`.
+    - Generated matching Markdown and JSON reports under `reports/`.
+    - Included all three in `reports/comparison.md`, visualizer payloads, and
+      the generated published-reference surrogate preset.
+    - Added tests for provenance, DOI/source fields, published metrics, and
+      surrogate-boundary assumptions.
 
-## Task 6: Mandatory Hostile Senior Reviewer Critique
+## Task 6: Modeling Or Transformer Support
 
-- [x] DONE: Critique maintainability and safety, then fix major issues.
+- [x] DONE: Improve model realism or transformer workflow convenience.
+  - Done when:
+    - A concrete modeling or transformer-support gap is selected based on code
+      inspection.
+    - The change remains auditable and does not conflate local estimates with
+      published measurements.
+    - Unit tests cover formulas, validation, and CLI behavior as applicable.
+    - Docs and generated artifacts reflect the new behavior.
+  - Proof:
+    - Added auditable converter-interface memory traffic to the core model:
+      vector operand read bytes, weight operand read bytes, output write bytes,
+      total interface bytes, MACs/byte, and equivalent ops/byte.
+    - Added aggregate transformer-layer interface-traffic summaries recomputed
+      from decomposed matmul cards.
+    - Kept memory traffic explicitly scoped as converter-boundary traffic, not
+      cache/SRAM/DRAM/NoC simulation.
+    - Updated report JSON, Markdown reports, comparison tables, schemas, model
+      docs, and visualizer details.
+    - Covered formulas and aggregate behavior in model, JSON report, Markdown
+      report, transformer, schema, and comparison tests.
+
+## Task 7: Documentation And Generated Artifacts
+
+- [x] DONE: Update docs and regenerate examples.
+  - Done when:
+    - README documents visualizer analytics, presets, exports, new cards, and
+      modeling/transformer changes.
+    - Schema/model docs are updated if output structure or formulas change.
+    - Reports, comparison artifacts, and visualizer assets are regenerated.
+    - Generated artifacts are inspected for obvious stale or broken content.
+  - Proof:
+    - Updated `README.md`, `docs/model.md`, `docs/json_schema.md`, and both
+      JSON schemas for memory traffic, presets, exports, and new cards.
+    - Regenerated all affected example reports and transformer summaries.
+    - Regenerated `reports/comparison.md`.
+    - Regenerated `reports/visualizer/index.html`, index data, payloads, and
+      copied static assets.
+    - `python -m photonic_bench.cli visualize --reports-dir reports --output
+      reports/visualizer/index.html` reports 26 artifacts and 0 warnings.
+
+## Task 8: Verification
+
+- [x] DONE: Run focused, full, and browser verification.
+  - Done when:
+    - Focused tests for modified areas pass.
+    - `python -m ruff check` passes.
+    - `python -m pytest` passes.
+    - Visualizer generation succeeds.
+    - Static and/or served visualizer browser smoke tests pass.
+  - Proof:
+    - `node --check photonic_bench\visualizer_assets\app.js` passed.
+    - `python -m ruff check` passed.
+    - `python -m pytest` passed: 77 tests passed, including
+      `tests/test_visualizer_smoke.py`.
+    - Visualizer generation passed with 26 artifacts and 0 warnings.
+    - Focused visualizer/model/card/schema tests passed during development
+      before the final full suite.
+
+## Task 9: Mandatory Hostile Senior Reviewer Critique
+
+- [x] DONE: Critique usability and modeling clarity, then fix important issues.
   - Done when:
     - The five required state files are re-read before the critique pass.
     - Findings are recorded in `PROGRESS.md`.
-    - Major issues are fixed or explicitly justified.
-    - Post-fix local and remote verification still pass.
+    - Important issues are fixed or explicitly justified.
+    - Post-fix verification still passes.
   - Proof:
     - Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
       `RUBRIC.md` before the critique pass.
-    - Inspected `.github/workflows/ci.yml`, `.github/dependabot.yml`,
-      `README.md`, repository privacy, pushed CI run `28694842190`, check runs,
-      and open PR state.
-    - Finding 1: branch protection is the decisive repository-safety control,
-      but GitHub plan gates it for this private repository.
-      - Severity: blocking.
-      - Disposition: no local repo fix exists while keeping the repository
-        private; documented exact HTTP 403 failures for branch protection and
-        rulesets.
-    - Finding 2: Dependabot custom labels would be ignored because the repo
-      only has default issue labels.
-      - Severity: medium.
-      - Fix: removed custom `labels:` overrides so Dependabot can apply and
-        create its documented default dependency labels.
-      - Verification: local YAML assertions passed; GitHub Dependabot
-        validation check `.github/dependabot.yml` completed successfully.
-    - Finding 3: private-repo badge SVG fetches return 404 in token-backed
-      non-browser requests.
-      - Severity: low.
-      - Disposition: kept the GitHub workflow API-reported badge URL and
-        recorded the private-repo access limitation.
-    - Finding 4: the packaging check is correctly in the same CI job intended
-      for required checks.
-      - Severity: informational.
-      - Verification: pushed run `28694842190` passed `Run Ruff`,
-        `Build package`, and `Run pytest` in job `Ruff, package, and pytest`.
+    - Recorded critique findings and fixes in `PROGRESS.md`.
+    - Fixed missing-value unit formatting in visualizer exports/metrics.
+    - Renamed the generated published preset to
+      `Published reference surrogate cards` to avoid implying paper
+      reproduction.
+    - Re-ran visualizer generation, `node --check`, Ruff, and full pytest after
+      fixes.
 
-## Task 7: Final Closeout
+## Task 10: Final Closeout
 
-- [x] DONE: Close state files and final status.
+- [x] DONE: Close state files and inspect final repository status.
   - Done when:
     - All checklist items are DONE with proof.
     - `CONTEXT.md`, `PROGRESS.md`, `RUBRIC.md`, and `tasks/todo.md` reflect the
       final verified state.
-    - Any closeout state-file changes are committed and pushed if needed.
-    - Final `git status --short --branch` is clean and synchronized.
+    - Final `git status --short --branch` is inspected.
+    - Commit/push is completed if this goal produces committable changes.
   - Proof:
-    - Final closeout cannot be honestly marked DONE because Task 5 remains
-      blocked by GitHub's private-repo branch-protection plan gate.
-    - State files record the completed local automation work, passed pushed CI,
-      Dependabot validation, and branch-protection blocker.
-    - Cycle 5 repeated the blocker audit; this is the second consecutive goal
-      turn with the same blocker, below the strict blocked-status threshold.
-    - Cycle 6 repeated the same blocker, satisfying the strict blocked-status
-      threshold. The active thread goal should be marked blocked after this
-      state update is committed, pushed, and CI-verified.
-    - User then authorized public visibility to unblock branch protection.
-    - Updated state files to record the visibility change, verified public
-      status, verified branch protection, and completed closeout.
-    - Final closeout state update is intentionally state-only; because CI runs
-      on every push to `master`, the post-closeout run is verified after this
-      commit and reported in the final response to avoid an infinite
-      self-referential ledger loop.
+    - `CHECKLIST.md`, `CONTEXT.md`, `GOAL.md`, `PROGRESS.md`, `RUBRIC.md`,
+      and `tasks/todo.md` reflect the verified daily-use improvement goal.
+    - `git status --short --branch` was inspected during closeout and showed
+      only the expected goal changes before commit.
+    - The goal changes are being committed and pushed as the final repository
+      closeout action; the final response records the resulting commit/push
+      proof.

@@ -99,7 +99,7 @@
 - [x] Task 6: Run hostile senior reviewer critique and fix significant issues.
 - [x] Task 7: Close final state files and inspect clean synced git status.
 
-## Active Goal: Branch Protection, Dependabot, CI Badge, And Packaging Check
+## Completed Goal: Branch Protection, Dependabot, CI Badge, And Packaging Check
 
 - [x] Task 0: Roll state files forward and create prioritized checklist.
 - [x] Task 1: Add a packaging build check to CI and verify locally.
@@ -115,9 +115,33 @@
       Final closeout state update is state-only; post-push CI is verified after
       this commit and reported in the final response.
 
+## Completed Goal: Daily-Use Visualizer, Cards, And Modeling Improvements
+
+- [x] Task 0: Roll state files forward and create prioritized checklist.
+- [x] Task 1: Map the current visualizer architecture, tests, comparison logic,
+      model logic, transformer helpers, docs, and generated artifact flow.
+- [x] Task 2: Improve visualizer comparison analytics for energy, throughput,
+      latency, calibration, provenance, and modeling-boundary interpretation.
+- [x] Task 3: Add saved comparison presets that survive CLI regeneration and
+      degrade clearly when artifacts are stale.
+- [x] Task 4: Make comparison results exportable in machine-readable and
+      human-readable forms.
+- [x] Task 5: Add at least 2-3 new high-quality, source-backed published
+      photonic accelerator cards with YAML, Markdown, JSON, citations, and
+      explicit local-model-vs-published boundaries.
+- [x] Task 6: Improve core modeling realism or transformer workflow convenience
+      with auditable formulas, tests, docs, and generated artifacts.
+- [x] Task 7: Update documentation and regenerate comparison/visualizer example
+      artifacts.
+- [x] Task 8: Run focused tests, full Ruff, full pytest, visualizer generation,
+      and browser smoke verification.
+- [x] Task 9: Run the mandatory Hostile Senior Reviewer critique focused on
+      usability and modeling clarity, then fix important findings.
+- [x] Task 10: Close final state files and inspect final repository status.
+
 ## Explicitly Not Active In This Goal
 
 - [ ] File upload workflow.
 - [ ] Hosted backend web service.
 - [ ] Formal MLCommons submission.
-- [ ] Full benchmark-suite implementation beyond proposal foundation artifacts.
+- [ ] Release publishing automation.

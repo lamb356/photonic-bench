@@ -1,0 +1,57 @@
+benchmark:
+  name: Taichi 2024 photonic chiplet surrogate
+  description: Source-backed card for the Science 2024 Taichi photonic chiplet. The published reference is a diffractive-interference hybrid optical neural-network chiplet; this config uses a 64x64 dense local matmul surrogate because PhotonicBench does not model Taichi's distributed optical protocol.
+workload:
+  type: matmul
+  m: 64
+  n: 64
+  k: 64
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 8
+    energy_pj_per_conversion: 0.5
+  vector_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+  weight_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+execution:
+  batch_size: 1
+  vector_reuse_factor: 1
+  weight_reuse_factor: 1
+  weight_stationary: true
+  pipeline:
+    stages: 1
+timing:
+  optical_latency_ns: 1
+  adc_latency_ns: 0
+  dac_latency_ns: 0
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 1
+provenance:
+  source_title: Large-scale photonic chiplet Taichi empowers 160-TOPS/W artificial general intelligence
+  source_url: https://www.science.org/doi/10.1126/science.adl1203
+  doi: 10.1126/science.adl1203
+  venue: Science 384, 202-209 (2024)
+  claim_status: paper-reported energy/scale targets; matmul-surrogate local model
+published_calibration:
+  architecture: Diffractive-interference hybrid photonic AI chiplet
+  energy_efficiency_including_lasers_tops_per_watt: 160
+  additional_metrics:
+    input_output_dimension: 64x64
+    area_efficiency_tmacs_per_mm2: 879
+    optical_neurons_max: 10000000000
+    experimental_omniglot_accuracy_percent: 91.89
+    experimental_mini_imagenet_accuracy_percent: 87.74
+    reported_energy_efficiency_note: Source reports 160 TOPS/W on-chip energy efficiency.
+    surrogate_mapping: m=64, k=64, n=64 is a dense local surrogate for comparison only; not the Taichi distributed optical protocol.
+assumptions:
+  - Source reports 64x64 input/output chiplet dimensions and 160 TOPS/W energy efficiency; this card keeps those values as published references.
+  - Local timing, device energy, converter, and noise settings are PhotonicBench assumptions, not extracted Taichi device-level measurements.
+  - Weight-stationary mode is used only to avoid reloading the surrogate right operand within one dense local tile.

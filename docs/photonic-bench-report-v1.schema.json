@@ -144,7 +144,7 @@
     },
     "local_model": {
       "type": "object",
-      "required": ["conversion_counts", "energy", "timing", "noise"],
+      "required": ["conversion_counts", "memory_traffic", "energy", "timing", "noise"],
       "additionalProperties": true,
       "properties": {
         "conversion_counts": {
@@ -161,6 +161,28 @@
             "vector_dac_conversions": {"type": "integer", "minimum": 0},
             "weight_dac_conversions": {"type": "integer", "minimum": 0},
             "dac_conversions": {"type": "integer", "minimum": 0}
+          }
+        },
+        "memory_traffic": {
+          "type": "object",
+          "required": [
+            "vector_operand_read_bytes",
+            "weight_operand_read_bytes",
+            "output_write_bytes",
+            "total_interface_bytes",
+            "macs_per_byte",
+            "equivalent_ops_per_byte",
+            "note"
+          ],
+          "additionalProperties": true,
+          "properties": {
+            "vector_operand_read_bytes": {"type": "integer", "minimum": 0},
+            "weight_operand_read_bytes": {"type": "integer", "minimum": 0},
+            "output_write_bytes": {"type": "integer", "minimum": 0},
+            "total_interface_bytes": {"type": "integer", "minimum": 0},
+            "macs_per_byte": {"type": "number", "minimum": 0},
+            "equivalent_ops_per_byte": {"type": "number", "minimum": 0},
+            "note": {"type": "string"}
           }
         },
         "energy": {

@@ -54,6 +54,18 @@ def test_report_to_dict_exposes_json_schema_sections() -> None:
         "weight_dac_conversions": 16,
         "dac_conversions": 24,
     }
+    assert payload["local_model"]["memory_traffic"] == {
+        "vector_operand_read_bytes": 8,
+        "weight_operand_read_bytes": 16,
+        "output_write_bytes": 32,
+        "total_interface_bytes": 56,
+        "macs_per_byte": pytest.approx(64 / 56),
+        "equivalent_ops_per_byte": pytest.approx(128 / 56),
+        "note": (
+            "Interface traffic is derived from DAC/ADC bit widths and reuse "
+            "counts. It is not a full memory hierarchy simulation."
+        ),
+    }
     assert payload["local_model"]["energy"]["vector_dac_pj"] == pytest.approx(1.6)
     assert payload["local_model"]["energy"]["weight_dac_pj"] == pytest.approx(3.2)
     assert payload["local_model"]["energy"]["total_pj"] == pytest.approx(21.248)

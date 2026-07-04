@@ -7,489 +7,194 @@
 - Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
   `RUBRIC.md` at the start of the cycle.
 - Re-read `tasks/todo.md`.
-- Read applicable GitHub, commit, and review skill instructions.
-- Checked local memory registry for PhotonicBench/Photonic Acceleration hits;
-  no relevant PhotonicBench-specific memory entries were found.
+- Read applicable `agentic-workflow` and `frontend-design` skill instructions.
+- Checked local memory registry for PhotonicBench/Photonic Acceleration hits:
+  - no relevant PhotonicBench-specific entries were found.
 
 ### Repository Inspection
 
 - Ran `git status --short --branch`:
+  - branch is `master`;
   - `master` tracks `origin/master`;
   - worktree was clean at phase start.
-- Ran `git log --oneline -n 8`:
-  - latest commit was `fd4d433 Record CI hygiene completion`.
+- Ran `git log --oneline -n 10`:
+  - latest commit was `397c50b Record public branch protection completion`.
 - Ran `git remote -v`:
   - `origin` points to `https://github.com/lamb356/photonic-bench.git`.
-- Inspected `.github/workflows/ci.yml`:
-  - workflow name: `CI`;
-  - job name: `Ruff and pytest`;
-  - runs Ruff and pytest;
-  - no packaging build check yet.
 - Inspected `pyproject.toml`:
+  - package name: `photonic-bench`;
   - Python `>=3.12`;
-  - dev dependencies include Playwright, pytest, and ruff;
-  - setuptools package discovery is limited to `photonic_bench*`.
-- Inspected `.github`:
-  - workflow directory exists;
-  - no Dependabot config exists yet.
+  - dev dependencies include build, Playwright, pytest, and Ruff.
 - Inspected `README.md`:
-  - no CI badge exists yet.
-- Ran `gh repo view lamb356/photonic-bench --json ...`:
-  - repository visibility is `PRIVATE`;
-  - default branch is `master`;
-  - description and topics remain set from the prior phase.
+  - current quick start includes `run`, `transformer-layer`, `compare`, and
+    `visualize` examples;
+  - published calibration and transformer-helper sections already exist.
+- Inspected `photonic_bench/cli.py`:
+  - visualizer supports static output and local `--serve`;
+  - compare currently emits Markdown only.
+- Inspected `photonic_bench/visualizer.py`:
+  - discovery is schema-aware for matmul cards and transformer aggregate JSON;
+  - generated data uses a lightweight index plus per-artifact payloads.
 
 ### State File Update
 
-- Rolled the phase state files forward to branch protection, CI badge,
-  Dependabot, and CI packaging checks.
-- Created checklist tasks for:
-  1. CI packaging check;
-  2. README CI badge;
-  3. Dependabot configuration;
-  4. commit, push, and Actions verification;
-  5. branch protection;
-  6. mandatory Hostile Senior Reviewer critique;
-  7. final closeout.
-- Visibility decision:
-  - keep `lamb356/photonic-bench` private throughout this phase.
+- Rolled the state files forward from the completed branch-protection phase to
+  the daily-use improvement goal.
+- Created prioritized checklist tasks:
+  1. visualizer architecture recon;
+  2. comparison analytics;
+  3. saved comparison presets;
+  4. exportable comparison results;
+  5. new published accelerator cards;
+  6. modeling or transformer support;
+  7. docs and generated artifacts;
+  8. verification;
+  9. mandatory Hostile Senior Reviewer critique;
+  10. final closeout.
+- Updated `tasks/todo.md` so the branch-protection goal is complete and this
+  visualizer/cards/modeling goal is active.
 
-### Next Step
+## 2026-07-04 Cycle 2: Implementation And Verification
 
-- Add the packaging build step, README badge, and Dependabot config.
-- Run local Ruff, pytest, build, and config verification before committing.
+### Recon
 
-## 2026-07-04 Cycle 2: Local Automation Implementation
+- Mapped the visualizer path:
+  - `photonic_bench/visualizer.py` discovers schema-aware JSON artifacts,
+    writes a lightweight index, and emits per-artifact payloads.
+  - `photonic_bench/visualizer_assets/template.html`, `styles.css`, and
+    `app.js` provide the static UI.
+  - `tests/test_visualizer.py` covers generated data/assets and
+    `tests/test_visualizer_smoke.py` covers browser behavior.
+- Mapped comparison/modeling paths:
+  - `photonic_bench/comparison.py` renders Markdown comparison tables.
+  - `photonic_bench/model.py`, `json_report.py`, `report.py`, and
+    `transformer.py` define the auditable local report fields.
 
-### State Re-Read
+### Visualizer Work
 
-- Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
-  `RUBRIC.md` at the start of the cycle.
-- Checked `git status --short --branch`; only state-file rollover changes were
-  present before implementation.
+- Added generated comparison presets:
+  - sidecar: `reports/visualizer_presets.json`;
+  - schema version: `photonic-bench-comparison-presets-v1`;
+  - generated preset: `Published reference surrogate cards`;
+  - generated preset: `Local reuse sensitivity`.
+- Added browser-local presets:
+  - save current selection by name;
+  - load/delete local presets;
+  - keep generated presets static-site friendly and regeneration-safe.
+- Added comparison analytics:
+  - comparison brief;
+  - published-reference coverage count;
+  - calibration-fit count;
+  - total interface traffic;
+  - best operational intensity;
+  - fastest selected artifact;
+  - operational-intensity metric in comparison matrix and insights.
+- Added comparison export:
+  - JSON export schema `photonic-bench-comparison-export-v1`;
+  - Markdown download;
+  - Markdown copy/fallback through a read-only preview.
+- Hardened old/external report behavior:
+  - missing unit-bearing numeric values now render as plain `n/a`, not
+    `n/a <unit>`.
 
-### Implementation
+### Published Cards
 
-- Updated `pyproject.toml`:
-  - added `build>=1.2` to the `dev` optional dependencies.
-- Updated `.github/workflows/ci.yml`:
-  - renamed the CI job to `Ruff, package, and pytest`;
-  - added a `Build package` step running `python -m build`.
+- Added three source-backed published-reference surrogate cards:
+  - `examples/feldmann_2021_photonic_tensor_core_surrogate.yaml`;
+  - `examples/pappas_2025_awgr_262tops_surrogate.yaml`;
+  - `examples/taichi_2024_chiplet_surrogate.yaml`.
+- Generated matching Markdown and JSON reports in `reports/`.
+- Included the new cards in:
+  - `reports/comparison.md`;
+  - `reports/visualizer/data/index.json`;
+  - visualizer payload files;
+  - the generated published-reference surrogate preset.
+- Added tests asserting DOI/source fields, paper metric placement, and explicit
+  surrogate-boundary assumptions.
+
+### Modeling Work
+
+- Added converter-interface memory traffic to the core matmul model:
+  - vector operand read bytes;
+  - weight operand read bytes;
+  - output write bytes;
+  - total interface bytes;
+  - MACs per byte;
+  - equivalent ops per byte.
+- Formula boundary:
+  - these fields use converter bit widths and existing reuse/conversion counts;
+  - they are not a cache, SRAM, DRAM, NoC, or full memory hierarchy simulation.
+- Added transformer-layer aggregate memory traffic by summing decomposed matmul
+  cards and recomputing aggregate operational intensity.
+- Threaded the new fields through:
+  - JSON reports;
+  - Markdown reports;
+  - comparison tables;
+  - visualizer summaries and detail panels;
+  - JSON schemas and docs.
+
+### Documentation And Artifacts
+
 - Updated `README.md`:
-  - added a CI badge directly under the title;
-  - used GitHub's workflow API-reported badge URL for the active `CI` workflow.
-- Added `.github/dependabot.yml`:
-  - `version: 2`;
-  - weekly `github-actions` updates from `/`;
-  - weekly `pip` updates from `/`;
-  - open PR limit of `5` for each ecosystem.
+  - quick-start commands for the three new cards;
+  - component model formulas for interface traffic and operational intensity;
+  - published-card descriptions and surrogate boundaries;
+  - visualizer presets, analytics, and export workflow.
+- Updated `docs/model.md`, `docs/json_schema.md`, and JSON schema files.
+- Regenerated all affected reports, comparison output, visualizer index, payloads,
+  copied static assets, and `reports/visualizer/index.html`.
 
-### Local Verification
+### Verification
 
-- Ran `python -m pip install -e ".[dev]"`:
-  - succeeded;
-  - installed `build-1.5.0`.
-- Ran `python -m ruff check`:
-  - passed.
-- Ran `python -m pytest`:
-  - 73 passed;
-  - 146 warnings from `pytest_freezegun` using deprecated `distutils` version
-    classes.
-- Ran `python -m build` after the final README edit:
-  - built `photonic_bench-0.1.0.tar.gz`;
-  - built `photonic_bench-0.1.0-py3-none-any.whl`.
-- Ran local assertions over `.github/workflows/ci.yml`, `pyproject.toml`,
-  `README.md`, and `.github/dependabot.yml`:
-  - workflow triggers, action versions, Ruff, build, and pytest commands
-    matched expectations;
-  - README contained the exact CI badge Markdown;
-  - Dependabot YAML parsed and contained the expected ecosystems, schedules,
-    and PR limits.
-- Ran `gh api repos/lamb356/photonic-bench/actions/workflows/ci.yml`:
-  - workflow `CI` is active;
-  - GitHub reports badge URL
-    `https://github.com/lamb356/photonic-bench/workflows/CI/badge.svg`.
-- Tried direct token-backed badge SVG fetch:
-  - returned 404 because the repository is private;
-  - recorded as a private-repo badge access limitation and kept the
-    API-reported badge URL.
-- Ran `gh label list --repo lamb356/photonic-bench --limit 100`:
-  - only default issue labels exist;
-  - removed custom Dependabot `labels:` overrides so Dependabot can apply its
-    documented default dependency labels.
+- Focused tests passed during development:
+  - model/report/JSON/transformer/comparison/schema/example tests;
+  - visualizer unit tests;
+  - Playwright visualizer smoke.
+- Final verification after critique fixes:
+  - `node --check photonic_bench\visualizer_assets\app.js`: passed.
+  - `python -m ruff check`: passed.
+  - `python -m photonic_bench.cli visualize --reports-dir reports --output
+    reports/visualizer/index.html`: wrote 26 artifacts, 0 warnings.
+  - `python -m pytest`: 77 passed, 154 warnings from
+    `pytest_freezegun`/`distutils` deprecation.
 
-### Next Step
+## 2026-07-04 Mandatory Hostile Senior Reviewer Critique
 
-- Inspect final diff/status, commit explicitly, push to `origin/master`, and
-  verify the updated GitHub Actions run passes with the package build step.
-
-## 2026-07-04 Cycle 3: Push, CI Verification, And Branch Protection Attempt
-
-### State Re-Read
+### Scope
 
 - Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
-  `RUBRIC.md` at the start of the commit/push cycle.
-- Inspected `git status --short --branch` and `git diff --stat`.
+  `RUBRIC.md` before critique.
+- Focused on daily-use visualizer usability, published-card provenance clarity,
+  and modeling-boundary clarity.
 
-### Commit And Push
+### Findings And Resolutions
 
-- Staged explicit paths:
-  - `.github/workflows/ci.yml`;
-  - `.github/dependabot.yml`;
-  - `README.md`;
-  - `pyproject.toml`;
-  - `GOAL.md`;
-  - `CHECKLIST.md`;
-  - `CONTEXT.md`;
-  - `PROGRESS.md`;
-  - `RUBRIC.md`;
-  - `tasks/todo.md`.
-- Created commit:
-  - `0829c96 Add repository automation hardening`.
-- `.Codex/scripts/generate-reasoning.sh` was not present, so reasoning
-  generation was skipped.
-- Pushed `master` to `origin`.
-- Verified local and remote `master` both point to:
-  - `0829c96924f7dcf6ba0d177c696c2c242304125d`.
+- Finding: Optional unit-bearing metrics could render as `n/a eq ops/byte`,
+  which is sloppy and confusing for older or external report sets missing the
+  new memory fields.
+  - Resolution: Added missing-value guards to pJ, ns, throughput, and
+    ops/byte formatters so they render plain `n/a`.
+  - Verification: regenerated visualizer; `node --check`, Ruff, and full pytest
+    passed.
+- Finding: The generated preset name `Published accelerator baselines` could be
+  read as independently reproduced paper baselines rather than source-backed
+  published-reference cards with local surrogate workloads.
+  - Resolution: renamed it to `Published reference surrogate cards` and changed
+    the description to state that paper metrics stay in published references and
+    local workloads are surrogates.
+  - Verification: updated tests and regenerated visualizer; full pytest passed.
+- Finding: Memory traffic could be overread as full memory-system simulation.
+  - Resolution: No code change needed after inspection because the model docs,
+    README, JSON report notes, transformer aggregate semantics, visualizer
+    boundary notes, and export boundary notes all state converter-interface
+    scope explicitly.
+  - Verification: schema/docs/tests and generated reports include the boundary.
 
-### Remote CI Verification
+### Critique Result
 
-- Found pushed GitHub Actions run:
-  - run ID: `28694842190`;
-  - workflow: `CI`;
-  - event: `push`;
-  - commit: `0829c96924f7dcf6ba0d177c696c2c242304125d`;
-  - URL:
-    `https://github.com/lamb356/photonic-bench/actions/runs/28694842190`.
-- Ran `gh run watch 28694842190 --exit-status`:
-  - completed successfully.
-- Verified job `Ruff, package, and pytest` passed:
-  - checkout;
-  - Python setup;
-  - dependency install;
-  - Playwright browser install;
-  - Ruff;
-  - package build;
-  - pytest.
-- Read check runs for the pushed commit:
-  - required CI check context is `Ruff, package, and pytest`;
-  - `.github/dependabot.yml` validation check completed successfully.
-- Dependabot update jobs triggered after config landed:
-  - two `github_actions` update jobs succeeded;
-  - two `pip` update jobs succeeded.
-- Checked open PRs:
-  - no Dependabot PRs were open at the time of inspection.
-
-### Branch Protection Attempt
-
-- Attempted to configure branch protection with:
-  - `gh api --method PUT repos/lamb356/photonic-bench/branches/master/protection`.
-- Requested:
-  - strict required status checks;
-  - required context `Ruff, package, and pytest`;
-  - force pushes disabled;
-  - deletions disabled.
-- GitHub returned HTTP 403:
-  - `Upgrade to GitHub Pro or make this repository public to enable this
-    feature.`
-- Checked repository rulesets as an alternative:
-  - `gh api repos/lamb356/photonic-bench/rulesets`;
-  - same HTTP 403 plan-gate message.
-- Checked branch protection readback:
-  - `gh api repos/lamb356/photonic-bench/branches/master/protection`;
-  - same HTTP 403 plan-gate message.
-- Verified repository visibility remains `PRIVATE`.
-
-### Current Blocker
-
-- Branch protection cannot be enabled under the current GitHub account plan
-  while keeping the repository private.
-- The only direct resolutions are:
-  - upgrade the GitHub account/plan so private-repo branch protection is
-    available; or
-  - make the repository public, which is explicitly disallowed for this goal.
-
-### Next Step
-
-- Run the mandatory Hostile Senior Reviewer critique against the completed
-  automation changes and the branch-protection blocker.
-
-## 2026-07-04 Cycle 4: Hostile Senior Reviewer Critique
-
-### State Re-Read
-
-- Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
-  `RUBRIC.md` at the start of the critique cycle.
-- Inspected current uncommitted state-file diff.
-
-### Inputs Reviewed
-
-- `.github/workflows/ci.yml`
-- `.github/dependabot.yml`
-- `README.md`
-- GitHub repository privacy state:
-  - still `PRIVATE`.
-- Pushed CI run `28694842190`:
-  - run conclusion: success;
-  - job `Ruff, package, and pytest`: success;
-  - steps `Run Ruff`, `Build package`, and `Run pytest`: success.
-- Check runs on commit `0829c96924f7dcf6ba0d177c696c2c242304125d`:
-  - `.github/dependabot.yml`: completed successfully from Dependabot;
-  - `Ruff, package, and pytest`: completed successfully from GitHub Actions.
-- Open PR state:
-  - no Dependabot PRs open at inspection time.
-
-### Findings
-
-1. Branch protection is the decisive repository-safety requirement, but GitHub
-   plan gates it for this private repository.
-   - Severity: blocking.
-   - Evidence: branch protection and rulesets API calls both returned HTTP 403
-     requiring GitHub Pro or a public repository.
-   - Disposition: no local repository fix exists while preserving the explicit
-     privacy constraint.
-2. Dependabot custom labels would be ignored because the repository only has
-   GitHub's default issue labels.
-   - Severity: medium.
-   - Fix already applied: removed custom `labels:` overrides so Dependabot can
-     apply and create its documented default dependency labels.
-   - Verification: local YAML assertions passed and GitHub's Dependabot
-     validation check succeeded.
-3. The README badge uses the workflow API-reported badge URL, but direct SVG
-   fetches return 404 from token-backed non-browser requests while the repo is
-   private.
-   - Severity: low.
-   - Disposition: acceptable for a private repository; recorded limitation and
-     verified the active workflow through `gh`.
-4. The packaging check is placed in the same CI job that should become the
-   required status check when branch protection becomes available.
-   - Severity: informational.
-   - Verification: pushed CI passed `Run Ruff`, `Build package`, and
-     `Run pytest` in job `Ruff, package, and pytest`.
-
-### Closeout Status
-
-- Major local issues are fixed.
-- The remaining blocker is external to the repository:
-  - enable GitHub Pro/private-repo branch protection for `lamb356`, or allow a
-    visibility change to public.
-- Because the goal explicitly says to keep the repository private, the only
-  compatible resolution is enabling a GitHub plan that supports private-repo
-  branch protection.
-
-## 2026-07-04 Cycle 5: Repeated Branch Protection Blocker Audit
-
-### State Re-Read
-
-- Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
-  `RUBRIC.md` at the start of the cycle.
-- Checked `git status --short --branch`:
-  - clean and synchronized before this state update.
-- Checked recent git log:
-  - latest commit was `096b782 Record branch protection plan blocker`.
-
-### Current Remote Evidence
-
-- Ran `gh repo view lamb356/photonic-bench --json
-  isPrivate,visibility,defaultBranchRef,nameWithOwner,url`:
-  - repository is still `PRIVATE`;
-  - default branch is still `master`.
-- Ran `gh run list --repo lamb356/photonic-bench --workflow CI --branch master
-  --limit 3`:
-  - latest CI run is `28694933630`;
-  - conclusion is success.
-- Ran `gh run view 28694933630 --repo lamb356/photonic-bench --json
-  conclusion,url,jobs`:
-  - job `Ruff, package, and pytest` passed;
-  - steps `Run Ruff`, `Build package`, and `Run pytest` passed.
-- Ran `gh api repos/lamb356/photonic-bench/actions/workflows/ci.yml`:
-  - workflow `CI` is active;
-  - workflow path is `.github/workflows/ci.yml`;
-  - GitHub reports badge URL
-    `https://github.com/lamb356/photonic-bench/workflows/CI/badge.svg`.
-- Ran `gh pr list --repo lamb356/photonic-bench --state open --limit 20
-  --json number,title,author,headRefName,baseRefName,url`:
-  - no open PRs.
-
-### Repeated Branch Protection Attempt
-
-- Re-attempted branch protection with `gh api --method PUT
-  repos/lamb356/photonic-bench/branches/master/protection`.
-- Requested:
-  - strict required status checks;
-  - required context `Ruff, package, and pytest`;
-  - force pushes disabled;
-  - deletions disabled.
-- GitHub again returned HTTP 403:
-  - `Upgrade to GitHub Pro or make this repository public to enable this
-    feature.`
-- Re-checked repository rulesets:
-  - `gh api repos/lamb356/photonic-bench/rulesets`;
-  - same HTTP 403 plan-gate message.
-- Re-checked branch protection readback:
-  - `gh api repos/lamb356/photonic-bench/branches/master/protection`;
-  - same HTTP 403 plan-gate message.
-
-### Blocker Audit State
-
-- This is the second consecutive goal turn with the same branch-protection
-  blocker.
-- The goal remains active because the strict blocked threshold requires the
-  same blocker to repeat for at least three consecutive goal turns.
-- No permitted repo-local workaround was found:
-  - public visibility is explicitly disallowed;
-  - private-repo branch protection and rulesets are both plan-gated by GitHub.
-
-## 2026-07-04 Cycle 6: Third Branch Protection Blocker Audit
-
-### State Re-Read
-
-- Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
-  `RUBRIC.md` at the start of the cycle.
-- Re-read applicable GitHub and commit workflow instructions.
-- Checked `git status --short --branch`:
-  - clean and synchronized before this state update.
-
-### Current Remote Evidence
-
-- Ran `gh repo view lamb356/photonic-bench --json
-  isPrivate,visibility,defaultBranchRef,nameWithOwner,url`:
-  - repository is still `PRIVATE`;
-  - default branch is still `master`.
-- Ran `gh run list --repo lamb356/photonic-bench --workflow CI --branch master
-  --limit 3`:
-  - latest CI run is `28695001128`;
-  - conclusion is success.
-- Ran `gh run view 28695001128 --repo lamb356/photonic-bench --json
-  conclusion,url,jobs`:
-  - job `Ruff, package, and pytest` passed;
-  - steps `Run Ruff`, `Build package`, and `Run pytest` passed.
-- Ran `gh api repos/lamb356/photonic-bench/actions/workflows/ci.yml`:
-  - workflow `CI` is active;
-  - workflow path is `.github/workflows/ci.yml`;
-  - GitHub reports badge URL
-    `https://github.com/lamb356/photonic-bench/workflows/CI/badge.svg`.
-- Inspected current files:
-  - `.github/workflows/ci.yml` still runs Ruff, package build, and pytest;
-  - `.github/dependabot.yml` still configures weekly GitHub Actions and `pip`
-    updates;
-  - `README.md` still contains the CI badge near the top.
-- Ran `gh pr list --repo lamb356/photonic-bench --state open --limit 20
-  --json number,title,author,headRefName,baseRefName,url`:
-  - no open PRs.
-
-### Third Branch Protection Attempt
-
-- Re-attempted branch protection with `gh api --method PUT
-  repos/lamb356/photonic-bench/branches/master/protection`.
-- Requested:
-  - strict required status checks;
-  - required context `Ruff, package, and pytest`;
-  - force pushes disabled;
-  - deletions disabled.
-- GitHub again returned HTTP 403:
-  - `Upgrade to GitHub Pro or make this repository public to enable this
-    feature.`
-- Re-checked repository rulesets:
-  - `gh api repos/lamb356/photonic-bench/rulesets`;
-  - same HTTP 403 plan-gate message.
-- Re-checked branch protection readback:
-  - `gh api repos/lamb356/photonic-bench/branches/master/protection`;
-  - same HTTP 403 plan-gate message.
-
-### Blocker Threshold
-
-- This is the third consecutive goal turn with the same branch-protection
-  blocker.
-- The goal cannot be completed without an external-state change:
-  - upgrade `lamb356`/the repository plan to a GitHub tier that supports
-    private-repo branch protection; or
-  - allow the repository to become public, which is explicitly disallowed by
-    the goal.
-- After this state update is committed, pushed, and CI-verified, the active
-  thread goal should be marked blocked under the strict blocked-audit rule.
-
-## 2026-07-04 Cycle 7: Public Visibility Authorization And Branch Protection
-
-### State Re-Read
-
-- Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
-  `RUBRIC.md` at the start of the cycle.
-- Re-read applicable GitHub and commit workflow instructions.
-- Checked `git status --short --branch`:
-  - clean and synchronized before this state update.
-
-### User Authorization
-
-- User explicitly authorized making the repository public:
-  - `you can just make the repo public`.
-- This supersedes the earlier private-repository constraint for the purpose of
-  completing branch protection.
-
-### Visibility Change
-
-- Ran:
-  - `gh repo edit lamb356/photonic-bench --visibility public
-    --accept-visibility-change-consequences`.
-- Result:
-  - command succeeded.
-- Verified with:
-  - `gh repo view lamb356/photonic-bench --json
-    isPrivate,visibility,defaultBranchRef,nameWithOwner,url`.
-- Result:
-  - `visibility`: `PUBLIC`;
-  - `isPrivate`: `false`;
-  - default branch: `master`.
-
-### Branch Protection
-
-- Ran `gh api --method PUT
-  repos/lamb356/photonic-bench/branches/master/protection` with:
-  - strict required status checks enabled;
-  - required context `Ruff, package, and pytest`;
-  - force pushes disabled;
-  - deletions disabled.
-- Result:
-  - command succeeded.
-- Verified with `gh api
-  repos/lamb356/photonic-bench/branches/master/protection`:
-  - required status checks are strict;
-  - contexts include `Ruff, package, and pytest`;
-  - check maps to GitHub Actions app ID `15368`;
-  - force pushes are disabled;
-  - deletions are disabled.
-- Verified with `gh api
-  repos/lamb356/photonic-bench/branches/master/protection/required_status_checks`:
-  - `strict`: `true`;
-  - context: `Ruff, package, and pytest`.
-
-### Final Verification Inputs
-
-- Ran `gh run view 28695065125 --repo lamb356/photonic-bench --json
-  conclusion,url,jobs`:
-  - conclusion: success;
-  - job `Ruff, package, and pytest`: success;
-  - steps `Run Ruff`, `Build package`, and `Run pytest`: success.
-- Ran `gh api repos/lamb356/photonic-bench/actions/workflows/ci.yml`:
-  - workflow `CI` is active;
-  - workflow path is `.github/workflows/ci.yml`;
-  - badge URL is
-    `https://github.com/lamb356/photonic-bench/workflows/CI/badge.svg`.
-- Ran unauthenticated public badge fetch:
-  - `https://github.com/lamb356/photonic-bench/workflows/CI/badge.svg?branch=master`;
-  - returned HTTP 200 with SVG content.
-- Ran local assertions:
-  - workflow contains Ruff, package build, and pytest;
-  - Dependabot contains `github-actions` and `pip` ecosystems;
-  - README contains the CI badge.
-
-### Closeout Status
-
-- All original automation work is complete.
-- The prior branch-protection blocker is resolved by user-authorized public
-  repository visibility.
-- Remaining work:
-  - commit and push this state-file closeout;
-  - verify the CI run triggered by that final state-only commit;
-  - mark the active goal complete if final evidence still proves every
-    requirement.
+- Major usability/modeling-clarity issues found during the critique were fixed
+  before closeout.
+- Remaining risk: the new published cards are honest surrogate cards, not
+  device-level reproductions; this is intentionally explicit in YAML
+  descriptions, assumptions, README text, visualizer preset naming, and report
+  provenance.

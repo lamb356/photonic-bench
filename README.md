@@ -14,12 +14,15 @@ python -m photonic_bench.cli run examples/matmul_64x64.yaml --report reports/mat
 python -m photonic_bench.cli run examples/nature_pace_64x64.yaml --report reports/nature_pace_64x64.md
 python -m photonic_bench.cli run examples/xu_11tops_convolution_surrogate.yaml --report reports/xu_11tops_convolution_surrogate.md --json-report reports/xu_11tops_convolution_surrogate.json
 python -m photonic_bench.cli run examples/weight_stationary_64x64_batch.yaml --report reports/weight_stationary_64x64_batch.md --json-report reports/weight_stationary_64x64_batch.json
+python -m photonic_bench.cli run examples/feldmann_2021_photonic_tensor_core_surrogate.yaml --report reports/feldmann_2021_photonic_tensor_core_surrogate.md --json-report reports/feldmann_2021_photonic_tensor_core_surrogate.json
+python -m photonic_bench.cli run examples/pappas_2025_awgr_262tops_surrogate.yaml --report reports/pappas_2025_awgr_262tops_surrogate.md --json-report reports/pappas_2025_awgr_262tops_surrogate.json
+python -m photonic_bench.cli run examples/taichi_2024_chiplet_surrogate.yaml --report reports/taichi_2024_chiplet_surrogate.md --json-report reports/taichi_2024_chiplet_surrogate.json
 python -m photonic_bench.cli transformer-layer examples/transformer_small_sanity.yaml --output-dir reports/transformer_small_sanity --prefix small_transformer
 python -m photonic_bench.cli transformer-layer examples/bert_base_encoder_layer.yaml --output-dir reports/bert_base_encoder_layer --prefix bert_base_layer
 python -m photonic_bench.cli transformer-layer examples/gpt_style_decoder_layer.yaml --output-dir reports/gpt_style_decoder_layer --prefix gpt_decoder_layer
 python -m photonic_bench.cli run examples/nature_pace_64x64.yaml --report reports/nature_pace_64x64.md --json-report reports/nature_pace_64x64.json
 python -m photonic_bench.cli run examples/nature_pace_64x64.yaml --report reports/nature_pace_64x64_calibrated.md --json-report reports/nature_pace_64x64_calibrated.json --fit-target published-including-lasers --fit-parameter device.dac.energy_pj_per_conversion
-python -m photonic_bench.cli compare reports/matmul_64x64.json reports/nature_pace_64x64.json reports/nature_pace_64x64_calibrated.json reports/xu_11tops_convolution_surrogate.json reports/weight_stationary_64x64_batch.json --report reports/comparison.md
+python -m photonic_bench.cli compare reports/matmul_64x64.json reports/nature_pace_64x64.json reports/nature_pace_64x64_calibrated.json reports/xu_11tops_convolution_surrogate.json reports/weight_stationary_64x64_batch.json reports/feldmann_2021_photonic_tensor_core_surrogate.json reports/pappas_2025_awgr_262tops_surrogate.json reports/taichi_2024_chiplet_surrogate.json --report reports/comparison.md
 python -m photonic_bench.cli visualize --reports-dir reports --output reports/visualizer/index.html
 ```
 
@@ -37,6 +40,10 @@ For a matmul with shape `m x k` times `k x n`, PhotonicBench computes:
 - `Vector DAC conversions = m * k * ceil(batch_size / vector_reuse_factor)`
 - `Weight DAC conversions = k * n * ceil(batch_size / weight_reuse_factor)`, or one weight load per batch when `weight_stationary: true`
 - `DAC conversions = vector_dac_conversions + weight_dac_conversions`
+- `Vector operand read bytes = vector_dac_conversions * ceil(vector_dac_bits / 8)`
+- `Weight operand read bytes = weight_dac_conversions * ceil(weight_dac_bits / 8)`
+- `Output write bytes = output_elements * ceil(adc_bits / 8)`
+- `Operational intensity = equivalent_ops / total_interface_bytes`
 - `Optical compute pJ = MACs * optical_mac_energy_fj / 1000`
 - `Laser electrical pJ = optical_compute_pJ / laser_wall_plug_efficiency`
 - `Detector pJ = output_elements * photodetector_energy_fj_per_sample / 1000`
@@ -45,6 +52,10 @@ For a matmul with shape `m x k` times `k x n`, PhotonicBench computes:
 Configs may provide a legacy shared `device.dac`, separate `device.vector_dac` and `device.weight_dac`, or both. If separate DACs are present, vector and weight DAC energy are reported separately and summed into total DAC energy.
 
 The first noise estimate combines ADC quantization RMS, phase noise RMS, and drift RMS as independent terms. This is deliberately conservative and auditable, not a replacement for device-level simulation.
+
+Interface traffic is a converter-boundary estimate derived from reuse counts
+and converter bit widths. It is useful for comparing local operational
+intensity, but it is not a cache, SRAM, DRAM, NoC, or full system memory model.
 
 Timing now reports both single-operation latency and batch/pipeline behavior. With a pipeline cycle time, batch latency is:
 
@@ -127,7 +138,7 @@ disabled for those cards.
 
 The helper intentionally excludes softmax, layer norm, bias adds, activation
 functions, dropout, masking, KV-cache incremental decoding, causal triangular
-shortcuts, and non-matmul memory traffic. A `decoder` layer label is preserved
+shortcuts, and non-matmul tensor traffic. A `decoder` layer label is preserved
 in assumptions but does not halve dense attention MAC counts.
 
 Transformer-layer configs may include provenance, but `published_calibration` is
@@ -186,6 +197,25 @@ The Xu 2021 example uses the Nature paper "11 TOPS photonic convolutional accele
 - 88% handwritten-digit recognition accuracy
 
 Because that source is a vector convolution accelerator, PhotonicBench labels the local workload as a dense matmul surrogate (`m=1`, `k=250000`, `n=10`). The card carries the paper numbers as published references, not as local model results.
+
+This repository also includes three additional source-backed published-card
+surrogates:
+
+- Feldmann et al., "Parallel convolutional processing using an integrated
+  photonic tensor core", Nature 589, 52-58 (2021), DOI:
+  `10.1038/s41586-020-03070-1`. The card records the paper's tera-MAC/s and
+  greater-than-14-GHz bandwidth claims while using a small dense-tile local
+  surrogate.
+- Pappas et al., "A 262 TOPS hyperdimensional photonic AI accelerator powered
+  by a Si3N4 microcomb laser", APL Photonics 10, 110805 (2025), DOI:
+  `10.1063/5.0271374`. The card records 262 TOPS, 32 Gbaud, 273 fJ/OP, DDoS
+  kappa, and MNIST accuracy as paper metrics while using a 16x16 dense-tile
+  surrogate.
+- Xu et al., "Large-scale photonic chiplet Taichi empowers 160-TOPS/W
+  artificial general intelligence", Science 384, 202-209 (2024), DOI:
+  `10.1126/science.adl1203`. The card records 160 TOPS/W, 64x64 chiplet
+  dimensions, 879 T MACS/mm2, and reported task accuracies while using a 64x64
+  dense local surrogate.
 
 ## Current Boundary
 
@@ -252,6 +282,8 @@ writes a visualizer bundle beside the HTML:
   discovered artifact.
 - `reports/visualizer/data/payloads/*.payload.js`: disk-safe lazy-load wrappers
   for those payloads.
+- `reports/visualizer_presets.json`: optional generated-preset sidecar read
+  from the reports directory and embedded into the visualizer index.
 
 For larger local report directories, use server mode instead:
 
@@ -281,20 +313,35 @@ discovery so regenerating the visualizer does not index its own payload copies.
 The Detail view lazy-loads the selected artifact payload. Per-matmul cards show
 workload shape, local energy components, timing, published-reference separation,
 provenance, and assumptions. Transformer-layer summaries show layer shape,
-aggregate workload totals, local energy, serial timing, non-additive noise
-diagnostics, aggregate semantics, formula audit rows, per-matmul breakdowns,
-assumptions, exclusions, and provenance.
+aggregate workload totals, local energy, interface traffic, serial timing,
+non-additive noise diagnostics, aggregate semantics, formula audit rows,
+per-matmul breakdowns, assumptions, exclusions, and provenance.
 
 The Compare view lets you select multiple artifacts from the rail, pin one as
-the reference, and inspect a side-by-side matrix, comparison insights, schema
-compatibility, and grouped same-schema analytics. Compatible rows show the
-value, absolute delta, percent delta, and ratio against the pinned reference.
-The insights panel ranks lowest energy per op, lowest latency, and highest
-throughput inside each schema group only. Mixed per-matmul and transformer-layer
-comparison is allowed, but labeled as mixed-schema comparison; incompatible
-cross-schema deltas stay `n/a` so serial timing, non-additive aggregate noise,
-exclusions, local estimates, and published references are not flattened into
-one false hardware model.
+the reference, and inspect a side-by-side matrix, comparison brief, comparison
+insights, schema compatibility, and grouped same-schema analytics. Compatible
+rows show the value, absolute delta, percent delta, and ratio against the pinned
+reference. The insights panel ranks lowest energy per op, lowest latency,
+highest throughput, and highest operational intensity inside each schema group
+only. Mixed per-matmul and transformer-layer comparison is allowed, but labeled
+as mixed-schema comparison; incompatible cross-schema deltas stay `n/a` so
+serial timing, non-additive aggregate noise, exclusions, local estimates,
+interface traffic estimates, and published references are not flattened into one
+false hardware model.
+
+Comparison presets are static-friendly. Add or edit `reports/visualizer_presets.json`
+with schema version `photonic-bench-comparison-presets-v1`, a `presets` array,
+stable artifact IDs, and an optional `pinned_id`; the next `visualize` run
+validates the sidecar and embeds it into `data/index.json`. The browser UI can
+also save local presets into local storage for ad hoc daily comparisons. Stale
+sidecar artifact IDs are reported as index warnings and valid artifacts still
+load.
+
+Comparison results are exportable from the browser. `Download JSON` writes a
+`photonic-bench-comparison-export-v1` object with selected artifact summaries,
+grouped best-metric analysis, provenance status, and modeling-boundary notes.
+`Download Markdown` and `Copy Markdown` produce a human-readable table suitable
+for reviews or notes.
 
 Source layout for the visualizer:
 
@@ -315,9 +362,10 @@ python -m pytest tests/test_visualizer_smoke.py
 ```
 
 The smoke test launches Chromium with Playwright, opens a generated visualizer,
-checks representative transformer and per-matmul detail flows, pins a comparison
-reference, and verifies delta/ratio comparison labels while failing on page or
-console errors.
+loads a generated preset, verifies comparison analytics, downloads JSON and
+Markdown exports, checks representative transformer and per-matmul detail flows,
+pins a comparison reference, and verifies delta/ratio comparison labels while
+failing on page or console errors.
 
 ## MLCommons-Style Proposal Draft
 
@@ -341,10 +389,14 @@ references, calibration fits, and future measured-system submissions.
 Use the `compare` command to generate a Markdown table from JSON cards:
 
 ```powershell
-python -m photonic_bench.cli compare reports/matmul_64x64.json reports/nature_pace_64x64.json reports/nature_pace_64x64_calibrated.json reports/xu_11tops_convolution_surrogate.json reports/weight_stationary_64x64_batch.json --report reports/comparison.md
+python -m photonic_bench.cli compare reports/matmul_64x64.json reports/nature_pace_64x64.json reports/nature_pace_64x64_calibrated.json reports/xu_11tops_convolution_surrogate.json reports/weight_stationary_64x64_batch.json reports/feldmann_2021_photonic_tensor_core_surrogate.json reports/pappas_2025_awgr_262tops_surrogate.json reports/taichi_2024_chiplet_surrogate.json --report reports/comparison.md
 ```
 
-The comparison table is generated from `local_model`, `published_reference`, `calibration_fit`, and `provenance` fields in JSON. Missing optional paper metrics are rendered as `n/a` instead of guessed.
+The comparison table is generated from `local_model`, `published_reference`,
+`calibration_fit`, and `provenance` fields in JSON. It includes local energy,
+interface bytes, operational intensity, timing, throughput, and selected
+published metrics. Missing optional paper metrics are rendered as `n/a` instead
+of guessed.
 
 ## Calibration Fitting
 
@@ -393,11 +445,15 @@ The output records the target, target source, original value, fitted value, pre-
 - `examples/matmul_64x64.yaml`: first example workload.
 - `examples/nature_pace_64x64.yaml`: source-backed Nature PACE calibration card config.
 - `examples/xu_11tops_convolution_surrogate.yaml`: source-backed Xu 2021 convolution accelerator card encoded as a labeled matmul surrogate.
+- `examples/feldmann_2021_photonic_tensor_core_surrogate.yaml`: source-backed Feldmann 2021 photonic tensor core card encoded as a labeled matmul surrogate.
+- `examples/pappas_2025_awgr_262tops_surrogate.yaml`: source-backed Pappas 2025 AWGR accelerator card encoded as a labeled matmul surrogate.
+- `examples/taichi_2024_chiplet_surrogate.yaml`: source-backed Taichi 2024 chiplet card encoded as a labeled matmul surrogate.
 - `examples/weight_stationary_64x64_batch.yaml`: synthetic realism example for reuse, stationarity, pipelining, and separate DACs.
 - `examples/transformer_small_sanity.yaml`: tiny transformer-layer formula sanity example.
 - `examples/bert_base_encoder_layer.yaml`: BERT-base style encoder-layer shape helper example.
 - `examples/gpt_style_decoder_layer.yaml`: GPT-style decoder-layer shape helper example.
 - `examples/load_report_json.py`: small programmatic JSON loading example.
 - `reports/visualizer/index.html`: generated static web visualizer.
+- `reports/visualizer_presets.json`: generated comparison preset sidecar.
 - `tasks/goal-prompt.md`: first-task execution prompt.
 - `tasks/todo.md`: live task ledger.

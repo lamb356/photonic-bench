@@ -54,6 +54,30 @@ weight_dac_conversions = k * n
 
 The legacy `device.dac` block is still accepted. If `device.vector_dac` or `device.weight_dac` are omitted, they inherit the shared `device.dac` values. If both separate DAC sections are present, `device.dac` may be omitted.
 
+## Interface Memory Traffic
+
+PhotonicBench now estimates converter-interface traffic from the same reuse
+counts used for DAC accounting:
+
+```text
+vector_operand_read_bytes =
+    vector_dac_conversions * ceil(vector_dac_bits / 8)
+weight_operand_read_bytes =
+    weight_dac_conversions * ceil(weight_dac_bits / 8)
+output_write_bytes =
+    output_elements * ceil(adc_bits / 8)
+total_interface_bytes =
+    vector_operand_read_bytes + weight_operand_read_bytes + output_write_bytes
+macs_per_byte = macs / total_interface_bytes
+equivalent_ops_per_byte = equivalent_ops / total_interface_bytes
+```
+
+This is an interface traffic model, not a full memory hierarchy simulation. It
+captures the effect of batch size, vector reuse, weight reuse, weight-stationary
+execution, and converter precision on operand reads and output writes, but it
+does not model caches, SRAM banks, DRAM, interposer links, NoCs, instruction
+traffic, or nonlinear/non-matmul tensor traffic.
+
 ## Noise Estimate
 
 ```text
@@ -201,9 +225,11 @@ equivalent op, and peripheral share from the summed quantities.
 Aggregate timing fields are labeled serial summaries. In particular,
 `serial_batch_latency_ns` is the sum of per-matmul batch latencies, and
 `serial_effective_equivalent_ops_per_second` divides total layer equivalent ops
-by that serial latency. These fields are useful for reproducible layer-level
-accounting, but they are not a claim about a fused hardware scheduler or
-parallel transformer pipeline.
+by that serial latency. Transformer aggregate JSON also sums converter-interface
+traffic from the decomposed cards and recomputes MACs/byte and equivalent
+ops/byte from the layer totals. These fields are useful for reproducible
+layer-level accounting, but they are not a claim about a fused hardware
+scheduler, parallel transformer pipeline, or complete memory hierarchy.
 
 Noise is not treated as additive in the aggregate JSON. Per-matmul noise values
 remain in the breakdown, and layer-level noise fields are diagnostic extrema
@@ -227,7 +253,7 @@ their generated cards force `weight_stationary: false`,
 
 The transformer helper does not count softmax, layer norm, bias adds, nonlinear
 activations, dropout, masking, KV-cache incremental decoding, causal triangular
-halving, or non-matmul memory traffic. Decoder labels are recorded as
+halving, or non-matmul tensor traffic. Decoder labels are recorded as
 assumptions; they do not silently change dense attention MAC counts.
 
 Transformer-layer configs may include `provenance`, but they currently reject

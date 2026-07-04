@@ -27,6 +27,9 @@ def test_render_comparison_markdown_summarizes_local_and_published_cards() -> No
     assert "unit matmul" in markdown
     assert "Xu 2021 11 TOPS convolution accelerator surrogate" in markdown
     assert "10.1038/s41586-020-03063-0" in markdown
+    assert "Interface bytes" in markdown
+    assert "Eq ops/byte" in markdown
+    assert "2.28571" in markdown
     assert "image_pixels=250000" in markdown
     assert "n/a" in markdown
 
@@ -95,4 +98,5 @@ def test_cli_compare_writes_markdown_report(tmp_path: Path) -> None:
     markdown = report_path.read_text(encoding="utf-8")
     assert "PhotonicBench Comparison" in markdown
     assert "unit matmul" in markdown
+    assert "Eq ops/byte" in markdown
     assert "11" in markdown

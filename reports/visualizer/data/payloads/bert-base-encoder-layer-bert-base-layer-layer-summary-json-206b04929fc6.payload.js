@@ -28,6 +28,7 @@ window.PhotonicBenchPayloadRegistry["bert_base_encoder_layer/bert_base_layer_lay
   "aggregate_semantics": {
     "source": "Generated from decomposed per-matmul JSON cards emitted by the transformer-layer command.",
     "energy": "Additive local_model.energy components are summed; energy_per_mac_pj, energy_per_op_pj, and peripheral_share are recomputed from summed layer quantities.",
+    "memory_traffic": "Interface memory traffic is summed from decomposed cards and operational intensity is recomputed from aggregate MAC/equivalent-op counts. It is not a full memory hierarchy simulation.",
     "timing": "serial_* timing fields assume the decomposed matmuls execute one after another. No parallel hardware scheduler or fused layer pipeline is modeled.",
     "noise": "Noise is not an additive layer total. Per-matmul noise remains in matmuls[].local_model.noise; aggregate noise fields are labeled diagnostic extrema."
   },
@@ -37,6 +38,15 @@ window.PhotonicBenchPayloadRegistry["bert_base_encoder_layer/bert_base_layer_lay
       "vector_dac_conversions": 884736,
       "weight_dac_conversions": 6684672,
       "dac_conversions": 7569408
+    },
+    "memory_traffic": {
+      "vector_operand_read_bytes": 884736,
+      "weight_operand_read_bytes": 6684672,
+      "output_write_bytes": 1081344,
+      "total_interface_bytes": 8650752,
+      "macs_per_byte": 98.9090909090909,
+      "equivalent_ops_per_byte": 197.8181818181818,
+      "note": "Summed from decomposed per-matmul interface traffic. This is not a full memory hierarchy simulation."
     },
     "energy": {
       "optical_compute_pj": 427819.008,
@@ -197,6 +207,15 @@ window.PhotonicBenchPayloadRegistry["bert_base_encoder_layer/bert_base_layer_lay
           "weight_dac_conversions": 1769472,
           "dac_conversions": 1867776
         },
+        "memory_traffic": {
+          "vector_operand_read_bytes": 98304,
+          "weight_operand_read_bytes": 1769472,
+          "output_write_bytes": 294912,
+          "total_interface_bytes": 2162688,
+          "macs_per_byte": 104.72727272727273,
+          "equivalent_ops_per_byte": 209.45454545454547,
+          "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
+        },
         "energy": {
           "optical_compute_pj": 113246.208,
           "laser_electrical_pj": 452984.832,
@@ -248,7 +267,8 @@ window.PhotonicBenchPayloadRegistry["bert_base_encoder_layer/bert_base_layer_lay
         "The benchmark models 1 operation(s) per batch.",
         "Vector DAC conversions are counted as ceil(batch_size / vector_reuse_factor) * m * k.",
         "Weight DAC conversions are counted once per batch because weight_stationary is true.",
-        "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time."
+        "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
+        "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation."
       ],
       "provenance": null
     },
@@ -322,6 +342,15 @@ window.PhotonicBenchPayloadRegistry["bert_base_encoder_layer/bert_base_layer_lay
           "weight_dac_conversions": 98304,
           "dac_conversions": 196608
         },
+        "memory_traffic": {
+          "vector_operand_read_bytes": 98304,
+          "weight_operand_read_bytes": 98304,
+          "output_write_bytes": 196608,
+          "total_interface_bytes": 393216,
+          "macs_per_byte": 32.0,
+          "equivalent_ops_per_byte": 64.0,
+          "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
+        },
         "energy": {
           "optical_compute_pj": 6291.456,
           "laser_electrical_pj": 25165.824,
@@ -373,7 +402,8 @@ window.PhotonicBenchPayloadRegistry["bert_base_encoder_layer/bert_base_layer_lay
         "The benchmark models 12 operation(s) per batch.",
         "Vector DAC conversions are counted as ceil(batch_size / vector_reuse_factor) * m * k.",
         "Weight DAC conversions are counted every 1 operation(s).",
-        "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time."
+        "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
+        "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation."
       ],
       "provenance": null
     },
@@ -447,6 +477,15 @@ window.PhotonicBenchPayloadRegistry["bert_base_encoder_layer/bert_base_layer_lay
           "weight_dac_conversions": 98304,
           "dac_conversions": 294912
         },
+        "memory_traffic": {
+          "vector_operand_read_bytes": 196608,
+          "weight_operand_read_bytes": 98304,
+          "output_write_bytes": 98304,
+          "total_interface_bytes": 393216,
+          "macs_per_byte": 32.0,
+          "equivalent_ops_per_byte": 64.0,
+          "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
+        },
         "energy": {
           "optical_compute_pj": 6291.456,
           "laser_electrical_pj": 25165.824,
@@ -498,7 +537,8 @@ window.PhotonicBenchPayloadRegistry["bert_base_encoder_layer/bert_base_layer_lay
         "The benchmark models 12 operation(s) per batch.",
         "Vector DAC conversions are counted as ceil(batch_size / vector_reuse_factor) * m * k.",
         "Weight DAC conversions are counted every 1 operation(s).",
-        "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time."
+        "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
+        "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation."
       ],
       "provenance": null
     },
@@ -572,6 +612,15 @@ window.PhotonicBenchPayloadRegistry["bert_base_encoder_layer/bert_base_layer_lay
           "weight_dac_conversions": 2359296,
           "dac_conversions": 2457600
         },
+        "memory_traffic": {
+          "vector_operand_read_bytes": 98304,
+          "weight_operand_read_bytes": 2359296,
+          "output_write_bytes": 393216,
+          "total_interface_bytes": 2850816,
+          "macs_per_byte": 105.93103448275862,
+          "equivalent_ops_per_byte": 211.86206896551724,
+          "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
+        },
         "energy": {
           "optical_compute_pj": 150994.944,
           "laser_electrical_pj": 603979.776,
@@ -623,7 +672,8 @@ window.PhotonicBenchPayloadRegistry["bert_base_encoder_layer/bert_base_layer_lay
         "The benchmark models 1 operation(s) per batch.",
         "Vector DAC conversions are counted as ceil(batch_size / vector_reuse_factor) * m * k.",
         "Weight DAC conversions are counted once per batch because weight_stationary is true.",
-        "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time."
+        "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
+        "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation."
       ],
       "provenance": null
     },
@@ -697,6 +747,15 @@ window.PhotonicBenchPayloadRegistry["bert_base_encoder_layer/bert_base_layer_lay
           "weight_dac_conversions": 2359296,
           "dac_conversions": 2752512
         },
+        "memory_traffic": {
+          "vector_operand_read_bytes": 393216,
+          "weight_operand_read_bytes": 2359296,
+          "output_write_bytes": 98304,
+          "total_interface_bytes": 2850816,
+          "macs_per_byte": 105.93103448275862,
+          "equivalent_ops_per_byte": 211.86206896551724,
+          "note": "Interface traffic is derived from DAC/ADC bit widths and reuse counts. It is not a full memory hierarchy simulation."
+        },
         "energy": {
           "optical_compute_pj": 150994.944,
           "laser_electrical_pj": 603979.776,
@@ -748,7 +807,8 @@ window.PhotonicBenchPayloadRegistry["bert_base_encoder_layer/bert_base_layer_lay
         "The benchmark models 1 operation(s) per batch.",
         "Vector DAC conversions are counted as ceil(batch_size / vector_reuse_factor) * m * k.",
         "Weight DAC conversions are counted once per batch because weight_stationary is true.",
-        "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time."
+        "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
+        "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation."
       ],
       "provenance": null
     }

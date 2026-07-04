@@ -13,7 +13,12 @@
     pinnedId: null,
     payloadCache: new Map(),
     payloadPromises: new Map(),
+    userPresets: [],
+    presetMessage: "",
+    presetMessageIsWarning: false,
   };
+  const USER_PRESETS_KEY = "photonic-bench-comparison-presets:v1";
+  const COMPARISON_EXPORT_SCHEMA = "photonic-bench-comparison-export-v1";
 
   if (!state.data) {
     document.getElementById("detail").innerHTML =
@@ -58,6 +63,29 @@
     render();
   });
 
+  state.userPresets = readUserPresets();
+
+  document.getElementById("preset-select").addEventListener("change", () => {
+    renderPresetControls();
+  });
+
+  document.getElementById("load-preset").addEventListener("click", () => {
+    const preset = selectedPreset();
+    if (!preset) {
+      setPresetMessage("Select a preset to load.", true);
+      return;
+    }
+    applyPreset(preset);
+  });
+
+  document.getElementById("save-preset").addEventListener("click", () => {
+    saveCurrentPreset();
+  });
+
+  document.getElementById("delete-preset").addEventListener("click", () => {
+    deleteSelectedUserPreset();
+  });
+
   document.getElementById("detail-mode").addEventListener("click", () => {
     state.view = "detail";
     render();
@@ -94,15 +122,48 @@
   }
 
   function formatPj(value) {
+    if (value === null || value === undefined || Number.isNaN(Number(value))) {
+      return "n/a";
+    }
     return `${formatNumber(value)} pJ`;
   }
 
   function formatNs(value) {
+    if (value === null || value === undefined || Number.isNaN(Number(value))) {
+      return "n/a";
+    }
     return `${formatNumber(value)} ns`;
   }
 
   function formatThroughput(value) {
+    if (value === null || value === undefined || Number.isNaN(Number(value))) {
+      return "n/a";
+    }
     return `${formatNumber(value)} eq ops/s`;
+  }
+
+  function formatBytes(value) {
+    if (value === null || value === undefined || Number.isNaN(Number(value))) {
+      return "n/a";
+    }
+    const number = Number(value);
+    if (Math.abs(number) >= 1e9) {
+      return `${formatNumber(number / 1e9)} GB`;
+    }
+    if (Math.abs(number) >= 1e6) {
+      return `${formatNumber(number / 1e6)} MB`;
+    }
+    if (Math.abs(number) >= 1e3) {
+      return `${formatNumber(number / 1e3)} KB`;
+    }
+    return `${formatNumber(number)} bytes`;
+  }
+
+  function formatOpsPerByte(value) {
+    if (value === null || value === undefined || Number.isNaN(Number(value))) {
+      return "n/a";
+    }
+    return `${formatNumber(value)} eq ops/byte`;
   }
 
   function yesNo(value) {
@@ -151,6 +212,12 @@
       const a = left.summary;
       const b = right.summary;
       if (state.sort === "energy") return a.total_energy_pj - b.total_energy_pj;
+      if (state.sort === "intensity") {
+        return (
+          Number(b.operational_intensity_ops_per_byte || 0) -
+          Number(a.operational_intensity_ops_per_byte || 0)
+        );
+      }
       if (state.sort === "latency") return a.latency_ns - b.latency_ns;
       if (state.sort === "ops") return b.equivalent_ops - a.equivalent_ops;
       return a.benchmark_name.localeCompare(b.benchmark_name);
@@ -169,6 +236,152 @@
     }
     state.pinnedId = artifacts[0] ? artifacts[0].summary.id : null;
     return state.pinnedId ? byId.get(state.pinnedId) : null;
+  }
+
+  function generatedPresets() {
+    return (state.data.comparison_presets || []).map((preset, index) => ({
+      ...preset,
+      key: `generated:${index}:${preset.name}`,
+      source: "generated",
+    }));
+  }
+
+  function localPresets() {
+    return state.userPresets.map((preset, index) => ({
+      ...preset,
+      key: `local:${index}:${preset.name}`,
+      source: "local",
+      source_path: "browser local storage",
+    }));
+  }
+
+  function allPresets() {
+    return [...generatedPresets(), ...localPresets()];
+  }
+
+  function selectedPreset() {
+    const key = document.getElementById("preset-select").value;
+    return allPresets().find((preset) => preset.key === key) || null;
+  }
+
+  function readUserPresets() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(USER_PRESETS_KEY) || "[]");
+      if (!Array.isArray(parsed)) {
+        return [];
+      }
+      return parsed
+        .filter(
+          (preset) =>
+            preset &&
+            typeof preset.name === "string" &&
+            Array.isArray(preset.artifact_ids)
+        )
+        .map((preset) => ({
+          name: preset.name,
+          description: preset.description || "",
+          artifact_ids: preset.artifact_ids.filter((id) => typeof id === "string"),
+          pinned_id:
+            typeof preset.pinned_id === "string" ? preset.pinned_id : null,
+        }));
+    } catch {
+      return [];
+    }
+  }
+
+  function writeUserPresets() {
+    localStorage.setItem(USER_PRESETS_KEY, JSON.stringify(state.userPresets));
+  }
+
+  function setPresetMessage(message, isWarning = false) {
+    state.presetMessage = message;
+    state.presetMessageIsWarning = isWarning;
+    renderPresetControls();
+  }
+
+  function applyPreset(preset) {
+    const validIds = preset.artifact_ids.filter((id) => byId.has(id));
+    const missingIds = preset.artifact_ids.filter((id) => !byId.has(id));
+    state.compareIds = new Set(validIds);
+    state.pinnedId =
+      preset.pinned_id && state.compareIds.has(preset.pinned_id)
+        ? preset.pinned_id
+        : validIds[0] || null;
+    state.selectedId = state.pinnedId || validIds[0] || state.selectedId;
+    state.view = validIds.length ? "compare" : "detail";
+    state.presetMessage = missingIds.length
+      ? `Loaded ${validIds.length} artifact(s); missing: ${missingIds.join(", ")}`
+      : `Loaded ${preset.name}.`;
+    state.presetMessageIsWarning = missingIds.length > 0;
+    render();
+  }
+
+  function saveCurrentPreset() {
+    const name = document.getElementById("preset-name").value.trim();
+    const artifactIds = Array.from(state.compareIds);
+    if (!name) {
+      setPresetMessage("Enter a preset name.", true);
+      return;
+    }
+    if (!artifactIds.length) {
+      setPresetMessage("Select artifacts before saving.", true);
+      return;
+    }
+    const nextPreset = {
+      name,
+      description: "Saved in this browser.",
+      artifact_ids: artifactIds,
+      pinned_id: state.pinnedId && state.compareIds.has(state.pinnedId)
+        ? state.pinnedId
+        : artifactIds[0],
+    };
+    const existingIndex = state.userPresets.findIndex(
+      (preset) => preset.name.toLowerCase() === name.toLowerCase()
+    );
+    if (existingIndex >= 0) {
+      state.userPresets.splice(existingIndex, 1, nextPreset);
+    } else {
+      state.userPresets.push(nextPreset);
+    }
+    writeUserPresets();
+    document.getElementById("preset-name").value = "";
+    setPresetMessage(`Saved ${name}.`);
+  }
+
+  function deleteSelectedUserPreset() {
+    const preset = selectedPreset();
+    if (!preset || preset.source !== "local") {
+      setPresetMessage("Select a browser-saved preset to delete.", true);
+      return;
+    }
+    state.userPresets = state.userPresets.filter(
+      (candidate) => candidate.name !== preset.name
+    );
+    writeUserPresets();
+    setPresetMessage(`Deleted ${preset.name}.`);
+  }
+
+  function renderPresetControls() {
+    const presets = allPresets();
+    const select = document.getElementById("preset-select");
+    const previousValue = select.value;
+    select.innerHTML = [
+      '<option value="">Comparison presets</option>',
+      ...presets.map((preset) => {
+        const label = `${preset.name} (${preset.source})`;
+        return `<option value="${escapeHtml(preset.key)}">${escapeHtml(label)}</option>`;
+      }),
+    ].join("");
+    if (presets.some((preset) => preset.key === previousValue)) {
+      select.value = previousValue;
+    }
+    const selected = selectedPreset();
+    document.getElementById("load-preset").disabled = !selected;
+    document.getElementById("delete-preset").disabled =
+      !selected || selected.source !== "local";
+    const message = document.getElementById("preset-message");
+    message.textContent = state.presetMessage;
+    message.classList.toggle("warn", state.presetMessageIsWarning);
   }
 
   function renderList() {
@@ -306,6 +519,8 @@
           ${metric("Equivalent ops", formatNumber(summary.equivalent_ops), "2x MAC accounting")}
           ${metric("Local total energy", formatPj(summary.total_energy_pj), "local_model estimate")}
           ${metric(summary.latency_label, formatNs(summary.latency_ns), "schema-specific timing")}
+          ${metric("Interface traffic", formatBytes(summary.memory_traffic_bytes), "converter boundary")}
+          ${metric("Operational intensity", formatOpsPerByte(summary.operational_intensity_ops_per_byte), "local model")}
         </div>
       </section>
     `;
@@ -359,6 +574,7 @@
           <div class="concept"><strong>Published references</strong><span>Paper-derived values stay separate under published_reference.</span></div>
           <div class="concept"><strong>Serial timing</strong><span>Transformer aggregate timing is a serial sum, not a fused scheduler claim.</span></div>
           <div class="concept"><strong>Non-additive noise</strong><span>Aggregate noise is diagnostic extrema, not a summed layer error.</span></div>
+          <div class="concept"><strong>Interface traffic</strong><span>Memory bytes use converter widths and reuse counts, not hierarchy simulation.</span></div>
         </div>
       </section>
     `;
@@ -429,6 +645,7 @@
     const shape = payload.workload.shape;
     const energyRows = objectRows(payload.local_model.energy);
     const timingRows = objectRows(payload.local_model.timing);
+    const memoryRows = objectRows(payload.local_model.memory_traffic);
     const published = payload.published_reference;
     const provenance = payload.provenance;
 
@@ -450,6 +667,11 @@
           ${simpleTable([{ label: "Field" }, { label: "Value", num: true }], timingRows)}
         </section>
       </div>
+      <section class="panel">
+        <h3>Interface Memory Traffic</h3>
+        <div class="notes"><p>${escapeHtml(payload.local_model.memory_traffic?.note || "Interface traffic is derived from converter bit widths and reuse counts.")}</p></div>
+        ${simpleTable([{ label: "Field" }, { label: "Value", num: true }], memoryRows)}
+      </section>
       <section class="panel">
         <h3>Local Energy Components</h3>
         ${simpleTable([{ label: "Component" }, { label: "Value", num: true }], energyRows)}
@@ -492,6 +714,7 @@
     const shape = payload.transformer_layer.shape;
     const timing = payload.local_model.timing;
     const noise = payload.local_model.noise;
+    const memory = payload.local_model.memory_traffic;
     const sourceDir = summary.browser_path.split("/").slice(0, -1).join("/");
     const matmulRows = payload.matmuls.map((row) => {
       const href = sourceDir ? `${sourceDir}/${row.json_report}` : row.json_report;
@@ -532,10 +755,20 @@
       </section>
       <div class="grid-2">
         <section class="panel">
+          <h3>Interface Memory Traffic</h3>
+          <div class="notes"><p>${escapeHtml(memory?.note || "Summed from decomposed cards; not a full memory hierarchy simulation.")}</p></div>
+          ${simpleTable(
+            [{ label: "Field" }, { label: "Value", num: true }],
+            objectRows(memory)
+          )}
+        </section>
+        <section class="panel">
           <h3>Serial Timing</h3>
           <div class="notes"><p>Timing model: ${escapeHtml(timing.timing_model)}.</p><p>These values are serial summaries over decomposed matmuls.</p></div>
           ${simpleTable([{ label: "Field" }, { label: "Value", num: true }], objectRows(timing))}
         </section>
+      </div>
+      <div class="grid-2">
         <section class="panel">
           <h3>Non-additive Noise</h3>
           <div class="notes"><p>${escapeHtml(noise.note)}</p></div>
@@ -661,6 +894,9 @@
       ["Latency", (summary) => formatNs(summary.latency_ns)],
       ["Throughput", (summary) =>
         formatThroughput(summary.throughput_equivalent_ops_per_second)],
+      ["Interface traffic", (summary) => formatBytes(summary.memory_traffic_bytes)],
+      ["Operational intensity", (summary) =>
+        formatOpsPerByte(summary.operational_intensity_ops_per_byte)],
       ["Assumptions", (summary) => formatNumber(summary.assumptions_count)],
       ["Published reference", (summary) => yesNo(summary.has_published_reference)],
       ["Calibration fit", (summary) => yesNo(summary.has_calibration_fit)],
@@ -725,6 +961,18 @@
         direction: "higher",
       },
       {
+        label: "Interface traffic",
+        get: (summary) => summary.memory_traffic_bytes,
+        format: formatBytes,
+        direction: "lower",
+      },
+      {
+        label: "Operational intensity",
+        get: (summary) => summary.operational_intensity_ops_per_byte,
+        format: formatOpsPerByte,
+        direction: "higher",
+      },
+      {
         label: "Assumption count",
         get: (summary) => summary.assumptions_count,
         format: formatNumber,
@@ -747,7 +995,9 @@
 
   function renderComparisonInsights(artifacts, pinnedArtifact) {
     const insightSpecs = comparisonMetricSpecs().filter((spec) =>
-      ["Energy per op", "Latency", "Throughput"].includes(spec.label)
+      ["Energy per op", "Latency", "Throughput", "Operational intensity"].includes(
+        spec.label
+      )
     );
     return `
       <section class="panel">
@@ -857,6 +1107,58 @@
       .join("");
   }
 
+  function renderComparisonBrief(artifacts) {
+    const publishedCount = artifacts.filter(
+      (artifact) => artifact.summary.has_published_reference
+    ).length;
+    const calibrationCount = artifacts.filter(
+      (artifact) => artifact.summary.has_calibration_fit
+    ).length;
+    const totalInterfaceBytes = artifacts.reduce(
+      (total, artifact) =>
+        total + Number(artifact.summary.memory_traffic_bytes || 0),
+      0
+    );
+    const bestIntensity = bestArtifactForSpec(artifacts, {
+      label: "Operational intensity",
+      get: (summary) => summary.operational_intensity_ops_per_byte,
+      format: formatOpsPerByte,
+      direction: "higher",
+    });
+    const fastest = bestArtifactForSpec(artifacts, {
+      label: "Latency",
+      get: (summary) => summary.latency_ns,
+      format: formatNs,
+      direction: "lower",
+    });
+    return `
+      <section class="panel">
+        <h3>Comparison Brief</h3>
+        <div class="metric-grid">
+          ${metric("Published coverage", `${publishedCount}/${artifacts.length}`, "reference blocks")}
+          ${metric("Calibration fits", `${calibrationCount}/${artifacts.length}`, "explicit fits")}
+          ${metric("Total interface traffic", formatBytes(totalInterfaceBytes), "selected artifacts")}
+          ${metric(
+            "Best ops per byte",
+            bestIntensity
+              ? bestIntensity.summary.benchmark_name
+              : "n/a",
+            bestIntensity
+              ? formatOpsPerByte(
+                  bestIntensity.summary.operational_intensity_ops_per_byte
+                )
+              : ""
+          )}
+          ${metric(
+            "Fastest selected",
+            fastest ? fastest.summary.benchmark_name : "n/a",
+            fastest ? formatNs(fastest.summary.latency_ns) : ""
+          )}
+        </div>
+      </section>
+    `;
+  }
+
   function analyticsRows(group, reference, showDeltas) {
     const specs = comparisonMetricSpecs();
     return specs.flatMap((spec) =>
@@ -956,6 +1258,111 @@
     return `${formatNumber(value / referenceValue)}x`;
   }
 
+  function comparisonExport(artifacts, pinnedArtifact, boundaryNotes) {
+    return {
+      schema_version: COMPARISON_EXPORT_SCHEMA,
+      generated_at: new Date().toISOString(),
+      reports_dir: state.data.reports_dir,
+      pinned_id: pinnedArtifact ? pinnedArtifact.summary.id : null,
+      selected_artifact_ids: artifacts.map((artifact) => artifact.summary.id),
+      modeling_boundaries: state.data.modeling_boundaries || [],
+      boundary_notes: boundaryNotes,
+      artifacts: artifacts.map((artifact) => ({
+        id: artifact.summary.id,
+        kind: artifact.summary.kind,
+        benchmark_name: artifact.summary.benchmark_name,
+        source_path: artifact.summary.source_path,
+        macs: artifact.summary.macs,
+        equivalent_ops: artifact.summary.equivalent_ops,
+        local_total_energy_pj: artifact.summary.total_energy_pj,
+        local_energy_per_op_pj: artifact.summary.energy_per_op_pj,
+        latency_label: artifact.summary.latency_label,
+        latency_ns: artifact.summary.latency_ns,
+        throughput_equivalent_ops_per_second:
+          artifact.summary.throughput_equivalent_ops_per_second,
+        memory_traffic_bytes: artifact.summary.memory_traffic_bytes,
+        operational_intensity_ops_per_byte:
+          artifact.summary.operational_intensity_ops_per_byte,
+        provenance_status: artifact.summary.provenance_status,
+        has_published_reference: artifact.summary.has_published_reference,
+        has_calibration_fit: artifact.summary.has_calibration_fit,
+        boundary_tags: artifact.summary.boundary_tags || [],
+      })),
+      grouped_metrics: groupArtifactsByKind(artifacts).map(([label, group]) => ({
+        group: label,
+        artifacts: group.map((artifact) => artifact.summary.id),
+        best: comparisonMetricSpecs()
+          .filter((spec) => ["lower", "higher"].includes(spec.direction))
+          .map((spec) => {
+            const best = bestArtifactForSpec(group, spec);
+            return {
+              metric: spec.label,
+              direction: spec.direction,
+              artifact_id: best ? best.summary.id : null,
+              value: best ? spec.get(best.summary) : null,
+            };
+          }),
+      })),
+    };
+  }
+
+  function comparisonMarkdown(artifacts, pinnedArtifact, boundaryNotes) {
+    const rows = artifacts
+      .map((artifact) => {
+        const summary = artifact.summary;
+        return [
+          summary.benchmark_name,
+          kindLabel(summary.kind),
+          summary.source_path,
+          formatPj(summary.energy_per_op_pj),
+          formatNs(summary.latency_ns),
+          formatThroughput(summary.throughput_equivalent_ops_per_second),
+          formatBytes(summary.memory_traffic_bytes),
+          formatOpsPerByte(summary.operational_intensity_ops_per_byte),
+          summary.has_published_reference ? "yes" : "no",
+          summary.provenance_status,
+        ];
+      })
+      .map((row) => `| ${row.map(markdownCell).join(" | ")} |`)
+      .join("\n");
+    const notes = boundaryNotes.map((note) => `- ${note}`).join("\n");
+    return `# PhotonicBench Comparison Export
+
+Pinned reference: ${
+      pinnedArtifact ? pinnedArtifact.summary.benchmark_name : "none"
+    }
+
+| Benchmark | Kind | Source | Local pJ/op | Latency | Throughput | Interface traffic | Eq ops/byte | Published reference | Provenance |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+${rows}
+
+## Boundary Notes
+
+${notes}
+`;
+  }
+
+  function markdownCell(value) {
+    return String(value ?? "n/a").replaceAll("|", "\\|").replaceAll("\n", " ");
+  }
+
+  function downloadText(filename, text, mimeType) {
+    const blob = new Blob([text], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function comparisonFilename(extension) {
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    return `photonic-bench-comparison-${stamp}.${extension}`;
+  }
+
   function renderComparison() {
     const detail = document.getElementById("detail");
     const artifacts = selectedArtifacts();
@@ -990,7 +1397,14 @@
       hasPublished
         ? "Published references are present for at least one artifact and remain separate from local model estimates."
         : "Selected artifacts are local model summaries with no published_reference block.",
+      "Interface traffic is derived from converter bit widths and reuse counts; it is not a full memory hierarchy simulation.",
     ];
+    const exportObject = comparisonExport(artifacts, pinnedArtifact, boundaryNotes);
+    const exportMarkdown = comparisonMarkdown(
+      artifacts,
+      pinnedArtifact,
+      boundaryNotes
+    );
 
     detail.innerHTML = `
       <section class="header-panel">
@@ -1011,10 +1425,14 @@
             }
           </div>
           <div class="actions">
+            <button class="action-button primary" type="button" data-action="download-json">Download JSON</button>
+            <button class="action-button" type="button" data-action="download-markdown">Download Markdown</button>
+            <button class="action-button" type="button" data-action="copy-markdown">Copy Markdown</button>
             <button class="action-button" type="button" data-action="clear-compare">Clear comparison</button>
           </div>
         </div>
       </section>
+      ${renderComparisonBrief(artifacts)}
       <section class="panel">
         <h3>Comparison Matrix</h3>
         ${simpleTable(headers, comparisonSummaryRows(artifacts, pinnedArtifact), "comparison-table")}
@@ -1032,7 +1450,49 @@
           .map((note) => `<p>${escapeHtml(note)}</p>`)
           .join("")}</div>
       </section>
+      <section class="panel">
+        <h3>Export Preview</h3>
+        <textarea id="export-preview" class="export-preview" readonly>${escapeHtml(exportMarkdown)}</textarea>
+      </section>
     `;
+
+    detail.querySelector("[data-action='download-json']").addEventListener(
+      "click",
+      () => {
+        downloadText(
+          comparisonFilename("json"),
+          `${JSON.stringify(exportObject, null, 2)}\n`,
+          "application/json"
+        );
+      }
+    );
+
+    detail.querySelector("[data-action='download-markdown']").addEventListener(
+      "click",
+      () => {
+        downloadText(
+          comparisonFilename("md"),
+          exportMarkdown,
+          "text/markdown"
+        );
+      }
+    );
+
+    detail.querySelector("[data-action='copy-markdown']").addEventListener(
+      "click",
+      () => {
+        const preview = detail.querySelector("#export-preview");
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(exportMarkdown).catch(() => {
+            preview.focus();
+            preview.select();
+          });
+        } else {
+          preview.focus();
+          preview.select();
+        }
+      }
+    );
 
     detail.querySelector("[data-action='clear-compare']").addEventListener(
       "click",
@@ -1062,6 +1522,7 @@
     }
     ensurePinnedReference();
     renderModeTabs();
+    renderPresetControls();
     renderList();
     renderIssues();
     if (state.view === "compare") {

@@ -62,6 +62,8 @@ def render_comparison_markdown(
         "Eq ops",
         "Local total pJ",
         "Local pJ/op",
+        "Interface bytes",
+        "Eq ops/byte",
         "Batch latency ns",
         "Steady eq ops/s",
         "Published TOPS",
@@ -95,6 +97,7 @@ def _row(card: ComparisonCard) -> list[str]:
     derived = _dict_or_empty(published.get("derived_unit_conversions"))
     provenance = _dict_or_empty(payload.get("provenance"))
     local_energy = _dict_or_empty(_get(payload, "local_model", "energy"))
+    memory = _dict_or_empty(_get(payload, "local_model", "memory_traffic"))
     local_timing = _dict_or_empty(_get(payload, "local_model", "timing"))
 
     return [
@@ -105,6 +108,8 @@ def _row(card: ComparisonCard) -> list[str]:
         _fmt(_get(payload, "workload", "equivalent_ops")),
         _fmt(local_energy.get("total_pj")),
         _fmt(local_energy.get("energy_per_op_pj")),
+        _fmt(memory.get("total_interface_bytes")),
+        _fmt(memory.get("equivalent_ops_per_byte")),
         _fmt(local_timing.get("batch_latency_ns")),
         _fmt(local_timing.get("steady_state_equivalent_ops_per_second")),
         _fmt(reported.get("reported_tops")),
@@ -150,6 +155,15 @@ def _published_metrics_label(reported: dict[str, Any]) -> str:
         "kernels",
         "input_resolution_bits",
         "digit_recognition_accuracy_percent",
+        "reported_macs_per_second",
+        "reported_bandwidth_ghz_min",
+        "reported_energy_per_op_fj",
+        "data_rate_gbaud",
+        "awgr_dimension",
+        "mnist_accuracy_percent",
+        "area_efficiency_tmacs_per_mm2",
+        "input_output_dimension",
+        "experimental_omniglot_accuracy_percent",
     ):
         if key in metrics:
             selected.append(f"{key}={metrics[key]}")

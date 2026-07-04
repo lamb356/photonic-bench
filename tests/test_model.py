@@ -63,6 +63,12 @@ def test_evaluate_matmul_energy_accounting() -> None:
     assert result.energy.peripheral_share == pytest.approx((16.0 + 4.8 + 0.32) / 21.248)
     assert result.energy.energy_per_mac_pj == pytest.approx(21.248 / 64)
     assert result.energy.energy_per_op_pj == pytest.approx(21.248 / 128)
+    assert result.memory_traffic.vector_operand_read_bytes == 8
+    assert result.memory_traffic.weight_operand_read_bytes == 16
+    assert result.memory_traffic.output_write_bytes == 32
+    assert result.memory_traffic.total_interface_bytes == 56
+    assert result.memory_traffic.macs_per_byte == pytest.approx(64 / 56)
+    assert result.memory_traffic.equivalent_ops_per_byte == pytest.approx(128 / 56)
 
 
 def test_evaluate_noise_and_latency_estimates() -> None:
@@ -125,6 +131,11 @@ def test_evaluate_reuse_weight_stationary_pipeline_and_separate_dacs() -> None:
     assert result.energy.weight_dac_pj == pytest.approx(8.0)
     assert result.energy.dac_pj == pytest.approx(11.2)
     assert result.energy.total_pj == pytest.approx(142.784)
+    assert result.memory_traffic.vector_operand_read_bytes == 32
+    assert result.memory_traffic.weight_operand_read_bytes == 16
+    assert result.memory_traffic.output_write_bytes == 256
+    assert result.memory_traffic.total_interface_bytes == 304
+    assert result.memory_traffic.equivalent_ops_per_byte == pytest.approx(1024 / 304)
 
     assert result.timing.total_latency_ns == pytest.approx(5.0)
     assert result.timing.pipeline_stages == 3

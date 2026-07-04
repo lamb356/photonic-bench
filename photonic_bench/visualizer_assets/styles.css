@@ -159,6 +159,47 @@ h1 {
   color: white;
 }
 
+.preset-panel {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--panel);
+  padding: 10px;
+  margin-bottom: 14px;
+}
+
+.preset-panel select,
+.preset-panel input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fbfcfa;
+  color: var(--ink);
+  padding: 8px 9px;
+}
+
+.preset-actions,
+.save-preset-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.save-preset-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.preset-message {
+  color: var(--muted);
+  min-height: 1.1rem;
+  font-size: 0.76rem;
+}
+
+.preset-message.warn {
+  color: var(--amber);
+}
+
 .filters {
   display: grid;
   gap: 8px;
@@ -372,7 +413,7 @@ main {
 
 .metric-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 10px;
 }
 
@@ -420,7 +461,7 @@ main {
 
 .concepts {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 10px;
 }
 
@@ -569,6 +610,23 @@ th.num {
   background: var(--teal);
   border-color: var(--teal);
   color: white;
+}
+
+.action-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.export-preview {
+  width: 100%;
+  min-height: 180px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 10px;
+  color: var(--ink);
+  background: #fbfcfa;
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 0.78rem;
 }
 
 .issue-list {

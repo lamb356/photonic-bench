@@ -18,9 +18,11 @@
         "latency_label": "Batch latency",
         "latency_ns": 27.0,
         "throughput_equivalent_ops_per_second": 1048576000000000.0,
+        "memory_traffic_bytes": 393216.0,
+        "operational_intensity_ops_per_byte": 64.0,
         "provenance_status": "local model artifact",
         "has_published_reference": false,
-        "assumptions_count": 19,
+        "assumptions_count": 20,
         "has_calibration_fit": false,
         "boundary_tags": [
           "local model"
@@ -46,9 +48,11 @@
         "latency_label": "Batch latency",
         "latency_ns": 27.0,
         "throughput_equivalent_ops_per_second": 1048576000000000.0,
+        "memory_traffic_bytes": 393216.0,
+        "operational_intensity_ops_per_byte": 64.0,
         "provenance_status": "local model artifact",
         "has_published_reference": false,
-        "assumptions_count": 19,
+        "assumptions_count": 20,
         "has_calibration_fit": false,
         "boundary_tags": [
           "local model"
@@ -74,9 +78,11 @@
         "latency_label": "Batch latency",
         "latency_ns": 5.0,
         "throughput_equivalent_ops_per_second": 3.01989888e+17,
+        "memory_traffic_bytes": 2850816.0,
+        "operational_intensity_ops_per_byte": 211.86206896551724,
         "provenance_status": "local model artifact",
         "has_published_reference": false,
-        "assumptions_count": 19,
+        "assumptions_count": 20,
         "has_calibration_fit": false,
         "boundary_tags": [
           "local model"
@@ -102,9 +108,11 @@
         "latency_label": "Batch latency",
         "latency_ns": 5.0,
         "throughput_equivalent_ops_per_second": 3.01989888e+17,
+        "memory_traffic_bytes": 2850816.0,
+        "operational_intensity_ops_per_byte": 211.86206896551724,
         "provenance_status": "local model artifact",
         "has_published_reference": false,
-        "assumptions_count": 19,
+        "assumptions_count": 20,
         "has_calibration_fit": false,
         "boundary_tags": [
           "local model"
@@ -130,15 +138,49 @@
         "latency_label": "Batch latency",
         "latency_ns": 5.0,
         "throughput_equivalent_ops_per_second": 2.26492416e+17,
+        "memory_traffic_bytes": 2162688.0,
+        "operational_intensity_ops_per_byte": 209.45454545454547,
         "provenance_status": "local model artifact",
         "has_published_reference": false,
-        "assumptions_count": 19,
+        "assumptions_count": 20,
         "has_calibration_fit": false,
         "boundary_tags": [
           "local model"
         ],
         "payload_path": "data/payloads/bert-base-encoder-layer-bert-base-layer-qkv-projection-json-7458632a2cdb.payload.json",
         "payload_script_path": "data/payloads/bert-base-encoder-layer-bert-base-layer-qkv-projection-json-7458632a2cdb.payload.js"
+      }
+    },
+    {
+      "summary": {
+        "id": "feldmann_2021_photonic_tensor_core_surrogate.json",
+        "kind": "matmul_card",
+        "schema_version": "photonic-bench-report-v1",
+        "benchmark_name": "Feldmann 2021 photonic tensor core surrogate",
+        "description": "Source-backed card for Feldmann et al. Nature 2021. The published reference is an integrated photonic tensor core for convolutional processing; this config uses a small dense matmul tile as a PhotonicBench surrogate and does not claim to reproduce the paper dataflow.",
+        "source_path": "feldmann_2021_photonic_tensor_core_surrogate.json",
+        "browser_path": "../feldmann_2021_photonic_tensor_core_surrogate.json",
+        "macs": 1024,
+        "equivalent_ops": 2048,
+        "output_elements": 16,
+        "total_energy_pj": 227.80800000000002,
+        "energy_per_op_pj": 0.11123437500000001,
+        "latency_label": "Batch latency",
+        "latency_ns": 0.071428571,
+        "throughput_equivalent_ops_per_second": 28672000172032.004,
+        "memory_traffic_bytes": 1104.0,
+        "operational_intensity_ops_per_byte": 1.855072463768116,
+        "provenance_status": "paper-reported throughput/bandwidth; matmul-surrogate local model",
+        "has_published_reference": true,
+        "assumptions_count": 15,
+        "has_calibration_fit": false,
+        "boundary_tags": [
+          "local model",
+          "published reference",
+          "provenance"
+        ],
+        "payload_path": "data/payloads/feldmann-2021-photonic-tensor-core-surrogate-json-12165bed38cd.payload.json",
+        "payload_script_path": "data/payloads/feldmann-2021-photonic-tensor-core-surrogate-json-12165bed38cd.payload.js"
       }
     },
     {
@@ -158,9 +200,11 @@
         "latency_label": "Batch latency",
         "latency_ns": 27.0,
         "throughput_equivalent_ops_per_second": 6.7108864e+16,
+        "memory_traffic_bytes": 14155776.0,
+        "operational_intensity_ops_per_byte": 113.77777777777777,
         "provenance_status": "local model artifact",
         "has_published_reference": false,
-        "assumptions_count": 20,
+        "assumptions_count": 21,
         "has_calibration_fit": false,
         "boundary_tags": [
           "local model"
@@ -186,9 +230,11 @@
         "latency_label": "Batch latency",
         "latency_ns": 27.0,
         "throughput_equivalent_ops_per_second": 6.7108864e+16,
+        "memory_traffic_bytes": 14155776.0,
+        "operational_intensity_ops_per_byte": 113.77777777777777,
         "provenance_status": "local model artifact",
         "has_published_reference": false,
-        "assumptions_count": 20,
+        "assumptions_count": 21,
         "has_calibration_fit": false,
         "boundary_tags": [
           "local model"
@@ -214,9 +260,11 @@
         "latency_label": "Batch latency",
         "latency_ns": 5.0,
         "throughput_equivalent_ops_per_second": 2.415919104e+18,
+        "memory_traffic_bytes": 6291456.0,
+        "operational_intensity_ops_per_byte": 768.0,
         "provenance_status": "local model artifact",
         "has_published_reference": false,
-        "assumptions_count": 20,
+        "assumptions_count": 21,
         "has_calibration_fit": false,
         "boundary_tags": [
           "local model"
@@ -242,9 +290,11 @@
         "latency_label": "Batch latency",
         "latency_ns": 5.0,
         "throughput_equivalent_ops_per_second": 2.415919104e+18,
+        "memory_traffic_bytes": 6291456.0,
+        "operational_intensity_ops_per_byte": 768.0,
         "provenance_status": "local model artifact",
         "has_published_reference": false,
-        "assumptions_count": 20,
+        "assumptions_count": 21,
         "has_calibration_fit": false,
         "boundary_tags": [
           "local model"
@@ -270,9 +320,11 @@
         "latency_label": "Batch latency",
         "latency_ns": 5.0,
         "throughput_equivalent_ops_per_second": 1.811939328e+18,
+        "memory_traffic_bytes": 4915200.0,
+        "operational_intensity_ops_per_byte": 737.28,
         "provenance_status": "local model artifact",
         "has_published_reference": false,
-        "assumptions_count": 20,
+        "assumptions_count": 21,
         "has_calibration_fit": false,
         "boundary_tags": [
           "local model"
@@ -298,9 +350,11 @@
         "latency_label": "Batch latency",
         "latency_ns": 5.0,
         "throughput_equivalent_ops_per_second": 104857600000000.0,
+        "memory_traffic_bytes": 12288.0,
+        "operational_intensity_ops_per_byte": 42.666666666666664,
         "provenance_status": "local model artifact",
         "has_published_reference": false,
-        "assumptions_count": 11,
+        "assumptions_count": 12,
         "has_calibration_fit": false,
         "boundary_tags": [
           "local model"
@@ -326,9 +380,11 @@
         "latency_label": "Batch latency",
         "latency_ns": 5.0,
         "throughput_equivalent_ops_per_second": 1638400000000.0,
+        "memory_traffic_bytes": 4224.0,
+        "operational_intensity_ops_per_byte": 1.9393939393939394,
         "provenance_status": "paper-reported calibration targets",
         "has_published_reference": true,
-        "assumptions_count": 11,
+        "assumptions_count": 12,
         "has_calibration_fit": false,
         "boundary_tags": [
           "local model",
@@ -356,9 +412,11 @@
         "latency_label": "Batch latency",
         "latency_ns": 5.0,
         "throughput_equivalent_ops_per_second": 1638400000000.0,
+        "memory_traffic_bytes": 4224.0,
+        "operational_intensity_ops_per_byte": 1.9393939393939394,
         "provenance_status": "paper-reported calibration targets",
         "has_published_reference": true,
-        "assumptions_count": 11,
+        "assumptions_count": 12,
         "has_calibration_fit": true,
         "boundary_tags": [
           "local model",
@@ -368,6 +426,70 @@
         ],
         "payload_path": "data/payloads/nature-pace-64x64-calibrated-json-2da4381c3dd5.payload.json",
         "payload_script_path": "data/payloads/nature-pace-64x64-calibrated-json-2da4381c3dd5.payload.js"
+      }
+    },
+    {
+      "summary": {
+        "id": "pappas_2025_awgr_262tops_surrogate.json",
+        "kind": "matmul_card",
+        "schema_version": "photonic-bench-report-v1",
+        "benchmark_name": "Pappas 2025 AWGR 262 TOPS surrogate",
+        "description": "Source-backed card for the APL Photonics 2025 AWGR-based multidimensional photonic AI accelerator. The local workload is a 16x16 dense tile surrogate for the reported 16x16 AWGR tensor engine, not an exact Matrix-by-Tensor-Multiply reproduction.",
+        "source_path": "pappas_2025_awgr_262tops_surrogate.json",
+        "browser_path": "../pappas_2025_awgr_262tops_surrogate.json",
+        "macs": 4096,
+        "equivalent_ops": 8192,
+        "output_elements": 256,
+        "total_energy_pj": 241.15200000000002,
+        "energy_per_op_pj": 0.029437500000000002,
+        "latency_label": "Batch latency",
+        "latency_ns": 0.03125,
+        "throughput_equivalent_ops_per_second": 262144000000000.0,
+        "memory_traffic_bytes": 768.0,
+        "operational_intensity_ops_per_byte": 10.666666666666666,
+        "provenance_status": "paper-reported and paper-projected throughput/energy targets; matmul-surrogate local model",
+        "has_published_reference": true,
+        "assumptions_count": 15,
+        "has_calibration_fit": false,
+        "boundary_tags": [
+          "local model",
+          "published reference",
+          "provenance"
+        ],
+        "payload_path": "data/payloads/pappas-2025-awgr-262tops-surrogate-json-886afbaeafa2.payload.json",
+        "payload_script_path": "data/payloads/pappas-2025-awgr-262tops-surrogate-json-886afbaeafa2.payload.js"
+      }
+    },
+    {
+      "summary": {
+        "id": "taichi_2024_chiplet_surrogate.json",
+        "kind": "matmul_card",
+        "schema_version": "photonic-bench-report-v1",
+        "benchmark_name": "Taichi 2024 photonic chiplet surrogate",
+        "description": "Source-backed card for the Science 2024 Taichi photonic chiplet. The published reference is a diffractive-interference hybrid optical neural-network chiplet; this config uses a 64x64 dense local matmul surrogate because PhotonicBench does not model Taichi's distributed optical protocol.",
+        "source_path": "taichi_2024_chiplet_surrogate.json",
+        "browser_path": "../taichi_2024_chiplet_surrogate.json",
+        "macs": 262144,
+        "equivalent_ops": 524288,
+        "output_elements": 4096,
+        "total_energy_pj": 4251.648,
+        "energy_per_op_pj": 0.008109375,
+        "latency_label": "Batch latency",
+        "latency_ns": 1.0,
+        "throughput_equivalent_ops_per_second": 524288000000000.0,
+        "memory_traffic_bytes": 12288.0,
+        "operational_intensity_ops_per_byte": 42.666666666666664,
+        "provenance_status": "paper-reported energy/scale targets; matmul-surrogate local model",
+        "has_published_reference": true,
+        "assumptions_count": 15,
+        "has_calibration_fit": false,
+        "boundary_tags": [
+          "local model",
+          "published reference",
+          "provenance"
+        ],
+        "payload_path": "data/payloads/taichi-2024-chiplet-surrogate-json-866e17ffdb73.payload.json",
+        "payload_script_path": "data/payloads/taichi-2024-chiplet-surrogate-json-866e17ffdb73.payload.js"
       }
     },
     {
@@ -387,9 +509,11 @@
         "latency_label": "Batch latency",
         "latency_ns": 11.0,
         "throughput_equivalent_ops_per_second": 64000000000.0,
+        "memory_traffic_bytes": 192.0,
+        "operational_intensity_ops_per_byte": 2.6666666666666665,
         "provenance_status": "local model artifact",
         "has_published_reference": false,
-        "assumptions_count": 19,
+        "assumptions_count": 20,
         "has_calibration_fit": false,
         "boundary_tags": [
           "local model"
@@ -415,9 +539,11 @@
         "latency_label": "Batch latency",
         "latency_ns": 11.0,
         "throughput_equivalent_ops_per_second": 64000000000.0,
+        "memory_traffic_bytes": 192.0,
+        "operational_intensity_ops_per_byte": 2.6666666666666665,
         "provenance_status": "local model artifact",
         "has_published_reference": false,
-        "assumptions_count": 19,
+        "assumptions_count": 20,
         "has_calibration_fit": false,
         "boundary_tags": [
           "local model"
@@ -443,9 +569,11 @@
         "latency_label": "Batch latency",
         "latency_ns": 7.0,
         "throughput_equivalent_ops_per_second": 512000000000.0,
+        "memory_traffic_bytes": 320.0,
+        "operational_intensity_ops_per_byte": 6.4,
         "provenance_status": "local model artifact",
         "has_published_reference": false,
-        "assumptions_count": 19,
+        "assumptions_count": 20,
         "has_calibration_fit": false,
         "boundary_tags": [
           "local model"
@@ -471,9 +599,11 @@
         "latency_label": "Batch latency",
         "latency_ns": 7.0,
         "throughput_equivalent_ops_per_second": 512000000000.0,
+        "memory_traffic_bytes": 320.0,
+        "operational_intensity_ops_per_byte": 6.4,
         "provenance_status": "local model artifact",
         "has_published_reference": false,
-        "assumptions_count": 19,
+        "assumptions_count": 20,
         "has_calibration_fit": false,
         "boundary_tags": [
           "local model"
@@ -499,9 +629,11 @@
         "latency_label": "Batch latency",
         "latency_ns": 7.0,
         "throughput_equivalent_ops_per_second": 768000000000.0,
+        "memory_traffic_bytes": 448.0,
+        "operational_intensity_ops_per_byte": 6.857142857142857,
         "provenance_status": "local model artifact",
         "has_published_reference": false,
-        "assumptions_count": 19,
+        "assumptions_count": 20,
         "has_calibration_fit": false,
         "boundary_tags": [
           "local model"
@@ -527,9 +659,11 @@
         "latency_label": "Batch latency",
         "latency_ns": 35.0,
         "throughput_equivalent_ops_per_second": 262144000000000.0,
+        "memory_traffic_bytes": 135168.0,
+        "operational_intensity_ops_per_byte": 62.06060606060606,
         "provenance_status": "local model artifact",
         "has_published_reference": false,
-        "assumptions_count": 11,
+        "assumptions_count": 12,
         "has_calibration_fit": false,
         "boundary_tags": [
           "local model"
@@ -555,9 +689,11 @@
         "latency_label": "Batch latency",
         "latency_ns": 5.0,
         "throughput_equivalent_ops_per_second": 1000000000000000.0,
+        "memory_traffic_bytes": 2750010.0,
+        "operational_intensity_ops_per_byte": 1.8181752066356123,
         "provenance_status": "paper-reported throughput/workload targets; matmul-surrogate local model",
         "has_published_reference": true,
-        "assumptions_count": 11,
+        "assumptions_count": 12,
         "has_calibration_fit": false,
         "boundary_tags": [
           "local model",
@@ -585,6 +721,8 @@
         "latency_label": "Serial batch latency",
         "latency_ns": 69.0,
         "throughput_equivalent_ops_per_second": 2.4801101913043476e+16,
+        "memory_traffic_bytes": 8650752.0,
+        "operational_intensity_ops_per_byte": 197.8181818181818,
         "provenance_status": "local model artifact",
         "has_published_reference": false,
         "assumptions_count": 6,
@@ -616,6 +754,8 @@
         "latency_label": "Serial batch latency",
         "latency_ns": 69.0,
         "throughput_equivalent_ops_per_second": 2.3925768904347824e+17,
+        "memory_traffic_bytes": 45809664.0,
+        "operational_intensity_ops_per_byte": 360.3776824034335,
         "provenance_status": "local model artifact",
         "has_published_reference": false,
         "assumptions_count": 7,
@@ -647,6 +787,8 @@
         "latency_label": "Serial batch latency",
         "latency_ns": 43.0,
         "throughput_equivalent_ops_per_second": 190511627906.97675,
+        "memory_traffic_bytes": 1472.0,
+        "operational_intensity_ops_per_byte": 5.565217391304348,
         "provenance_status": "local model artifact",
         "has_published_reference": false,
         "assumptions_count": 6,
@@ -663,6 +805,31 @@
     }
   ],
   "issues": [],
+  "comparison_presets": [
+    {
+      "name": "Published reference surrogate cards",
+      "description": "Source-backed cards with paper metrics kept as published references and local workloads labeled as surrogates.",
+      "artifact_ids": [
+        "nature_pace_64x64.json",
+        "xu_11tops_convolution_surrogate.json",
+        "feldmann_2021_photonic_tensor_core_surrogate.json",
+        "pappas_2025_awgr_262tops_surrogate.json",
+        "taichi_2024_chiplet_surrogate.json"
+      ],
+      "pinned_id": "nature_pace_64x64.json",
+      "source_path": "visualizer_presets.json"
+    },
+    {
+      "name": "Local reuse sensitivity",
+      "description": "Compare the simple local 64x64 card against the batch weight-stationary variant.",
+      "artifact_ids": [
+        "matmul_64x64.json",
+        "weight_stationary_64x64_batch.json"
+      ],
+      "pinned_id": "matmul_64x64.json",
+      "source_path": "visualizer_presets.json"
+    }
+  ],
   "data_layout": {
     "index_json": "data/index.json",
     "index_script": "data/index.js",
@@ -673,6 +840,7 @@
     "Published references remain separate under published_reference.",
     "Transformer aggregate timing is serial, not a fused scheduler claim.",
     "Transformer aggregate noise is diagnostic and non-additive.",
-    "Transformer-layer exclusions are not modeled matmul costs."
+    "Transformer-layer exclusions are not modeled matmul costs.",
+    "Interface memory traffic is derived from converter bit widths and reuse counts, not a full memory hierarchy simulation."
   ]
 }

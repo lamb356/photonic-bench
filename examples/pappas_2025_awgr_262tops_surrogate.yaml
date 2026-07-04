@@ -1,0 +1,59 @@
+benchmark:
+  name: Pappas 2025 AWGR 262 TOPS surrogate
+  description: Source-backed card for the APL Photonics 2025 AWGR-based multidimensional photonic AI accelerator. The local workload is a 16x16 dense tile surrogate for the reported 16x16 AWGR tensor engine, not an exact Matrix-by-Tensor-Multiply reproduction.
+workload:
+  type: matmul
+  m: 16
+  n: 16
+  k: 16
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 8
+    energy_pj_per_conversion: 0.5
+  vector_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+  weight_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+execution:
+  batch_size: 1
+  vector_reuse_factor: 1
+  weight_reuse_factor: 1
+  weight_stationary: true
+  pipeline:
+    stages: 1
+    cycle_time_ns: 0.03125
+timing:
+  optical_latency_ns: 0.03125
+  adc_latency_ns: 0
+  dac_latency_ns: 0
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 0.03125
+provenance:
+  source_title: A 262 TOPS hyperdimensional photonic AI accelerator powered by a Si3N4 microcomb laser
+  source_url: https://pubs.aip.org/aip/app/article/10/11/110805/3372196/A-262-TOPS-hyperdimensional-photonic-AI
+  doi: 10.1063/5.0271374
+  venue: APL Photonics 10, 110805 (2025)
+  claim_status: paper-reported and paper-projected throughput/energy targets; matmul-surrogate local model
+published_calibration:
+  architecture: 16x16 AWGR Matrix-by-Tensor-Multiply photonic AI accelerator
+  reported_tops: 262
+  energy_efficiency_including_lasers_tops_per_watt: 3.663003663003663
+  additional_metrics:
+    reported_energy_per_op_fj: 273
+    data_rate_gbaud: 32
+    awgr_dimension: 16x16
+    ddos_kappa_score: 0.8652
+    mnist_accuracy_percent: 92.14
+    energy_efficiency_note: 3.663 TOPS/W is the direct conversion of the paper's 273 fJ/OP statement.
+    surrogate_mapping: m=16, k=16, n=16 is a dense tile surrogate for the 16x16 AWGR engine; not an exact MbTM schedule.
+assumptions:
+  - Source reports 262 TOPS at 32 Gbaud and a 273 fJ/OP silicon-photonic energy-efficiency analysis; PhotonicBench keeps those values in published_reference.
+  - The local model uses a one-cycle 32 Gbaud timing surrogate and generic converter energy assumptions.
+  - Weight-stationary mode approximates reusing the reported AWGR weight/tensor structure for one dense local tile.

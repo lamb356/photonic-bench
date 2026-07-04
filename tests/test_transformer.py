@@ -157,6 +157,17 @@ def test_transformer_layer_report_to_dict_aggregates_decomposed_json_cards() -> 
     assert payload["local_model"]["energy"]["energy_per_op_pj"] == pytest.approx(
         payload["local_model"]["energy"]["total_pj"] / 8192
     )
+    assert payload["local_model"]["memory_traffic"][
+        "total_interface_bytes"
+    ] == sum(
+        card.payload["local_model"]["memory_traffic"]["total_interface_bytes"]
+        for card in cards
+    )
+    assert payload["local_model"]["memory_traffic"][
+        "equivalent_ops_per_byte"
+    ] == pytest.approx(
+        8192 / payload["local_model"]["memory_traffic"]["total_interface_bytes"]
+    )
     assert payload["local_model"]["timing"]["timing_model"] == (
         "serial_sum_of_decomposed_batch_latencies"
     )

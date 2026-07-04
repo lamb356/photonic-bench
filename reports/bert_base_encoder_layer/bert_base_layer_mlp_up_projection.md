@@ -34,6 +34,21 @@ Dense one-layer BERT-base style encoder benchmark shape with hidden size 768, 12
 | Pipeline stages | 4 |
 | Pipeline cycle time | 2.000 ns |
 
+## Interface Memory Traffic
+
+These rows estimate operand reads and output writes at the converter interface
+from DAC/ADC bit widths and reuse counts. They are not a full memory hierarchy
+simulation.
+
+| Metric | Value |
+| --- | ---: |
+| Vector operand reads | 98304 bytes |
+| Weight operand reads | 2359296 bytes |
+| Output writes | 393216 bytes |
+| Total interface traffic | 2850816 bytes |
+| MACs per interface byte | 105.931 |
+| Equivalent ops per interface byte | 211.862 |
+
 ## Energy
 
 | Metric | Value |
@@ -94,3 +109,4 @@ Dense one-layer BERT-base style encoder benchmark shape with hidden size 768, 12
 - Vector DAC conversions are counted as ceil(batch_size / vector_reuse_factor) * m * k.
 - Weight DAC conversions are counted once per batch because weight_stationary is true.
 - The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.
+- Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.

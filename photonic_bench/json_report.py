@@ -116,6 +116,22 @@ def _local_model(result: BenchmarkResult) -> dict[str, Any]:
             "weight_dac_conversions": result.weight_dac_conversions,
             "dac_conversions": result.dac_conversions,
         },
+        "memory_traffic": {
+            "vector_operand_read_bytes": (
+                result.memory_traffic.vector_operand_read_bytes
+            ),
+            "weight_operand_read_bytes": (
+                result.memory_traffic.weight_operand_read_bytes
+            ),
+            "output_write_bytes": result.memory_traffic.output_write_bytes,
+            "total_interface_bytes": result.memory_traffic.total_interface_bytes,
+            "macs_per_byte": result.memory_traffic.macs_per_byte,
+            "equivalent_ops_per_byte": result.memory_traffic.equivalent_ops_per_byte,
+            "note": (
+                "Interface traffic is derived from DAC/ADC bit widths and reuse "
+                "counts. It is not a full memory hierarchy simulation."
+            ),
+        },
         "energy": {
             "optical_compute_pj": result.energy.optical_compute_pj,
             "laser_electrical_pj": result.energy.laser_electrical_pj,

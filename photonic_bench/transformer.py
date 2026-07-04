@@ -44,6 +44,12 @@ _ENERGY_SUM_FIELDS = (
     "dac_pj",
     "total_pj",
 )
+_MEMORY_SUM_FIELDS = (
+    "vector_operand_read_bytes",
+    "weight_operand_read_bytes",
+    "output_write_bytes",
+    "total_interface_bytes",
+)
 
 
 @dataclass(frozen=True)
@@ -217,6 +223,7 @@ def transformer_layer_report_to_dict(
     adc_pj = _sum_local_energy(audits, "adc_pj")
     dac_pj = _sum_local_energy(audits, "dac_pj")
     serial_batch_latency_ns = _sum_local_timing(audits, "batch_latency_ns")
+    total_interface_bytes = _sum_local_memory(audits, "total_interface_bytes")
 
     return {
         "schema_version": TRANSFORMER_LAYER_REPORT_SCHEMA_VERSION,
@@ -242,6 +249,26 @@ def transformer_layer_report_to_dict(
             "conversion_counts": {
                 field: _sum_local_conversion_count(audits, field)
                 for field in _CONVERSION_SUM_FIELDS
+            },
+            "memory_traffic": {
+                **{
+                    field: _sum_local_memory(audits, field)
+                    for field in _MEMORY_SUM_FIELDS
+                },
+                "macs_per_byte": (
+                    total_macs / total_interface_bytes
+                    if total_interface_bytes
+                    else 0.0
+                ),
+                "equivalent_ops_per_byte": (
+                    total_equivalent_ops / total_interface_bytes
+                    if total_interface_bytes
+                    else 0.0
+                ),
+                "note": (
+                    "Summed from decomposed per-matmul interface traffic. "
+                    "This is not a full memory hierarchy simulation."
+                ),
             },
             "energy": {
                 **{field: _sum_local_energy(audits, field) for field in _ENERGY_SUM_FIELDS},
@@ -822,6 +849,11 @@ def _aggregate_semantics() -> dict[str, str]:
             "energy_per_op_pj, and peripheral_share are recomputed from summed "
             "layer quantities."
         ),
+        "memory_traffic": (
+            "Interface memory traffic is summed from decomposed cards and "
+            "operational intensity is recomputed from aggregate MAC/equivalent-op "
+            "counts. It is not a full memory hierarchy simulation."
+        ),
         "timing": (
             "serial_* timing fields assume the decomposed matmuls execute one "
             "after another. No parallel hardware scheduler or fused layer "
@@ -910,6 +942,22 @@ def _sum_local_energy(
             audit.json_card.payload,
             "local_model",
             "energy",
+            field,
+            source=audit.json_card.path,
+        )
+        for audit in audits
+    )
+
+
+def _sum_local_memory(
+    audits: Sequence[TransformerLayerCardAudit],
+    field: str,
+) -> int:
+    return sum(
+        _required_int(
+            audit.json_card.payload,
+            "local_model",
+            "memory_traffic",
             field,
             source=audit.json_card.path,
         )

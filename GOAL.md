@@ -1,64 +1,82 @@
 # PhotonicBench Goal
 
 Date started: 2026-07-04
+Implementation status: complete and verified.
 
 ## Objective
 
-Improve repository quality and automation for `lamb356/photonic-bench` by
-adding:
+Improve PhotonicBench for practical daily use by advancing three areas in
+priority order:
 
-1. branch protection on `master` that requires the CI workflow to pass before
-   merging;
-2. a working CI status badge in `README.md`;
-3. Dependabot configuration for GitHub Actions and Python dependencies;
-4. a packaging check in CI using `python -m build` or equivalent.
+1. significantly improve the web visualizer, especially comparison and
+   analytical workflows;
+2. add at least 2-3 high-quality, source-backed published photonic accelerator
+   cards with clear provenance;
+3. improve core modeling realism and/or make full transformer-model analysis
+   more convenient.
 
 ## Required Outcomes
 
-1. Repository visibility:
-   - original requirement: keep the repository private;
-   - updated user authorization on 2026-07-04: making the repository public is
-     allowed to complete branch protection.
-2. Add a clear CI status badge near the top of `README.md` that points at the
-   main CI workflow.
-3. Add `.github/dependabot.yml` with sensible update schedules for:
-   - GitHub Actions;
-   - Python dependencies managed from the repository root.
-4. Update `.github/workflows/ci.yml` so CI installs build tooling and fails if
-   the package cannot be built.
-5. Verify locally before push:
-   - `python -m ruff check`;
-   - `python -m pytest`;
-   - `python -m build`.
-6. Commit and push the local changes to `origin/master`.
-7. Verify the pushed GitHub Actions run passes after the packaging check is in
-   the workflow.
-8. Configure branch protection on `master` with `gh` so the CI status check is
-   required before merging.
-9. Verify branch protection, repository visibility, badge URL, and Dependabot
-   configuration.
-10. Run a mandatory Hostile Senior Reviewer critique focused on long-term
-    repository maintainability and safety, then fix important findings.
-11. Update `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
-    `RUBRIC.md`, and `tasks/todo.md` with proof for completed items.
+1. Visualizer comparison mode is meaningfully more useful for daily analysis:
+   - richer analytical summaries for energy, throughput, latency, calibration,
+     provenance, and modeling-boundary interpretation;
+   - support for saved comparison presets that survive regeneration through
+     committed configuration or generated assets;
+   - exportable comparison results in at least one machine-readable and one
+     human-readable form.
+2. Published-card coverage expands by at least 2-3 new paper-backed cards:
+   - each new card has a YAML config, generated Markdown report, generated JSON
+     report, source citation details, and explicit local-model-vs-published
+     boundary language;
+   - published claims are carried as provenance/reference data, not silently
+     mixed into local component-model estimates.
+3. Modeling or transformer support improves measurably:
+   - component model realism improves in an auditable way, or
+   - transformer support gains a more convenient full-model workflow, with clear
+     assumptions and exclusions.
+4. Documentation is updated for all new user-facing behavior:
+   - README usage;
+   - model/schema docs where relevant;
+   - visualizer workflow notes where relevant.
+5. Verification is run before checklist items are marked done:
+   - focused unit tests for new behavior;
+   - full `python -m ruff check`;
+   - full `python -m pytest`;
+   - local visualizer generation;
+   - manual or automated browser smoke coverage for the visualizer.
+6. A mandatory Hostile Senior Reviewer critique is recorded after substantial
+   visualizer and card progress, focused on usability and modeling clarity.
+   Important findings are fixed or explicitly justified.
+7. `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, `RUBRIC.md`, and
+   `tasks/todo.md` are kept current, with proof attached to completed checklist
+   items.
 
 ## Scope
 
 In scope:
 
-- GitHub branch protection on `master`.
-- CI workflow hardening for source/wheel build validation.
-- README status badge for the existing CI workflow.
-- Dependabot version-update configuration.
-- Local verification, commit, push, GitHub Actions verification, and state-file
-  closeout.
+- Static and served web visualizer improvements.
+- Comparison analytics, saved presets, and exports.
+- New published photonic accelerator example configs and generated reports.
+- Auditable component-model or transformer-workflow improvements.
+- Tests, docs, generated example artifacts, and reviewer critique.
 
-Out of scope:
+Out of scope unless explicitly requested:
 
-- Hosted application deployment.
+- Hosted backend service.
+- File upload workflow.
 - Formal MLCommons submission.
-- Benchmark feature development.
-- New release publishing workflows.
+- Release publishing automation.
+- Replacing source-backed published references with unsupported local claims.
+
+## Priority Order
+
+1. Visualizer improvements.
+2. New published accelerator cards.
+3. Modeling and transformer-support improvements.
+
+Parallel work is allowed when it reduces risk or verification time, but the
+visualizer remains the highest-value daily-use surface.
 
 ## Stop Condition
 
@@ -67,14 +85,37 @@ Stop only when all of the following are true:
 - `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and `RUBRIC.md` have
   been re-read at the start of each cycle.
 - All checklist items are marked DONE with proof.
-- The repository visibility is verified after the user-authorized public
-  visibility change.
-- `README.md` contains a working CI badge for `.github/workflows/ci.yml`.
-- `.github/dependabot.yml` configures GitHub Actions and Python dependency
-  updates.
-- CI runs `python -m build` or an equivalent packaging build check and the
-  pushed run passes.
-- Branch protection is enabled on `master` and requires the CI status check.
-- The mandatory Hostile Senior Reviewer critique is recorded and major findings
-  are fixed or explicitly justified.
-- Final local and remote git status are clean and synchronized.
+- The visualizer has substantially better comparison and analytical features,
+  including saved presets or export support.
+- At least 2-3 new high-quality published cards have been added and regenerated.
+- Modeling realism or transformer support has measurably improved.
+- Documentation reflects all user-facing changes.
+- Full local verification passes.
+- Browser visualizer verification passes.
+- The mandatory Hostile Senior Reviewer critique is complete and major issues
+  are addressed.
+- Final local git status is inspected, and any commit/push work requested or
+  appropriate for the goal is completed.
+
+## Implementation Evidence
+
+- Visualizer:
+  - comparison brief, richer grouped analytics, operational-intensity ranking,
+    interface-traffic metrics, generated/local presets, and JSON/Markdown
+    export are implemented.
+- Cards:
+  - Feldmann 2021, Pappas 2025, and Taichi 2024 source-backed surrogate cards
+    were added with YAML, Markdown, JSON, provenance, DOI/source details, and
+    explicit surrogate assumptions.
+- Modeling:
+  - converter-interface memory traffic and operational intensity were added to
+    matmul reports and transformer aggregate reports.
+- Critique:
+  - mandatory Hostile Senior Reviewer critique was completed and important
+    usability/modeling-clarity findings were fixed.
+- Verification:
+  - `node --check photonic_bench\visualizer_assets\app.js` passed;
+  - `python -m ruff check` passed;
+  - `python -m photonic_bench.cli visualize --reports-dir reports --output
+    reports/visualizer/index.html` produced 26 artifacts and 0 warnings;
+  - `python -m pytest` passed with 77 tests.

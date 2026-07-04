@@ -1,4 +1,5 @@
 import json
+import shutil
 import subprocess
 import sys
 import threading
@@ -32,6 +33,20 @@ def test_discover_visualizer_data_loads_root_and_nested_reports() -> None:
     assert layer.equivalent_ops == 8192
     assert "serial timing" in layer.boundary_tags
     assert "non-additive noise" in layer.boundary_tags
+    assert layer.memory_traffic_bytes is not None
+    assert layer.operational_intensity_ops_per_byte is not None
+
+    assert [preset.name for preset in data.comparison_presets] == [
+        "Published reference surrogate cards",
+        "Local reuse sensitivity",
+    ]
+    assert data.comparison_presets[0].artifact_ids == (
+        "nature_pace_64x64.json",
+        "xu_11tops_convolution_surrogate.json",
+        "feldmann_2021_photonic_tensor_core_surrogate.json",
+        "pappas_2025_awgr_262tops_surrogate.json",
+        "taichi_2024_chiplet_surrogate.json",
+    )
 
 
 def test_discover_visualizer_data_reports_unsupported_schema(tmp_path: Path) -> None:
@@ -48,6 +63,35 @@ def test_discover_visualizer_data_reports_unsupported_schema(tmp_path: Path) -> 
     assert len(data.issues) == 1
     assert data.issues[0].source_path == "unknown.json"
     assert "unsupported schema_version" in data.issues[0].message
+
+
+def test_discover_visualizer_data_reports_stale_preset_ids(tmp_path: Path) -> None:
+    reports_dir = tmp_path / "reports"
+    reports_dir.mkdir()
+    shutil.copy(Path("reports/nature_pace_64x64.json"), reports_dir / "nature.json")
+    (reports_dir / "visualizer_presets.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "photonic-bench-comparison-presets-v1",
+                "presets": [
+                    {
+                        "name": "stale",
+                        "artifact_ids": ["nature.json", "missing.json"],
+                        "pinned_id": "missing.json",
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    data = discover_visualizer_data(reports_dir)
+
+    assert len(data.artifacts) == 1
+    assert len(data.comparison_presets) == 1
+    assert len(data.issues) == 2
+    assert "missing artifact id" in data.issues[0].message
+    assert "pins missing artifact id" in data.issues[1].message
 
 
 def test_render_visualizer_html_uses_external_static_assets() -> None:
@@ -79,6 +123,11 @@ def test_write_visualizer_emits_index_payloads_and_static_assets(
     assert (output_path.parent / "data" / "index.js").exists()
     assert len(index["artifacts"]) == len(data.artifacts)
     assert "modeling_boundaries" in index
+    assert (
+        index["comparison_presets"][0]["name"]
+        == "Published reference surrogate cards"
+    )
+    assert "Interface memory traffic" in " ".join(index["modeling_boundaries"])
 
     layer = next(
         artifact
@@ -116,6 +165,13 @@ def test_static_app_contains_comparison_and_boundary_labels() -> None:
     assert "Percent vs pinned" in app_js
     assert "Ratio vs pinned" in app_js
     assert "Comparison Insights" in app_js
+    assert "Comparison Brief" in app_js
+    assert "Download JSON" in app_js
+    assert "Download Markdown" in app_js
+    assert "Copy Markdown" in app_js
+    assert "comparison_presets" in app_js
+    assert "Operational intensity" in app_js
+    assert "Interface Memory Traffic" in app_js
     assert "Schema Compatibility" in app_js
     assert "compatible pinned baseline" in app_js
     assert "Grouped Same-Schema Analytics" in app_js
@@ -127,6 +183,8 @@ def test_static_app_contains_comparison_and_boundary_labels() -> None:
     assert 'startsWith("<")' not in app_js
     assert ".comparison-table" in styles
     assert ".insight-grid" in styles
+    assert ".preset-panel" in styles
+    assert ".export-preview" in styles
 
 
 def test_server_visualizer_site_uses_fetchable_payload_paths() -> None:
