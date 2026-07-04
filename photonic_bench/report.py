@@ -20,11 +20,13 @@ def render_markdown(result: BenchmarkResult) -> str:
     timing = result.timing
     noise = result.noise
     memory = result.memory_traffic
+    system = result.system
     workload = config.workload
     execution = config.execution
 
     description = config.benchmark.description or "No description provided."
     peripheral_percent = energy.peripheral_share * 100
+    movement_percent = system.movement_energy_share * 100
     relative_error_percent = noise.estimated_relative_error_rms * 100
 
     return f"""# PhotonicBench Benchmark Card: {config.benchmark.name}
@@ -77,6 +79,30 @@ simulation.
 | Total interface traffic | {_bytes(memory.total_interface_bytes)} |
 | MACs per interface byte | {memory.macs_per_byte:.6g} |
 | Equivalent ops per interface byte | {memory.equivalent_ops_per_byte:.6g} |
+
+## Multi-Tier System Movement
+
+These rows add an explicit local system movement estimate on top of the
+photonic core/converter model. SRAM and off-chip traffic are cumulative tier
+movements, not published measurements and not a cache simulator.
+
+| Tier | Read bytes | Write bytes | Movement energy | Transfer time | Bandwidth |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| SRAM | {_bytes(system.sram.read_bytes)} | {_bytes(system.sram.write_bytes)} | {_pj(system.sram.total_energy_pj)} | {_ns(system.sram.transfer_time_ns)} | {_bytes_per_ns(system.sram.bandwidth_bytes_per_ns)} |
+| Off-chip/DRAM | {_bytes(system.off_chip.read_bytes)} | {_bytes(system.off_chip.write_bytes)} | {_pj(system.off_chip.total_energy_pj)} | {_ns(system.off_chip.transfer_time_ns)} | {_bytes_per_ns(system.off_chip.bandwidth_bytes_per_ns)} |
+
+| Metric | Value |
+| --- | ---: |
+| Local compute/conversion energy | {_pj(system.local_compute_and_conversion_energy_pj)} |
+| Total movement energy | {_pj(system.total_movement_energy_pj)} |
+| Total system energy | {_pj(system.total_system_energy_pj)} |
+| System energy per MAC | {_pj(system.system_energy_per_mac_pj)} |
+| System energy per equivalent op | {_pj(system.system_energy_per_op_pj)} |
+| Movement energy share | {movement_percent:.2f}% |
+| Max transfer time | {_ns(system.max_transfer_time_ns)} |
+| Bandwidth-limited tier | {system.bandwidth_limited_tier} |
+| Bandwidth-limited batch latency | {_ns(system.bandwidth_limited_batch_latency_ns)} |
+| Bandwidth-limited equivalent ops/s | {system.bandwidth_limited_equivalent_ops_per_second:.3f} |
 
 ## Energy
 
@@ -131,8 +157,14 @@ def _ns(value: float) -> str:
     return f"{value:.3f} ns"
 
 
-def _bytes(value: int) -> str:
-    return f"{value} bytes"
+def _bytes(value: float) -> str:
+    if float(value).is_integer():
+        return f"{int(value)} bytes"
+    return f"{value:.3f} bytes"
+
+
+def _bytes_per_ns(value: float) -> str:
+    return f"{value:.3f} bytes/ns"
 
 
 def _render_provenance(config) -> str:
@@ -322,6 +354,11 @@ def result_assumptions(result: BenchmarkResult) -> tuple[str, ...]:
             "Interface memory traffic is estimated from vector/weight DAC load "
             "counts, ADC output sample counts, and converter bit widths; it is "
             "not a full memory hierarchy simulation."
+        ),
+        (
+            "The multi-tier system model adds explicit SRAM and off-chip movement "
+            "energy/timing estimates to the local photonic core/converter energy; "
+            "tier values are local assumptions, not published measurements."
         ),
     )
 

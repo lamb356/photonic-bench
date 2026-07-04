@@ -69,6 +69,24 @@ def test_evaluate_matmul_energy_accounting() -> None:
     assert result.memory_traffic.total_interface_bytes == 56
     assert result.memory_traffic.macs_per_byte == pytest.approx(64 / 56)
     assert result.memory_traffic.equivalent_ops_per_byte == pytest.approx(128 / 56)
+    assert result.system.sram.read_bytes == pytest.approx(24)
+    assert result.system.sram.write_bytes == pytest.approx(32)
+    assert result.system.sram.total_energy_pj == pytest.approx(56 * 0.02)
+    assert result.system.sram.transfer_time_ns == pytest.approx(56 / 1024)
+    assert result.system.off_chip.total_energy_pj == pytest.approx(56 * 10)
+    assert result.system.off_chip.transfer_time_ns == pytest.approx(56 / 16)
+    assert result.system.local_compute_and_conversion_energy_pj == pytest.approx(
+        result.energy.total_pj
+    )
+    assert result.system.total_movement_energy_pj == pytest.approx(561.12)
+    assert result.system.total_system_energy_pj == pytest.approx(21.248 + 561.12)
+    assert result.system.system_energy_per_op_pj == pytest.approx(
+        (21.248 + 561.12) / 128
+    )
+    assert result.system.movement_energy_share == pytest.approx(
+        561.12 / (21.248 + 561.12)
+    )
+    assert result.system.bandwidth_limited_batch_latency_ns == pytest.approx(5.0)
 
 
 def test_evaluate_noise_and_latency_estimates() -> None:

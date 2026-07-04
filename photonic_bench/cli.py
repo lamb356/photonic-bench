@@ -1,11 +1,17 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 import sys
 
 from photonic_bench.comparison import load_comparison_cards, render_comparison_markdown
-from photonic_bench.config import load_config, load_transformer_layer_config
+from photonic_bench.config import (
+    TransformerLayerConfig,
+    load_config,
+    load_transformer_layer_config,
+    load_transformer_model_config,
+)
 from photonic_bench.json_report import render_json
 from photonic_bench.model import (
     SUPPORTED_CALIBRATION_FIT_PARAMETERS,
@@ -18,7 +24,11 @@ from photonic_bench.transformer import (
     build_transformer_layer_plan,
     render_transformer_layer_comparison_markdown,
     render_transformer_layer_json,
+    render_transformer_model_json,
+    render_transformer_model_markdown,
     slugify,
+    transformer_layer_config_from_model,
+    TransformerModelLayerArtifact,
 )
 from photonic_bench.visualizer import build_visualizer_http_server, write_visualizer
 
@@ -40,6 +50,8 @@ def main(argv: list[str] | None = None) -> int:
             return _compare(args.json_cards, args.report)
         if args.command == "transformer-layer":
             return _transformer_layer(args.config, args.output_dir, args.prefix)
+        if args.command == "transformer-model":
+            return _transformer_model(args.config, args.output_dir, args.prefix)
         if args.command == "visualize":
             return _visualize(
                 args.reports_dir,
@@ -119,6 +131,26 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Directory where decomposed cards and layer comparison are written",
     )
     transformer.add_argument(
+        "--prefix",
+        help="Optional filename prefix; defaults to a slug of the benchmark name",
+    )
+
+    transformer_model = subparsers.add_parser(
+        "transformer-model",
+        help="Generate representative layer artifacts and a full transformer model summary",
+    )
+    transformer_model.add_argument(
+        "config",
+        type=Path,
+        help="Path to a PhotonicBench transformer-model YAML config",
+    )
+    transformer_model.add_argument(
+        "--output-dir",
+        type=Path,
+        required=True,
+        help="Directory where model, layer, and decomposed card artifacts are written",
+    )
+    transformer_model.add_argument(
         "--prefix",
         help="Optional filename prefix; defaults to a slug of the benchmark name",
     )
@@ -214,9 +246,18 @@ def _transformer_layer(
     prefix: str | None,
 ) -> int:
     config = load_transformer_layer_config(config_path)
+    file_prefix = slugify(prefix or config.benchmark.name)
+    _write_transformer_layer_outputs(config, output_dir, file_prefix)
+    return 0
+
+
+def _write_transformer_layer_outputs(
+    config: TransformerLayerConfig,
+    output_dir: Path,
+    file_prefix: str,
+) -> Path:
     plan = build_transformer_layer_plan(config)
     output_dir.mkdir(parents=True, exist_ok=True)
-    file_prefix = slugify(prefix or config.benchmark.name)
     json_paths = []
 
     for card in plan.cards:
@@ -248,7 +289,55 @@ def _transformer_layer(
     )
     print(f"Wrote transformer layer comparison to {aggregate_path}")
     print(f"Wrote transformer layer JSON summary to {aggregate_json_path}")
+    return aggregate_json_path
+
+
+def _transformer_model(
+    config_path: Path,
+    output_dir: Path,
+    prefix: str | None,
+) -> int:
+    config = load_transformer_model_config(config_path)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    file_prefix = slugify(prefix or config.benchmark.name)
+    layer_artifacts = []
+
+    for layer in config.layers:
+        layer_slug = slugify(layer.name)
+        layer_dir = output_dir / layer_slug
+        layer_prefix = f"{file_prefix}_{layer_slug}"
+        layer_config = transformer_layer_config_from_model(config, layer)
+        summary_path = _write_transformer_layer_outputs(
+            layer_config,
+            layer_dir,
+            layer_prefix,
+        )
+        layer_artifacts.append(
+            TransformerModelLayerArtifact(
+                name=layer.name,
+                count=layer.count,
+                json_report=_relative_posix(summary_path, output_dir),
+                payload=json.loads(summary_path.read_text(encoding="utf-8")),
+            )
+        )
+
+    markdown_path = output_dir / f"{file_prefix}_model_summary.md"
+    json_path = output_dir / f"{file_prefix}_model_summary.json"
+    markdown_path.write_text(
+        render_transformer_model_markdown(config, layer_artifacts),
+        encoding="utf-8",
+    )
+    json_path.write_text(
+        render_transformer_model_json(config, layer_artifacts),
+        encoding="utf-8",
+    )
+    print(f"Wrote transformer model summary to {markdown_path}")
+    print(f"Wrote transformer model JSON summary to {json_path}")
     return 0
+
+
+def _relative_posix(path: Path, base: Path) -> str:
+    return path.relative_to(base).as_posix()
 
 
 def _visualize(

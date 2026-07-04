@@ -14,10 +14,13 @@ from typing import Any, Iterable, Literal
 from urllib.parse import unquote, urlsplit
 
 from photonic_bench.json_report import REPORT_SCHEMA_VERSION
-from photonic_bench.transformer import TRANSFORMER_LAYER_REPORT_SCHEMA_VERSION
+from photonic_bench.transformer import (
+    TRANSFORMER_LAYER_REPORT_SCHEMA_VERSION,
+    TRANSFORMER_MODEL_REPORT_SCHEMA_VERSION,
+)
 
 
-ArtifactKind = Literal["matmul_card", "transformer_layer"]
+ArtifactKind = Literal["matmul_card", "transformer_layer", "transformer_model"]
 
 ASSET_PACKAGE = "photonic_bench.visualizer_assets"
 INDEX_JSON_PATH = "data/index.json"
@@ -48,6 +51,12 @@ class ArtifactSummary:
     throughput_equivalent_ops_per_second: float
     memory_traffic_bytes: float | None
     operational_intensity_ops_per_byte: float | None
+    system_total_energy_pj: float | None
+    system_energy_per_op_pj: float | None
+    movement_energy_pj: float | None
+    movement_energy_share: float | None
+    bandwidth_limited_latency_ns: float | None
+    bandwidth_limited_throughput_equivalent_ops_per_second: float | None
     provenance_status: str
     has_published_reference: bool
     assumptions_count: int
@@ -107,9 +116,11 @@ class VisualizerData:
                 "Local model estimates come from local_model fields.",
                 "Published references remain separate under published_reference.",
                 "Transformer aggregate timing is serial, not a fused scheduler claim.",
+                "Transformer model timing is a weighted serial summary over layer summaries, not a fused full-model scheduler claim.",
                 "Transformer aggregate noise is diagnostic and non-additive.",
                 "Transformer-layer exclusions are not modeled matmul costs.",
                 "Interface memory traffic is derived from converter bit widths and reuse counts, not a full memory hierarchy simulation.",
+                "System movement energy is a local SRAM/off-chip tier estimate added separately from core photonic compute/conversion energy.",
             ],
         }
 
@@ -184,6 +195,12 @@ def load_visualizer_artifact(
         return _load_matmul_artifact(payload, source_path=source, browser_path=browser)
     if schema_version == TRANSFORMER_LAYER_REPORT_SCHEMA_VERSION:
         return _load_transformer_layer_artifact(
+            payload,
+            source_path=source,
+            browser_path=browser,
+        )
+    if schema_version == TRANSFORMER_MODEL_REPORT_SCHEMA_VERSION:
+        return _load_transformer_model_artifact(
             payload,
             source_path=source,
             browser_path=browser,
@@ -454,6 +471,48 @@ def _load_matmul_artifact(
             "equivalent_ops_per_byte",
             source=source_path,
         ),
+        system_total_energy_pj=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "total_system_energy_pj",
+            source=source_path,
+        ),
+        system_energy_per_op_pj=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "system_energy_per_op_pj",
+            source=source_path,
+        ),
+        movement_energy_pj=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "total_movement_energy_pj",
+            source=source_path,
+        ),
+        movement_energy_share=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "movement_energy_share",
+            source=source_path,
+        ),
+        bandwidth_limited_latency_ns=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "bandwidth_limited_batch_latency_ns",
+            source=source_path,
+        ),
+        bandwidth_limited_throughput_equivalent_ops_per_second=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "bandwidth_limited_equivalent_ops_per_second",
+            source=source_path,
+        ),
         provenance_status=_provenance_status(payload),
         has_published_reference=has_published_reference,
         assumptions_count=len(_required_list(payload, "assumptions", source=source_path)),
@@ -545,6 +604,48 @@ def _load_transformer_layer_artifact(
             "equivalent_ops_per_byte",
             source=source_path,
         ),
+        system_total_energy_pj=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "total_system_energy_pj",
+            source=source_path,
+        ),
+        system_energy_per_op_pj=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "system_energy_per_op_pj",
+            source=source_path,
+        ),
+        movement_energy_pj=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "total_movement_energy_pj",
+            source=source_path,
+        ),
+        movement_energy_share=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "movement_energy_share",
+            source=source_path,
+        ),
+        bandwidth_limited_latency_ns=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "bandwidth_limited_serial_batch_latency_ns",
+            source=source_path,
+        ),
+        bandwidth_limited_throughput_equivalent_ops_per_second=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "bandwidth_limited_serial_effective_equivalent_ops_per_second",
+            source=source_path,
+        ),
         provenance_status=provenance_status,
         has_published_reference=has_published_reference,
         assumptions_count=len(_required_list(payload, "assumptions", source=source_path)),
@@ -559,6 +660,139 @@ def _load_transformer_layer_artifact(
     _required_list(payload, "matmuls", source=source_path)
     _required_dict(payload, "formula_audit", source=source_path)
     _required_list(payload, "exclusions", source=source_path)
+    return VisualizerArtifact(summary=summary, payload=payload)
+
+
+def _load_transformer_model_artifact(
+    payload: dict[str, Any],
+    *,
+    source_path: str,
+    browser_path: str,
+) -> VisualizerArtifact:
+    artifact_type = _required_str(payload, "artifact_type", source=source_path)
+    if artifact_type != "transformer_model_aggregate":
+        raise ValueError(
+            f"{source_path}: artifact_type must be 'transformer_model_aggregate'"
+        )
+    workload = _required_dict(payload, "workload", source=source_path)
+    if _required_str(workload, "type", source=source_path) != "transformer_model":
+        raise ValueError(f"{source_path}: workload.type must be 'transformer_model'")
+
+    has_published_reference = payload.get("published_reference") is not None
+    has_calibration_fit = payload.get("calibration_fit") is not None
+    provenance_status = _provenance_status(payload)
+    summary = ArtifactSummary(
+        id=source_path,
+        kind="transformer_model",
+        schema_version=TRANSFORMER_MODEL_REPORT_SCHEMA_VERSION,
+        benchmark_name=_required_str(payload, "benchmark", "name", source=source_path),
+        description=_required_str(
+            payload,
+            "benchmark",
+            "description",
+            source=source_path,
+        ),
+        source_path=source_path,
+        browser_path=browser_path,
+        macs=_required_int(workload, "macs", source=source_path),
+        equivalent_ops=_required_int(workload, "equivalent_ops", source=source_path),
+        output_elements=_required_int(workload, "output_elements", source=source_path),
+        total_energy_pj=_required_number(
+            payload,
+            "local_model",
+            "energy",
+            "total_pj",
+            source=source_path,
+        ),
+        energy_per_op_pj=_required_number(
+            payload,
+            "local_model",
+            "energy",
+            "energy_per_op_pj",
+            source=source_path,
+        ),
+        latency_label="Model serial batch latency",
+        latency_ns=_required_number(
+            payload,
+            "local_model",
+            "timing",
+            "serial_batch_latency_ns",
+            source=source_path,
+        ),
+        throughput_equivalent_ops_per_second=_required_number(
+            payload,
+            "local_model",
+            "timing",
+            "serial_effective_equivalent_ops_per_second",
+            source=source_path,
+        ),
+        memory_traffic_bytes=_optional_number(
+            payload,
+            "local_model",
+            "memory_traffic",
+            "total_interface_bytes",
+            source=source_path,
+        ),
+        operational_intensity_ops_per_byte=_optional_number(
+            payload,
+            "local_model",
+            "memory_traffic",
+            "equivalent_ops_per_byte",
+            source=source_path,
+        ),
+        system_total_energy_pj=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "total_system_energy_pj",
+            source=source_path,
+        ),
+        system_energy_per_op_pj=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "system_energy_per_op_pj",
+            source=source_path,
+        ),
+        movement_energy_pj=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "total_movement_energy_pj",
+            source=source_path,
+        ),
+        movement_energy_share=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "movement_energy_share",
+            source=source_path,
+        ),
+        bandwidth_limited_latency_ns=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "bandwidth_limited_serial_batch_latency_ns",
+            source=source_path,
+        ),
+        bandwidth_limited_throughput_equivalent_ops_per_second=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "bandwidth_limited_serial_effective_equivalent_ops_per_second",
+            source=source_path,
+        ),
+        provenance_status=provenance_status,
+        has_published_reference=has_published_reference,
+        assumptions_count=len(_required_list(payload, "assumptions", source=source_path)),
+        has_calibration_fit=has_calibration_fit,
+        boundary_tags=_boundary_tags(
+            kind="transformer_model",
+            has_published_reference=has_published_reference,
+            has_calibration_fit=has_calibration_fit,
+            provenance_status=provenance_status,
+        ),
+    )
     return VisualizerArtifact(summary=summary, payload=payload)
 
 
@@ -653,7 +887,7 @@ def _boundary_tags(
     provenance_status: str,
 ) -> tuple[str, ...]:
     tags = ["local model"]
-    if kind == "transformer_layer":
+    if kind in {"transformer_layer", "transformer_model"}:
         tags.extend(["serial timing", "non-additive noise", "exclusions"])
     if has_published_reference:
         tags.append("published reference")

@@ -48,10 +48,20 @@
         <div id="preset-message" class="preset-message" aria-live="polite"></div>
       </div>
 
+      <div class="external-panel" aria-label="External reports">
+        <label class="file-picker">
+          <span>Load external JSON reports</span>
+          <input id="external-report-file" type="file" accept="application/json,.json" multiple aria-label="Load external JSON reports">
+        </label>
+        <button id="clear-external" class="action-button" type="button">Clear external</button>
+        <div id="external-message" class="preset-message" aria-live="polite"></div>
+      </div>
+
       <div class="filters">
         <input id="search" type="search" placeholder="Filter artifacts" aria-label="Filter artifacts">
         <select id="kind-filter" aria-label="Filter by artifact kind">
           <option value="all">All schemas</option>
+          <option value="transformer_model">Transformer models</option>
           <option value="transformer_layer">Transformer layers</option>
           <option value="matmul_card">Per-matmul cards</option>
         </select>

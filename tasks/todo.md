@@ -139,9 +139,31 @@
       usability and modeling clarity, then fix important findings.
 - [x] Task 10: Close final state files and inspect final repository status.
 
+## Active Goal: Multi-Tier System Model, Pareto Visualizer, Transformers, Cards
+
+- [x] Task 0: Roll state files forward and create prioritized checklist.
+- [x] Task 1: Map config, model, report, schema, transformer, comparison, and
+      visualizer surfaces for multi-tier system modeling.
+- [x] Task 2: Implement explicit SRAM and off-chip/DRAM tiers with bandwidth,
+      movement energy, timing, defaults, validation, reports, and tests.
+- [x] Task 3: Expose system-model metrics in comparison tables and visualizer
+      detail/comparison views.
+- [x] Task 4: Add Pareto-style visualizer charts for trade-off analysis.
+- [x] Task 5: Improve full transformer model support beyond single-layer
+      aggregation while preserving existing `transformer-layer` behavior.
+- [x] Task 6: Add at least 2-3 additional source-backed published photonic
+      accelerator cards with surrogate labeling and regenerated artifacts.
+- [x] Task 7: Add limited external report loading foundation after core local
+      workflow progress.
+- [x] Task 8: Update documentation and regenerate all affected artifacts.
+- [x] Task 9: Run focused tests, full Ruff, full pytest, visualizer generation,
+      and browser smoke verification.
+- [x] Task 10: Run mandatory Hostile Senior Reviewer critique focused on
+      modeling clarity, usability, and daily-analysis value.
+- [ ] Task 11: Close final state files and inspect final repository status.
+
 ## Explicitly Not Active In This Goal
 
-- [ ] File upload workflow.
 - [ ] Hosted backend web service.
 - [ ] Formal MLCommons submission.
 - [ ] Release publishing automation.

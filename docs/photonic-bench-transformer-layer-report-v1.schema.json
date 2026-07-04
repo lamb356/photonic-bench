@@ -86,11 +86,12 @@
     "aggregate_semantics": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["source", "energy", "memory_traffic", "timing", "noise"],
+      "required": ["source", "energy", "memory_traffic", "system", "timing", "noise"],
       "properties": {
         "source": {"type": "string"},
         "energy": {"type": "string"},
         "memory_traffic": {"type": "string"},
+        "system": {"type": "string"},
         "timing": {"type": "string"},
         "noise": {"type": "string"}
       }
@@ -98,7 +99,14 @@
     "local_model": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["conversion_counts", "memory_traffic", "energy", "timing", "noise"],
+      "required": [
+        "conversion_counts",
+        "memory_traffic",
+        "system",
+        "energy",
+        "timing",
+        "noise"
+      ],
       "properties": {
         "conversion_counts": {
           "type": "object",
@@ -138,6 +146,7 @@
             "note": {"type": "string"}
           }
         },
+        "system": {"$ref": "#/$defs/aggregateSystemResult"},
         "energy": {
           "type": "object",
           "additionalProperties": false,
@@ -318,5 +327,82 @@
       "items": {"type": "string"}
     },
     "provenance": {"type": ["object", "null"]}
+  },
+  "$defs": {
+    "aggregateSystemResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "local_compute_and_conversion_energy_pj",
+        "total_movement_energy_pj",
+        "total_system_energy_pj",
+        "tiers",
+        "serial_transfer_time_ns",
+        "max_per_matmul_transfer_time_ns",
+        "bandwidth_limited_serial_batch_latency_ns",
+        "system_energy_per_mac_pj",
+        "system_energy_per_op_pj",
+        "movement_energy_share",
+        "bandwidth_limited_serial_effective_macs_per_second",
+        "bandwidth_limited_serial_effective_equivalent_ops_per_second",
+        "note"
+      ],
+      "properties": {
+        "local_compute_and_conversion_energy_pj": {"type": "number", "minimum": 0},
+        "total_movement_energy_pj": {"type": "number", "minimum": 0},
+        "total_system_energy_pj": {"type": "number", "minimum": 0},
+        "tiers": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["sram", "off_chip"],
+          "properties": {
+            "sram": {"$ref": "#/$defs/aggregateSystemTier"},
+            "off_chip": {"$ref": "#/$defs/aggregateSystemTier"}
+          }
+        },
+        "serial_transfer_time_ns": {"type": "number", "minimum": 0},
+        "max_per_matmul_transfer_time_ns": {"type": "number", "minimum": 0},
+        "bandwidth_limited_serial_batch_latency_ns": {
+          "type": "number",
+          "minimum": 0
+        },
+        "system_energy_per_mac_pj": {"type": "number", "minimum": 0},
+        "system_energy_per_op_pj": {"type": "number", "minimum": 0},
+        "movement_energy_share": {"type": "number", "minimum": 0, "maximum": 1},
+        "bandwidth_limited_serial_effective_macs_per_second": {
+          "type": "number",
+          "minimum": 0
+        },
+        "bandwidth_limited_serial_effective_equivalent_ops_per_second": {
+          "type": "number",
+          "minimum": 0
+        },
+        "note": {"type": "string"}
+      }
+    },
+    "aggregateSystemTier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "read_bytes",
+        "write_bytes",
+        "total_bytes",
+        "read_energy_pj",
+        "write_energy_pj",
+        "total_energy_pj",
+        "transfer_time_ns"
+      ],
+      "properties": {
+        "name": {"type": "string"},
+        "read_bytes": {"type": "number", "minimum": 0},
+        "write_bytes": {"type": "number", "minimum": 0},
+        "total_bytes": {"type": "number", "minimum": 0},
+        "read_energy_pj": {"type": "number", "minimum": 0},
+        "write_energy_pj": {"type": "number", "minimum": 0},
+        "total_energy_pj": {"type": "number", "minimum": 0},
+        "transfer_time_ns": {"type": "number", "minimum": 0}
+      }
+    }
   }
 }

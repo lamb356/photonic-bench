@@ -35,6 +35,13 @@ class TransformerLayerShapeConfig:
 
 
 @dataclass(frozen=True)
+class TransformerModelLayerConfig:
+    name: str
+    count: int
+    transformer_layer: TransformerLayerShapeConfig
+
+
+@dataclass(frozen=True)
 class AdcConfig:
     bits: int
     energy_pj_per_conversion: float
@@ -87,6 +94,33 @@ class ExecutionConfig:
 
 
 @dataclass(frozen=True)
+class MemoryTierConfig:
+    read_energy_pj_per_byte: float
+    write_energy_pj_per_byte: float
+    bandwidth_bytes_per_ns: float
+    read_fraction: float = 1.0
+    write_fraction: float = 1.0
+
+
+@dataclass(frozen=True)
+class SystemConfig:
+    sram: MemoryTierConfig = field(
+        default_factory=lambda: MemoryTierConfig(
+            read_energy_pj_per_byte=0.02,
+            write_energy_pj_per_byte=0.02,
+            bandwidth_bytes_per_ns=1024.0,
+        )
+    )
+    off_chip: MemoryTierConfig = field(
+        default_factory=lambda: MemoryTierConfig(
+            read_energy_pj_per_byte=10.0,
+            write_energy_pj_per_byte=10.0,
+            bandwidth_bytes_per_ns=16.0,
+        )
+    )
+
+
+@dataclass(frozen=True)
 class ProvenanceConfig:
     source_title: str
     source_url: str
@@ -119,6 +153,7 @@ class BenchmarkConfig:
     timing: TimingConfig
     noise: NoiseConfig
     execution: ExecutionConfig = field(default_factory=ExecutionConfig)
+    system: SystemConfig = field(default_factory=SystemConfig)
     provenance: ProvenanceConfig | None = None
     published_calibration: PublishedCalibrationConfig | None = None
     assumptions: tuple[str, ...] = ()
@@ -135,6 +170,20 @@ class TransformerLayerConfig:
     timing: TimingConfig
     noise: NoiseConfig
     execution: ExecutionConfig = field(default_factory=ExecutionConfig)
+    system: SystemConfig = field(default_factory=SystemConfig)
+    provenance: ProvenanceConfig | None = None
+    assumptions: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class TransformerModelConfig:
+    benchmark: BenchmarkMeta
+    layers: tuple[TransformerModelLayerConfig, ...]
+    device: DeviceConfig
+    timing: TimingConfig
+    noise: NoiseConfig
+    execution: ExecutionConfig = field(default_factory=ExecutionConfig)
+    system: SystemConfig = field(default_factory=SystemConfig)
     provenance: ProvenanceConfig | None = None
     assumptions: tuple[str, ...] = ()
 
@@ -168,6 +217,7 @@ def load_config(path: str | Path) -> BenchmarkConfig:
         timing=_timing_config(raw),
         noise=_noise_config(raw),
         execution=execution,
+        system=_optional_system(raw),
         provenance=provenance,
         published_calibration=published_calibration,
         assumptions=assumptions,
@@ -205,6 +255,37 @@ def load_transformer_layer_config(path: str | Path) -> TransformerLayerConfig:
         timing=_timing_config(raw),
         noise=_noise_config(raw),
         execution=_optional_execution(raw),
+        system=_optional_system(raw),
+        provenance=_optional_provenance(raw),
+        assumptions=_optional_assumptions(raw),
+    )
+
+
+def load_transformer_model_config(path: str | Path) -> TransformerModelConfig:
+    config_path, raw = _load_yaml_mapping(path)
+
+    missing = [
+        section
+        for section in ("benchmark", "transformer_model", "device", "timing", "noise")
+        if section not in raw
+    ]
+    if missing:
+        raise ValueError(f"{config_path} is missing required sections: {', '.join(missing)}")
+    if "published_calibration" in raw:
+        raise ValueError(
+            "published_calibration is not supported in transformer-model configs; "
+            "paper targets must stay on source-backed card configs"
+        )
+
+    transformer_model = _require_mapping(raw, "transformer_model")
+    return TransformerModelConfig(
+        benchmark=_benchmark_meta(raw),
+        layers=_transformer_model_layers(transformer_model),
+        device=_device_config(raw),
+        timing=_timing_config(raw),
+        noise=_noise_config(raw),
+        execution=_optional_execution(raw),
+        system=_optional_system(raw),
         provenance=_optional_provenance(raw),
         assumptions=_optional_assumptions(raw),
     )
@@ -297,44 +378,91 @@ def _noise_config(raw: dict[str, Any]) -> NoiseConfig:
     )
 
 
-def _transformer_layer_shape(raw: dict[str, Any]) -> TransformerLayerShapeConfig:
-    hidden_size = _positive_int(raw, "transformer_layer.hidden_size")
-    num_heads = _positive_int(raw, "transformer_layer.num_heads")
-    head_dim = _optional_positive_int(raw, "transformer_layer.head_dim")
+def _transformer_layer_shape(
+    raw: dict[str, Any],
+    *,
+    section: str = "transformer_layer",
+) -> TransformerLayerShapeConfig:
+    hidden_size = _positive_int(raw, f"{section}.hidden_size")
+    num_heads = _positive_int(raw, f"{section}.num_heads")
+    head_dim = _optional_positive_int(raw, f"{section}.head_dim")
     if head_dim is None:
         if hidden_size % num_heads != 0:
             raise ValueError(
-                "transformer_layer.hidden_size must be divisible by "
-                "transformer_layer.num_heads when head_dim is omitted"
+                f"{section}.hidden_size must be divisible by "
+                f"{section}.num_heads when head_dim is omitted"
             )
         head_dim = hidden_size // num_heads
     if head_dim * num_heads != hidden_size:
         raise ValueError(
-            "transformer_layer.head_dim * transformer_layer.num_heads must equal "
-            "transformer_layer.hidden_size"
+            f"{section}.head_dim * {section}.num_heads must equal "
+            f"{section}.hidden_size"
         )
 
     layer_type = str(raw.get("layer_type", "encoder"))
     if layer_type not in {"encoder", "decoder"}:
-        raise ValueError("transformer_layer.layer_type must be 'encoder' or 'decoder'")
+        raise ValueError(f"{section}.layer_type must be 'encoder' or 'decoder'")
 
     attention_mode = str(raw.get("attention_mode", "dense"))
     if attention_mode != "dense":
-        raise ValueError("transformer_layer.attention_mode currently supports only 'dense'")
+        raise ValueError(f"{section}.attention_mode currently supports only 'dense'")
 
     return TransformerLayerShapeConfig(
-        batch_size=_positive_int(raw, "transformer_layer.batch_size"),
-        sequence_length=_positive_int(raw, "transformer_layer.sequence_length"),
+        batch_size=_positive_int(raw, f"{section}.batch_size"),
+        sequence_length=_positive_int(raw, f"{section}.sequence_length"),
         hidden_size=hidden_size,
         num_heads=num_heads,
         mlp_intermediate_size=_positive_int(
             raw,
-            "transformer_layer.mlp_intermediate_size",
+            f"{section}.mlp_intermediate_size",
         ),
         head_dim=head_dim,
         layer_type=layer_type,
         attention_mode=attention_mode,
     )
+
+
+def _transformer_model_layers(
+    transformer_model: dict[str, Any],
+) -> tuple[TransformerModelLayerConfig, ...]:
+    layers = transformer_model.get("layers")
+    if not isinstance(layers, list) or not layers:
+        raise ValueError("transformer_model.layers must be a non-empty list")
+
+    parsed = []
+    seen_names: set[str] = set()
+    for index, raw_layer in enumerate(layers):
+        section = f"transformer_model.layers[{index}]"
+        if not isinstance(raw_layer, dict):
+            raise ValueError(f"{section} must be a mapping")
+        name = _optional_name(raw_layer, f"layer_{index + 1}", section)
+        if name in seen_names:
+            raise ValueError(f"{section}.name must be unique; found {name!r}")
+        seen_names.add(name)
+        parsed.append(
+            TransformerModelLayerConfig(
+                name=name,
+                count=_positive_int_with_default(
+                    raw_layer,
+                    f"{section}.count",
+                    default=1,
+                ),
+                transformer_layer=_transformer_layer_shape(
+                    raw_layer,
+                    section=section,
+                ),
+            )
+        )
+    return tuple(parsed)
+
+
+def _optional_name(raw: dict[str, Any], default: str, section: str) -> str:
+    if "name" not in raw:
+        return default
+    name = raw["name"]
+    if not isinstance(name, str) or not name.strip():
+        raise ValueError(f"{section}.name must be a non-empty string")
+    return name.strip()
 
 
 def _optional_provenance(raw: dict[str, Any]) -> ProvenanceConfig | None:
@@ -443,6 +571,66 @@ def _optional_execution(raw: dict[str, Any]) -> ExecutionConfig:
             default=False,
         ),
         pipeline=_pipeline_config(pipeline),
+    )
+
+
+def _optional_system(raw: dict[str, Any]) -> SystemConfig:
+    if "system" not in raw:
+        return SystemConfig()
+
+    system = _require_mapping(raw, "system")
+    sram = _optional_nested_mapping(system, "system", "sram")
+    off_chip = _optional_nested_mapping(system, "system", "off_chip")
+    defaults = SystemConfig()
+    return SystemConfig(
+        sram=_memory_tier_config(
+            sram,
+            "system.sram",
+            default=defaults.sram,
+        ),
+        off_chip=_memory_tier_config(
+            off_chip,
+            "system.off_chip",
+            default=defaults.off_chip,
+        ),
+    )
+
+
+def _memory_tier_config(
+    raw: dict[str, Any] | None,
+    section: str,
+    *,
+    default: MemoryTierConfig,
+) -> MemoryTierConfig:
+    if raw is None:
+        return default
+
+    return MemoryTierConfig(
+        read_energy_pj_per_byte=_non_negative_float_with_default(
+            raw,
+            f"{section}.read_energy_pj_per_byte",
+            default=default.read_energy_pj_per_byte,
+        ),
+        write_energy_pj_per_byte=_non_negative_float_with_default(
+            raw,
+            f"{section}.write_energy_pj_per_byte",
+            default=default.write_energy_pj_per_byte,
+        ),
+        bandwidth_bytes_per_ns=_positive_float_with_default(
+            raw,
+            f"{section}.bandwidth_bytes_per_ns",
+            default=default.bandwidth_bytes_per_ns,
+        ),
+        read_fraction=_fraction_with_default(
+            raw,
+            f"{section}.read_fraction",
+            default=default.read_fraction,
+        ),
+        write_fraction=_fraction_with_default(
+            raw,
+            f"{section}.write_fraction",
+            default=default.write_fraction,
+        ),
     )
 
 
@@ -575,11 +763,33 @@ def _non_negative_float(raw: dict[str, Any], dotted_key: str) -> float:
     return value
 
 
+def _non_negative_float_with_default(
+    raw: dict[str, Any],
+    dotted_key: str,
+    default: float,
+) -> float:
+    key = dotted_key.rsplit(".", 1)[-1]
+    if key not in raw:
+        return default
+    return _non_negative_float(raw, dotted_key)
+
+
 def _positive_float(raw: dict[str, Any], dotted_key: str) -> float:
     value = float(_number(raw, dotted_key))
     if value <= 0:
         raise ValueError(f"{dotted_key} must be positive")
     return value
+
+
+def _positive_float_with_default(
+    raw: dict[str, Any],
+    dotted_key: str,
+    default: float,
+) -> float:
+    key = dotted_key.rsplit(".", 1)[-1]
+    if key not in raw:
+        return default
+    return _positive_float(raw, dotted_key)
 
 
 def _optional_positive_float(raw: dict[str, Any], dotted_key: str) -> float | None:
@@ -593,6 +803,20 @@ def _efficiency(raw: dict[str, Any], dotted_key: str) -> float:
     value = float(_number(raw, dotted_key))
     if not 0 < value <= 1:
         raise ValueError(f"{dotted_key} must be greater than 0 and at most 1")
+    return value
+
+
+def _fraction_with_default(
+    raw: dict[str, Any],
+    dotted_key: str,
+    default: float,
+) -> float:
+    key = dotted_key.rsplit(".", 1)[-1]
+    if key not in raw:
+        return default
+    value = float(_number(raw, dotted_key))
+    if not 0 <= value <= 1:
+        raise ValueError(f"{dotted_key} must be between 0 and 1")
     return value
 
 

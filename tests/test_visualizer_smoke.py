@@ -12,6 +12,8 @@ playwright_api = pytest.importorskip(
 
 def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
     output_path = tmp_path / "visualizer" / "index.html"
+    bad_external = tmp_path / "bad_external.json"
+    bad_external.write_text("{not json", encoding="utf-8")
     write_visualizer(Path("reports"), output_path)
 
     page_errors: list[str] = []
@@ -31,13 +33,30 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
 
             page.goto(output_path.resolve().as_uri())
             page.get_by_text("Serial Timing").first.wait_for()
+            initial_count = int(page.locator("#artifact-count").text_content())
+            page.locator("#external-report-file").set_input_files(
+                str(Path("reports/nature_pace_64x64.json").resolve())
+            )
+            page.get_by_text("Loaded external report(s): nature_pace_64x64.json").wait_for()
+            page.get_by_text("external/nature_pace_64x64.json").first.wait_for()
+            assert int(page.locator("#artifact-count").text_content()) == initial_count + 1
+            page.locator("#external-report-file").set_input_files(str(bad_external))
+            page.get_by_text("Rejected bad_external.json: invalid JSON").wait_for()
+            page.get_by_role("button", name="Clear external").click()
+            page.get_by_text("Cleared 1 external report(s).").wait_for()
+            assert int(page.locator("#artifact-count").text_content()) == initial_count
 
             page.locator("#preset-select").select_option(
                 label="Published reference surrogate cards (generated)"
             )
-            page.get_by_role("button", name="Load").click()
+            page.locator("#load-preset").click()
             page.get_by_role("heading", name="Artifact Comparison").wait_for()
             page.get_by_role("heading", name="Comparison Brief").wait_for()
+            page.get_by_role("heading", name="Pareto Trade-Offs").wait_for()
+            page.get_by_text("Frontier Points").first.wait_for()
+            page.locator("#pareto-mode").select_option("intensity-latency")
+            page.get_by_text("Eq ops/byte is higher better").first.wait_for()
+            page.locator("#pareto-mode").select_option("energy-throughput")
             page.get_by_text("Operational intensity").first.wait_for()
             page.get_by_text("Interface traffic").first.wait_for()
 

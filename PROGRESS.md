@@ -8,193 +8,181 @@
   `RUBRIC.md` at the start of the cycle.
 - Re-read `tasks/todo.md`.
 - Read applicable `agentic-workflow` and `frontend-design` skill instructions.
-- Checked local memory registry for PhotonicBench/Photonic Acceleration hits:
-  - no relevant PhotonicBench-specific entries were found.
 
 ### Repository Inspection
 
 - Ran `git status --short --branch`:
-  - branch is `master`;
-  - `master` tracks `origin/master`;
-  - worktree was clean at phase start.
-- Ran `git log --oneline -n 10`:
-  - latest commit was `397c50b Record public branch protection completion`.
-- Ran `git remote -v`:
-  - `origin` points to `https://github.com/lamb356/photonic-bench.git`.
-- Inspected `pyproject.toml`:
-  - package name: `photonic-bench`;
-  - Python `>=3.12`;
-  - dev dependencies include build, Playwright, pytest, and Ruff.
-- Inspected `README.md`:
-  - current quick start includes `run`, `transformer-layer`, `compare`, and
-    `visualize` examples;
-  - published calibration and transformer-helper sections already exist.
-- Inspected `photonic_bench/cli.py`:
-  - visualizer supports static output and local `--serve`;
-  - compare currently emits Markdown only.
-- Inspected `photonic_bench/visualizer.py`:
-  - discovery is schema-aware for matmul cards and transformer aggregate JSON;
-  - generated data uses a lightweight index plus per-artifact payloads.
+  - branch was clean `master...origin/master`.
+- Ran `git log --oneline -n 5 --decorate`:
+  - latest commit was `ab88d29 Merge pull request #1 from
+    lamb356/codex/daily-use-analysis`.
+- Confirmed previous daily-use goal was merged through PR #1 and CI passed.
+- Created branch `codex/system-model-pareto` for this goal.
 
 ### State File Update
 
-- Rolled the state files forward from the completed branch-protection phase to
-  the daily-use improvement goal.
+- Rolled `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
+  `RUBRIC.md` forward to the five-area system-model/Pareto/full-transformer
+  goal.
+- Updated `tasks/todo.md` so the previous goal remains completed and this goal
+  is the active work item.
 - Created prioritized checklist tasks:
-  1. visualizer architecture recon;
-  2. comparison analytics;
-  3. saved comparison presets;
-  4. exportable comparison results;
-  5. new published accelerator cards;
-  6. modeling or transformer support;
-  7. docs and generated artifacts;
-  8. verification;
-  9. mandatory Hostile Senior Reviewer critique;
-  10. final closeout.
-- Updated `tasks/todo.md` so the branch-protection goal is complete and this
-  visualizer/cards/modeling goal is active.
+  1. system-model recon;
+  2. multi-tier system model;
+  3. system model in comparison and visualizer;
+  4. Pareto charting;
+  5. full transformer model support;
+  6. new published accelerator cards;
+  7. external report loading foundation;
+  8. docs and generated artifacts;
+  9. verification;
+  10. mandatory Hostile Senior Reviewer critique;
+  11. final closeout.
 
-## 2026-07-04 Cycle 2: Implementation And Verification
+### Next Step
 
-### Recon
+- Inspect config/model/report/schema/visualizer code paths for the multi-tier
+  system model and Pareto chart integration points.
 
-- Mapped the visualizer path:
-  - `photonic_bench/visualizer.py` discovers schema-aware JSON artifacts,
-    writes a lightweight index, and emits per-artifact payloads.
-  - `photonic_bench/visualizer_assets/template.html`, `styles.css`, and
-    `app.js` provide the static UI.
-  - `tests/test_visualizer.py` covers generated data/assets and
-    `tests/test_visualizer_smoke.py` covers browser behavior.
-- Mapped comparison/modeling paths:
-  - `photonic_bench/comparison.py` renders Markdown comparison tables.
-  - `photonic_bench/model.py`, `json_report.py`, `report.py`, and
-    `transformer.py` define the auditable local report fields.
+## 2026-07-04 Cycle 2: System Model, Pareto, Transformer Models, Cards, Loading
 
-### Visualizer Work
+### State Re-Read
 
-- Added generated comparison presets:
-  - sidecar: `reports/visualizer_presets.json`;
-  - schema version: `photonic-bench-comparison-presets-v1`;
-  - generated preset: `Published reference surrogate cards`;
-  - generated preset: `Local reuse sensitivity`.
-- Added browser-local presets:
-  - save current selection by name;
-  - load/delete local presets;
-  - keep generated presets static-site friendly and regeneration-safe.
-- Added comparison analytics:
-  - comparison brief;
-  - published-reference coverage count;
-  - calibration-fit count;
-  - total interface traffic;
-  - best operational intensity;
-  - fastest selected artifact;
-  - operational-intensity metric in comparison matrix and insights.
-- Added comparison export:
-  - JSON export schema `photonic-bench-comparison-export-v1`;
-  - Markdown download;
-  - Markdown copy/fallback through a read-only preview.
-- Hardened old/external report behavior:
-  - missing unit-bearing numeric values now render as plain `n/a`, not
-    `n/a <unit>`.
+- Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
+  `RUBRIC.md` at the start of the cycle.
+- Re-read `tasks/todo.md`.
+- Read applicable `agentic-workflow` and `frontend-design` skill instructions.
+- Searched memory for PhotonicBench-specific prior context; no relevant memory
+  entry was found.
 
-### Published Cards
+### System-Model Recon And Implementation
 
-- Added three source-backed published-reference surrogate cards:
-  - `examples/feldmann_2021_photonic_tensor_core_surrogate.yaml`;
-  - `examples/pappas_2025_awgr_262tops_surrogate.yaml`;
-  - `examples/taichi_2024_chiplet_surrogate.yaml`.
-- Generated matching Markdown and JSON reports in `reports/`.
-- Included the new cards in:
-  - `reports/comparison.md`;
-  - `reports/visualizer/data/index.json`;
-  - visualizer payload files;
-  - the generated published-reference surrogate preset.
-- Added tests asserting DOI/source fields, paper metric placement, and explicit
-  surrogate-boundary assumptions.
+- Mapped the existing converter-boundary memory traffic fields across config,
+  model, JSON, Markdown, comparison, transformer aggregation, and visualizer
+  code paths.
+- Added explicit `system.sram` and `system.off_chip` tier inputs with read
+  energy, write energy, bandwidth, read fraction, and write fraction.
+- Added deterministic model outputs under `local_model.system`:
+  - per-tier read/write/total bytes;
+  - per-tier read/write/total movement energy;
+  - transfer time by tier;
+  - local compute/conversion energy;
+  - total movement energy;
+  - total system energy;
+  - system pJ/MAC and pJ/equivalent-op;
+  - movement-energy share;
+  - bandwidth-limited batch latency and throughput.
+- Preserved backward compatibility by keeping existing `local_model.energy`
+  fields unchanged and treating system movement as a separate local estimate.
+- Added schema-backed docs and tests for formulas, defaults, validation, JSON,
+  Markdown, comparison, and visualizer indexing.
 
-### Modeling Work
+### Visualizer And Pareto Work
 
-- Added converter-interface memory traffic to the core matmul model:
-  - vector operand read bytes;
-  - weight operand read bytes;
-  - output write bytes;
-  - total interface bytes;
-  - MACs per byte;
-  - equivalent ops per byte.
-- Formula boundary:
-  - these fields use converter bit widths and existing reuse/conversion counts;
-  - they are not a cache, SRAM, DRAM, NoC, or full memory hierarchy simulation.
-- Added transformer-layer aggregate memory traffic by summing decomposed matmul
-  cards and recomputing aggregate operational intensity.
-- Threaded the new fields through:
-  - JSON reports;
-  - Markdown reports;
-  - comparison tables;
-  - visualizer summaries and detail panels;
-  - JSON schemas and docs.
+- Added system-model summary fields to the visualizer index and detail views.
+- Added system-aware comparison rows, comparison export fields, and boundary
+  notes.
+- Added a Pareto chart section in comparison mode with:
+  - `Energy/op vs throughput`;
+  - `Ops/byte vs latency`;
+  - deterministic frontier detection;
+  - frontier table;
+  - browser smoke coverage.
+- Hostile-review fix: added automatic log scaling when positive Pareto axes
+  span at least 100x, so outlier-heavy card sets remain readable while exact
+  values stay in the table.
 
-### Documentation And Artifacts
+### Full Transformer Model Support
 
-- Updated `README.md`:
-  - quick-start commands for the three new cards;
-  - component model formulas for interface traffic and operational intensity;
-  - published-card descriptions and surrogate boundaries;
-  - visualizer presets, analytics, and export workflow.
-- Updated `docs/model.md`, `docs/json_schema.md`, and JSON schema files.
-- Regenerated all affected reports, comparison output, visualizer index, payloads,
-  copied static assets, and `reports/visualizer/index.html`.
+- Added first-class `transformer-model` YAML parsing and CLI support.
+- Added count-weighted full-model aggregation over representative
+  transformer-layer summaries.
+- Preserved decomposed-card auditability by generating representative layer
+  artifact trees and linking model summaries back to per-layer and per-matmul
+  JSON reports.
+- Added transformer-model Markdown/JSON rendering, schema file, docs, tests,
+  visualizer indexing, and visualizer detail rendering.
+- Added `examples/bert_base_12layer_model.yaml`.
+- Generated `reports/bert_base_12layer_model/`.
+
+### New Published Cards
+
+- Researched source-backed 2024-2025 photonic tensor/GEMM-style accelerator
+  references and added three conservative surrogate cards:
+  - HITOP 2025 optical tensor processor, DOI `10.1126/sciadv.adu0228`;
+  - Lin 2024 TFLN 120 GOPS tensor core, DOI
+    `10.1038/s41467-024-53261-x`;
+  - Meng 2025 MRR OTPU tensor core, DOI `10.1038/s41377-024-01706-9`.
+- Kept paper metrics under `published_calibration` and `provenance`.
+- Added explicit surrogate descriptions and assumptions for each card.
+- Generated Markdown/JSON reports for all three cards.
+- Updated the published-card visualizer preset and comparison report.
+- Added `tests/test_examples.py` coverage for DOI, paper metrics, and
+  surrogate-boundary text.
+
+### External Report Loading Foundation
+
+- Added browser-local `Load external JSON reports` support.
+- Supported external schemas:
+  - `photonic-bench-report-v1`;
+  - `photonic-bench-transformer-layer-report-v1`;
+  - `photonic-bench-transformer-model-report-v1`.
+- External reports are parsed and validated client-side, then added as
+  in-memory `external/...` artifacts for detail and comparison views.
+- Invalid JSON, unsupported schemas, missing required fields, and non-finite
+  required numbers fail inline without corrupting generated artifacts.
+- Added `Clear external` behavior.
+- Documented the limited scope in `README.md` and `docs/json_schema.md`.
+- Browser smoke covers valid local external loading, invalid JSON rejection,
+  and clearing external reports.
+
+### Generated Artifacts
+
+- Regenerated new card reports:
+  - `reports/hitop_2025_optical_tensor_processor_surrogate.md/json`;
+  - `reports/lin_2024_tfln_120gops_tensor_core_surrogate.md/json`;
+  - `reports/meng_2025_mrr_otpu_tensor_core_surrogate.md/json`.
+- Regenerated `reports/comparison.md`.
+- Regenerated `reports/visualizer/index.html` and static data/assets:
+  - final visualizer generation reported 36 artifacts and 0 warnings.
 
 ### Verification
 
-- Focused tests passed during development:
-  - model/report/JSON/transformer/comparison/schema/example tests;
-  - visualizer unit tests;
-  - Playwright visualizer smoke.
-- Final verification after critique fixes:
-  - `node --check photonic_bench\visualizer_assets\app.js`: passed.
-  - `python -m ruff check`: passed.
-  - `python -m photonic_bench.cli visualize --reports-dir reports --output
-    reports/visualizer/index.html`: wrote 26 artifacts, 0 warnings.
-  - `python -m pytest`: 77 passed, 154 warnings from
-    `pytest_freezegun`/`distutils` deprecation.
+- `python -m pytest tests/test_examples.py`: 10 passed.
+- `node --check photonic_bench\visualizer_assets\app.js`: passed.
+- `python -m pytest tests/test_examples.py tests/test_visualizer.py
+  tests/test_schema_docs.py`: 24 passed.
+- `python -m pytest tests/test_visualizer_smoke.py`: passed.
+- `python -m json.tool` passed for the three new generated card JSON files.
+- `python -m ruff check`: passed.
+- `python -m pytest`: 89 passed.
+- `python -m build`: built sdist and wheel successfully.
+- Removed ignored local build outputs `dist/` and `photonic_bench.egg-info/`
+  after the package build check.
 
-## 2026-07-04 Mandatory Hostile Senior Reviewer Critique
+### Mandatory Hostile Senior Reviewer Critique
 
-### Scope
+Findings:
 
-- Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
-  `RUBRIC.md` before critique.
-- Focused on daily-use visualizer usability, published-card provenance clarity,
-  and modeling-boundary clarity.
+1. Important usability issue: the Pareto chart used only linear scaling. With
+   photonic reports spanning orders of magnitude, daily analysis could falsely
+   make most points look identical or pinned to an axis.
+   - Fix: added automatic log scaling for positive axes spanning at least 100x,
+     documented the behavior, and kept exact values in the frontier table.
+   - Post-fix verification: `node --check`, focused visualizer tests, browser
+     smoke, and visualizer regeneration passed.
+2. Residual acceptable limitation: external loading intentionally validates the
+   summary contract used by the visualizer, not the full JSON Schema. This is
+   acceptable for the requested limited foundation because invalid files fail
+   clearly and generated artifacts are unaffected. Full schema validation can
+   be added later if the browser bundle accepts a schema validator dependency.
+3. Residual acceptable limitation: full transformer-model timing remains a
+   serial weighted summary and does not model fused scheduling, overlap,
+   activation lifetimes, or KV-cache reuse. This is explicit in docs and
+   aggregate semantics, preserving auditable boundaries.
 
-### Findings And Resolutions
+### Next Step
 
-- Finding: Optional unit-bearing metrics could render as `n/a eq ops/byte`,
-  which is sloppy and confusing for older or external report sets missing the
-  new memory fields.
-  - Resolution: Added missing-value guards to pJ, ns, throughput, and
-    ops/byte formatters so they render plain `n/a`.
-  - Verification: regenerated visualizer; `node --check`, Ruff, and full pytest
-    passed.
-- Finding: The generated preset name `Published accelerator baselines` could be
-  read as independently reproduced paper baselines rather than source-backed
-  published-reference cards with local surrogate workloads.
-  - Resolution: renamed it to `Published reference surrogate cards` and changed
-    the description to state that paper metrics stay in published references and
-    local workloads are surrogates.
-  - Verification: updated tests and regenerated visualizer; full pytest passed.
-- Finding: Memory traffic could be overread as full memory-system simulation.
-  - Resolution: No code change needed after inspection because the model docs,
-    README, JSON report notes, transformer aggregate semantics, visualizer
-    boundary notes, and export boundary notes all state converter-interface
-    scope explicitly.
-  - Verification: schema/docs/tests and generated reports include the boundary.
-
-### Critique Result
-
-- Major usability/modeling-clarity issues found during the critique were fixed
-  before closeout.
-- Remaining risk: the new published cards are honest surrogate cards, not
-  device-level reproductions; this is intentionally explicit in YAML
-  descriptions, assumptions, README text, visualizer preset naming, and report
-  provenance.
+- Close state files for final status, run final verification after state-only
+  updates, inspect git status, then commit/push through the protected-branch
+  workflow.

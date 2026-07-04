@@ -4,7 +4,7 @@
 
 PhotonicBench generates transparent benchmark cards for photonic AI energy and noise claims.
 
-The current CLI reads YAML configs for photonic matmul benchmark cards and transformer-layer shape helpers, computes auditable local model budgets, and writes Markdown plus optional JSON reports that expose assumptions, provenance, calibration fits, and comparison tables.
+The current CLI reads YAML configs for photonic matmul benchmark cards, transformer-layer shape helpers, and counted transformer-model summaries, computes auditable local model budgets, and writes Markdown plus optional JSON reports that expose assumptions, provenance, calibration fits, and comparison tables.
 
 ## Quick Start
 
@@ -20,9 +20,10 @@ python -m photonic_bench.cli run examples/taichi_2024_chiplet_surrogate.yaml --r
 python -m photonic_bench.cli transformer-layer examples/transformer_small_sanity.yaml --output-dir reports/transformer_small_sanity --prefix small_transformer
 python -m photonic_bench.cli transformer-layer examples/bert_base_encoder_layer.yaml --output-dir reports/bert_base_encoder_layer --prefix bert_base_layer
 python -m photonic_bench.cli transformer-layer examples/gpt_style_decoder_layer.yaml --output-dir reports/gpt_style_decoder_layer --prefix gpt_decoder_layer
+python -m photonic_bench.cli transformer-model examples/bert_base_12layer_model.yaml --output-dir reports/bert_base_12layer_model --prefix bert_base_12layer
 python -m photonic_bench.cli run examples/nature_pace_64x64.yaml --report reports/nature_pace_64x64.md --json-report reports/nature_pace_64x64.json
 python -m photonic_bench.cli run examples/nature_pace_64x64.yaml --report reports/nature_pace_64x64_calibrated.md --json-report reports/nature_pace_64x64_calibrated.json --fit-target published-including-lasers --fit-parameter device.dac.energy_pj_per_conversion
-python -m photonic_bench.cli compare reports/matmul_64x64.json reports/nature_pace_64x64.json reports/nature_pace_64x64_calibrated.json reports/xu_11tops_convolution_surrogate.json reports/weight_stationary_64x64_batch.json reports/feldmann_2021_photonic_tensor_core_surrogate.json reports/pappas_2025_awgr_262tops_surrogate.json reports/taichi_2024_chiplet_surrogate.json --report reports/comparison.md
+python -m photonic_bench.cli compare reports/matmul_64x64.json reports/nature_pace_64x64.json reports/nature_pace_64x64_calibrated.json reports/xu_11tops_convolution_surrogate.json reports/weight_stationary_64x64_batch.json reports/feldmann_2021_photonic_tensor_core_surrogate.json reports/pappas_2025_awgr_262tops_surrogate.json reports/taichi_2024_chiplet_surrogate.json reports/hitop_2025_optical_tensor_processor_surrogate.json reports/lin_2024_tfln_120gops_tensor_core_surrogate.json reports/meng_2025_mrr_otpu_tensor_core_surrogate.json --report reports/comparison.md
 python -m photonic_bench.cli visualize --reports-dir reports --output reports/visualizer/index.html
 ```
 
@@ -55,7 +56,31 @@ The first noise estimate combines ADC quantization RMS, phase noise RMS, and dri
 
 Interface traffic is a converter-boundary estimate derived from reuse counts
 and converter bit widths. It is useful for comparing local operational
-intensity, but it is not a cache, SRAM, DRAM, NoC, or full system memory model.
+intensity and feeds the optional tier model, but it is not a cache simulator,
+NoC router, instruction model, or nonlinear tensor traffic model.
+
+Configs can also include explicit system tiers. Defaults are supplied when the
+section is omitted:
+
+```yaml
+system:
+  sram:
+    read_energy_pj_per_byte: 0.02
+    write_energy_pj_per_byte: 0.02
+    bandwidth_bytes_per_ns: 1024
+  off_chip:
+    read_energy_pj_per_byte: 10.0
+    write_energy_pj_per_byte: 10.0
+    bandwidth_bytes_per_ns: 16
+```
+
+Each tier can also set `read_fraction` and `write_fraction` between `0` and `1`.
+Reports expose `local_model.system` with SRAM/off-chip read bytes, write bytes,
+movement energy, transfer time, total movement energy, total system energy,
+system energy per MAC/op, movement-energy share, and bandwidth-limited
+throughput. These are local PhotonicBench estimates and remain separate from
+paper-reported values and from the older `local_model.energy.total_pj`
+compute/conversion estimate.
 
 Timing now reports both single-operation latency and batch/pipeline behavior. With a pipeline cycle time, batch latency is:
 
@@ -145,6 +170,46 @@ Transformer-layer configs may include provenance, but `published_calibration` is
 not accepted for this helper yet; decomposed per-matmul cards remain local-model
 cards unless a future layer-level published-reference model is added explicitly.
 
+## Transformer Model Helpers
+
+Use the `transformer-model` command when you want a counted full-model summary
+instead of only a single representative layer:
+
+```powershell
+python -m photonic_bench.cli transformer-model examples/bert_base_12layer_model.yaml --output-dir reports/bert_base_12layer_model --prefix bert_base_12layer
+```
+
+Transformer-model YAML uses a `transformer_model.layers` list. Each entry uses
+the same shape fields as `transformer_layer`, plus a positive integer `count`:
+
+```yaml
+transformer_model:
+  layers:
+    - name: encoder_block
+      count: 12
+      layer_type: encoder
+      attention_mode: dense
+      batch_size: 1
+      sequence_length: 128
+      hidden_size: 768
+      num_heads: 12
+      head_dim: 64
+      mlp_intermediate_size: 3072
+```
+
+The command generates one representative transformer-layer artifact tree per
+layer spec, then writes `<prefix>_model_summary.md` and
+`<prefix>_model_summary.json`. Additive fields are multiplied by each layer
+spec's `count`; per-op, throughput, movement-share, and operational-intensity
+fields are recomputed from model totals. The summary links back to
+`layers[].json_report` and `layers[].matmul_reports` so the model total remains
+auditable through decomposed layer/card artifacts.
+
+This is serial full-model accounting. It does not claim a fused scheduler,
+operator overlap, activation lifetime, KV-cache reuse, embeddings, poolers,
+classification heads, or non-matmul operators unless those costs are explicitly
+present in lower-level artifacts.
+
 ### Common Transformer-Layer Validation Failures
 
 CLI errors are intended to point at the file and field that need attention:
@@ -198,7 +263,7 @@ The Xu 2021 example uses the Nature paper "11 TOPS photonic convolutional accele
 
 Because that source is a vector convolution accelerator, PhotonicBench labels the local workload as a dense matmul surrogate (`m=1`, `k=250000`, `n=10`). The card carries the paper numbers as published references, not as local model results.
 
-This repository also includes three additional source-backed published-card
+This repository also includes six additional source-backed published-card
 surrogates:
 
 - Feldmann et al., "Parallel convolutional processing using an integrated
@@ -216,6 +281,21 @@ surrogates:
   `10.1126/science.adl1203`. The card records 160 TOPS/W, 64x64 chiplet
   dimensions, 879 T MACS/mm2, and reported task accuracies while using a 64x64
   dense local surrogate.
+- Chen/Ou/Xue et al., "Hypermultiplexed integrated photonics-based optical
+  tensor processor", Science Advances 11, eadu0228 (2025), DOI:
+  `10.1126/sciadv.adu0228`. The card records the HITOP 40 TOPS/W reference,
+  trillion-operation-per-second scale note, and 405,000-parameter validation
+  note while using a 64x64 dense local surrogate.
+- Lin et al., "120 GOPS Photonic tensor core in thin-film lithium niobate for
+  inference and in situ training", Nature Communications 15, 9081 (2024), DOI:
+  `10.1038/s41467-024-53261-x`. The card records 120 GOPS, 60 GHz weight
+  updates, and 131,072 fan-in as paper metrics while using a 16x16 dense local
+  surrogate.
+- Meng et al., "High-integrated photonic tensor core utilizing
+  high-dimensional lightwave and microwave multidomain multiplexing", Light:
+  Science & Applications 14, 27 (2025), DOI: `10.1038/s41377-024-01706-9`.
+  The card records 34.04 TOPS/mm2 computing density and 96.41% MNIST accuracy
+  while using a 16x16 dense local surrogate.
 
 ## Current Boundary
 
@@ -249,11 +329,19 @@ per-matmul breakdown, formula-audit rows, assumptions, exclusions, and
 provenance. Per-matmul artifact references are local filenames so downstream
 tools do not need private machine paths.
 
+Transformer-model aggregate JSON uses schema version
+`photonic-bench-transformer-model-report-v1` and is written by default as
+`<prefix>_model_summary.json` when running `transformer-model`. It includes
+count-weighted workload totals, energy, system movement, serial timing,
+non-additive noise diagnostics, layer summary references, and decomposed matmul
+report references.
+
 Schema documentation:
 
 - Human-readable guide: `docs/json_schema.md`
 - Machine-readable JSON Schema: `docs/photonic-bench-report-v1.schema.json`
 - Machine-readable transformer layer schema: `docs/photonic-bench-transformer-layer-report-v1.schema.json`
+- Machine-readable transformer model schema: `docs/photonic-bench-transformer-model-report-v1.schema.json`
 - Programmatic loading example: `examples/load_report_json.py`
 
 ```powershell
@@ -299,10 +387,12 @@ demand from the source reports. That avoids writing the duplicated
 when the report corpus grows. Press `Ctrl+C` to stop the local server.
 
 The visualizer discovers `.json` files recursively under `reports/`, branches on
-`schema_version`, and loads both supported contracts:
+`schema_version`, and loads all supported contracts:
 
 - `photonic-bench-report-v1`: per-matmul benchmark cards.
 - `photonic-bench-transformer-layer-report-v1`: transformer-layer aggregate
+  summaries.
+- `photonic-bench-transformer-model-report-v1`: counted transformer-model
   summaries.
 
 Unsupported or malformed JSON files are shown as index warnings instead of
@@ -311,23 +401,42 @@ interface. The generated `reports/visualizer/` directory is excluded from input
 discovery so regenerating the visualizer does not index its own payload copies.
 
 The Detail view lazy-loads the selected artifact payload. Per-matmul cards show
-workload shape, local energy components, timing, published-reference separation,
-provenance, and assumptions. Transformer-layer summaries show layer shape,
-aggregate workload totals, local energy, interface traffic, serial timing,
-non-additive noise diagnostics, aggregate semantics, formula audit rows,
-per-matmul breakdowns, assumptions, exclusions, and provenance.
+workload shape, local energy components, multi-tier system movement, timing,
+published-reference separation, provenance, and assumptions. Transformer-layer
+summaries show layer shape, aggregate workload totals, local energy, interface
+traffic, aggregate system movement, serial timing, non-additive noise
+diagnostics, aggregate semantics, formula audit rows, per-matmul breakdowns,
+assumptions, exclusions, and provenance. Transformer-model summaries show
+count-weighted model totals, system movement, serial timing, layer-spec
+references, aggregate semantics, assumptions, exclusions, and provenance.
 
 The Compare view lets you select multiple artifacts from the rail, pin one as
 the reference, and inspect a side-by-side matrix, comparison brief, comparison
-insights, schema compatibility, and grouped same-schema analytics. Compatible
-rows show the value, absolute delta, percent delta, and ratio against the pinned
-reference. The insights panel ranks lowest energy per op, lowest latency,
-highest throughput, and highest operational intensity inside each schema group
-only. Mixed per-matmul and transformer-layer comparison is allowed, but labeled
-as mixed-schema comparison; incompatible cross-schema deltas stay `n/a` so
-serial timing, non-additive aggregate noise, exclusions, local estimates,
-interface traffic estimates, and published references are not flattened into one
-false hardware model.
+insights, Pareto trade-off chart, schema compatibility, and grouped same-schema
+analytics. Compatible rows show the value, absolute delta, percent delta, and
+ratio against the pinned reference. The insights panel ranks lowest local energy
+per op, lowest system energy per op, lowest latency, highest throughput, highest
+bandwidth-limited throughput, and highest operational intensity inside each
+schema group only. Mixed per-matmul, transformer-layer, and transformer-model
+comparison is allowed, but labeled as mixed-schema comparison; incompatible
+cross-schema deltas stay `n/a` so serial timing, non-additive aggregate noise,
+exclusions, local estimates, system movement estimates, interface traffic
+estimates, and published references are not flattened into one false hardware
+model.
+
+The Pareto chart has two modes:
+
+- `Energy/op vs throughput`: lower system pJ/equivalent-op and higher
+  bandwidth-limited equivalent ops/s are better.
+- `Ops/byte vs latency`: higher equivalent ops/byte and lower
+  bandwidth-limited latency are better.
+
+Frontier points are highlighted deterministically from the currently selected
+comparison artifacts. Missing legacy fields degrade to `n/a`; the chart falls
+back to older local energy/timing fields only where the new system fields are
+absent. Positive axes automatically switch from linear to log scaling when the
+selected values span at least 100x, which keeps outlier-heavy photonic-card
+comparisons readable while leaving the exact frontier table values unchanged.
 
 Comparison presets are static-friendly. Add or edit `reports/visualizer_presets.json`
 with schema version `photonic-bench-comparison-presets-v1`, a `presets` array,
@@ -342,6 +451,15 @@ Comparison results are exportable from the browser. `Download JSON` writes a
 grouped best-metric analysis, provenance status, and modeling-boundary notes.
 `Download Markdown` and `Copy Markdown` produce a human-readable table suitable
 for reviews or notes.
+
+The visualizer also has a limited external-report loading foundation. Use
+`Load external JSON reports` to select one or more local PhotonicBench JSON
+files in the browser. Files are parsed client-side, validated against the
+supported per-matmul, transformer-layer, or transformer-model schema shape, and
+added to the current session as `external/...` artifacts. This does not upload
+files, write into `reports/`, or change the generated static index. Malformed
+JSON, unsupported `schema_version` values, and missing required fields are
+reported inline while valid generated artifacts continue to work.
 
 Source layout for the visualizer:
 
@@ -394,7 +512,8 @@ python -m photonic_bench.cli compare reports/matmul_64x64.json reports/nature_pa
 
 The comparison table is generated from `local_model`, `published_reference`,
 `calibration_fit`, and `provenance` fields in JSON. It includes local energy,
-interface bytes, operational intensity, timing, throughput, and selected
+system energy, movement energy, movement share, interface bytes, operational
+intensity, timing, throughput, bandwidth-limited throughput, and selected
 published metrics. Missing optional paper metrics are rendered as `n/a` instead
 of guessed.
 

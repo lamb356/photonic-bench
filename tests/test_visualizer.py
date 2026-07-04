@@ -24,6 +24,7 @@ def test_discover_visualizer_data_loads_root_and_nested_reports() -> None:
     assert (
         "transformer_small_sanity/small_transformer_layer_summary.json" in summaries
     )
+    assert "bert_base_12layer_model/bert_base_12layer_model_summary.json" in summaries
     assert summaries["nature_pace_64x64.json"].kind == "matmul_card"
     assert summaries["nature_pace_64x64.json"].has_published_reference is True
     assert "published reference" in summaries["nature_pace_64x64.json"].boundary_tags
@@ -35,6 +36,18 @@ def test_discover_visualizer_data_loads_root_and_nested_reports() -> None:
     assert "non-additive noise" in layer.boundary_tags
     assert layer.memory_traffic_bytes is not None
     assert layer.operational_intensity_ops_per_byte is not None
+    assert layer.system_total_energy_pj is not None
+    assert layer.system_energy_per_op_pj is not None
+    assert layer.movement_energy_pj is not None
+    assert layer.movement_energy_share is not None
+    assert layer.bandwidth_limited_latency_ns is not None
+    assert layer.bandwidth_limited_throughput_equivalent_ops_per_second is not None
+    model = summaries["bert_base_12layer_model/bert_base_12layer_model_summary.json"]
+    assert model.kind == "transformer_model"
+    assert model.latency_label == "Model serial batch latency"
+    assert model.equivalent_ops == 12 * 1_711_276_032
+    assert "serial timing" in model.boundary_tags
+    assert model.system_energy_per_op_pj is not None
 
     assert [preset.name for preset in data.comparison_presets] == [
         "Published reference surrogate cards",
@@ -46,6 +59,9 @@ def test_discover_visualizer_data_loads_root_and_nested_reports() -> None:
         "feldmann_2021_photonic_tensor_core_surrogate.json",
         "pappas_2025_awgr_262tops_surrogate.json",
         "taichi_2024_chiplet_surrogate.json",
+        "hitop_2025_optical_tensor_processor_surrogate.json",
+        "lin_2024_tfln_120gops_tensor_core_surrogate.json",
+        "meng_2025_mrr_otpu_tensor_core_surrogate.json",
     )
 
 
@@ -128,6 +144,8 @@ def test_write_visualizer_emits_index_payloads_and_static_assets(
         == "Published reference surrogate cards"
     )
     assert "Interface memory traffic" in " ".join(index["modeling_boundaries"])
+    assert "System movement energy" in " ".join(index["modeling_boundaries"])
+    assert "Transformer model timing" in " ".join(index["modeling_boundaries"])
 
     layer = next(
         artifact
@@ -172,19 +190,40 @@ def test_static_app_contains_comparison_and_boundary_labels() -> None:
     assert "comparison_presets" in app_js
     assert "Operational intensity" in app_js
     assert "Interface Memory Traffic" in app_js
+    assert "Multi-Tier System Model" in app_js
+    assert "System energy per op" in app_js
+    assert "Movement share" in app_js
+    assert "Pareto Trade-Offs" in app_js
+    assert "Energy/op vs throughput" in app_js
+    assert "Ops/byte vs latency" in app_js
+    assert "isParetoFrontierPoint" in app_js
+    assert "axisScale" in app_js
+    assert "log-scaled automatically" in app_js
     assert "Schema Compatibility" in app_js
     assert "compatible pinned baseline" in app_js
     assert "Grouped Same-Schema Analytics" in app_js
     assert "fetchPayloadJson" in app_js
     assert "Serial Timing" in app_js
+    assert "Transformer Model Workload" in app_js
+    assert "Layer Specs" in app_js
+    assert "renderTransformerModel" in app_js
     assert "Non-additive Noise" in app_js
     assert "Transformer Exclusions" in app_js
     assert "Published references" in app_js
+    assert "Load external JSON reports" in Path(
+        "photonic_bench/visualizer_assets/template.html"
+    ).read_text(encoding="utf-8")
+    assert "summarizeExternalPayload" in app_js
+    assert "unsupported schema_version" in app_js
+    assert "external file" in app_js
     assert 'startsWith("<")' not in app_js
     assert ".comparison-table" in styles
     assert ".insight-grid" in styles
     assert ".preset-panel" in styles
+    assert ".external-panel" in styles
     assert ".export-preview" in styles
+    assert ".pareto-chart" in styles
+    assert ".pareto-point.frontier" in styles
 
 
 def test_server_visualizer_site_uses_fetchable_payload_paths() -> None:
@@ -231,6 +270,7 @@ def test_visualizer_http_server_serves_index_and_payload_json() -> None:
     assert payload["schema_version"] in {
         "photonic-bench-report-v1",
         "photonic-bench-transformer-layer-report-v1",
+        "photonic-bench-transformer-model-report-v1",
     }
 
 
@@ -259,5 +299,8 @@ def test_cli_visualize_writes_static_html_and_data_assets(tmp_path: Path) -> Non
     assert (output_path.parent / "data" / "index.json").exists()
     assert (output_path.parent / "data" / "payloads").is_dir()
     assert "photonic-bench-transformer-layer-report-v1" in (
+        output_path.parent / "data" / "index.json"
+    ).read_text(encoding="utf-8")
+    assert "photonic-bench-transformer-model-report-v1" in (
         output_path.parent / "data" / "index.json"
     ).read_text(encoding="utf-8")

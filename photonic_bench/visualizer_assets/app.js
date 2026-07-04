@@ -11,14 +11,23 @@
     view: "detail",
     compareIds: new Set(),
     pinnedId: null,
+    paretoMode: "energy-throughput",
     payloadCache: new Map(),
     payloadPromises: new Map(),
     userPresets: [],
     presetMessage: "",
     presetMessageIsWarning: false,
+    externalIds: new Set(),
+    externalMessage: "",
+    externalMessageIsWarning: false,
   };
   const USER_PRESETS_KEY = "photonic-bench-comparison-presets:v1";
   const COMPARISON_EXPORT_SCHEMA = "photonic-bench-comparison-export-v1";
+  const REPORT_SCHEMA_VERSION = "photonic-bench-report-v1";
+  const TRANSFORMER_LAYER_SCHEMA_VERSION =
+    "photonic-bench-transformer-layer-report-v1";
+  const TRANSFORMER_MODEL_SCHEMA_VERSION =
+    "photonic-bench-transformer-model-report-v1";
 
   if (!state.data) {
     document.getElementById("detail").innerHTML =
@@ -37,9 +46,7 @@
     state.data.artifacts[0] || { summary: { id: null } }
   ).summary.id;
 
-  document.getElementById("artifact-count").textContent =
-    state.data.artifacts.length;
-  document.getElementById("issue-count").textContent = state.data.issues.length;
+  updateCounts();
 
   document.getElementById("search").addEventListener("input", (event) => {
     state.search = event.target.value.toLowerCase();
@@ -84,6 +91,17 @@
 
   document.getElementById("delete-preset").addEventListener("click", () => {
     deleteSelectedUserPreset();
+  });
+
+  document
+    .getElementById("external-report-file")
+    .addEventListener("change", (event) => {
+      loadExternalFiles(Array.from(event.target.files || []));
+      event.target.value = "";
+    });
+
+  document.getElementById("clear-external").addEventListener("click", () => {
+    clearExternalArtifacts();
   });
 
   document.getElementById("detail-mode").addEventListener("click", () => {
@@ -166,14 +184,27 @@
     return `${formatNumber(value)} eq ops/byte`;
   }
 
+  function formatPercent(value) {
+    if (value === null || value === undefined || Number.isNaN(Number(value))) {
+      return "n/a";
+    }
+    return `${formatNumber(Number(value) * 100)}%`;
+  }
+
   function yesNo(value) {
     return value ? "yes" : "no";
   }
 
   function kindLabel(kind) {
-    return kind === "transformer_layer"
-      ? "Transformer layer"
-      : "Per-matmul card";
+    if (kind === "transformer_model") return "Transformer model";
+    if (kind === "transformer_layer") return "Transformer layer";
+    return "Per-matmul card";
+  }
+
+  function updateCounts() {
+    document.getElementById("artifact-count").textContent =
+      state.data.artifacts.length;
+    document.getElementById("issue-count").textContent = state.data.issues.length;
   }
 
   function boundaryMatches(summary) {
@@ -184,7 +215,7 @@
       return summary.provenance_status !== "local model artifact";
     }
     if (state.boundary === "transformer-boundaries") {
-      return summary.kind === "transformer_layer";
+      return summary.kind === "transformer_layer" || summary.kind === "transformer_model";
     }
     return true;
   }
@@ -361,6 +392,486 @@
     setPresetMessage(`Deleted ${preset.name}.`);
   }
 
+  function setExternalMessage(message, isWarning = false) {
+    state.externalMessage = message;
+    state.externalMessageIsWarning = isWarning;
+    renderExternalControls();
+  }
+
+  function renderExternalControls() {
+    const message = document.getElementById("external-message");
+    message.textContent = state.externalMessage;
+    message.classList.toggle("warn", state.externalMessageIsWarning);
+    document.getElementById("clear-external").disabled = state.externalIds.size === 0;
+  }
+
+  function loadExternalFiles(files) {
+    if (!files.length) {
+      setExternalMessage("Select one or more PhotonicBench JSON reports.", true);
+      return;
+    }
+    Promise.all(files.map((file) => readExternalFile(file)))
+      .then((results) => {
+        const accepted = results.filter((result) => result.ok);
+        const rejected = results.filter((result) => !result.ok);
+        accepted.forEach((result) => addExternalArtifact(result.artifact));
+        const acceptedNames = accepted.map((result) => result.fileName).join(", ");
+        const rejectedMessages = rejected
+          .map((result) => `${result.fileName}: ${result.message}`)
+          .join("; ");
+        const messageParts = [];
+        if (accepted.length) {
+          messageParts.push(`Loaded external report(s): ${acceptedNames}`);
+        }
+        if (rejected.length) {
+          messageParts.push(`Rejected ${rejectedMessages}`);
+        }
+        setExternalMessage(messageParts.join(" | "), rejected.length > 0);
+        if (accepted.length) {
+          state.selectedId = accepted[accepted.length - 1].artifact.summary.id;
+          state.view = "detail";
+        }
+        render();
+      })
+      .catch((error) => {
+        setExternalMessage(error.message || "Could not load external reports.", true);
+      });
+  }
+
+  function readExternalFile(file) {
+    return file
+      .text()
+      .then((text) => {
+        let payload;
+        try {
+          payload = JSON.parse(text);
+        } catch (error) {
+          throw new Error(`invalid JSON: ${error.message}`);
+        }
+        const sourcePath = `external/${file.name}`;
+        const artifact = summarizeExternalPayload(payload, sourcePath, file.name);
+        return { ok: true, fileName: file.name, artifact };
+      })
+      .catch((error) => ({
+        ok: false,
+        fileName: file.name,
+        message: error.message || "unreadable file",
+      }));
+  }
+
+  function addExternalArtifact(artifact) {
+    const id = artifact.summary.id;
+    if (byId.has(id)) {
+      state.data.artifacts = state.data.artifacts.filter(
+        (candidate) => candidate.summary.id !== id
+      );
+    }
+    byId.set(id, artifact);
+    state.payloadCache.set(id, artifact.payload);
+    state.payloadPromises.delete(id);
+    state.externalIds.add(id);
+    state.data.artifacts.push(artifact);
+    updateCounts();
+  }
+
+  function clearExternalArtifacts() {
+    if (!state.externalIds.size) {
+      setExternalMessage("No external reports are loaded.", true);
+      return;
+    }
+    state.data.artifacts = state.data.artifacts.filter((artifact) => {
+      const keep = !state.externalIds.has(artifact.summary.id);
+      if (!keep) {
+        byId.delete(artifact.summary.id);
+        state.payloadCache.delete(artifact.summary.id);
+        state.payloadPromises.delete(artifact.summary.id);
+        state.compareIds.delete(artifact.summary.id);
+      }
+      return keep;
+    });
+    if (state.pinnedId && state.externalIds.has(state.pinnedId)) {
+      state.pinnedId = null;
+    }
+    if (state.selectedId && state.externalIds.has(state.selectedId)) {
+      const first = filteredArtifacts()[0] || state.data.artifacts[0];
+      state.selectedId = first ? first.summary.id : null;
+    }
+    const cleared = state.externalIds.size;
+    state.externalIds.clear();
+    updateCounts();
+    setExternalMessage(`Cleared ${cleared} external report(s).`);
+    render();
+  }
+
+  function summarizeExternalPayload(payload, sourcePath, fileName) {
+    if (!isPlainObject(payload)) {
+      throw new Error("expected a JSON object");
+    }
+    const schemaVersion = requiredString(payload, sourcePath, "schema_version");
+    if (schemaVersion === REPORT_SCHEMA_VERSION) {
+      return externalMatmulArtifact(payload, sourcePath, fileName);
+    }
+    if (schemaVersion === TRANSFORMER_LAYER_SCHEMA_VERSION) {
+      return externalTransformerLayerArtifact(payload, sourcePath, fileName);
+    }
+    if (schemaVersion === TRANSFORMER_MODEL_SCHEMA_VERSION) {
+      return externalTransformerModelArtifact(payload, sourcePath, fileName);
+    }
+    throw new Error(`unsupported schema_version ${JSON.stringify(schemaVersion)}`);
+  }
+
+  function externalMatmulArtifact(payload, sourcePath, fileName) {
+    const workload = requiredObject(payload, sourcePath, "workload");
+    const localModel = requiredObject(payload, sourcePath, "local_model");
+    const energy = requiredObject(localModel, sourcePath, "energy");
+    const timing = requiredObject(localModel, sourcePath, "timing");
+    const hasPublishedReference = payload.published_reference !== null &&
+      payload.published_reference !== undefined;
+    const hasCalibrationFit = payload.calibration_fit !== null &&
+      payload.calibration_fit !== undefined;
+    const status = provenanceStatus(payload);
+    const summary = externalSummaryBase(
+      payload,
+      sourcePath,
+      fileName,
+      "matmul_card",
+      "Batch latency",
+      {
+        macs: requiredNumber(workload, sourcePath, "macs"),
+        equivalent_ops: requiredNumber(workload, sourcePath, "equivalent_ops"),
+        output_elements: requiredNumber(workload, sourcePath, "output_elements"),
+        total_energy_pj: requiredNumber(energy, sourcePath, "total_pj"),
+        energy_per_op_pj: requiredNumber(energy, sourcePath, "energy_per_op_pj"),
+        latency_ns: requiredNumber(timing, sourcePath, "batch_latency_ns"),
+        throughput_equivalent_ops_per_second: requiredNumber(
+          timing,
+          sourcePath,
+          "steady_state_equivalent_ops_per_second"
+        ),
+        memory_traffic_bytes: optionalNumber(
+          localModel,
+          sourcePath,
+          "memory_traffic",
+          "total_interface_bytes"
+        ),
+        operational_intensity_ops_per_byte: optionalNumber(
+          localModel,
+          sourcePath,
+          "memory_traffic",
+          "equivalent_ops_per_byte"
+        ),
+        bandwidth_limited_latency_ns: optionalNumber(
+          localModel,
+          sourcePath,
+          "system",
+          "bandwidth_limited_batch_latency_ns"
+        ),
+        bandwidth_limited_throughput_equivalent_ops_per_second: optionalNumber(
+          localModel,
+          sourcePath,
+          "system",
+          "bandwidth_limited_equivalent_ops_per_second"
+        ),
+      },
+      hasPublishedReference,
+      hasCalibrationFit,
+      status
+    );
+    return { summary, payload };
+  }
+
+  function externalTransformerLayerArtifact(payload, sourcePath, fileName) {
+    if (
+      requiredString(payload, sourcePath, "artifact_type") !==
+      "transformer_layer_aggregate"
+    ) {
+      throw new Error("artifact_type must be transformer_layer_aggregate");
+    }
+    const workload = requiredObject(payload, sourcePath, "workload");
+    if (requiredString(workload, sourcePath, "type") !== "transformer_layer") {
+      throw new Error("workload.type must be transformer_layer");
+    }
+    requiredArray(payload, sourcePath, "matmuls");
+    requiredObject(payload, sourcePath, "formula_audit");
+    requiredArray(payload, sourcePath, "exclusions");
+    return externalAggregateArtifact(
+      payload,
+      sourcePath,
+      fileName,
+      "transformer_layer",
+      "Serial batch latency",
+      "serial_batch_latency_ns",
+      "serial_effective_equivalent_ops_per_second",
+      "bandwidth_limited_serial_batch_latency_ns",
+      "bandwidth_limited_serial_effective_equivalent_ops_per_second"
+    );
+  }
+
+  function externalTransformerModelArtifact(payload, sourcePath, fileName) {
+    if (
+      requiredString(payload, sourcePath, "artifact_type") !==
+      "transformer_model_aggregate"
+    ) {
+      throw new Error("artifact_type must be transformer_model_aggregate");
+    }
+    const workload = requiredObject(payload, sourcePath, "workload");
+    if (requiredString(workload, sourcePath, "type") !== "transformer_model") {
+      throw new Error("workload.type must be transformer_model");
+    }
+    requiredArray(payload, sourcePath, "layers");
+    return externalAggregateArtifact(
+      payload,
+      sourcePath,
+      fileName,
+      "transformer_model",
+      "Model serial batch latency",
+      "serial_batch_latency_ns",
+      "serial_effective_equivalent_ops_per_second",
+      "bandwidth_limited_serial_batch_latency_ns",
+      "bandwidth_limited_serial_effective_equivalent_ops_per_second"
+    );
+  }
+
+  function externalAggregateArtifact(
+    payload,
+    sourcePath,
+    fileName,
+    kind,
+    latencyLabel,
+    latencyKey,
+    throughputKey,
+    bandwidthLatencyKey,
+    bandwidthThroughputKey
+  ) {
+    const workload = requiredObject(payload, sourcePath, "workload");
+    const localModel = requiredObject(payload, sourcePath, "local_model");
+    const energy = requiredObject(localModel, sourcePath, "energy");
+    const timing = requiredObject(localModel, sourcePath, "timing");
+    const hasPublishedReference = payload.published_reference !== null &&
+      payload.published_reference !== undefined;
+    const hasCalibrationFit = payload.calibration_fit !== null &&
+      payload.calibration_fit !== undefined;
+    const status = provenanceStatus(payload);
+    const summary = externalSummaryBase(
+      payload,
+      sourcePath,
+      fileName,
+      kind,
+      latencyLabel,
+      {
+        macs: requiredNumber(workload, sourcePath, "macs"),
+        equivalent_ops: requiredNumber(workload, sourcePath, "equivalent_ops"),
+        output_elements: requiredNumber(workload, sourcePath, "output_elements"),
+        total_energy_pj: requiredNumber(energy, sourcePath, "total_pj"),
+        energy_per_op_pj: requiredNumber(energy, sourcePath, "energy_per_op_pj"),
+        latency_ns: requiredNumber(timing, sourcePath, latencyKey),
+        throughput_equivalent_ops_per_second: requiredNumber(
+          timing,
+          sourcePath,
+          throughputKey
+        ),
+        memory_traffic_bytes: optionalNumber(
+          localModel,
+          sourcePath,
+          "memory_traffic",
+          "total_interface_bytes"
+        ),
+        operational_intensity_ops_per_byte: optionalNumber(
+          localModel,
+          sourcePath,
+          "memory_traffic",
+          "equivalent_ops_per_byte"
+        ),
+        bandwidth_limited_latency_ns: optionalNumber(
+          localModel,
+          sourcePath,
+          "system",
+          bandwidthLatencyKey
+        ),
+        bandwidth_limited_throughput_equivalent_ops_per_second: optionalNumber(
+          localModel,
+          sourcePath,
+          "system",
+          bandwidthThroughputKey
+        ),
+      },
+      hasPublishedReference,
+      hasCalibrationFit,
+      status
+    );
+    return { summary, payload };
+  }
+
+  function externalSummaryBase(
+    payload,
+    sourcePath,
+    fileName,
+    kind,
+    latencyLabel,
+    values,
+    hasPublishedReference,
+    hasCalibrationFit,
+    provenanceStatusValue
+  ) {
+    const localModel = requiredObject(payload, sourcePath, "local_model");
+    const assumptions = requiredArray(payload, sourcePath, "assumptions");
+    return {
+      id: uniqueExternalId(fileName),
+      kind,
+      schema_version: requiredString(payload, sourcePath, "schema_version"),
+      benchmark_name: requiredString(payload, sourcePath, "benchmark", "name"),
+      description: requiredString(payload, sourcePath, "benchmark", "description"),
+      source_path: sourcePath,
+      browser_path: "",
+      macs: values.macs,
+      equivalent_ops: values.equivalent_ops,
+      output_elements: values.output_elements,
+      total_energy_pj: values.total_energy_pj,
+      energy_per_op_pj: values.energy_per_op_pj,
+      latency_label: latencyLabel,
+      latency_ns: values.latency_ns,
+      throughput_equivalent_ops_per_second:
+        values.throughput_equivalent_ops_per_second,
+      memory_traffic_bytes: values.memory_traffic_bytes,
+      operational_intensity_ops_per_byte:
+        values.operational_intensity_ops_per_byte,
+      system_total_energy_pj: optionalNumber(
+        localModel,
+        sourcePath,
+        "system",
+        "total_system_energy_pj"
+      ),
+      system_energy_per_op_pj: optionalNumber(
+        localModel,
+        sourcePath,
+        "system",
+        "system_energy_per_op_pj"
+      ),
+      movement_energy_pj: optionalNumber(
+        localModel,
+        sourcePath,
+        "system",
+        "total_movement_energy_pj"
+      ),
+      movement_energy_share: optionalNumber(
+        localModel,
+        sourcePath,
+        "system",
+        "movement_energy_share"
+      ),
+      bandwidth_limited_latency_ns: values.bandwidth_limited_latency_ns,
+      bandwidth_limited_throughput_equivalent_ops_per_second:
+        values.bandwidth_limited_throughput_equivalent_ops_per_second,
+      provenance_status: provenanceStatusValue,
+      has_published_reference: hasPublishedReference,
+      assumptions_count: assumptions.length,
+      has_calibration_fit: hasCalibrationFit,
+      boundary_tags: boundaryTags(
+        kind,
+        hasPublishedReference,
+        hasCalibrationFit,
+        provenanceStatusValue
+      ),
+      payload_path: "",
+      payload_script_path: "",
+      is_external: true,
+    };
+  }
+
+  function uniqueExternalId(fileName) {
+    return `external:${fileName}`;
+  }
+
+  function boundaryTags(
+    kind,
+    hasPublishedReference,
+    hasCalibrationFit,
+    provenanceStatusValue
+  ) {
+    const tags = ["local model", "external file"];
+    if (kind === "transformer_layer" || kind === "transformer_model") {
+      tags.push("serial timing", "non-additive noise", "exclusions");
+    }
+    if (hasPublishedReference) tags.push("published reference");
+    if (hasCalibrationFit) tags.push("calibration fit");
+    if (provenanceStatusValue !== "local model artifact") tags.push("provenance");
+    return tags;
+  }
+
+  function provenanceStatus(payload) {
+    const provenance = payload.provenance;
+    if (isPlainObject(provenance)) {
+      if (typeof provenance.claim_status === "string" && provenance.claim_status) {
+        return provenance.claim_status;
+      }
+      if (typeof provenance.source_title === "string" && provenance.source_title) {
+        return provenance.source_title;
+      }
+    }
+    return "local model artifact";
+  }
+
+  function requiredObject(root, sourcePath, ...keys) {
+    const value = requiredValue(root, sourcePath, ...keys);
+    if (!isPlainObject(value)) {
+      throw new Error(`${sourcePath}: ${keys.join(".")} must be an object`);
+    }
+    return value;
+  }
+
+  function requiredArray(root, sourcePath, ...keys) {
+    const value = requiredValue(root, sourcePath, ...keys);
+    if (!Array.isArray(value)) {
+      throw new Error(`${sourcePath}: ${keys.join(".")} must be a list`);
+    }
+    return value;
+  }
+
+  function requiredString(root, sourcePath, ...keys) {
+    const value = requiredValue(root, sourcePath, ...keys);
+    if (typeof value !== "string") {
+      throw new Error(`${sourcePath}: ${keys.join(".")} must be a string`);
+    }
+    return value;
+  }
+
+  function requiredNumber(root, sourcePath, ...keys) {
+    const value = requiredValue(root, sourcePath, ...keys);
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+      throw new Error(`${sourcePath}: ${keys.join(".")} must be numeric and finite`);
+    }
+    return value;
+  }
+
+  function optionalNumber(root, sourcePath, ...keys) {
+    let current = root;
+    for (const key of keys) {
+      if (!isPlainObject(current) || !(key in current)) {
+        return null;
+      }
+      current = current[key];
+    }
+    if (typeof current !== "number" || !Number.isFinite(current)) {
+      throw new Error(`${sourcePath}: ${keys.join(".")} must be numeric and finite`);
+    }
+    return current;
+  }
+
+  function requiredValue(root, sourcePath, ...keys) {
+    let current = root;
+    for (const key of keys) {
+      if (!isPlainObject(current) || !(key in current)) {
+        throw new Error(`${sourcePath}: missing ${keys.join(".")}`);
+      }
+      current = current[key];
+    }
+    return current;
+  }
+
+  function isPlainObject(value) {
+    return value !== null && typeof value === "object" && !Array.isArray(value);
+  }
+
   function renderPresetControls() {
     const presets = allPresets();
     const select = document.getElementById("preset-select");
@@ -402,7 +913,9 @@
         const pinDisabled = state.compareIds.has(summary.id) ? "" : " disabled";
         const pinActive = summary.id === state.pinnedId ? " active" : "";
         const badgeClass =
-          summary.kind === "transformer_layer" ? "badge layer" : "badge";
+          summary.kind === "transformer_layer" || summary.kind === "transformer_model"
+            ? "badge layer"
+            : "badge";
         const tags = (summary.boundary_tags || [])
           .slice(0, 3)
           .map((tag) => `<span class="badge">${escapeHtml(tag)}</span>`)
@@ -414,6 +927,7 @@
               <div class="artifact-meta">${escapeHtml(summary.source_path)}</div>
               <div class="badge-row">
                 <span class="${badgeClass}">${kindLabel(summary.kind)}</span>
+                ${summary.is_external ? '<span class="badge mix">external</span>' : ""}
                 ${summary.id === state.pinnedId ? '<span class="badge layer">pinned reference</span>' : ""}
                 <span class="badge">${formatNumber(summary.equivalent_ops)} eq ops</span>
                 <span class="badge">${formatPj(summary.total_energy_pj)}</span>
@@ -505,14 +1019,19 @@
         <div class="header-top">
           <div class="header-title">
             <div class="badge-row">
-              <span class="${summary.kind === "transformer_layer" ? "badge layer" : "badge"}">${kindLabel(summary.kind)}</span>
+              <span class="${summary.kind === "transformer_layer" || summary.kind === "transformer_model" ? "badge layer" : "badge"}">${kindLabel(summary.kind)}</span>
               <span class="badge">${escapeHtml(summary.schema_version)}</span>
+              ${summary.is_external ? '<span class="badge mix">external file</span>' : ""}
               ${summary.has_calibration_fit ? '<span class="badge mix">calibration fit</span>' : ""}
             </div>
             <h2>${escapeHtml(summary.benchmark_name)}</h2>
             <div class="description">${escapeHtml(summary.description)}</div>
           </div>
-          <a class="source-link" href="${escapeHtml(summary.browser_path)}">${escapeHtml(summary.source_path)}</a>
+          ${
+            summary.browser_path
+              ? `<a class="source-link" href="${escapeHtml(summary.browser_path)}">${escapeHtml(summary.source_path)}</a>`
+              : `<span class="source-link">${escapeHtml(summary.source_path)}</span>`
+          }
         </div>
         <div class="metric-grid">
           ${metric("MACs", formatNumber(summary.macs), "from workload")}
@@ -521,6 +1040,8 @@
           ${metric(summary.latency_label, formatNs(summary.latency_ns), "schema-specific timing")}
           ${metric("Interface traffic", formatBytes(summary.memory_traffic_bytes), "converter boundary")}
           ${metric("Operational intensity", formatOpsPerByte(summary.operational_intensity_ops_per_byte), "local model")}
+          ${metric("System energy/op", formatPj(summary.system_energy_per_op_pj), "core + movement")}
+          ${metric("Movement share", formatPercent(summary.movement_energy_share), "SRAM/off-chip")}
         </div>
       </section>
     `;
@@ -565,6 +1086,69 @@
     return typeof value === "number" ? formatNumber(value) : value;
   }
 
+  function renderSystemModel(system, timingLabel = "Bandwidth-limited latency") {
+    if (!system) {
+      return `
+        <section class="panel">
+          <h3>Multi-Tier System Model</h3>
+          <div class="notes"><p>No local_model.system block is present in this artifact.</p></div>
+        </section>
+      `;
+    }
+    const tiers = system.tiers || {};
+    const tierRows = ["sram", "off_chip"]
+      .filter((name) => tiers[name])
+      .map((name) => {
+        const tier = tiers[name];
+        return [
+          escapeHtml(name === "off_chip" ? "off-chip/DRAM" : name.toUpperCase()),
+          escapeHtml(formatBytes(tier.read_bytes)),
+          escapeHtml(formatBytes(tier.write_bytes)),
+          escapeHtml(formatPj(tier.total_energy_pj)),
+          escapeHtml(formatNs(tier.transfer_time_ns)),
+          escapeHtml(`${formatNumber(tier.bandwidth_bytes_per_ns)} bytes/ns`),
+        ];
+      });
+    const summaryRows = [
+      ["Local compute/conversion energy", formatPj(system.local_compute_and_conversion_energy_pj)],
+      ["Total movement energy", formatPj(system.total_movement_energy_pj)],
+      ["Total system energy", formatPj(system.total_system_energy_pj)],
+      ["System energy/op", formatPj(system.system_energy_per_op_pj)],
+      ["Movement share", formatPercent(system.movement_energy_share)],
+      ["Max transfer time", formatNs(system.max_transfer_time_ns || system.serial_transfer_time_ns)],
+      [timingLabel, formatNs(system.bandwidth_limited_batch_latency_ns || system.bandwidth_limited_serial_batch_latency_ns)],
+      [
+        "Bandwidth-limited throughput",
+        formatThroughput(
+          system.bandwidth_limited_equivalent_ops_per_second ||
+            system.bandwidth_limited_serial_effective_equivalent_ops_per_second
+        ),
+      ],
+    ];
+    return `
+      <section class="panel">
+        <h3>Multi-Tier System Model</h3>
+        <div class="notes"><p>${escapeHtml(system.note || "System movement energy is a local SRAM/off-chip tier estimate added separately from photonic core energy.")}</p></div>
+        ${simpleTable(
+          [
+            { label: "Tier" },
+            { label: "Read bytes", num: true },
+            { label: "Write bytes", num: true },
+            { label: "Movement energy", num: true },
+            { label: "Transfer time", num: true },
+            { label: "Bandwidth", num: true },
+          ],
+          tierRows,
+          "comparison-table"
+        )}
+        ${simpleTable(
+          [{ label: "Metric" }, { label: "Value", num: true }],
+          summaryRows.map(([label, value]) => [escapeHtml(label), escapeHtml(value)])
+        )}
+      </section>
+    `;
+  }
+
   function renderConcepts() {
     return `
       <section class="panel">
@@ -575,6 +1159,7 @@
           <div class="concept"><strong>Serial timing</strong><span>Transformer aggregate timing is a serial sum, not a fused scheduler claim.</span></div>
           <div class="concept"><strong>Non-additive noise</strong><span>Aggregate noise is diagnostic extrema, not a summed layer error.</span></div>
           <div class="concept"><strong>Interface traffic</strong><span>Memory bytes use converter widths and reuse counts, not hierarchy simulation.</span></div>
+          <div class="concept"><strong>System tiers</strong><span>SRAM/off-chip movement energy is a local tier estimate added outside paper references.</span></div>
         </div>
       </section>
     `;
@@ -672,6 +1257,7 @@
         <div class="notes"><p>${escapeHtml(payload.local_model.memory_traffic?.note || "Interface traffic is derived from converter bit widths and reuse counts.")}</p></div>
         ${simpleTable([{ label: "Field" }, { label: "Value", num: true }], memoryRows)}
       </section>
+      ${renderSystemModel(payload.local_model.system)}
       <section class="panel">
         <h3>Local Energy Components</h3>
         ${simpleTable([{ label: "Component" }, { label: "Value", num: true }], energyRows)}
@@ -768,6 +1354,7 @@
           ${simpleTable([{ label: "Field" }, { label: "Value", num: true }], objectRows(timing))}
         </section>
       </div>
+      ${renderSystemModel(payload.local_model.system, "Bandwidth-limited serial latency")}
       <div class="grid-2">
         <section class="panel">
           <h3>Non-additive Noise</h3>
@@ -842,6 +1429,116 @@
     `;
   }
 
+  function renderTransformerModel(artifact, payload) {
+    const summary = artifact.summary;
+    const timing = payload.local_model.timing;
+    const memory = payload.local_model.memory_traffic;
+    const noise = payload.local_model.noise;
+    const sourceDir = summary.browser_path.split("/").slice(0, -1).join("/");
+    const layerRows = payload.layers.map((layer) => {
+      const href = sourceDir ? `${sourceDir}/${layer.json_report}` : layer.json_report;
+      return [
+        escapeHtml(layer.name),
+        escapeHtml(formatNumber(layer.count)),
+        `<a class="source-link" href="${escapeHtml(href)}">${escapeHtml(layer.json_report)}</a>`,
+        escapeHtml(formatNumber(layer.workload.macs)),
+        escapeHtml(formatNumber(layer.weighted_macs)),
+        escapeHtml(formatPj(layer.local_model.system.system_energy_per_op_pj)),
+        escapeHtml(formatNs(layer.local_model.system.bandwidth_limited_serial_batch_latency_ns)),
+      ];
+    });
+
+    return `
+      ${header(summary)}
+      ${renderConcepts()}
+      <section class="panel">
+        <h3>Transformer Model Workload</h3>
+        ${simpleTable([{ label: "Field" }, { label: "Value", num: true }], [
+          ["unique layer specs", escapeHtml(payload.workload.unique_layer_specs)],
+          ["layer instances", escapeHtml(payload.workload.layer_count)],
+          ["MACs", escapeHtml(formatNumber(payload.workload.macs))],
+          ["equivalent ops", escapeHtml(formatNumber(payload.workload.equivalent_ops))],
+          ["output elements", escapeHtml(formatNumber(payload.workload.output_elements))],
+        ])}
+      </section>
+      <div class="grid-2">
+        <section class="panel">
+          <h3>Interface Memory Traffic</h3>
+          <div class="notes"><p>${escapeHtml(memory?.note || "Weighted from layer summaries; not a full memory hierarchy simulation.")}</p></div>
+          ${simpleTable(
+            [{ label: "Field" }, { label: "Value", num: true }],
+            objectRows(memory)
+          )}
+        </section>
+        <section class="panel">
+          <h3>Serial Timing</h3>
+          <div class="notes"><p>Timing model: ${escapeHtml(timing.timing_model)}.</p><p>These values are weighted serial summaries over layer specs.</p></div>
+          ${simpleTable([{ label: "Field" }, { label: "Value", num: true }], objectRows(timing))}
+        </section>
+      </div>
+      ${renderSystemModel(payload.local_model.system, "Bandwidth-limited model latency")}
+      <section class="panel">
+        <h3>Layer Specs</h3>
+        ${simpleTable(
+          [
+            { label: "Layer spec" },
+            { label: "Count", num: true },
+            { label: "Summary JSON" },
+            { label: "Per-layer MACs", num: true },
+            { label: "Weighted MACs", num: true },
+            { label: "System pJ/op", num: true },
+            { label: "BW-limited layer latency", num: true },
+          ],
+          layerRows
+        )}
+      </section>
+      <div class="grid-2">
+        <section class="panel">
+          <h3>Non-additive Noise</h3>
+          <div class="notes"><p>${escapeHtml(noise.note)}</p></div>
+          ${simpleTable(
+            [{ label: "Field" }, { label: "Value", num: true }],
+            objectRows(noise)
+          )}
+        </section>
+        <section class="panel">
+          <h3>Aggregate Semantics</h3>
+          <div class="notes">${Object.values(payload.aggregate_semantics)
+            .map((value) => `<p>${escapeHtml(value)}</p>`)
+            .join("")}</div>
+        </section>
+      </div>
+      <div class="grid-2">
+        <section class="panel">
+          <h3>Transformer Exclusions</h3>
+          <div class="chips">${payload.exclusions
+            .map((item) => `<span class="chip">${escapeHtml(item)}</span>`)
+            .join("")}</div>
+        </section>
+        <section class="panel">
+          <h3>Provenance</h3>
+          ${
+            payload.provenance
+              ? simpleTable(
+                  [{ label: "Field" }, { label: "Value" }],
+                  Object.entries(payload.provenance).map(([key, value]) => [
+                    escapeHtml(key),
+                    escapeHtml(value),
+                  ])
+                )
+              : '<div class="notes"><p>No provenance block recorded.</p></div>'
+          }
+        </section>
+      </div>
+      <section class="panel">
+        <h3>Assumptions</h3>
+        <div class="notes">${payload.assumptions
+          .map((item) => `<p>${escapeHtml(item)}</p>`)
+          .join("")}</div>
+      </section>
+    `;
+  }
+
   function renderDetail() {
     const detail = document.getElementById("detail");
     const artifact = byId.get(state.selectedId);
@@ -859,6 +1556,10 @@
     loadPayload(artifact.summary.id)
       .then((payload) => {
         if (state.selectedId !== selectedAtRequest || state.view !== "detail") {
+          return;
+        }
+        if (artifact.summary.kind === "transformer_model") {
+          detail.innerHTML = renderTransformerModel(artifact, payload);
           return;
         }
         detail.innerHTML =
@@ -890,10 +1591,20 @@
       ["Output elements", (summary) => formatNumber(summary.output_elements)],
       ["Local total energy", (summary) => formatPj(summary.total_energy_pj)],
       ["Energy per op", (summary) => formatPj(summary.energy_per_op_pj)],
+      ["System total energy", (summary) => formatPj(summary.system_total_energy_pj)],
+      ["System energy per op", (summary) => formatPj(summary.system_energy_per_op_pj)],
+      ["Movement energy", (summary) => formatPj(summary.movement_energy_pj)],
+      ["Movement share", (summary) => formatPercent(summary.movement_energy_share)],
       ["Latency label", (summary) => summary.latency_label],
       ["Latency", (summary) => formatNs(summary.latency_ns)],
       ["Throughput", (summary) =>
         formatThroughput(summary.throughput_equivalent_ops_per_second)],
+      ["Bandwidth-limited latency", (summary) =>
+        formatNs(summary.bandwidth_limited_latency_ns)],
+      ["Bandwidth-limited throughput", (summary) =>
+        formatThroughput(
+          summary.bandwidth_limited_throughput_equivalent_ops_per_second
+        )],
       ["Interface traffic", (summary) => formatBytes(summary.memory_traffic_bytes)],
       ["Operational intensity", (summary) =>
         formatOpsPerByte(summary.operational_intensity_ops_per_byte)],
@@ -949,6 +1660,18 @@
         direction: "lower",
       },
       {
+        label: "System energy per op",
+        get: (summary) => summary.system_energy_per_op_pj,
+        format: formatPj,
+        direction: "lower",
+      },
+      {
+        label: "Movement share",
+        get: (summary) => summary.movement_energy_share,
+        format: formatPercent,
+        direction: "lower",
+      },
+      {
         label: "Latency",
         get: (summary) => summary.latency_ns,
         format: formatNs,
@@ -957,6 +1680,13 @@
       {
         label: "Throughput",
         get: (summary) => summary.throughput_equivalent_ops_per_second,
+        format: formatThroughput,
+        direction: "higher",
+      },
+      {
+        label: "Bandwidth-limited throughput",
+        get: (summary) =>
+          summary.bandwidth_limited_throughput_equivalent_ops_per_second,
         format: formatThroughput,
         direction: "higher",
       },
@@ -981,6 +1711,187 @@
     ];
   }
 
+  function paretoSpecs() {
+    return {
+      "energy-throughput": {
+        label: "Energy/op vs throughput",
+        xLabel: "System pJ/op",
+        yLabel: "BW-limited eq ops/s",
+        xDirection: "lower",
+        yDirection: "higher",
+        xGet: (summary) => summary.system_energy_per_op_pj ?? summary.energy_per_op_pj,
+        yGet: (summary) =>
+          summary.bandwidth_limited_throughput_equivalent_ops_per_second ??
+          summary.throughput_equivalent_ops_per_second,
+        xFormat: formatPj,
+        yFormat: formatThroughput,
+      },
+      "intensity-latency": {
+        label: "Ops/byte vs latency",
+        xLabel: "Eq ops/byte",
+        yLabel: "BW-limited latency",
+        xDirection: "higher",
+        yDirection: "lower",
+        xGet: (summary) => summary.operational_intensity_ops_per_byte,
+        yGet: (summary) =>
+          summary.bandwidth_limited_latency_ns ?? summary.latency_ns,
+        xFormat: formatOpsPerByte,
+        yFormat: formatNs,
+      },
+    };
+  }
+
+  function paretoPoints(artifacts, spec) {
+    const points = artifacts
+      .map((artifact) => ({
+        artifact,
+        x: Number(spec.xGet(artifact.summary)),
+        y: Number(spec.yGet(artifact.summary)),
+      }))
+      .filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y));
+    return points.map((point) => ({
+      ...point,
+      frontier: isParetoFrontierPoint(point, points, spec),
+    }));
+  }
+
+  function isParetoFrontierPoint(point, points, spec) {
+    return !points.some((candidate) => {
+      if (candidate.artifact.summary.id === point.artifact.summary.id) {
+        return false;
+      }
+      const xAtLeast =
+        spec.xDirection === "lower" ? candidate.x <= point.x : candidate.x >= point.x;
+      const yAtLeast =
+        spec.yDirection === "lower" ? candidate.y <= point.y : candidate.y >= point.y;
+      const xBetter =
+        spec.xDirection === "lower" ? candidate.x < point.x : candidate.x > point.x;
+      const yBetter =
+        spec.yDirection === "lower" ? candidate.y < point.y : candidate.y > point.y;
+      return xAtLeast && yAtLeast && (xBetter || yBetter);
+    });
+  }
+
+  function renderParetoChart(artifacts) {
+    const specs = paretoSpecs();
+    const spec = specs[state.paretoMode] || specs["energy-throughput"];
+    const points = paretoPoints(artifacts, spec);
+    if (!points.length) {
+      return `
+        <section class="panel">
+          <h3>Pareto Trade-Offs</h3>
+          <div class="notes"><p>No finite data is available for the selected Pareto axes.</p></div>
+        </section>
+      `;
+    }
+    const xs = points.map((point) => point.x);
+    const ys = points.map((point) => point.y);
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
+    const xScale = axisScale(minX, maxX);
+    const yScale = axisScale(minY, maxY);
+    const xCoord = (value) => 54 + xScale.normalize(value) * 300;
+    const yCoord = (value) => 244 - yScale.normalize(value) * 180;
+    const frontierRows = points
+      .filter((point) => point.frontier)
+      .sort((left, right) =>
+        spec.xDirection === "higher" ? right.x - left.x : left.x - right.x
+      )
+      .map((point) => [
+        escapeHtml(point.artifact.summary.benchmark_name),
+        escapeHtml(spec.xFormat(point.x)),
+        escapeHtml(spec.yFormat(point.y)),
+      ]);
+    return `
+      <section class="panel">
+        <div class="panel-heading">
+          <h3>Pareto Trade-Offs</h3>
+          <select id="pareto-mode" aria-label="Pareto chart mode">
+            ${Object.entries(specs)
+              .map(
+                ([key, option]) =>
+                  `<option value="${escapeHtml(key)}"${
+                    key === state.paretoMode ? " selected" : ""
+                  }>${escapeHtml(option.label)}</option>`
+              )
+              .join("")}
+          </select>
+        </div>
+        <div class="notes"><p>Frontier points are not dominated on both axes for this chart mode. Axis direction is explicit: ${escapeHtml(spec.xLabel)} is ${spec.xDirection} better; ${escapeHtml(spec.yLabel)} is ${spec.yDirection} better. Axes are log-scaled automatically when positive values span at least 100x; current scales are ${escapeHtml(xScale.label)} x-axis and ${escapeHtml(yScale.label)} y-axis.</p></div>
+        <div class="pareto-wrap">
+          <svg class="pareto-chart" viewBox="0 0 390 280" role="img" aria-label="${escapeHtml(spec.label)} Pareto chart">
+            <line x1="54" y1="244" x2="354" y2="244" class="axis"></line>
+            <line x1="54" y1="64" x2="54" y2="244" class="axis"></line>
+            <text x="204" y="274" text-anchor="middle" class="axis-label">${escapeHtml(spec.xLabel)}</text>
+            <text x="15" y="154" text-anchor="middle" class="axis-label vertical">${escapeHtml(spec.yLabel)}</text>
+            <text x="54" y="260" text-anchor="middle" class="tick-label">${escapeHtml(spec.xFormat(minX))}</text>
+            <text x="354" y="260" text-anchor="middle" class="tick-label">${escapeHtml(spec.xFormat(maxX))}</text>
+            <text x="46" y="248" text-anchor="end" class="tick-label">${escapeHtml(spec.yFormat(minY))}</text>
+            <text x="46" y="68" text-anchor="end" class="tick-label">${escapeHtml(spec.yFormat(maxY))}</text>
+            ${points
+              .map((point, index) => {
+                const x = xCoord(point.x);
+                const y = yCoord(point.y);
+                const label = String(index + 1);
+                return `
+                  <g class="${point.frontier ? "pareto-point frontier" : "pareto-point"}">
+                    <circle cx="${x}" cy="${y}" r="${point.frontier ? 7 : 5}"></circle>
+                    <text x="${x}" y="${y - 11}" text-anchor="middle">${escapeHtml(label)}</text>
+                    <title>${escapeHtml(point.artifact.summary.benchmark_name)}: ${escapeHtml(spec.xFormat(point.x))}, ${escapeHtml(spec.yFormat(point.y))}</title>
+                  </g>
+                `;
+              })
+              .join("")}
+          </svg>
+          <div class="pareto-legend">
+            ${points
+              .map(
+                (point, index) => `
+                  <div><span class="${point.frontier ? "legend-dot frontier" : "legend-dot"}">${index + 1}</span>${escapeHtml(point.artifact.summary.benchmark_name)}</div>
+                `
+              )
+              .join("")}
+          </div>
+        </div>
+        <h4>Frontier Points</h4>
+        ${simpleTable(
+          [
+            { label: "Artifact" },
+            { label: spec.xLabel, num: true },
+            { label: spec.yLabel, num: true },
+          ],
+          frontierRows,
+          "comparison-table"
+        )}
+      </section>
+    `;
+  }
+
+  function normalize(value, min, max) {
+    if (max === min) {
+      return 0.5;
+    }
+    return (value - min) / (max - min);
+  }
+
+  function axisScale(min, max) {
+    const useLog = min > 0 && max > 0 && max / min >= 100;
+    if (!useLog) {
+      return {
+        label: "linear",
+        normalize: (value) => normalize(value, min, max),
+      };
+    }
+    const logMin = Math.log10(min);
+    const logMax = Math.log10(max);
+    return {
+      label: "log",
+      normalize: (value) => normalize(Math.log10(value), logMin, logMax),
+    };
+  }
+
   function groupArtifactsByKind(artifacts) {
     const groups = new Map();
     artifacts.forEach((artifact) => {
@@ -995,9 +1906,13 @@
 
   function renderComparisonInsights(artifacts, pinnedArtifact) {
     const insightSpecs = comparisonMetricSpecs().filter((spec) =>
-      ["Energy per op", "Latency", "Throughput", "Operational intensity"].includes(
-        spec.label
-      )
+      [
+        "Energy per op",
+        "System energy per op",
+        "Latency",
+        "Throughput",
+        "Operational intensity",
+      ].includes(spec.label)
     );
     return `
       <section class="panel">
@@ -1276,10 +2191,17 @@
         equivalent_ops: artifact.summary.equivalent_ops,
         local_total_energy_pj: artifact.summary.total_energy_pj,
         local_energy_per_op_pj: artifact.summary.energy_per_op_pj,
+        system_total_energy_pj: artifact.summary.system_total_energy_pj,
+        system_energy_per_op_pj: artifact.summary.system_energy_per_op_pj,
+        movement_energy_pj: artifact.summary.movement_energy_pj,
+        movement_energy_share: artifact.summary.movement_energy_share,
         latency_label: artifact.summary.latency_label,
         latency_ns: artifact.summary.latency_ns,
         throughput_equivalent_ops_per_second:
           artifact.summary.throughput_equivalent_ops_per_second,
+        bandwidth_limited_latency_ns: artifact.summary.bandwidth_limited_latency_ns,
+        bandwidth_limited_throughput_equivalent_ops_per_second:
+          artifact.summary.bandwidth_limited_throughput_equivalent_ops_per_second,
         memory_traffic_bytes: artifact.summary.memory_traffic_bytes,
         operational_intensity_ops_per_byte:
           artifact.summary.operational_intensity_ops_per_byte,
@@ -1315,10 +2237,15 @@
           kindLabel(summary.kind),
           summary.source_path,
           formatPj(summary.energy_per_op_pj),
+          formatPj(summary.system_energy_per_op_pj),
           formatNs(summary.latency_ns),
           formatThroughput(summary.throughput_equivalent_ops_per_second),
+          formatThroughput(
+            summary.bandwidth_limited_throughput_equivalent_ops_per_second
+          ),
           formatBytes(summary.memory_traffic_bytes),
           formatOpsPerByte(summary.operational_intensity_ops_per_byte),
+          formatPercent(summary.movement_energy_share),
           summary.has_published_reference ? "yes" : "no",
           summary.provenance_status,
         ];
@@ -1332,8 +2259,8 @@ Pinned reference: ${
       pinnedArtifact ? pinnedArtifact.summary.benchmark_name : "none"
     }
 
-| Benchmark | Kind | Source | Local pJ/op | Latency | Throughput | Interface traffic | Eq ops/byte | Published reference | Provenance |
-| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| Benchmark | Kind | Source | Local pJ/op | System pJ/op | Latency | Throughput | BW-limited throughput | Interface traffic | Eq ops/byte | Movement share | Published reference | Provenance |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- |
 ${rows}
 
 ## Boundary Notes
@@ -1375,8 +2302,10 @@ ${notes}
 
     const pinnedArtifact = ensurePinnedReference(artifacts);
     const kinds = new Set(artifacts.map((artifact) => artifact.summary.kind));
-    const hasLayer = artifacts.some(
-      (artifact) => artifact.summary.kind === "transformer_layer"
+    const hasTransformerAggregate = artifacts.some(
+      (artifact) =>
+        artifact.summary.kind === "transformer_layer" ||
+        artifact.summary.kind === "transformer_model"
     );
     const hasPublished = artifacts.some(
       (artifact) => artifact.summary.has_published_reference
@@ -1391,13 +2320,14 @@ ${notes}
       kinds.size > 1
         ? "Mixed-schema comparison: per-matmul cards and transformer aggregates are shown side-by-side without flattening their semantics."
         : "Single-schema comparison: summary metrics share the same artifact kind.",
-      hasLayer
-        ? "Transformer aggregate latency remains serial timing, and aggregate noise remains non-additive diagnostic extrema."
+      hasTransformerAggregate
+        ? "Transformer layer/model aggregate latency remains serial timing, and aggregate noise remains non-additive diagnostic extrema."
         : "Per-matmul timing and noise are local model card fields.",
       hasPublished
         ? "Published references are present for at least one artifact and remain separate from local model estimates."
         : "Selected artifacts are local model summaries with no published_reference block.",
       "Interface traffic is derived from converter bit widths and reuse counts; it is not a full memory hierarchy simulation.",
+      "System movement energy is a local SRAM/off-chip tier estimate added separately from photonic core compute/conversion energy.",
     ];
     const exportObject = comparisonExport(artifacts, pinnedArtifact, boundaryNotes);
     const exportMarkdown = comparisonMarkdown(
@@ -1433,6 +2363,7 @@ ${notes}
         </div>
       </section>
       ${renderComparisonBrief(artifacts)}
+      ${renderParetoChart(artifacts)}
       <section class="panel">
         <h3>Comparison Matrix</h3>
         ${simpleTable(headers, comparisonSummaryRows(artifacts, pinnedArtifact), "comparison-table")}
@@ -1455,6 +2386,14 @@ ${notes}
         <textarea id="export-preview" class="export-preview" readonly>${escapeHtml(exportMarkdown)}</textarea>
       </section>
     `;
+
+    const paretoMode = detail.querySelector("#pareto-mode");
+    if (paretoMode) {
+      paretoMode.addEventListener("change", (event) => {
+        state.paretoMode = event.target.value;
+        render();
+      });
+    }
 
     detail.querySelector("[data-action='download-json']").addEventListener(
       "click",
@@ -1523,6 +2462,7 @@ ${notes}
     ensurePinnedReference();
     renderModeTabs();
     renderPresetControls();
+    renderExternalControls();
     renderList();
     renderIssues();
     if (state.view === "compare") {

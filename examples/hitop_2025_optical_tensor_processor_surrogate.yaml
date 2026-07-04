@@ -1,0 +1,56 @@
+benchmark:
+  name: HITOP 2025 optical tensor processor surrogate
+  description: Source-backed card for the Science Advances 2025 HITOP optical tensor processor. The published system uses space-time-wavelength hypermultiplexing; this config uses a 64x64 dense local matmul surrogate for PhotonicBench comparison only.
+workload:
+  type: matmul
+  m: 64
+  n: 64
+  k: 64
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 8
+    energy_pj_per_conversion: 0.5
+  vector_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+  weight_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+execution:
+  batch_size: 1
+  vector_reuse_factor: 1
+  weight_reuse_factor: 1
+  weight_stationary: true
+  pipeline:
+    stages: 1
+timing:
+  optical_latency_ns: 1
+  adc_latency_ns: 0
+  dac_latency_ns: 0
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 1
+provenance:
+  source_title: Hypermultiplexed integrated photonics-based optical tensor processor
+  source_url: https://www.science.org/doi/10.1126/sciadv.adu0228
+  doi: 10.1126/sciadv.adu0228
+  venue: Science Advances 11, eadu0228 (2025)
+  claim_status: paper-reported HITOP efficiency/scale claims; matmul-surrogate local model
+published_calibration:
+  architecture: Space-time-wavelength hypermultiplexed integrated photonic tensor processor
+  energy_efficiency_including_lasers_tops_per_watt: 40
+  additional_metrics:
+    reported_throughput_note: Source reports trillions of operations per second but no single scalar TOPS value is encoded in this card.
+    reported_energy_per_op_fj_from_efficiency: 25
+    model_parameters_validated: 405000
+    multiplexing_dimensions: space-time-wavelength
+    dataset_url: https://datadryad.org/dataset/doi:10.5061/dryad.kprr4xhgj
+    surrogate_mapping: m=64, k=64, n=64 is a dense local surrogate for HITOP tensor processing; not an exact space-time-wavelength streaming schedule.
+assumptions:
+  - Source reports HITOP operating at 40 TOPS/W and trillion-operation-per-second scale; PhotonicBench keeps those values as published references.
+  - Local timing, converter energy, system tiers, and noise settings are generic PhotonicBench assumptions, not HITOP device extraction.
+  - Weight-stationary mode is used only to model one reused surrogate right operand within a dense local tile.

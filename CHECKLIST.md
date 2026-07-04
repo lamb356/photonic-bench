@@ -1,4 +1,4 @@
-# PhotonicBench Daily-Use Improvement Checklist
+# PhotonicBench System-Model And Pareto Checklist
 
 Status key:
 
@@ -12,160 +12,169 @@ Status key:
 - [x] DONE: Roll state files forward and create the prioritized checklist.
   - Done when:
     - `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
-      `RUBRIC.md` describe the visualizer/cards/modeling daily-use goal.
-    - `tasks/todo.md` marks the branch-protection goal complete and this goal
-      active.
-    - The checklist prioritizes visualizer work first, then cards, then
-      modeling/transformer support.
+      `RUBRIC.md` describe the system-model/Pareto/full-transformer/cards goal.
+    - `tasks/todo.md` marks the previous daily-use visualizer/cards/modeling
+      goal complete and this goal active.
+    - The checklist prioritizes system model first, Pareto charting second,
+      then full transformer support, published cards, and external loading.
   - Proof:
-    - Re-read all five required state files at the start of the cycle.
+    - Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
+      `RUBRIC.md` at the start of the cycle.
     - Re-read `tasks/todo.md`.
-    - Inspected repository root, git status, recent commits, remotes,
-      `pyproject.toml`, `README.md`, `photonic_bench/cli.py`, and
-      `photonic_bench/visualizer.py`.
-    - Confirmed current branch is clean `master` tracking `origin/master`.
-    - Confirmed latest commit is
-      `397c50b Record public branch protection completion`.
-    - Confirmed no PhotonicBench-specific memory-registry hits were found for
-      this workspace.
+    - Verified `git status --short --branch` was clean on `master`.
+    - Verified latest merged commit was `ab88d29 Merge pull request #1 from
+      lamb356/codex/daily-use-analysis`.
+    - Created working branch `codex/system-model-pareto`.
 
-## Task 1: Visualizer Architecture Recon
+## Task 1: System-Model Recon
 
-- [x] DONE: Map the current visualizer data path, UI behavior, tests, and docs.
+- [x] DONE: Map the current config, model, report, schema, transformer, and
+      visualizer surfaces affected by multi-tier system modeling.
   - Done when:
-    - Current artifact discovery, payload loading, comparison UI, generated
-      assets, and serve/static modes are understood.
-    - Existing visualizer tests and smoke tests are identified.
-    - The implementation plan for analytics, presets, and exports is recorded
-      in `PROGRESS.md`.
+    - Current memory-traffic formulas and generated report fields are mapped.
+    - Config extension points for SRAM/off-chip tiers are selected.
+    - JSON/Markdown/schema/visualizer update points are identified.
+    - Implementation plan is recorded in `PROGRESS.md`.
   - Proof:
-    - Mapped Python discovery/indexing in `photonic_bench/visualizer.py`.
-    - Mapped static UI assets in `photonic_bench/visualizer_assets/`.
-    - Mapped comparison table generation in `photonic_bench/comparison.py`.
-    - Mapped model and transformer report data in `photonic_bench/model.py`,
-      `photonic_bench/json_report.py`, and `photonic_bench/transformer.py`.
-    - Identified visualizer unit coverage in `tests/test_visualizer.py` and
-      Playwright coverage in `tests/test_visualizer_smoke.py`.
-    - Recorded the implementation path in `PROGRESS.md`.
+    - Recorded the existing converter-boundary traffic model and extension
+      points in `CONTEXT.md` and `PROGRESS.md`.
+    - Implemented the mapped surfaces in `photonic_bench/config.py`,
+      `photonic_bench/model.py`, `photonic_bench/json_report.py`,
+      `photonic_bench/report.py`, `photonic_bench/comparison.py`,
+      `photonic_bench/transformer.py`, and `photonic_bench/visualizer.py`.
 
-## Task 2: Visualizer Comparison Analytics
+## Task 2: Multi-Tier System Model
 
-- [x] DONE: Add richer comparison analytics for daily use.
+- [x] DONE: Implement explicit SRAM and off-chip/DRAM interface tiers.
   - Done when:
-    - Comparison mode surfaces practical analytical summaries for selected
-      cards, including energy/op, throughput, latency, total energy, published
-      reference availability, calibration status, and provenance boundaries.
-    - Mixed matmul/transformer selections remain readable and schema-aware.
-    - Important ratios/deltas are computed deterministically and tested.
-    - Documentation describes how to interpret the new analytics.
+    - Config supports explicit tier parameters with sensible defaults and
+      validation.
+    - Model computes per-tier bytes, bandwidth-limited transfer time, movement
+      energy, total system movement energy, compute energy, and total system
+      energy.
+    - JSON and Markdown reports expose compute-vs-movement breakdowns.
+    - Tests cover formulas, defaults, and validation failures.
   - Proof:
-    - Added comparison brief, grouped insights, operational-intensity ranking,
-      interface-traffic metrics, and boundary notes in the visualizer.
-    - Preserved mixed-schema comparison behavior with schema-aware grouping and
-      `n/a` cross-schema deltas.
-    - Updated README visualizer docs with the new analytics behavior.
-    - Verified via `tests/test_visualizer.py` and
-      `tests/test_visualizer_smoke.py`.
+    - Added `MemoryTierConfig` and `SystemConfig` with default SRAM and
+      off-chip tier parameters plus validation.
+    - Added `local_model.system` and Markdown `Multi-Tier System Model`
+      sections with per-tier bytes, movement energy, transfer time,
+      movement share, total system energy, and bandwidth-limited throughput.
+    - Covered formulas/defaults/validation in `tests/test_config.py`,
+      `tests/test_model.py`, `tests/test_json_report.py`, and
+      `tests/test_report.py`.
 
-## Task 3: Saved Comparison Presets
+## Task 3: System Model In Comparison And Visualizer
 
-- [x] DONE: Add saved comparison presets.
+- [x] DONE: Expose system-model metrics in comparison tables and visualizer
+      detail/comparison views.
   - Done when:
-    - Users can save or load named comparison selections without hand-editing
-      generated HTML.
-    - Presets survive visualizer regeneration through a documented config or
-      generated data asset.
-    - Invalid or stale preset entries degrade clearly.
-    - Tests cover preset loading and at least one stale-entry case.
+    - Comparison tables include system movement energy, total system energy,
+      movement share, and bandwidth-limited timing where useful.
+    - Visualizer summaries/detail panels show the tier breakdown and model
+      boundary notes.
+    - Missing legacy fields degrade as `n/a`.
+    - Tests cover visualizer indexing and display labels.
   - Proof:
-    - Added `reports/visualizer_presets.json` with two static generated
-      presets.
-    - Added visualizer discovery/loading for
-      `photonic-bench-comparison-presets-v1`.
-    - Added browser local-storage save/load/delete support for user presets.
-    - Added stale preset ID warnings through visualizer issues.
-    - Covered preset indexing, stale IDs, and browser preset loading in tests.
+    - `reports/comparison.md` now includes system total energy, system pJ/op,
+      movement energy, movement share, and bandwidth-limited throughput.
+    - Visualizer detail/comparison/export paths expose system fields and
+      boundary notes.
+    - `tests/test_comparison.py`, `tests/test_visualizer.py`, and
+      `tests/test_visualizer_smoke.py` cover the fields and UI labels.
 
-## Task 4: Exportable Comparison Results
+## Task 4: Pareto Charting
 
-- [x] DONE: Make comparison results exportable.
+- [x] DONE: Add Pareto-style charting to the visualizer.
   - Done when:
-    - The visualizer can export the current comparison as machine-readable data.
-    - The visualizer can export or copy a human-readable summary/table.
-    - Exported data includes enough context to preserve local-model vs published
-      reference boundaries.
-    - Browser smoke coverage verifies the export path.
+    - Visualizer includes at least energy/op vs throughput and ops/byte vs
+      latency chart modes.
+    - Frontier points are computed deterministically for each chart mode.
+    - Chart interaction or static labeling helps compare trade-offs.
+    - Browser smoke coverage verifies the Pareto view.
   - Proof:
-    - Added `photonic-bench-comparison-export-v1` browser JSON export.
-    - Added Markdown download, copy fallback, and read-only export preview.
-    - Export payload includes selected IDs, pinned reference, local metrics,
-      provenance status, boundary tags, and modeling-boundary notes.
-    - Playwright smoke verifies generated preset loading and JSON/Markdown
-      export buttons.
+    - Added `Energy/op vs throughput` and `Ops/byte vs latency` modes in
+      `photonic_bench/visualizer_assets/app.js`.
+    - Added deterministic `isParetoFrontierPoint` frontier detection,
+      frontier table, and automatic log scaling for wide positive ranges.
+    - Browser smoke verifies mode switching and frontier display.
 
-## Task 5: Published Accelerator Cards
+## Task 5: Full Transformer Model Support
 
-- [x] DONE: Add at least 2-3 new high-quality published accelerator cards.
+- [x] DONE: Improve transformer support beyond single-layer aggregation.
+  - Done when:
+    - Users can define a multi-layer/full-model transformer analysis.
+    - Existing `transformer-layer` behavior remains backward compatible.
+    - Generated artifacts remain auditable through decomposed layer/card data.
+    - Docs and tests cover the new workflow.
+  - Proof:
+    - Added `transformer-model` CLI support, model YAML parsing, count-weighted
+      model aggregation, model JSON/Markdown reports, schema docs, and
+      visualizer detail support.
+    - Added `examples/bert_base_12layer_model.yaml` and generated
+      `reports/bert_base_12layer_model/`.
+    - `tests/test_transformer.py`, `tests/test_schema_docs.py`, and
+      `tests/test_visualizer.py` cover model aggregation and compatibility.
+
+## Task 6: Published Accelerator Cards
+
+- [x] DONE: Add at least 2-3 more high-quality source-backed published cards.
   - Done when:
     - At least 2-3 new YAML configs are added under `examples/`.
-    - Each new card cites a published photonic accelerator source with DOI,
-      title, venue/year where available, and paper-reported metrics.
-    - Each new card has regenerated Markdown and JSON reports.
-    - New cards are included in comparison and visualizer example artifacts.
-    - Tests or assertions cover the new example configs and generated artifacts.
+    - Each card has source title, source URL, DOI or stable citation where
+      available, venue/year, paper metrics, and explicit surrogate labeling.
+    - Each card has regenerated Markdown and JSON reports.
+    - New cards are included in comparison and visualizer generated artifacts.
+    - Tests assert provenance and surrogate-boundary fields.
   - Proof:
-    - Added `examples/feldmann_2021_photonic_tensor_core_surrogate.yaml`.
-    - Added `examples/pappas_2025_awgr_262tops_surrogate.yaml`.
-    - Added `examples/taichi_2024_chiplet_surrogate.yaml`.
-    - Generated matching Markdown and JSON reports under `reports/`.
-    - Included all three in `reports/comparison.md`, visualizer payloads, and
-      the generated published-reference surrogate preset.
-    - Added tests for provenance, DOI/source fields, published metrics, and
-      surrogate-boundary assumptions.
+    - Added HITOP 2025, Lin 2024 TFLN 120 GOPS, and Meng 2025 MRR OTPU
+      surrogate YAML configs under `examples/`.
+    - Generated matching Markdown/JSON reports under `reports/`.
+    - Updated `reports/comparison.md`, `reports/visualizer_presets.json`, and
+      `reports/visualizer/` so the cards appear in comparison and visualizer
+      workflows.
+    - `tests/test_examples.py` asserts DOI, published metrics, and surrogate
+      boundary text for all three cards.
 
-## Task 6: Modeling Or Transformer Support
+## Task 7: External Report Loading Foundation
 
-- [x] DONE: Improve model realism or transformer workflow convenience.
+- [x] DONE: Add limited local-file/external report loading preparation.
   - Done when:
-    - A concrete modeling or transformer-support gap is selected based on code
-      inspection.
-    - The change remains auditable and does not conflate local estimates with
-      published measurements.
-    - Unit tests cover formulas, validation, and CLI behavior as applicable.
-    - Docs and generated artifacts reflect the new behavior.
+    - A small design note or docs section states scope and validation behavior.
+    - Basic local file loading works in the visualizer or supporting utility
+      after core local workflow changes are stable.
+    - Invalid files fail clearly without breaking existing generated artifacts.
+    - Tests or smoke coverage cover the basic validation path.
   - Proof:
-    - Added auditable converter-interface memory traffic to the core model:
-      vector operand read bytes, weight operand read bytes, output write bytes,
-      total interface bytes, MACs/byte, and equivalent ops/byte.
-    - Added aggregate transformer-layer interface-traffic summaries recomputed
-      from decomposed matmul cards.
-    - Kept memory traffic explicitly scoped as converter-boundary traffic, not
-      cache/SRAM/DRAM/NoC simulation.
-    - Updated report JSON, Markdown reports, comparison tables, schemas, model
-      docs, and visualizer details.
-    - Covered formulas and aggregate behavior in model, JSON report, Markdown
-      report, transformer, schema, and comparison tests.
+    - Added browser-local `Load external JSON reports` support that parses
+      supported PhotonicBench JSON schemas client-side and stores payloads only
+      in the current UI session.
+    - Added inline rejection for malformed JSON, unsupported schemas, and
+      missing/non-finite required summary fields.
+    - Documented scope and validation behavior in `README.md` and
+      `docs/json_schema.md`.
+    - Browser smoke covers valid external loading, invalid JSON rejection, and
+      clearing external artifacts.
 
-## Task 7: Documentation And Generated Artifacts
+## Task 8: Documentation And Generated Artifacts
 
-- [x] DONE: Update docs and regenerate examples.
+- [x] DONE: Update docs and regenerate all affected artifacts.
   - Done when:
-    - README documents visualizer analytics, presets, exports, new cards, and
-      modeling/transformer changes.
-    - Schema/model docs are updated if output structure or formulas change.
-    - Reports, comparison artifacts, and visualizer assets are regenerated.
-    - Generated artifacts are inspected for obvious stale or broken content.
+    - README documents system tiers, Pareto charts, full-transformer workflow,
+      new cards, and external-loading scope.
+    - Model/schema docs match generated JSON.
+    - Reports, comparison output, and visualizer data/assets are regenerated.
+    - Generated artifacts are inspected for stale or overclaiming text.
   - Proof:
-    - Updated `README.md`, `docs/model.md`, `docs/json_schema.md`, and both
-      JSON schemas for memory traffic, presets, exports, and new cards.
-    - Regenerated all affected example reports and transformer summaries.
-    - Regenerated `reports/comparison.md`.
-    - Regenerated `reports/visualizer/index.html`, index data, payloads, and
-      copied static assets.
+    - Updated `README.md`, `docs/model.md`, `docs/json_schema.md`, and JSON
+      schema files for system tiers, Pareto charting, transformer models, new
+      cards, and external loading.
+    - Regenerated per-card reports, transformer reports, comparison output,
+      BERT full-model artifacts, and `reports/visualizer/`.
     - `python -m photonic_bench.cli visualize --reports-dir reports --output
-      reports/visualizer/index.html` reports 26 artifacts and 0 warnings.
+      reports/visualizer/index.html` wrote 36 artifacts with 0 warnings.
 
-## Task 8: Verification
+## Task 9: Verification
 
 - [x] DONE: Run focused, full, and browser verification.
   - Done when:
@@ -173,49 +182,41 @@ Status key:
     - `python -m ruff check` passes.
     - `python -m pytest` passes.
     - Visualizer generation succeeds.
-    - Static and/or served visualizer browser smoke tests pass.
+    - Browser smoke tests cover existing comparison and new Pareto/loading
+      behavior where applicable.
   - Proof:
-    - `node --check photonic_bench\visualizer_assets\app.js` passed.
-    - `python -m ruff check` passed.
-    - `python -m pytest` passed: 77 tests passed, including
-      `tests/test_visualizer_smoke.py`.
-    - Visualizer generation passed with 26 artifacts and 0 warnings.
-    - Focused visualizer/model/card/schema tests passed during development
-      before the final full suite.
+    - `python -m pytest tests/test_examples.py tests/test_visualizer.py
+      tests/test_schema_docs.py`: 24 passed.
+    - `python -m pytest tests/test_visualizer_smoke.py`: passed.
+    - `node --check photonic_bench\visualizer_assets\app.js`: passed.
+    - `python -m ruff check`: passed.
+    - `python -m pytest`: 89 passed.
+    - `python -m build`: built sdist and wheel successfully.
 
-## Task 9: Mandatory Hostile Senior Reviewer Critique
+## Task 10: Mandatory Hostile Senior Reviewer Critique
 
-- [x] DONE: Critique usability and modeling clarity, then fix important issues.
+- [x] DONE: Critique modeling clarity, usability, and daily-analysis value.
   - Done when:
-    - The five required state files are re-read before the critique pass.
+    - The five required state files are re-read before critique.
     - Findings are recorded in `PROGRESS.md`.
-    - Important issues are fixed or explicitly justified.
+    - Important findings are fixed or explicitly justified.
     - Post-fix verification still passes.
   - Proof:
     - Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
-      `RUBRIC.md` before the critique pass.
-    - Recorded critique findings and fixes in `PROGRESS.md`.
-    - Fixed missing-value unit formatting in visualizer exports/metrics.
-    - Renamed the generated published preset to
-      `Published reference surrogate cards` to avoid implying paper
-      reproduction.
-    - Re-ran visualizer generation, `node --check`, Ruff, and full pytest after
-      fixes.
+      `RUBRIC.md` before critique.
+    - Recorded critique findings in `PROGRESS.md`.
+    - Fixed the important Pareto usability issue by adding automatic log
+      scaling for wide positive axes and documenting it.
+    - Post-fix `node --check`, focused visualizer tests, browser smoke, and
+      visualizer generation passed.
 
-## Task 10: Final Closeout
+## Task 11: Final Closeout
 
-- [x] DONE: Close state files and inspect final repository status.
+- [ ] IN PROGRESS: Close state files and inspect final repository status.
   - Done when:
     - All checklist items are DONE with proof.
     - `CONTEXT.md`, `PROGRESS.md`, `RUBRIC.md`, and `tasks/todo.md` reflect the
       final verified state.
     - Final `git status --short --branch` is inspected.
-    - Commit/push is completed if this goal produces committable changes.
-  - Proof:
-    - `CHECKLIST.md`, `CONTEXT.md`, `GOAL.md`, `PROGRESS.md`, `RUBRIC.md`,
-      and `tasks/todo.md` reflect the verified daily-use improvement goal.
-    - `git status --short --branch` was inspected during closeout and showed
-      only the expected goal changes before commit.
-    - The goal changes are being committed and pushed as the final repository
-      closeout action; the final response records the resulting commit/push
-      proof.
+    - Commit/PR/merge is completed through the protected-branch workflow if the
+      goal produces committable changes.

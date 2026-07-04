@@ -9,7 +9,10 @@
         "xu_11tops_convolution_surrogate.json",
         "feldmann_2021_photonic_tensor_core_surrogate.json",
         "pappas_2025_awgr_262tops_surrogate.json",
-        "taichi_2024_chiplet_surrogate.json"
+        "taichi_2024_chiplet_surrogate.json",
+        "hitop_2025_optical_tensor_processor_surrogate.json",
+        "lin_2024_tfln_120gops_tensor_core_surrogate.json",
+        "meng_2025_mrr_otpu_tensor_core_surrogate.json"
       ],
       "pinned_id": "nature_pace_64x64.json"
     },

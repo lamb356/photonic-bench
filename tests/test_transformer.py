@@ -12,12 +12,17 @@ from photonic_bench.config import (
     ExecutionConfig,
     TransformerLayerConfig,
     TransformerLayerShapeConfig,
+    TransformerModelConfig,
+    TransformerModelLayerConfig,
     load_transformer_layer_config,
+    load_transformer_model_config,
 )
 from photonic_bench.json_report import report_to_dict
 from photonic_bench.model import evaluate
 from photonic_bench.transformer import (
     TRANSFORMER_LAYER_REPORT_SCHEMA_VERSION,
+    TRANSFORMER_MODEL_REPORT_SCHEMA_VERSION,
+    TransformerModelLayerArtifact,
     attention_scores_macs,
     attention_value_macs,
     build_transformer_layer_plan,
@@ -25,7 +30,9 @@ from photonic_bench.transformer import (
     mlp_up_projection_macs,
     qkv_projection_macs,
     slugify,
+    transformer_layer_config_from_model,
     transformer_layer_report_to_dict,
+    transformer_model_report_to_dict,
 )
 from tests.test_model import unit_config
 
@@ -67,6 +74,49 @@ def small_transformer_json_cards(
         )
         for card in plan.cards
     ]
+
+
+def small_transformer_model_config() -> TransformerModelConfig:
+    base = small_transformer_layer_config()
+    return TransformerModelConfig(
+        benchmark=BenchmarkMeta(
+            name="small transformer model",
+            description="Small counted transformer model for exact tests.",
+        ),
+        layers=(
+            TransformerModelLayerConfig(
+                name="encoder_block",
+                count=3,
+                transformer_layer=base.transformer_layer,
+            ),
+        ),
+        device=base.device,
+        timing=base.timing,
+        noise=base.noise,
+        execution=base.execution,
+        system=base.system,
+        assumptions=("Synthetic full-model shape for tests.",),
+    )
+
+
+def small_transformer_model_layer_artifacts(
+    config: TransformerModelConfig | None = None,
+) -> list[TransformerModelLayerArtifact]:
+    model_config = config or small_transformer_model_config()
+    artifacts = []
+    for layer in model_config.layers:
+        layer_config = transformer_layer_config_from_model(model_config, layer)
+        cards = small_transformer_json_cards(layer_config)
+        payload = transformer_layer_report_to_dict(layer_config, cards)
+        artifacts.append(
+            TransformerModelLayerArtifact(
+                name=layer.name,
+                count=layer.count,
+                json_report=f"{layer.name}/{layer.name}_layer_summary.json",
+                payload=payload,
+            )
+        )
+    return artifacts
 
 
 def test_transformer_formula_helpers_match_standard_counts() -> None:
@@ -168,6 +218,39 @@ def test_transformer_layer_report_to_dict_aggregates_decomposed_json_cards() -> 
     ] == pytest.approx(
         8192 / payload["local_model"]["memory_traffic"]["total_interface_bytes"]
     )
+    assert payload["local_model"]["system"]["total_movement_energy_pj"] == pytest.approx(
+        sum(
+            card.payload["local_model"]["system"]["total_movement_energy_pj"]
+            for card in cards
+        )
+    )
+    assert payload["local_model"]["system"]["total_system_energy_pj"] == pytest.approx(
+        sum(
+            card.payload["local_model"]["system"]["total_system_energy_pj"]
+            for card in cards
+        )
+    )
+    assert payload["local_model"]["system"]["system_energy_per_op_pj"] == pytest.approx(
+        payload["local_model"]["system"]["total_system_energy_pj"] / 8192
+    )
+    assert payload["local_model"]["system"]["tiers"]["sram"][
+        "total_energy_pj"
+    ] == pytest.approx(
+        sum(
+            card.payload["local_model"]["system"]["tiers"]["sram"]["total_energy_pj"]
+            for card in cards
+        )
+    )
+    assert payload["local_model"]["system"][
+        "bandwidth_limited_serial_batch_latency_ns"
+    ] == pytest.approx(
+        sum(
+            card.payload["local_model"]["system"][
+                "bandwidth_limited_batch_latency_ns"
+            ]
+            for card in cards
+        )
+    )
     assert payload["local_model"]["timing"]["timing_model"] == (
         "serial_sum_of_decomposed_batch_latencies"
     )
@@ -183,6 +266,73 @@ def test_transformer_layer_report_to_dict_aggregates_decomposed_json_cards() -> 
     assert payload["matmuls"][0]["local_model"]["energy"]["total_pj"] == pytest.approx(
         cards[0].payload["local_model"]["energy"]["total_pj"]
     )
+
+
+def test_transformer_model_report_to_dict_weights_layer_counts() -> None:
+    config = small_transformer_model_config()
+    layers = small_transformer_model_layer_artifacts(config)
+
+    payload = transformer_model_report_to_dict(config, layers)
+    layer_payload = layers[0].payload
+
+    assert payload["schema_version"] == TRANSFORMER_MODEL_REPORT_SCHEMA_VERSION
+    assert payload["artifact_type"] == "transformer_model_aggregate"
+    assert payload["workload"] == {
+        "type": "transformer_model",
+        "unique_layer_specs": 1,
+        "layer_count": 3,
+        "macs": 3 * 4096,
+        "equivalent_ops": 3 * 8192,
+        "output_elements": 3 * layer_payload["workload"]["output_elements"],
+    }
+    assert payload["local_model"]["energy"]["total_pj"] == pytest.approx(
+        3 * layer_payload["local_model"]["energy"]["total_pj"]
+    )
+    assert payload["local_model"]["system"]["total_system_energy_pj"] == pytest.approx(
+        3 * layer_payload["local_model"]["system"]["total_system_energy_pj"]
+    )
+    assert payload["local_model"]["system"]["system_energy_per_op_pj"] == pytest.approx(
+        payload["local_model"]["system"]["total_system_energy_pj"] / (3 * 8192)
+    )
+    assert payload["local_model"]["timing"]["serial_batch_latency_ns"] == pytest.approx(
+        3 * layer_payload["local_model"]["timing"]["serial_batch_latency_ns"]
+    )
+    assert payload["local_model"]["system"][
+        "bandwidth_limited_serial_batch_latency_ns"
+    ] == pytest.approx(
+        3
+        * layer_payload["local_model"]["system"][
+            "bandwidth_limited_serial_batch_latency_ns"
+        ]
+    )
+    assert payload["layers"][0]["name"] == "encoder_block"
+    assert payload["layers"][0]["count"] == 3
+    assert payload["layers"][0]["weighted_macs"] == 3 * 4096
+    assert payload["layers"][0]["matmul_reports"] == [
+        "tiny_qkv_projection.json",
+        "tiny_attention_scores.json",
+        "tiny_attention_value.json",
+        "tiny_mlp_up_projection.json",
+        "tiny_mlp_down_projection.json",
+    ]
+
+
+def test_transformer_model_report_rejects_stale_layer_summary() -> None:
+    config = small_transformer_model_config()
+    layers = small_transformer_model_layer_artifacts(config)
+    broken_payload = copy.deepcopy(layers[0].payload)
+    broken_payload["transformer_layer"]["shape"]["hidden_size"] = 16
+    broken_layers = [
+        TransformerModelLayerArtifact(
+            name=layers[0].name,
+            count=layers[0].count,
+            json_report=layers[0].json_report,
+            payload=broken_payload,
+        )
+    ]
+
+    with pytest.raises(ValueError, match="transformer_layer.shape"):
+        transformer_model_report_to_dict(config, broken_layers)
 
 
 def test_transformer_layer_report_rejects_inconsistent_json_cards() -> None:
@@ -409,6 +559,48 @@ published_calibration:
         load_transformer_layer_config(config_path)
 
 
+def test_load_transformer_model_config_supports_counted_layers(tmp_path: Path) -> None:
+    config_path = tmp_path / "transformer_model.yaml"
+    config_path.write_text(_small_transformer_model_yaml(), encoding="utf-8")
+
+    config = load_transformer_model_config(config_path)
+
+    assert config.benchmark.name == "small transformer model"
+    assert len(config.layers) == 1
+    assert config.layers[0].name == "encoder_block"
+    assert config.layers[0].count == 3
+    assert config.layers[0].transformer_layer.hidden_size == 8
+    assert config.layers[0].transformer_layer.head_dim == 4
+
+
+def test_load_transformer_model_config_rejects_duplicate_layers(
+    tmp_path: Path,
+) -> None:
+    config_path = tmp_path / "transformer_model.yaml"
+    config_path.write_text(
+        _small_transformer_model_yaml().replace(
+            "device:\n",
+            """
+    - name: encoder_block
+      count: 1
+      layer_type: encoder
+      attention_mode: dense
+      batch_size: 2
+      sequence_length: 4
+      hidden_size: 8
+      num_heads: 2
+      head_dim: 4
+      mlp_intermediate_size: 16
+device:
+""",
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="must be unique"):
+        load_transformer_model_config(config_path)
+
+
 def test_cli_transformer_layer_generates_decomposed_outputs(tmp_path: Path) -> None:
     config_path = tmp_path / "transformer.yaml"
     output_dir = tmp_path / "cards"
@@ -478,6 +670,60 @@ def test_cli_transformer_layer_generates_decomposed_outputs(tmp_path: Path) -> N
     assert summary["matmuls"][0]["json_report"] == "tiny_qkv_projection.json"
 
 
+def test_cli_transformer_model_generates_summary_and_layers(tmp_path: Path) -> None:
+    config_path = tmp_path / "transformer_model.yaml"
+    output_dir = tmp_path / "model"
+    config_path.write_text(_small_transformer_model_yaml(), encoding="utf-8")
+
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "photonic_bench.cli",
+            "transformer-model",
+            str(config_path),
+            "--output-dir",
+            str(output_dir),
+            "--prefix",
+            "tiny_model",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    assert "Wrote transformer model summary" in completed.stdout
+    assert "Wrote transformer model JSON summary" in completed.stdout
+
+    model_json = output_dir / "tiny_model_model_summary.json"
+    model_md = output_dir / "tiny_model_model_summary.md"
+    layer_summary = (
+        output_dir
+        / "encoder_block"
+        / "tiny_model_encoder_block_layer_summary.json"
+    )
+    assert model_json.exists()
+    assert model_md.exists()
+    assert layer_summary.exists()
+    assert (
+        output_dir
+        / "encoder_block"
+        / "tiny_model_encoder_block_qkv_projection.json"
+    ).exists()
+
+    payload = json.loads(model_json.read_text(encoding="utf-8"))
+    assert payload["schema_version"] == TRANSFORMER_MODEL_REPORT_SCHEMA_VERSION
+    assert payload["workload"]["layer_count"] == 3
+    assert payload["workload"]["macs"] == 3 * 4096
+    assert payload["layers"][0]["json_report"] == (
+        "encoder_block/tiny_model_encoder_block_layer_summary.json"
+    )
+    markdown = model_md.read_text(encoding="utf-8")
+    assert "PhotonicBench Transformer Model Summary" in markdown
+    assert "encoder_block" in markdown
+
+
 @pytest.mark.parametrize(
     ("example_path", "expected_total_macs", "expected_total_equivalent_ops"),
     [
@@ -509,6 +755,17 @@ def test_transformer_example_configs_have_expected_totals(
     assert payload["workload"]["equivalent_ops"] == expected_total_equivalent_ops
     assert payload["formula_audit"]["json_total_macs"] == expected_total_macs
     assert len(payload["matmuls"]) == 5
+
+
+def test_transformer_model_example_config_has_expected_totals() -> None:
+    config = load_transformer_model_config(Path("examples/bert_base_12layer_model.yaml"))
+    layers = small_transformer_model_layer_artifacts(config)
+    payload = transformer_model_report_to_dict(config, layers)
+
+    assert payload["workload"]["unique_layer_specs"] == 1
+    assert payload["workload"]["layer_count"] == 12
+    assert payload["workload"]["macs"] == 12 * 855_638_016
+    assert payload["workload"]["equivalent_ops"] == 12 * 1_711_276_032
 
 
 def _small_transformer_yaml(*, include_head_dim: bool = True) -> str:
@@ -547,4 +804,46 @@ noise:
   integration_time_ns: 3
 assumptions:
   - Synthetic transformer shape for tests.
+""".strip()
+
+
+def _small_transformer_model_yaml() -> str:
+    return """
+benchmark:
+  name: small transformer model
+  description: Small counted transformer model for exact formula tests.
+transformer_model:
+  layers:
+    - name: encoder_block
+      count: 3
+      layer_type: encoder
+      attention_mode: dense
+      batch_size: 2
+      sequence_length: 4
+      hidden_size: 8
+      num_heads: 2
+      head_dim: 4
+      mlp_intermediate_size: 16
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 6
+    energy_pj_per_conversion: 0.5
+  dac:
+    bits: 6
+    energy_pj_per_conversion: 0.2
+execution:
+  weight_stationary: true
+timing:
+  optical_latency_ns: 3
+  adc_latency_ns: 1
+  dac_latency_ns: 1
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 3
+assumptions:
+  - Synthetic full-model shape for tests.
 """.strip()

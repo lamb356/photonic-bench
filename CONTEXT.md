@@ -4,16 +4,17 @@
 
 - Workspace: `C:\Users\burba\OneDrive\Documents\Photonic Acceleration`
 - Package: `photonic_bench`
-- Branch: `master`
+- Working branch for this goal: `codex/system-model-pareto`
+- Base branch: `master`
 - Remote:
   - `origin` is `https://github.com/lamb356/photonic-bench.git`;
   - repository URL is `https://github.com/lamb356/photonic-bench`;
   - `master` tracks `origin/master`.
-- Phase-start `HEAD`:
-  - `397c50b Record public branch protection completion`
-- Phase-start worktree:
-  - clean `master...origin/master`.
-- Repository automation baseline:
+- Goal-start `HEAD`:
+  - `ab88d29 Merge pull request #1 from lamb356/codex/daily-use-analysis`
+- Goal-start worktree:
+  - clean `master...origin/master` before creating the goal branch.
+- Repository automation:
   - public repository;
   - CI badge in `README.md`;
   - Dependabot config present;
@@ -27,59 +28,52 @@
   - `compare`: generate Markdown comparison tables from JSON cards;
   - `transformer-layer`: generate decomposed transformer-layer cards and an
     aggregate layer summary;
+  - `transformer-model`: generate representative transformer-layer artifacts
+    and a counted full-model summary from multi-layer model YAML;
   - `visualize`: generate or serve a static web visualizer from JSON reports.
-- Existing visualizer architecture:
-  - Python artifact discovery and schema-aware loading in
-    `photonic_bench/visualizer.py`;
-  - HTML/CSS/JS assets in `photonic_bench/visualizer_assets/`;
-  - generated static example under `reports/visualizer/`;
-  - lightweight index plus per-artifact payload files.
-- Existing published cards include:
-  - Nature PACE 64x64 matrix-vector accelerator example;
+- Visualizer architecture:
+  - `photonic_bench/visualizer.py` discovers schema-aware JSON artifacts,
+    writes a lightweight index, and emits per-artifact payloads;
+  - `photonic_bench/visualizer_assets/template.html`, `styles.css`, and
+    `app.js` provide the static UI;
+  - generated static example lives under `reports/visualizer/`.
+- Current comparison/visualizer features:
+  - generated presets from `reports/visualizer_presets.json`;
+  - browser-local preset save/load/delete;
+  - comparison brief and grouped insights;
+  - Pareto trade-off charting for energy/op versus throughput and ops/byte
+    versus latency;
+  - JSON and Markdown comparison export;
+  - browser-local external JSON report loading with validation and clear
+    failure messages.
+- Current modeling:
+  - component model includes optical compute, laser, detector, ADC, DAC,
+    timing, noise, conversion counts, reuse/stationarity behavior, and
+    converter-interface memory traffic.
+  - Converter-boundary traffic tracks:
+    vector operand bytes, weight operand bytes, output bytes, total interface
+    bytes, MACs/byte, and equivalent ops/byte.
+  - Multi-tier system movement now adds explicit SRAM and off-chip/DRAM
+    interface tiers with per-tier bytes, movement energy, transfer time,
+    bandwidth-limited latency/throughput, total movement energy, total system
+    energy, system pJ/MAC, system pJ/equivalent-op, and movement-energy share.
+  - System movement fields remain local estimates and are explicitly separated
+    from paper-reported published references.
+- Current transformer support:
+  - single transformer-layer YAML expands into decomposed matmul cards and an
+    aggregate layer JSON/Markdown summary.
+  - transformer-model YAML defines one or more layer specs with counts and
+    generates a full-model serial weighted summary while preserving
+    decomposed-card audit links.
+- Current published cards:
+  - Nature PACE 64x64 matrix-vector accelerator;
   - Xu 2021 11 TOPS photonic convolution surrogate;
   - Feldmann 2021 photonic tensor core surrogate;
   - Pappas 2025 262 TOPS AWGR surrogate;
   - Taichi 2024 photonic chiplet surrogate;
-  - local/reference-style 64x64 and weight-stationary examples.
-- Existing transformer examples include:
-  - small sanity layer;
-  - BERT-base style encoder layer;
-  - GPT-style decoder layer.
-
-## Goal Implementation State
-
-- Visualizer comparison mode now supports:
-  - generated comparison presets from `reports/visualizer_presets.json`;
-  - browser-local preset save/load/delete;
-  - comparison brief metrics for published coverage, calibration fits,
-    interface traffic, best operational intensity, and fastest artifact;
-  - grouped comparison insights over energy/op, latency, throughput, and
-    operational intensity;
-  - JSON comparison download;
-  - Markdown comparison download/copy with an export preview.
-- Visualizer generated data now includes:
-  - `comparison_presets` in the lightweight index;
-  - per-artifact converter-interface memory traffic and operational intensity
-    summaries when available;
-  - warnings for stale generated preset artifact IDs.
-- Core reports now include `local_model.memory_traffic`:
-  - vector operand read bytes;
-  - weight operand read bytes;
-  - output write bytes;
-  - total interface bytes;
-  - MACs per byte;
-  - equivalent ops per byte.
-- Transformer aggregate JSON now sums decomposed-card interface traffic and
-  recomputes aggregate operational intensity.
-- Modeling boundary:
-  - memory traffic is converter-interface traffic derived from bit widths and
-    reuse/conversion counts;
-  - it is not a cache, SRAM, DRAM, NoC, or full memory hierarchy model.
-- Published-card boundary:
-  - Feldmann, Pappas, and Taichi cards carry paper metrics as
-    `published_reference`/`published_calibration` data;
-  - local workloads are explicitly labeled surrogates and do not claim
-    device-level reproduction.
+  - HITOP 2025 optical tensor processor surrogate;
+  - Lin 2024 TFLN 120 GOPS tensor core surrogate;
+  - Meng 2025 MRR OTPU tensor core surrogate.
 
 ## Current Dependencies And Verification
 
@@ -101,25 +95,26 @@
 ## Goal-Specific Design Constraints
 
 - Keep published paper numbers separate from local component-model estimates.
-- New modeling realism must be auditable through formulas, JSON fields, and
-  docs.
-- Visualizer improvements should remain static-site friendly and easy to
-  regenerate through the CLI.
-- Saved comparison presets should not require a hosted backend.
-- Comparison exports must preserve provenance and modeling-boundary context.
-- New cards must be source-backed and must not imply independent reproduction
-  of device-level paper results.
+- Multi-tier system model fields must be auditable and explicitly scoped.
+- Default tier assumptions must be conservative, visible, and documented.
+- Visualizer additions must remain static-site friendly and easy to regenerate.
+- Pareto charts should help daily trade-off analysis, not just add decorative
+  graphics.
+- Full-transformer support must preserve decomposed-card auditability and
+  backward compatibility with `transformer-layer`.
+- External report loading is lower priority and must stay limited until the core
+  local workflow is strong.
 
-## Completed Recon Decisions
+## Goal Outcome Notes
 
-- Static preset format: use `reports/visualizer_presets.json` as a sidecar
-  discovered during `visualize`, and combine it with browser-local presets at
-  runtime.
-- Published card additions: Feldmann 2021, Pappas 2025, and Taichi 2024 were
-  selected because each has public source details and usable paper-reported
-  metrics.
-- Modeling improvement: converter-interface memory traffic was selected because
-  it provides practical operational-intensity context without pretending to be
-  a full memory-system simulator.
-- Verification baseline: final local checks passed with 26 visualizer artifacts,
-  0 generation warnings, clean Ruff, and 77 passing pytest tests.
+- Tier defaults live in the dataclass config layer and are serialized into
+  report `model_inputs.system` so assumptions are visible.
+- `local_model.energy.total_pj` remains the legacy local
+  compute/conversion estimate; `local_model.system.total_system_energy_pj`
+  adds explicit SRAM/off-chip movement energy as a separate local estimate.
+- Pareto charting prefers system pJ/op and bandwidth-limited throughput where
+  present, falling back to legacy fields only for older artifacts.
+- Transformer-model support deliberately models serial full-model accounting,
+  not fused scheduling or non-matmul operator costs.
+- External loading is intentionally browser-local and in-memory; it does not
+  mutate generated visualizer artifacts.
