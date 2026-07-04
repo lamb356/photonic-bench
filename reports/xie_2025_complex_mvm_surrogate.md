@@ -52,6 +52,49 @@ Source-quality notes:
 - The source reports a scalar 1.28 TOPS throughput and complex-valued programmable operation, but this card does not encode an energy-efficiency target.
 
 
+## Source Audit
+
+These rows keep quoted source metrics, direct conversion math, local assumptions,
+and confidence flags separate. They do not turn local surrogate estimates into
+paper measurements.
+
+| Metric | Quoted value | Source location | Note |
+| --- | --- | --- | --- |
+| Architecture | 16-channel programmable on-chip coherent photonic matrix-vector multiplication processor | published_calibration.architecture | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Reported throughput | 1.28 | published_calibration.reported_tops | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Programmable channels | 16 | published_calibration.additional_metrics.programmable_channels | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Complex valued processing | True | published_calibration.additional_metrics.complex_valued_processing | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Demonstrated functions | arbitrary matrix transformation, parallel image processing, handwritten digital recognition | published_calibration.additional_metrics.demonstrated_functions | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Uses low phase error mzi mesh | True | published_calibration.additional_metrics.uses_low_phase_error_mzi_mesh | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Uses ultralow loss waveguide delay lines | True | published_calibration.additional_metrics.uses_ultralow_loss_waveguide_delay_lines | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Surrogate mapping | m=1, k=16, n=16 is a dense real-valued local MVM tile for a complex-valued 16-channel coherent processor; it does not reproduce phase encoding or coherent detection. | published_calibration.additional_metrics.surrogate_mapping | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+
+| Derived metric | Formula | Inputs | Result | Note |
+| --- | --- | --- | ---: | --- |
+
+
+Local assumptions:
+
+- Local surrogate type: dense_complex_coherent_mvm_surrogate.
+- The source reports a scalar 1.28 TOPS throughput and complex-valued programmable operation, but this card does not encode an energy-efficiency target.
+- Source-reported throughput and demonstration claims remain paper-derived metadata.
+- Local dense real-valued matmul, converter energy, system tiers, and latency are PhotonicBench assumptions for comparison only.
+- The card does not model complex amplitudes, phase shifter calibration, coherent receiver behavior, delay-line loss, or arbitrary-function programming.
+
+Confidence flags:
+
+- claim_status=paper-reported complex-valued MVM throughput and demonstrations; MVM-surrogate local model
+- source_doi=10.1126/sciadv.ads7475
+- source_quality_grade=B
+- coverage.accuracy=reported
+- coverage.area=not_reported
+- coverage.energy=not_reported
+- coverage.precision=reported
+- coverage.throughput=reported
+
+Boundary note: Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs.
+
+
 
 ## Workload
 
@@ -110,11 +153,29 @@ simulator.
 | Intermediate/cache | 272 bytes | 16 bytes | 57.600 pJ | 33.33% | 1.96% | 1.92% | 1.125 ns | 1.125 ns | 1.125 | 256.000 bytes/ns | 288.000 bytes/ns | 1.125 | -32.000 bytes/ns |
 | Off-chip/DRAM | 272 bytes | 16 bytes | 2880.000 pJ | 33.33% | 97.85% | 95.79% | 18.000 ns | 18.000 ns | 18 | 16.000 bytes/ns | 288.000 bytes/ns | 18 | -272.000 bytes/ns |
 
+### Hierarchy Energy Breakdown
+
+This table is a local system-energy decomposition by hierarchy level. It is
+not a published hardware energy breakdown.
+
+| Component | Energy | System share |
+| --- | ---: | ---: |
+| Local compute/conversion | 63.072 pJ | 2.10% |
+| SRAM movement | 5.760 pJ | 0.19% |
+| Intermediate/cache movement | 57.600 pJ | 1.92% |
+| Off-chip/DRAM movement | 2880.000 pJ | 95.79% |
+| Total movement | 2943.360 pJ | 97.90% |
+
 | Metric | Value |
 | --- | ---: |
 | System profile | default |
 | Profile tier overrides | none |
+| Memory scenario | default |
+| Scenario description | PhotonicBench baseline: local SRAM plus a conservative generic off-chip/DRAM tier matching the historical defaults. |
 | Memory timing mode | overlapped |
+| Contention preset | single_client |
+| Contention preset description | Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband. |
+| Contention overlap model | profile_timing_mode |
 | Shared bandwidth clients | 1 |
 | Arbitration efficiency | 1 |
 | Calibration/control overhead | 0 |
@@ -156,6 +217,8 @@ simulator.
 | Effective loaded hierarchy bandwidth | 48.000 bytes/ns |
 | Contention-only loaded hierarchy bandwidth | 48.000 bytes/ns |
 | Contention-adjusted loaded hierarchy bandwidth | 48.000 bytes/ns |
+| Effective usable bandwidth under load | 48.000 bytes/ns |
+| Guardbanded usable bandwidth under load | 48.000 bytes/ns |
 | Transfer-to-compute time ratio | 18 |
 | Bandwidth-limited tier | off_chip |
 | Bandwidth-limited batch latency | 18.000 ns |
@@ -166,6 +229,17 @@ simulator.
 | Contention-adjusted transfer-to-compute time ratio | 18 |
 | Contention pressure ratio | 18 |
 | Contention-adjusted equivalent ops/s | 28444444444.444 |
+
+### Scenario Provenance Packs
+
+These packs justify the selected local memory hierarchy and contention preset
+without implying measured end-to-end hardware behavior.
+
+| Pack | Status | Calibration scope | Sources | Local assumptions | Reviewer note |
+| --- | --- | --- | --- | --- | --- |
+| Memory scenario | source-context-plus-local-parameters | Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions. | Computing's energy problem (and what we can do about it) (10.1109/ISSCC.2014.6757323) | SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.; The scenario is a conservative baseline for sensitivity comparisons. | Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior. |
+| Contention preset | local-baseline | Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband. | explicit local assumption | shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions. | Use as the no-contention reference point. |
+
 
 ## Energy
 
@@ -225,3 +299,4 @@ simulator.
 - Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.
 - The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.
 - System contention fields model shared bandwidth clients, arbitration efficiency, and calibration/control guardband as local assumptions; they are not inferred from published hardware unless a card says so.
+- Memory scenario and contention preset names describe local review assumptions, including the overlap model used to interpret transfer timing; they are not benchmark claims.

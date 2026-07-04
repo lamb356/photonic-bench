@@ -51,11 +51,110 @@ window.PhotonicBenchPayloadRegistry["profile_sensitivity_64x64_pcie_attached.jso
     "system": {
       "profile": "pcie_attached",
       "profile_overrides": [],
+      "scenario": {
+        "name": "pcie_attached",
+        "description": "Local SRAM plus a host/PCIe-attached memory path with lower effective bandwidth and higher movement energy.",
+        "profile_overrides": [],
+        "memory_timing_mode": "serialized",
+        "contention_preset": "pcie_round_robin",
+        "contention_preset_description": "Host/PCIe-attached path: two clients share a serialized host link with round-robin arbitration and explicit protocol guardband.",
+        "overlap_model": "serialized_host_link",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Serialized host/PCIe-attached path for cards whose data movement leaves the local accelerator package.",
+          "sources": [
+            {
+              "title": "PCI-SIG PCI Express 6.0 specification overview",
+              "url": "https://pcisig.com/pci-express-6.0-specification",
+              "reference_id": "PCIe 6.0 specification overview",
+              "evidence_type": "host-link/interconnect context",
+              "supports": [
+                "serialized host-link scenario",
+                "PCIe-attached movement path"
+              ]
+            },
+            {
+              "title": "Lightning: A reconfigurable photonic-electronic SmartNIC for fast and energy-efficient inference",
+              "url": "https://dl.acm.org/doi/10.1145/3603269.3604821",
+              "reference_id": "10.1145/3603269.3604821",
+              "evidence_type": "host/network-attached photonic system context",
+              "supports": [
+                "serialized host-attached movement",
+                "packet-to-photonic datapath"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "Host-link bandwidth and 50 pJ/byte movement are conservative local parameters.",
+            "The serialized timing mode is a local review guardrail for host-attached designs."
+          ],
+          "reviewer_note": "The pack makes host-link exposure visible without claiming a full PCIe protocol simulation."
+        },
+        "contention_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Serialized host-link contention with a local round-robin sharing and protocol guardband model.",
+          "sources": [
+            {
+              "title": "PCI-SIG PCI Express 6.0 specification overview",
+              "url": "https://pcisig.com/pci-express-6.0-specification",
+              "reference_id": "PCIe 6.0 specification overview",
+              "evidence_type": "host-link/interconnect context",
+              "supports": [
+                "serialized host-link scenario",
+                "PCIe-attached movement path"
+              ]
+            },
+            {
+              "title": "Lightning: A reconfigurable photonic-electronic SmartNIC for fast and energy-efficient inference",
+              "url": "https://dl.acm.org/doi/10.1145/3603269.3604821",
+              "reference_id": "10.1145/3603269.3604821",
+              "evidence_type": "host/network-attached photonic system context",
+              "supports": [
+                "serialized host-attached movement",
+                "packet-to-photonic datapath"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "Two modeled clients, 0.85 arbitration efficiency, and 0.05 guardband are local host-link review parameters."
+          ],
+          "reviewer_note": "Use to catch host-attached designs whose ranking depends on assuming free host movement."
+        },
+        "assumptions": {
+          "shared_bandwidth_clients": 2.0,
+          "arbitration_efficiency": 0.85,
+          "calibration_overhead_fraction": 0.05,
+          "sram": {
+            "read_energy_pj_per_byte": 0.02,
+            "write_energy_pj_per_byte": 0.02,
+            "bandwidth_bytes_per_ns": 1024.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "intermediate": {
+            "read_energy_pj_per_byte": 0.2,
+            "write_energy_pj_per_byte": 0.2,
+            "bandwidth_bytes_per_ns": 128.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "off_chip": {
+            "read_energy_pj_per_byte": 50.0,
+            "write_energy_pj_per_byte": 50.0,
+            "bandwidth_bytes_per_ns": 8.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          }
+        },
+        "note": "Memory scenario fields are local modeling assumptions for review and sensitivity analysis; they are not paper-published hardware measurements unless a card states otherwise."
+      },
       "memory_timing_mode": "serialized",
       "contention": {
+        "preset": "pcie_round_robin",
         "shared_bandwidth_clients": 2.0,
         "arbitration_efficiency": 0.85,
-        "calibration_overhead_fraction": 0.05
+        "calibration_overhead_fraction": 0.05,
+        "overlap_model": "serialized_host_link"
       },
       "sram": {
         "read_energy_pj_per_byte": 0.02,
@@ -109,12 +208,113 @@ window.PhotonicBenchPayloadRegistry["profile_sensitivity_64x64_pcie_attached.jso
     "system": {
       "profile": "pcie_attached",
       "profile_overrides": [],
+      "memory_scenario": {
+        "name": "pcie_attached",
+        "description": "Local SRAM plus a host/PCIe-attached memory path with lower effective bandwidth and higher movement energy.",
+        "profile_overrides": [],
+        "memory_timing_mode": "serialized",
+        "contention_preset": "pcie_round_robin",
+        "contention_preset_description": "Host/PCIe-attached path: two clients share a serialized host link with round-robin arbitration and explicit protocol guardband.",
+        "overlap_model": "serialized_host_link",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Serialized host/PCIe-attached path for cards whose data movement leaves the local accelerator package.",
+          "sources": [
+            {
+              "title": "PCI-SIG PCI Express 6.0 specification overview",
+              "url": "https://pcisig.com/pci-express-6.0-specification",
+              "reference_id": "PCIe 6.0 specification overview",
+              "evidence_type": "host-link/interconnect context",
+              "supports": [
+                "serialized host-link scenario",
+                "PCIe-attached movement path"
+              ]
+            },
+            {
+              "title": "Lightning: A reconfigurable photonic-electronic SmartNIC for fast and energy-efficient inference",
+              "url": "https://dl.acm.org/doi/10.1145/3603269.3604821",
+              "reference_id": "10.1145/3603269.3604821",
+              "evidence_type": "host/network-attached photonic system context",
+              "supports": [
+                "serialized host-attached movement",
+                "packet-to-photonic datapath"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "Host-link bandwidth and 50 pJ/byte movement are conservative local parameters.",
+            "The serialized timing mode is a local review guardrail for host-attached designs."
+          ],
+          "reviewer_note": "The pack makes host-link exposure visible without claiming a full PCIe protocol simulation."
+        },
+        "contention_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Serialized host-link contention with a local round-robin sharing and protocol guardband model.",
+          "sources": [
+            {
+              "title": "PCI-SIG PCI Express 6.0 specification overview",
+              "url": "https://pcisig.com/pci-express-6.0-specification",
+              "reference_id": "PCIe 6.0 specification overview",
+              "evidence_type": "host-link/interconnect context",
+              "supports": [
+                "serialized host-link scenario",
+                "PCIe-attached movement path"
+              ]
+            },
+            {
+              "title": "Lightning: A reconfigurable photonic-electronic SmartNIC for fast and energy-efficient inference",
+              "url": "https://dl.acm.org/doi/10.1145/3603269.3604821",
+              "reference_id": "10.1145/3603269.3604821",
+              "evidence_type": "host/network-attached photonic system context",
+              "supports": [
+                "serialized host-attached movement",
+                "packet-to-photonic datapath"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "Two modeled clients, 0.85 arbitration efficiency, and 0.05 guardband are local host-link review parameters."
+          ],
+          "reviewer_note": "Use to catch host-attached designs whose ranking depends on assuming free host movement."
+        },
+        "assumptions": {
+          "shared_bandwidth_clients": 2.0,
+          "arbitration_efficiency": 0.85,
+          "calibration_overhead_fraction": 0.05,
+          "sram": {
+            "read_energy_pj_per_byte": 0.02,
+            "write_energy_pj_per_byte": 0.02,
+            "bandwidth_bytes_per_ns": 1024.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "intermediate": {
+            "read_energy_pj_per_byte": 0.2,
+            "write_energy_pj_per_byte": 0.2,
+            "bandwidth_bytes_per_ns": 128.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "off_chip": {
+            "read_energy_pj_per_byte": 50.0,
+            "write_energy_pj_per_byte": 50.0,
+            "bandwidth_bytes_per_ns": 8.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          }
+        },
+        "note": "Memory scenario fields are local modeling assumptions for review and sensitivity analysis; they are not paper-published hardware measurements unless a card states otherwise."
+      },
       "memory_timing_mode": "serialized",
       "contention": {
+        "preset": "pcie_round_robin",
         "shared_bandwidth_clients": 2.0,
         "arbitration_efficiency": 0.85,
-        "calibration_overhead_fraction": 0.05
+        "calibration_overhead_fraction": 0.05,
+        "overlap_model": "serialized_host_link"
       },
+      "contention_preset": "pcie_round_robin",
+      "contention_overlap_model": "serialized_host_link",
       "tiers": {
         "sram": {
           "name": "sram",
@@ -203,6 +403,31 @@ window.PhotonicBenchPayloadRegistry["profile_sensitivity_64x64_pcie_attached.jso
       "total_system_energy_pj": 621355.008,
       "system_energy_per_mac_pj": 2.37028125,
       "system_energy_per_op_pj": 1.185140625,
+      "hierarchy_energy_breakdown": {
+        "local_compute_and_conversion": {
+          "energy_pj": 4251.648,
+          "share": 0.006842542419807776
+        },
+        "sram": {
+          "energy_pj": 245.76,
+          "share": 0.00039552268322588297
+        },
+        "intermediate": {
+          "energy_pj": 2457.6000000000004,
+          "share": 0.0039552268322588305
+        },
+        "off_chip": {
+          "energy_pj": 614400.0,
+          "share": 0.9888067080647075
+        },
+        "movement_total": {
+          "energy_pj": 617103.36,
+          "share": 0.9931574575801921
+        },
+        "total_system_energy_pj": 621355.008,
+        "dominant_component": "off_chip",
+        "note": "Hierarchy energy is a local decomposition of compute/conversion energy plus modeled movement energy by tier; it is not a published hardware energy breakdown."
+      },
       "local_compute_and_conversion_energy_share": 0.006842542419807776,
       "movement_energy_share": 0.9931574575801921,
       "movement_to_compute_energy_ratio": 145.14450867052022,
@@ -238,6 +463,8 @@ window.PhotonicBenchPayloadRegistry["profile_sensitivity_64x64_pcie_attached.jso
       "effective_loaded_bandwidth_bytes_per_ns": 22.423357664233578,
       "contention_only_loaded_bandwidth_bytes_per_ns": 9.529927007299271,
       "contention_adjusted_loaded_bandwidth_bytes_per_ns": 9.076120959332638,
+      "effective_usable_bandwidth_under_load_bytes_per_ns": 9.529927007299271,
+      "guardbanded_usable_bandwidth_under_load_bytes_per_ns": 9.076120959332638,
       "transfer_to_compute_time_ratio": 328.8,
       "bandwidth_limited_batch_latency_ns": 1644.0,
       "bandwidth_pressure_ratio": 328.8,
@@ -300,7 +527,8 @@ window.PhotonicBenchPayloadRegistry["profile_sensitivity_64x64_pcie_attached.jso
     "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
     "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.",
     "The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.",
-    "System contention fields model shared bandwidth clients, arbitration efficiency, and calibration/control guardband as local assumptions; they are not inferred from published hardware unless a card says so."
+    "System contention fields model shared bandwidth clients, arbitration efficiency, and calibration/control guardband as local assumptions; they are not inferred from published hardware unless a card says so.",
+    "Memory scenario and contention preset names describe local review assumptions, including the overlap model used to interpret transfer timing; they are not benchmark claims."
   ],
   "provenance": null
 }

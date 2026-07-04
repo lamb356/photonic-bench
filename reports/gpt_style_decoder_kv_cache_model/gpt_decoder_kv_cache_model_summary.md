@@ -16,6 +16,9 @@ GPT-2-small style decoder inference summary with 12 identical decoder layers, on
 
 | Metric | Value |
 | --- | ---: |
+| Memory scenario | default |
+| Contention preset | single_client |
+| Contention overlap model | profile_timing_mode |
 | Compute/conversion energy (pJ) | 6.13456e+07 |
 | Movement energy (pJ) | 1.77864e+09 |
 | Total system energy (pJ) | 1.83998e+09 |
@@ -32,11 +35,16 @@ GPT-2-small style decoder inference summary with 12 identical decoder layers, on
 | Contention-adjusted serial latency (ns) | 1.08772e+07 |
 | Contention-adjusted equivalent ops/s | 2.48864e+10 |
 | Contention-only loaded bandwidth (bytes/ns) | 48 |
+| Effective usable bandwidth under load (bytes/ns) | 48 |
+| Guardbanded usable bandwidth under load (bytes/ns) | 48 |
 | Bandwidth saturation tier | off_chip |
 | Max tier bandwidth utilization | 13057.9 |
 | Min tier bandwidth headroom ratio | 7.65823e-05 |
 | Dominant system energy component | off_chip |
 | Max tier system energy share | 0.945851 |
+| SRAM system-energy share | 0.0018917 |
+| Intermediate system-energy share | 0.018917 |
+| Off-chip system-energy share | 0.945851 |
 
 ## Model Components
 

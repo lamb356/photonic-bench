@@ -2,6 +2,20 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://photonicbench.local/schemas/photonic-bench-comparison-export-v1.schema.json",
   "title": "PhotonicBench visualizer comparison export v1",
+  "x-schema-version-policy": {
+    "schema_identifier": "photonic-bench-comparison-export-v1",
+    "compatible_changes": [
+      "Add optional properties to existing objects.",
+      "Add shared $defs that are only referenced by optional properties.",
+      "Clarify descriptions, examples, or documentation without changing meaning."
+    ],
+    "breaking_changes": [
+      "Add new required properties.",
+      "Remove or rename existing properties.",
+      "Change units, nullability, value type, or local-model versus published-reference semantics."
+    ],
+    "breaking_change_action": "Use a new schema_version string and a new schema file."
+  },
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -334,7 +348,22 @@
         "movement_to_compute_energy_ratio": {
           "$ref": "#/$defs/nullableNumber"
         },
+        "memory_scenario": {
+          "type": ["string", "null"]
+        },
+        "contention_preset": {
+          "type": ["string", "null"]
+        },
+        "contention_overlap_model": {
+          "type": ["string", "null"]
+        },
         "contention_only_loaded_bandwidth_bytes_per_ns": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "effective_usable_bandwidth_under_load_bytes_per_ns": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "guardbanded_usable_bandwidth_under_load_bytes_per_ns": {
           "$ref": "#/$defs/nullableNumber"
         },
         "guardbanded_loaded_hierarchy_bandwidth_bytes_per_ns": {

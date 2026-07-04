@@ -442,3 +442,64 @@ def test_dong_2023_continuous_time_tensor_core_card_is_source_backed() -> None:
     assert metrics["wdm_channels"] == 2
     assert metrics["reported_cnn_accuracy_percent"] == pytest.approx(93.5)
     assert "not a continuous-time RF/WDM simulation" in metrics["surrogate_mapping"]
+
+
+@pytest.mark.parametrize(
+    (
+        "config_path",
+        "expected_doi",
+        "expected_profile",
+        "expected_metric",
+        "expected_audit_metric",
+    ),
+    [
+        (
+            "examples/lightening_transformer_2024_surrogate.yaml",
+            "10.48550/arXiv.2305.19533",
+            "optical_interconnect",
+            "energy_reduction_vs_prior_photonic_accelerators_min_x",
+            "Energy reduction vs prior photonic accelerators",
+        ),
+        (
+            "examples/lightning_2023_smartnic_surrogate.yaml",
+            "10.1145/3603269.3604821",
+            "pcie_attached",
+            "realtime_network_rate_gbps",
+            "Real-time inference network rate",
+        ),
+        (
+            "examples/adept_2023_electro_photonic_surrogate.yaml",
+            "10.1145/3606949",
+            "on_chip_sram",
+            "throughput_per_watt_vs_systolic_arrays_x",
+            "Throughput per Watt vs traditional systolic arrays",
+        ),
+    ],
+)
+def test_new_memory_stressing_cards_are_source_backed_and_audited(
+    config_path: str,
+    expected_doi: str,
+    expected_profile: str,
+    expected_metric: str,
+    expected_audit_metric: str,
+) -> None:
+    config = load_config(Path(config_path))
+    result = evaluate(config)
+    payload = report_to_dict(result)
+
+    assert config.provenance is not None
+    assert config.provenance.doi == expected_doi
+    assert config.system.profile == expected_profile
+    assert config.published_calibration is not None
+    assert expected_metric in config.published_calibration.additional_metrics
+
+    reference = payload["published_reference"]
+    assert reference is not None
+    metrics = reference["reported"]["additional_metrics"]
+    assert expected_metric in metrics
+    audit = reference["source_audit"]
+    assert any(
+        row["metric"] == expected_audit_metric for row in audit["quoted_metrics"]
+    )
+    assert audit["local_assumptions"]
+    assert audit["confidence_flags"]

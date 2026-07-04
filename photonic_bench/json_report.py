@@ -9,6 +9,7 @@ from photonic_bench.config import (
     PublishedCalibrationConfig,
     SourceQualityConfig,
     system_config_to_dict,
+    system_memory_scenario_to_dict,
 )
 from photonic_bench.model import (
     BenchmarkResult,
@@ -16,6 +17,7 @@ from photonic_bench.model import (
     PublishedCalibrationResult,
 )
 from photonic_bench.report import result_assumptions
+from photonic_bench.source_audit import build_source_audit
 
 
 REPORT_SCHEMA_VERSION = "photonic-bench-report-v1"
@@ -138,8 +140,10 @@ def _local_model(result: BenchmarkResult) -> dict[str, Any]:
         "system": {
             "profile": result.config.system.profile,
             "profile_overrides": list(result.config.system.profile_overrides),
+            "memory_scenario": system_memory_scenario_to_dict(result.config.system),
             "memory_timing_mode": result.system.memory_timing_mode,
             "contention": {
+                "preset": result.system.contention_preset,
                 "shared_bandwidth_clients": result.system.shared_bandwidth_clients,
                 "arbitration_efficiency": (
                     result.system.bandwidth_arbitration_efficiency
@@ -147,7 +151,10 @@ def _local_model(result: BenchmarkResult) -> dict[str, Any]:
                 "calibration_overhead_fraction": (
                     result.system.calibration_overhead_fraction
                 ),
+                "overlap_model": result.system.contention_overlap_model,
             },
+            "contention_preset": result.system.contention_preset,
+            "contention_overlap_model": result.system.contention_overlap_model,
             "tiers": {
                 "sram": _system_tier_result(result.system.sram),
                 "intermediate": _system_tier_result(result.system.intermediate),
@@ -160,6 +167,7 @@ def _local_model(result: BenchmarkResult) -> dict[str, Any]:
             "total_system_energy_pj": result.system.total_system_energy_pj,
             "system_energy_per_mac_pj": result.system.system_energy_per_mac_pj,
             "system_energy_per_op_pj": result.system.system_energy_per_op_pj,
+            "hierarchy_energy_breakdown": _hierarchy_energy_breakdown(result.system),
             "local_compute_and_conversion_energy_share": (
                 result.system.local_compute_and_conversion_energy_share
             ),
@@ -246,6 +254,12 @@ def _local_model(result: BenchmarkResult) -> dict[str, Any]:
             ),
             "contention_adjusted_loaded_bandwidth_bytes_per_ns": (
                 result.system.contention_adjusted_loaded_bandwidth_bytes_per_ns
+            ),
+            "effective_usable_bandwidth_under_load_bytes_per_ns": (
+                result.system.effective_usable_bandwidth_under_load_bytes_per_ns
+            ),
+            "guardbanded_usable_bandwidth_under_load_bytes_per_ns": (
+                result.system.guardbanded_usable_bandwidth_under_load_bytes_per_ns
             ),
             "transfer_to_compute_time_ratio": (
                 result.system.transfer_to_compute_time_ratio
@@ -357,6 +371,38 @@ def _system_tier_result(tier) -> dict[str, float | str]:
     }
 
 
+def _hierarchy_energy_breakdown(system) -> dict[str, Any]:
+    return {
+        "local_compute_and_conversion": {
+            "energy_pj": system.local_compute_and_conversion_energy_pj,
+            "share": system.local_compute_and_conversion_energy_share,
+        },
+        "sram": {
+            "energy_pj": system.sram.total_energy_pj,
+            "share": system.sram.system_energy_share,
+        },
+        "intermediate": {
+            "energy_pj": system.intermediate.total_energy_pj,
+            "share": system.intermediate.system_energy_share,
+        },
+        "off_chip": {
+            "energy_pj": system.off_chip.total_energy_pj,
+            "share": system.off_chip.system_energy_share,
+        },
+        "movement_total": {
+            "energy_pj": system.total_movement_energy_pj,
+            "share": system.movement_energy_share,
+        },
+        "total_system_energy_pj": system.total_system_energy_pj,
+        "dominant_component": system.dominant_system_energy_component,
+        "note": (
+            "Hierarchy energy is a local decomposition of compute/conversion "
+            "energy plus modeled movement energy by tier; it is not a "
+            "published hardware energy breakdown."
+        ),
+    }
+
+
 def _published_reference(
     config: BenchmarkConfig,
     result: BenchmarkResult,
@@ -372,6 +418,11 @@ def _published_reference(
         "reported": _reported_calibration(calibration),
         "derived_unit_conversions": _derived_calibration(derived),
         "source_quality": _source_quality(config.source_quality, config.provenance),
+        "source_audit": build_source_audit(
+            config,
+            derived,
+            equivalent_ops=result.equivalent_ops,
+        ),
         "separation_note": (
             "Published values are paper-reported references or direct unit "
             "conversions, not local component-model estimates."

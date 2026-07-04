@@ -50,11 +50,100 @@
     "system": {
       "profile": "ddr",
       "profile_overrides": [],
+      "scenario": {
+        "name": "ddr",
+        "description": "Local SRAM plus a generic DDR-class off-chip memory tier. This matches the baseline off-chip movement defaults.",
+        "profile_overrides": [],
+        "memory_timing_mode": "overlapped",
+        "contention_preset": "ddr_controller",
+        "contention_preset_description": "DDR/controller-style sharing: multiple clients and controller turnaround reduce usable bandwidth and add a larger guardband.",
+        "overlap_model": "serialized_tier_path",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Generic DDR-class off-chip tier matching the conservative PhotonicBench baseline movement defaults.",
+          "sources": [
+            {
+              "title": "JEDEC DDR5 SDRAM standard catalog",
+              "url": "https://www.jedec.org/standards-documents/docs/jesd79-5",
+              "reference_id": "JEDEC JESD79-5",
+              "evidence_type": "memory-standard context",
+              "supports": [
+                "DDR-class off-chip tier",
+                "controller/shared DRAM scenario"
+              ]
+            },
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "The 16 bytes/ns off-chip bandwidth and 10 pJ/byte energy are local default parameters.",
+            "Controller turnaround is represented by the local contention preset."
+          ],
+          "reviewer_note": "Use this scenario to expose cards that become movement-bound when off-chip traffic is DDR-like."
+        },
+        "contention_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "DDR/controller-style sharing with local multi-client derate and larger control guardband.",
+          "sources": [
+            {
+              "title": "JEDEC DDR5 SDRAM standard catalog",
+              "url": "https://www.jedec.org/standards-documents/docs/jesd79-5",
+              "reference_id": "JEDEC JESD79-5",
+              "evidence_type": "memory-standard context",
+              "supports": [
+                "DDR-class off-chip tier",
+                "controller/shared DRAM scenario"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "Four modeled clients, 0.75 arbitration efficiency, and 0.08 guardband are local controller-stress assumptions."
+          ],
+          "reviewer_note": "Use when off-chip traffic should be penalized for controller and turnaround pressure."
+        },
+        "assumptions": {
+          "shared_bandwidth_clients": 4.0,
+          "arbitration_efficiency": 0.75,
+          "calibration_overhead_fraction": 0.08,
+          "sram": {
+            "read_energy_pj_per_byte": 0.02,
+            "write_energy_pj_per_byte": 0.02,
+            "bandwidth_bytes_per_ns": 1024.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "intermediate": {
+            "read_energy_pj_per_byte": 0.2,
+            "write_energy_pj_per_byte": 0.2,
+            "bandwidth_bytes_per_ns": 256.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "off_chip": {
+            "read_energy_pj_per_byte": 10.0,
+            "write_energy_pj_per_byte": 10.0,
+            "bandwidth_bytes_per_ns": 16.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          }
+        },
+        "note": "Memory scenario fields are local modeling assumptions for review and sensitivity analysis; they are not paper-published hardware measurements unless a card states otherwise."
+      },
       "memory_timing_mode": "overlapped",
       "contention": {
-        "shared_bandwidth_clients": 1.0,
-        "arbitration_efficiency": 1.0,
-        "calibration_overhead_fraction": 0.0
+        "preset": "ddr_controller",
+        "shared_bandwidth_clients": 4.0,
+        "arbitration_efficiency": 0.75,
+        "calibration_overhead_fraction": 0.08,
+        "overlap_model": "serialized_tier_path"
       },
       "sram": {
         "read_energy_pj_per_byte": 0.02,
@@ -108,12 +197,103 @@
     "system": {
       "profile": "ddr",
       "profile_overrides": [],
+      "memory_scenario": {
+        "name": "ddr",
+        "description": "Local SRAM plus a generic DDR-class off-chip memory tier. This matches the baseline off-chip movement defaults.",
+        "profile_overrides": [],
+        "memory_timing_mode": "overlapped",
+        "contention_preset": "ddr_controller",
+        "contention_preset_description": "DDR/controller-style sharing: multiple clients and controller turnaround reduce usable bandwidth and add a larger guardband.",
+        "overlap_model": "serialized_tier_path",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Generic DDR-class off-chip tier matching the conservative PhotonicBench baseline movement defaults.",
+          "sources": [
+            {
+              "title": "JEDEC DDR5 SDRAM standard catalog",
+              "url": "https://www.jedec.org/standards-documents/docs/jesd79-5",
+              "reference_id": "JEDEC JESD79-5",
+              "evidence_type": "memory-standard context",
+              "supports": [
+                "DDR-class off-chip tier",
+                "controller/shared DRAM scenario"
+              ]
+            },
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "The 16 bytes/ns off-chip bandwidth and 10 pJ/byte energy are local default parameters.",
+            "Controller turnaround is represented by the local contention preset."
+          ],
+          "reviewer_note": "Use this scenario to expose cards that become movement-bound when off-chip traffic is DDR-like."
+        },
+        "contention_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "DDR/controller-style sharing with local multi-client derate and larger control guardband.",
+          "sources": [
+            {
+              "title": "JEDEC DDR5 SDRAM standard catalog",
+              "url": "https://www.jedec.org/standards-documents/docs/jesd79-5",
+              "reference_id": "JEDEC JESD79-5",
+              "evidence_type": "memory-standard context",
+              "supports": [
+                "DDR-class off-chip tier",
+                "controller/shared DRAM scenario"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "Four modeled clients, 0.75 arbitration efficiency, and 0.08 guardband are local controller-stress assumptions."
+          ],
+          "reviewer_note": "Use when off-chip traffic should be penalized for controller and turnaround pressure."
+        },
+        "assumptions": {
+          "shared_bandwidth_clients": 4.0,
+          "arbitration_efficiency": 0.75,
+          "calibration_overhead_fraction": 0.08,
+          "sram": {
+            "read_energy_pj_per_byte": 0.02,
+            "write_energy_pj_per_byte": 0.02,
+            "bandwidth_bytes_per_ns": 1024.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "intermediate": {
+            "read_energy_pj_per_byte": 0.2,
+            "write_energy_pj_per_byte": 0.2,
+            "bandwidth_bytes_per_ns": 256.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "off_chip": {
+            "read_energy_pj_per_byte": 10.0,
+            "write_energy_pj_per_byte": 10.0,
+            "bandwidth_bytes_per_ns": 16.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          }
+        },
+        "note": "Memory scenario fields are local modeling assumptions for review and sensitivity analysis; they are not paper-published hardware measurements unless a card states otherwise."
+      },
       "memory_timing_mode": "overlapped",
       "contention": {
-        "shared_bandwidth_clients": 1.0,
-        "arbitration_efficiency": 1.0,
-        "calibration_overhead_fraction": 0.0
+        "preset": "ddr_controller",
+        "shared_bandwidth_clients": 4.0,
+        "arbitration_efficiency": 0.75,
+        "calibration_overhead_fraction": 0.08,
+        "overlap_model": "serialized_tier_path"
       },
+      "contention_preset": "ddr_controller",
+      "contention_overlap_model": "serialized_tier_path",
       "tiers": {
         "sram": {
           "name": "sram",
@@ -124,23 +304,23 @@
           "write_energy_pj": 81.92,
           "total_energy_pj": 245.76,
           "bandwidth_bytes_per_ns": 1024.0,
-          "effective_bandwidth_bytes_per_ns": 1024.0,
+          "effective_bandwidth_bytes_per_ns": 192.0,
           "transfer_time_ns": 12.0,
-          "contention_adjusted_transfer_time_ns": 12.0,
+          "contention_adjusted_transfer_time_ns": 64.0,
           "read_fraction": 1.0,
           "write_fraction": 1.0,
-          "calibration_adjusted_transfer_time_ns": 12.0,
+          "calibration_adjusted_transfer_time_ns": 69.12,
           "traffic_share": 0.3333333333333333,
           "movement_energy_share": 0.0019569471624266144,
           "system_energy_share": 0.001892863903085368,
           "nominal_transfer_share": 0.015625,
           "contention_adjusted_transfer_share": 0.015625,
           "nominal_transfer_pressure_ratio": 2.4,
-          "contention_adjusted_transfer_pressure_ratio": 2.4,
+          "contention_adjusted_transfer_pressure_ratio": 13.824000000000002,
           "compute_window_required_bandwidth_bytes_per_ns": 2457.6,
-          "contention_bandwidth_utilization": 2.4,
-          "contention_bandwidth_headroom_bytes_per_ns": -1433.6,
-          "contention_bandwidth_headroom_ratio": 0.4166666666666667
+          "contention_bandwidth_utilization": 12.799999999999999,
+          "contention_bandwidth_headroom_bytes_per_ns": -2265.6,
+          "contention_bandwidth_headroom_ratio": 0.078125
         },
         "intermediate": {
           "name": "intermediate",
@@ -151,23 +331,23 @@
           "write_energy_pj": 819.2,
           "total_energy_pj": 2457.6000000000004,
           "bandwidth_bytes_per_ns": 256.0,
-          "effective_bandwidth_bytes_per_ns": 256.0,
+          "effective_bandwidth_bytes_per_ns": 48.0,
           "transfer_time_ns": 48.0,
-          "contention_adjusted_transfer_time_ns": 48.0,
+          "contention_adjusted_transfer_time_ns": 256.0,
           "read_fraction": 1.0,
           "write_fraction": 1.0,
-          "calibration_adjusted_transfer_time_ns": 48.0,
+          "calibration_adjusted_transfer_time_ns": 276.48,
           "traffic_share": 0.3333333333333333,
           "movement_energy_share": 0.019569471624266147,
           "system_energy_share": 0.018928639030853685,
           "nominal_transfer_share": 0.0625,
           "contention_adjusted_transfer_share": 0.0625,
           "nominal_transfer_pressure_ratio": 9.6,
-          "contention_adjusted_transfer_pressure_ratio": 9.6,
+          "contention_adjusted_transfer_pressure_ratio": 55.29600000000001,
           "compute_window_required_bandwidth_bytes_per_ns": 2457.6,
-          "contention_bandwidth_utilization": 9.6,
-          "contention_bandwidth_headroom_bytes_per_ns": -2201.6,
-          "contention_bandwidth_headroom_ratio": 0.10416666666666667
+          "contention_bandwidth_utilization": 51.199999999999996,
+          "contention_bandwidth_headroom_bytes_per_ns": -2409.6,
+          "contention_bandwidth_headroom_ratio": 0.01953125
         },
         "off_chip": {
           "name": "off_chip",
@@ -178,23 +358,23 @@
           "write_energy_pj": 40960.0,
           "total_energy_pj": 122880.0,
           "bandwidth_bytes_per_ns": 16.0,
-          "effective_bandwidth_bytes_per_ns": 16.0,
+          "effective_bandwidth_bytes_per_ns": 3.0,
           "transfer_time_ns": 768.0,
-          "contention_adjusted_transfer_time_ns": 768.0,
+          "contention_adjusted_transfer_time_ns": 4096.0,
           "read_fraction": 1.0,
           "write_fraction": 1.0,
-          "calibration_adjusted_transfer_time_ns": 768.0,
+          "calibration_adjusted_transfer_time_ns": 4423.68,
           "traffic_share": 0.3333333333333333,
           "movement_energy_share": 0.9784735812133072,
           "system_energy_share": 0.9464319515426841,
           "nominal_transfer_share": 1.0,
           "contention_adjusted_transfer_share": 1.0,
           "nominal_transfer_pressure_ratio": 153.6,
-          "contention_adjusted_transfer_pressure_ratio": 153.6,
+          "contention_adjusted_transfer_pressure_ratio": 884.7360000000001,
           "compute_window_required_bandwidth_bytes_per_ns": 2457.6,
-          "contention_bandwidth_utilization": 153.6,
-          "contention_bandwidth_headroom_bytes_per_ns": -2441.6,
-          "contention_bandwidth_headroom_ratio": 0.006510416666666667
+          "contention_bandwidth_utilization": 819.1999999999999,
+          "contention_bandwidth_headroom_bytes_per_ns": -2454.6,
+          "contention_bandwidth_headroom_ratio": 0.001220703125
         }
       },
       "local_compute_and_conversion_energy_pj": 4251.648,
@@ -202,6 +382,31 @@
       "total_system_energy_pj": 129835.008,
       "system_energy_per_mac_pj": 0.49528125,
       "system_energy_per_op_pj": 0.247640625,
+      "hierarchy_energy_breakdown": {
+        "local_compute_and_conversion": {
+          "energy_pj": 4251.648,
+          "share": 0.03274654552337687
+        },
+        "sram": {
+          "energy_pj": 245.76,
+          "share": 0.001892863903085368
+        },
+        "intermediate": {
+          "energy_pj": 2457.6000000000004,
+          "share": 0.018928639030853685
+        },
+        "off_chip": {
+          "energy_pj": 122880.0,
+          "share": 0.9464319515426841
+        },
+        "movement_total": {
+          "energy_pj": 125583.36,
+          "share": 0.9672534544766231
+        },
+        "total_system_energy_pj": 129835.008,
+        "dominant_component": "off_chip",
+        "note": "Hierarchy energy is a local decomposition of compute/conversion energy plus modeled movement energy by tier; it is not a published hardware energy breakdown."
+      },
       "local_compute_and_conversion_energy_share": 0.03274654552337687,
       "movement_energy_share": 0.9672534544766231,
       "movement_to_compute_energy_ratio": 29.53757225433526,
@@ -217,35 +422,37 @@
       "nominal_memory_bottleneck_tier": "off_chip",
       "contention_memory_bottleneck_tier": "off_chip",
       "max_tier_nominal_transfer_pressure_ratio": 153.6,
-      "max_tier_contention_adjusted_transfer_pressure_ratio": 153.6,
+      "max_tier_contention_adjusted_transfer_pressure_ratio": 884.7360000000001,
       "max_tier_movement_energy_share": 0.9784735812133072,
       "max_tier_system_energy_share": 0.9464319515426841,
       "contention_bandwidth_saturation_tier": "off_chip",
-      "max_tier_contention_bandwidth_utilization": 153.6,
-      "min_tier_contention_bandwidth_headroom_ratio": 0.006510416666666667,
+      "max_tier_contention_bandwidth_utilization": 819.1999999999999,
+      "min_tier_contention_bandwidth_headroom_ratio": 0.001220703125,
       "max_transfer_time_ns": 768.0,
       "serial_transfer_time_ns": 828.0,
       "effective_transfer_time_ns": 768.0,
-      "contention_bandwidth_derate_factor": 1.0,
-      "contention_adjusted_max_transfer_time_ns": 768.0,
-      "contention_adjusted_serial_transfer_time_ns": 828.0,
-      "contention_adjusted_effective_transfer_time_ns": 768.0,
-      "calibration_adjusted_effective_transfer_time_ns": 768.0,
-      "calibration_guardband_time_ns": 0.0,
-      "contention_transfer_overhead_fraction": 0.0,
-      "total_transfer_overhead_fraction": 0.0,
+      "contention_bandwidth_derate_factor": 0.1875,
+      "contention_adjusted_max_transfer_time_ns": 4096.0,
+      "contention_adjusted_serial_transfer_time_ns": 4416.0,
+      "contention_adjusted_effective_transfer_time_ns": 4096.0,
+      "calibration_adjusted_effective_transfer_time_ns": 4423.68,
+      "calibration_guardband_time_ns": 327.6800000000003,
+      "contention_transfer_overhead_fraction": 4.333333333333333,
+      "total_transfer_overhead_fraction": 4.760000000000001,
       "effective_loaded_bandwidth_bytes_per_ns": 48.0,
-      "contention_only_loaded_bandwidth_bytes_per_ns": 48.0,
-      "contention_adjusted_loaded_bandwidth_bytes_per_ns": 48.0,
+      "contention_only_loaded_bandwidth_bytes_per_ns": 9.0,
+      "contention_adjusted_loaded_bandwidth_bytes_per_ns": 8.333333333333332,
+      "effective_usable_bandwidth_under_load_bytes_per_ns": 9.0,
+      "guardbanded_usable_bandwidth_under_load_bytes_per_ns": 8.333333333333332,
       "transfer_to_compute_time_ratio": 153.6,
       "bandwidth_limited_batch_latency_ns": 768.0,
       "bandwidth_pressure_ratio": 153.6,
       "bandwidth_limited_equivalent_ops_per_second": 682666666666.6666,
       "bandwidth_limited_tier": "off_chip",
-      "contention_adjusted_batch_latency_ns": 768.0,
-      "contention_adjusted_transfer_to_compute_time_ratio": 153.6,
-      "contention_pressure_ratio": 153.6,
-      "contention_adjusted_equivalent_ops_per_second": 682666666666.6666,
+      "contention_adjusted_batch_latency_ns": 4423.68,
+      "contention_adjusted_transfer_to_compute_time_ratio": 884.7360000000001,
+      "contention_pressure_ratio": 884.7360000000001,
+      "contention_adjusted_equivalent_ops_per_second": 118518518518.5185,
       "contention_limited_tier": "off_chip",
       "note": "System movement energy is a local estimate over explicit SRAM, intermediate, and off-chip tiers. Contention and calibration guardband fields are local shared-link assumptions. These values are added separately from photonic core compute/conversion energy and are not a published measurement."
     },
@@ -299,7 +506,8 @@
     "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
     "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.",
     "The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.",
-    "System contention fields model shared bandwidth clients, arbitration efficiency, and calibration/control guardband as local assumptions; they are not inferred from published hardware unless a card says so."
+    "System contention fields model shared bandwidth clients, arbitration efficiency, and calibration/control guardband as local assumptions; they are not inferred from published hardware unless a card says so.",
+    "Memory scenario and contention preset names describe local review assumptions, including the overlap model used to interpret transfer timing; they are not benchmark claims."
   ],
   "provenance": null
 }

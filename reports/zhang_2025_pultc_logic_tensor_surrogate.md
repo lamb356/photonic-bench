@@ -52,6 +52,49 @@ Source-quality notes:
 - This is a logic tensor processor, so the local dense matmul shape is only a comparison placeholder and must not be read as an exact operation mapping.
 
 
+## Source Audit
+
+These rows keep quoted source metrics, direct conversion math, local assumptions,
+and confidence flags separate. They do not turn local surrogate estimates into
+paper measurements.
+
+| Metric | Quoted value | Source location | Note |
+| --- | --- | --- | --- |
+| Architecture | Photonic universal logic tensor core with microring nonlinear mapping and MZI mesh linear transform | published_calibration.architecture | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Wavelength channels | 10 | published_calibration.additional_metrics.wavelength_channels | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Spatial channels | 4 | published_calibration.additional_metrics.spatial_channels | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Line rate gbps per channel | 50 | published_calibration.additional_metrics.line_rate_gbps_per_channel | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Measured mrm eo bandwidth ghz | 53.73 | published_calibration.additional_metrics.measured_mrm_eo_bandwidth_ghz | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Reported logic capacity note | beyond Tbit/s per core in the published title; supporting preprint reports beyond TOPS per core and optimized 40 TOPS. | published_calibration.additional_metrics.reported_logic_capacity_note | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Supporting preprint url | https://arxiv.org/abs/2504.20331 | published_calibration.additional_metrics.supporting_preprint_url | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Surrogate mapping | m=4, k=4, n=10 is a compact bookkeeping surrogate for four spatial channels and ten wavelengths; it is not a Boolean logic tensor simulator. | published_calibration.additional_metrics.surrogate_mapping | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+
+| Derived metric | Formula | Inputs | Result | Note |
+| --- | --- | --- | ---: | --- |
+
+
+Local assumptions:
+
+- Local surrogate type: logic_tensor_dense_bookkeeping_surrogate.
+- This is a logic tensor processor, so the local dense matmul shape is only a comparison placeholder and must not be read as an exact operation mapping.
+- The local card preserves the paper's wavelength, spatial, and line-rate metadata without converting logic capacity into local matrix-multiply throughput.
+- The dense tile is intentionally a low-confidence bookkeeping surrogate for visual comparison only.
+- Local converter energy, system tiers, timing, and noise settings are generic PhotonicBench assumptions.
+
+Confidence flags:
+
+- claim_status=paper-reported PULTC wavelength/spatial logic tensor metrics; matmul-surrogate local model
+- source_doi=10.1364/OPTICA.557867
+- source_quality_grade=C
+- coverage.accuracy=not_applicable
+- coverage.area=not_reported
+- coverage.energy=not_reported
+- coverage.precision=not_applicable
+- coverage.throughput=reported
+
+Boundary note: Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs.
+
+
 
 ## Workload
 
@@ -110,11 +153,29 @@ simulator.
 | Intermediate/cache | 56 bytes | 40 bytes | 19.200 pJ | 33.33% | 1.96% | 1.90% | 0.375 ns | 0.375 ns | 0.375 | 256.000 bytes/ns | 96.000 bytes/ns | 0.375 | 160.000 bytes/ns |
 | Off-chip/DRAM | 56 bytes | 40 bytes | 960.000 pJ | 33.33% | 97.85% | 94.76% | 6.000 ns | 6.000 ns | 6 | 16.000 bytes/ns | 96.000 bytes/ns | 6 | -80.000 bytes/ns |
 
+### Hierarchy Energy Breakdown
+
+This table is a local system-energy decomposition by hierarchy level. It is
+not a published hardware energy breakdown.
+
+| Component | Energy | System share |
+| --- | ---: | ---: |
+| Local compute/conversion | 31.920 pJ | 3.15% |
+| SRAM movement | 1.920 pJ | 0.19% |
+| Intermediate/cache movement | 19.200 pJ | 1.90% |
+| Off-chip/DRAM movement | 960.000 pJ | 94.76% |
+| Total movement | 981.120 pJ | 96.85% |
+
 | Metric | Value |
 | --- | ---: |
 | System profile | default |
 | Profile tier overrides | none |
+| Memory scenario | default |
+| Scenario description | PhotonicBench baseline: local SRAM plus a conservative generic off-chip/DRAM tier matching the historical defaults. |
 | Memory timing mode | overlapped |
+| Contention preset | single_client |
+| Contention preset description | Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband. |
+| Contention overlap model | profile_timing_mode |
 | Shared bandwidth clients | 1 |
 | Arbitration efficiency | 1 |
 | Calibration/control overhead | 0 |
@@ -156,6 +217,8 @@ simulator.
 | Effective loaded hierarchy bandwidth | 48.000 bytes/ns |
 | Contention-only loaded hierarchy bandwidth | 48.000 bytes/ns |
 | Contention-adjusted loaded hierarchy bandwidth | 48.000 bytes/ns |
+| Effective usable bandwidth under load | 48.000 bytes/ns |
+| Guardbanded usable bandwidth under load | 48.000 bytes/ns |
 | Transfer-to-compute time ratio | 6 |
 | Bandwidth-limited tier | off_chip |
 | Bandwidth-limited batch latency | 6.000 ns |
@@ -166,6 +229,17 @@ simulator.
 | Contention-adjusted transfer-to-compute time ratio | 6 |
 | Contention pressure ratio | 6 |
 | Contention-adjusted equivalent ops/s | 53333333333.333 |
+
+### Scenario Provenance Packs
+
+These packs justify the selected local memory hierarchy and contention preset
+without implying measured end-to-end hardware behavior.
+
+| Pack | Status | Calibration scope | Sources | Local assumptions | Reviewer note |
+| --- | --- | --- | --- | --- | --- |
+| Memory scenario | source-context-plus-local-parameters | Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions. | Computing's energy problem (and what we can do about it) (10.1109/ISSCC.2014.6757323) | SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.; The scenario is a conservative baseline for sensitivity comparisons. | Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior. |
+| Contention preset | local-baseline | Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband. | explicit local assumption | shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions. | Use as the no-contention reference point. |
+
 
 ## Energy
 
@@ -225,3 +299,4 @@ simulator.
 - Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.
 - The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.
 - System contention fields model shared bandwidth clients, arbitration efficiency, and calibration/control guardband as local assumptions; they are not inferred from published hardware unless a card says so.
+- Memory scenario and contention preset names describe local review assumptions, including the overlap model used to interpret transfer timing; they are not benchmark claims.

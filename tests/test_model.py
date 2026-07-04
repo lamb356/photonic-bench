@@ -154,6 +154,8 @@ def test_evaluate_matmul_energy_accounting() -> None:
     assert result.system.shared_bandwidth_clients == pytest.approx(1.0)
     assert result.system.bandwidth_arbitration_efficiency == pytest.approx(1.0)
     assert result.system.calibration_overhead_fraction == pytest.approx(0.0)
+    assert result.system.contention_preset == "single_client"
+    assert result.system.contention_overlap_model == "profile_timing_mode"
     assert result.system.sram.effective_bandwidth_bytes_per_ns == pytest.approx(1024)
     assert result.system.off_chip.contention_adjusted_transfer_time_ns == pytest.approx(
         56 / 16
@@ -163,6 +165,14 @@ def test_evaluate_matmul_energy_accounting() -> None:
     )
     assert result.system.contention_only_loaded_bandwidth_bytes_per_ns == pytest.approx(
         168 / (56 / 16)
+    )
+    assert (
+        result.system.effective_usable_bandwidth_under_load_bytes_per_ns
+        == pytest.approx(168 / (56 / 16))
+    )
+    assert (
+        result.system.guardbanded_usable_bandwidth_under_load_bytes_per_ns
+        == pytest.approx(168 / (56 / 16))
     )
     assert result.system.calibration_adjusted_effective_transfer_time_ns == pytest.approx(
         56 / 16
@@ -215,6 +225,14 @@ def test_evaluate_applies_shared_bandwidth_contention_and_calibration_guardband(
     )
     assert result.system.contention_only_loaded_bandwidth_bytes_per_ns == pytest.approx(
         168 / (56 / 4)
+    )
+    assert (
+        result.system.effective_usable_bandwidth_under_load_bytes_per_ns
+        == pytest.approx(168 / (56 / 4))
+    )
+    assert (
+        result.system.guardbanded_usable_bandwidth_under_load_bytes_per_ns
+        == pytest.approx(168 / ((56 / 4) * 1.25))
     )
     assert result.system.contention_adjusted_batch_latency_ns == pytest.approx(17.5)
     assert result.system.contention_adjusted_transfer_to_compute_time_ratio == (

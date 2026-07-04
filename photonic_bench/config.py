@@ -146,11 +146,59 @@ class MemoryTierConfig:
     write_fraction: float = 1.0
 
 
+SYSTEM_CONTENTION_OVERLAP_MODELS = (
+    "profile_timing_mode",
+    "overlapped_compute_window",
+    "serialized_tier_path",
+    "serialized_host_link",
+    "wavelength_broadcast_overlap",
+)
+
+
 @dataclass(frozen=True)
 class SystemContentionConfig:
+    preset: str = "single_client"
     shared_bandwidth_clients: float = 1.0
     arbitration_efficiency: float = 1.0
     calibration_overhead_fraction: float = 0.0
+    overlap_model: str = "profile_timing_mode"
+
+
+@dataclass(frozen=True)
+class SystemContentionPreset:
+    name: str
+    description: str
+    shared_bandwidth_clients: float
+    arbitration_efficiency: float
+    calibration_overhead_fraction: float
+    overlap_model: str
+
+    def to_contention_config(self) -> SystemContentionConfig:
+        return SystemContentionConfig(
+            preset=self.name,
+            shared_bandwidth_clients=self.shared_bandwidth_clients,
+            arbitration_efficiency=self.arbitration_efficiency,
+            calibration_overhead_fraction=self.calibration_overhead_fraction,
+            overlap_model=self.overlap_model,
+        )
+
+
+@dataclass(frozen=True)
+class ScenarioProvenanceSource:
+    title: str
+    url: str
+    reference_id: str
+    evidence_type: str
+    supports: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class ScenarioProvenancePack:
+    status: str
+    calibration_scope: str
+    sources: tuple[ScenarioProvenanceSource, ...] = ()
+    local_assumptions: tuple[str, ...] = ()
+    reviewer_note: str = ""
 
 
 @dataclass(frozen=True)
@@ -208,6 +256,67 @@ class SystemProfile:
         )
 
 
+SYSTEM_CONTENTION_PRESETS: dict[str, SystemContentionPreset] = {
+    "single_client": SystemContentionPreset(
+        name="single_client",
+        description=(
+            "Dedicated memory path: one modeled client, no arbitration loss, "
+            "and no calibration/control guardband."
+        ),
+        shared_bandwidth_clients=1.0,
+        arbitration_efficiency=1.0,
+        calibration_overhead_fraction=0.0,
+        overlap_model="profile_timing_mode",
+    ),
+    "shared_hbm_stack": SystemContentionPreset(
+        name="shared_hbm_stack",
+        description=(
+            "HBM-like shared stack: several clients share the loaded tier "
+            "bandwidth with modest arbitration loss and a small control "
+            "guardband."
+        ),
+        shared_bandwidth_clients=2.0,
+        arbitration_efficiency=0.92,
+        calibration_overhead_fraction=0.02,
+        overlap_model="overlapped_compute_window",
+    ),
+    "ddr_controller": SystemContentionPreset(
+        name="ddr_controller",
+        description=(
+            "DDR/controller-style sharing: multiple clients and controller "
+            "turnaround reduce usable bandwidth and add a larger guardband."
+        ),
+        shared_bandwidth_clients=4.0,
+        arbitration_efficiency=0.75,
+        calibration_overhead_fraction=0.08,
+        overlap_model="serialized_tier_path",
+    ),
+    "pcie_round_robin": SystemContentionPreset(
+        name="pcie_round_robin",
+        description=(
+            "Host/PCIe-attached path: two clients share a serialized host link "
+            "with round-robin arbitration and explicit protocol guardband."
+        ),
+        shared_bandwidth_clients=2.0,
+        arbitration_efficiency=0.85,
+        calibration_overhead_fraction=0.05,
+        overlap_model="serialized_host_link",
+    ),
+    "optical_interconnect_broadcast": SystemContentionPreset(
+        name="optical_interconnect_broadcast",
+        description=(
+            "Optical interconnect/broadcast path: wavelength fanout reduces "
+            "loaded-client contention, but arbitration and control guardband "
+            "remain explicit local assumptions."
+        ),
+        shared_bandwidth_clients=1.5,
+        arbitration_efficiency=0.92,
+        calibration_overhead_fraction=0.02,
+        overlap_model="wavelength_broadcast_overlap",
+    ),
+}
+
+
 SYSTEM_PROFILES: dict[str, SystemProfile] = {
     "default": SystemProfile(
         name="default",
@@ -230,6 +339,34 @@ SYSTEM_PROFILES: dict[str, SystemProfile] = {
             write_energy_pj_per_byte=10.0,
             bandwidth_bytes_per_ns=16.0,
         ),
+    ),
+    "on_package_sram": SystemProfile(
+        name="on_package_sram",
+        description=(
+            "On-package SRAM scenario: converter-interface traffic is kept on "
+            "a high-bandwidth local SRAM path with no modeled off-package "
+            "movement."
+        ),
+        sram=MemoryTierConfig(
+            read_energy_pj_per_byte=0.018,
+            write_energy_pj_per_byte=0.018,
+            bandwidth_bytes_per_ns=4096.0,
+        ),
+        intermediate=MemoryTierConfig(
+            read_energy_pj_per_byte=0.2,
+            write_energy_pj_per_byte=0.2,
+            bandwidth_bytes_per_ns=256.0,
+            read_fraction=0.0,
+            write_fraction=0.0,
+        ),
+        off_chip=MemoryTierConfig(
+            read_energy_pj_per_byte=10.0,
+            write_energy_pj_per_byte=10.0,
+            bandwidth_bytes_per_ns=16.0,
+            read_fraction=0.0,
+            write_fraction=0.0,
+        ),
+        contention=SYSTEM_CONTENTION_PRESETS["single_client"].to_contention_config(),
     ),
     "on_chip_sram": SystemProfile(
         name="on_chip_sram",
@@ -256,6 +393,7 @@ SYSTEM_PROFILES: dict[str, SystemProfile] = {
             read_fraction=0.0,
             write_fraction=0.0,
         ),
+        contention=SYSTEM_CONTENTION_PRESETS["single_client"].to_contention_config(),
     ),
     "hbm": SystemProfile(
         name="hbm",
@@ -278,6 +416,7 @@ SYSTEM_PROFILES: dict[str, SystemProfile] = {
             write_energy_pj_per_byte=3.0,
             bandwidth_bytes_per_ns=512.0,
         ),
+        contention=SYSTEM_CONTENTION_PRESETS["shared_hbm_stack"].to_contention_config(),
     ),
     "ddr": SystemProfile(
         name="ddr",
@@ -300,6 +439,7 @@ SYSTEM_PROFILES: dict[str, SystemProfile] = {
             write_energy_pj_per_byte=10.0,
             bandwidth_bytes_per_ns=16.0,
         ),
+        contention=SYSTEM_CONTENTION_PRESETS["ddr_controller"].to_contention_config(),
     ),
     "pcie_attached": SystemProfile(
         name="pcie_attached",
@@ -323,10 +463,299 @@ SYSTEM_PROFILES: dict[str, SystemProfile] = {
             bandwidth_bytes_per_ns=8.0,
         ),
         memory_timing_mode="serialized",
-        contention=SystemContentionConfig(
-            shared_bandwidth_clients=2.0,
-            arbitration_efficiency=0.85,
-            calibration_overhead_fraction=0.05,
+        contention=SYSTEM_CONTENTION_PRESETS["pcie_round_robin"].to_contention_config(),
+    ),
+    "optical_interconnect": SystemProfile(
+        name="optical_interconnect",
+        description=(
+            "Optical interconnect scenario: local SRAM is paired with high "
+            "bandwidth intermediate and off-chip optical movement paths to "
+            "stress WDM/broadcast-like data movement separately from core "
+            "photonic compute."
+        ),
+        sram=MemoryTierConfig(
+            read_energy_pj_per_byte=0.02,
+            write_energy_pj_per_byte=0.02,
+            bandwidth_bytes_per_ns=2048.0,
+            read_fraction=1.0,
+            write_fraction=1.0,
+        ),
+        intermediate=MemoryTierConfig(
+            read_energy_pj_per_byte=0.08,
+            write_energy_pj_per_byte=0.08,
+            bandwidth_bytes_per_ns=1024.0,
+            read_fraction=0.75,
+            write_fraction=0.75,
+        ),
+        off_chip=MemoryTierConfig(
+            read_energy_pj_per_byte=1.2,
+            write_energy_pj_per_byte=1.5,
+            bandwidth_bytes_per_ns=768.0,
+            read_fraction=0.25,
+            write_fraction=0.25,
+        ),
+        contention=SYSTEM_CONTENTION_PRESETS[
+            "optical_interconnect_broadcast"
+        ].to_contention_config(),
+    ),
+}
+
+
+_HOROWITZ_ENERGY_SOURCE = ScenarioProvenanceSource(
+    title="Computing's energy problem (and what we can do about it)",
+    url="https://doi.org/10.1109/ISSCC.2014.6757323",
+    reference_id="10.1109/ISSCC.2014.6757323",
+    evidence_type="memory-energy hierarchy context",
+    supports=(
+        "local SRAM/intermediate/off-chip tier separation",
+        "data movement can dominate efficient compute",
+    ),
+)
+_JEDEC_HBM_SOURCE = ScenarioProvenanceSource(
+    title="JEDEC JESD238 High Bandwidth Memory HBM3 standard notice",
+    url=(
+        "https://www.businesswire.com/news/home/20220127005320/en/"
+        "JEDEC-Publishes-HBM3-Update-to-High-Bandwidth-Memory-HBM-Standard"
+    ),
+    reference_id="JEDEC JESD238",
+    evidence_type="memory-standard context",
+    supports=("HBM-class off-chip tier", "shared high-bandwidth stack scenario"),
+)
+_JEDEC_DDR_SOURCE = ScenarioProvenanceSource(
+    title="JEDEC DDR5 SDRAM standard catalog",
+    url="https://www.jedec.org/standards-documents/docs/jesd79-5",
+    reference_id="JEDEC JESD79-5",
+    evidence_type="memory-standard context",
+    supports=("DDR-class off-chip tier", "controller/shared DRAM scenario"),
+)
+_PCI_SIG_SOURCE = ScenarioProvenanceSource(
+    title="PCI-SIG PCI Express 6.0 specification overview",
+    url="https://pcisig.com/pci-express-6.0-specification",
+    reference_id="PCIe 6.0 specification overview",
+    evidence_type="host-link/interconnect context",
+    supports=("serialized host-link scenario", "PCIe-attached movement path"),
+)
+_TAIT_WDM_SOURCE = ScenarioProvenanceSource(
+    title="Neuromorphic photonic networks using silicon photonic weight banks",
+    url="https://www.nature.com/articles/s41598-017-07754-z",
+    reference_id="10.1038/s41598-017-07754-z",
+    evidence_type="photonic WDM broadcast-and-weight context",
+    supports=("optical interconnect scenario", "broadcast movement preset"),
+)
+_LIGHTENING_TRANSFORMER_SOURCE = ScenarioProvenanceSource(
+    title=(
+        "Lightening-Transformer: A dynamically-operated optically-interconnected "
+        "photonic Transformer accelerator"
+    ),
+    url="https://arxiv.org/abs/2305.19533",
+    reference_id="10.48550/arXiv.2305.19533",
+    evidence_type="optically interconnected accelerator context",
+    supports=("activation-heavy optical broadcast", "dynamic tensor movement"),
+)
+_LIGHTNING_SMARTNIC_SOURCE = ScenarioProvenanceSource(
+    title=(
+        "Lightning: A reconfigurable photonic-electronic SmartNIC for fast and "
+        "energy-efficient inference"
+    ),
+    url="https://dl.acm.org/doi/10.1145/3603269.3604821",
+    reference_id="10.1145/3603269.3604821",
+    evidence_type="host/network-attached photonic system context",
+    supports=("serialized host-attached movement", "packet-to-photonic datapath"),
+)
+
+SYSTEM_SCENARIO_PROVENANCE_PACKS: dict[str, ScenarioProvenancePack] = {
+    "default": ScenarioProvenancePack(
+        status="source-context-plus-local-parameters",
+        calibration_scope=(
+            "Historical PhotonicBench SRAM/intermediate/off-chip defaults; "
+            "tier numbers are local assumptions."
+        ),
+        sources=(_HOROWITZ_ENERGY_SOURCE,),
+        local_assumptions=(
+            "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are "
+            "PhotonicBench defaults, not paper-measured hardware values.",
+            "The scenario is a conservative baseline for sensitivity comparisons.",
+        ),
+        reviewer_note=(
+            "Use this as a baseline scenario only; prefer a named profile when "
+            "the card is intended to stress a specific hierarchy behavior."
+        ),
+    ),
+    "on_package_sram": ScenarioProvenancePack(
+        status="source-context-plus-local-parameters",
+        calibration_scope=(
+            "High-bandwidth local memory sensitivity case with no modeled "
+            "off-package movement."
+        ),
+        sources=(_HOROWITZ_ENERGY_SOURCE,),
+        local_assumptions=(
+            "All intermediate and off-chip read/write fractions are set to zero.",
+            "On-package SRAM bandwidth and pJ/byte are local sweep parameters.",
+        ),
+        reviewer_note=(
+            "This pack tests the upside of keeping converter-interface traffic "
+            "near the photonic core."
+        ),
+    ),
+    "on_chip_sram": ScenarioProvenancePack(
+        status="source-context-plus-local-parameters",
+        calibration_scope="All modeled converter-interface traffic stays on local SRAM.",
+        sources=(_HOROWITZ_ENERGY_SOURCE,),
+        local_assumptions=(
+            "Off-chip and intermediate traffic fractions are local zeros.",
+            "SRAM bandwidth and energy are local parameters for sensitivity, not "
+            "a specific macro datasheet."
+        ),
+        reviewer_note=(
+            "Use this to bound cards whose system story depends on aggressive "
+            "local buffering."
+        ),
+    ),
+    "hbm": ScenarioProvenancePack(
+        status="source-context-plus-local-parameters",
+        calibration_scope=(
+            "HBM-like off-chip tier with lower movement energy and higher "
+            "bandwidth than the DDR/default tier."
+        ),
+        sources=(_JEDEC_HBM_SOURCE, _HOROWITZ_ENERGY_SOURCE),
+        local_assumptions=(
+            "The 512 bytes/ns off-chip bandwidth is a PhotonicBench local "
+            "scenario parameter.",
+            "The 3 pJ/byte read/write energy is a local comparison value, not a "
+            "JEDEC-published energy number."
+        ),
+        reviewer_note=(
+            "The source anchors the HBM-class hierarchy choice; numeric model "
+            "inputs remain local assumptions."
+        ),
+    ),
+    "ddr": ScenarioProvenancePack(
+        status="source-context-plus-local-parameters",
+        calibration_scope=(
+            "Generic DDR-class off-chip tier matching the conservative "
+            "PhotonicBench baseline movement defaults."
+        ),
+        sources=(_JEDEC_DDR_SOURCE, _HOROWITZ_ENERGY_SOURCE),
+        local_assumptions=(
+            "The 16 bytes/ns off-chip bandwidth and 10 pJ/byte energy are local "
+            "default parameters.",
+            "Controller turnaround is represented by the local contention preset.",
+        ),
+        reviewer_note=(
+            "Use this scenario to expose cards that become movement-bound when "
+            "off-chip traffic is DDR-like."
+        ),
+    ),
+    "pcie_attached": ScenarioProvenancePack(
+        status="source-context-plus-local-parameters",
+        calibration_scope=(
+            "Serialized host/PCIe-attached path for cards whose data movement "
+            "leaves the local accelerator package."
+        ),
+        sources=(_PCI_SIG_SOURCE, _LIGHTNING_SMARTNIC_SOURCE),
+        local_assumptions=(
+            "Host-link bandwidth and 50 pJ/byte movement are conservative local "
+            "parameters.",
+            "The serialized timing mode is a local review guardrail for "
+            "host-attached designs."
+        ),
+        reviewer_note=(
+            "The pack makes host-link exposure visible without claiming a full "
+            "PCIe protocol simulation."
+        ),
+    ),
+    "optical_interconnect": ScenarioProvenancePack(
+        status="source-context-plus-local-parameters",
+        calibration_scope=(
+            "WDM/broadcast-like optical movement scenario with high-bandwidth "
+            "intermediate/off-chip paths."
+        ),
+        sources=(_TAIT_WDM_SOURCE, _LIGHTENING_TRANSFORMER_SOURCE),
+        local_assumptions=(
+            "Optical interconnect tier pJ/byte, bandwidth, and traffic fractions "
+            "are PhotonicBench local sweep parameters.",
+            "Broadcast overlap is represented by a local contention model, not "
+            "measured link-level scheduling."
+        ),
+        reviewer_note=(
+            "Use this scenario for cards whose claim depends on optical "
+            "movement, broadcast, or chiplet/interconnect behavior."
+        ),
+    ),
+}
+
+SYSTEM_CONTENTION_PROVENANCE_PACKS: dict[str, ScenarioProvenancePack] = {
+    "single_client": ScenarioProvenancePack(
+        status="local-baseline",
+        calibration_scope=(
+            "Dedicated path: one modeled client, no arbitration loss, and no "
+            "calibration/control guardband."
+        ),
+        local_assumptions=(
+            "shared_bandwidth_clients=1, arbitration_efficiency=1, and "
+            "calibration_overhead_fraction=0 are local baseline assumptions.",
+        ),
+        reviewer_note="Use as the no-contention reference point.",
+    ),
+    "shared_hbm_stack": ScenarioProvenancePack(
+        status="source-context-plus-local-parameters",
+        calibration_scope=(
+            "HBM-style shared stack with local two-client bandwidth division, "
+            "arbitration loss, and small guardband."
+        ),
+        sources=(_JEDEC_HBM_SOURCE,),
+        local_assumptions=(
+            "Two modeled clients, 0.92 arbitration efficiency, and 0.02 "
+            "guardband are PhotonicBench local contention parameters.",
+        ),
+        reviewer_note="Use to test whether HBM sharing changes the ranking.",
+    ),
+    "ddr_controller": ScenarioProvenancePack(
+        status="source-context-plus-local-parameters",
+        calibration_scope=(
+            "DDR/controller-style sharing with local multi-client derate and "
+            "larger control guardband."
+        ),
+        sources=(_JEDEC_DDR_SOURCE,),
+        local_assumptions=(
+            "Four modeled clients, 0.75 arbitration efficiency, and 0.08 "
+            "guardband are local controller-stress assumptions.",
+        ),
+        reviewer_note=(
+            "Use when off-chip traffic should be penalized for controller and "
+            "turnaround pressure."
+        ),
+    ),
+    "pcie_round_robin": ScenarioProvenancePack(
+        status="source-context-plus-local-parameters",
+        calibration_scope=(
+            "Serialized host-link contention with a local round-robin sharing "
+            "and protocol guardband model."
+        ),
+        sources=(_PCI_SIG_SOURCE, _LIGHTNING_SMARTNIC_SOURCE),
+        local_assumptions=(
+            "Two modeled clients, 0.85 arbitration efficiency, and 0.05 "
+            "guardband are local host-link review parameters.",
+        ),
+        reviewer_note=(
+            "Use to catch host-attached designs whose ranking depends on "
+            "assuming free host movement."
+        ),
+    ),
+    "optical_interconnect_broadcast": ScenarioProvenancePack(
+        status="source-context-plus-local-parameters",
+        calibration_scope=(
+            "Optical broadcast contention model with reduced loaded-client "
+            "penalty and explicit control guardband."
+        ),
+        sources=(_TAIT_WDM_SOURCE, _LIGHTENING_TRANSFORMER_SOURCE),
+        local_assumptions=(
+            "1.5 modeled clients, 0.92 arbitration efficiency, and 0.02 "
+            "guardband are local WDM/broadcast sensitivity parameters.",
+        ),
+        reviewer_note=(
+            "Use to compare whether optical broadcast movement changes the "
+            "decision without presenting it as measured hardware contention."
         ),
     ),
 }
@@ -336,6 +765,7 @@ def system_config_to_dict(system: SystemConfig) -> dict[str, Any]:
     return {
         "profile": system.profile,
         "profile_overrides": list(system.profile_overrides),
+        "scenario": system_memory_scenario_to_dict(system),
         "memory_timing_mode": system.memory_timing_mode,
         "contention": system_contention_config_to_dict(system.contention),
         "sram": memory_tier_config_to_dict(system.sram),
@@ -344,13 +774,130 @@ def system_config_to_dict(system: SystemConfig) -> dict[str, Any]:
     }
 
 
+def system_memory_scenario_to_dict(system: SystemConfig) -> dict[str, Any]:
+    profile = SYSTEM_PROFILES.get(system.profile)
+    contention_preset = SYSTEM_CONTENTION_PRESETS.get(system.contention.preset)
+    scenario_pack = SYSTEM_SCENARIO_PROVENANCE_PACKS.get(
+        system.profile,
+        _custom_scenario_provenance_pack(system.profile),
+    )
+    contention_pack = SYSTEM_CONTENTION_PROVENANCE_PACKS.get(
+        system.contention.preset,
+        _custom_contention_provenance_pack(system.contention.preset),
+    )
+    return {
+        "name": system.profile,
+        "description": (
+            profile.description
+            if profile is not None
+            else "Manual system scenario assembled from explicit tier settings."
+        ),
+        "profile_overrides": list(system.profile_overrides),
+        "memory_timing_mode": system.memory_timing_mode,
+        "contention_preset": system.contention.preset,
+        "contention_preset_description": _contention_preset_description(
+            system.contention,
+            contention_preset,
+        ),
+        "overlap_model": system.contention.overlap_model,
+        "scenario_provenance": scenario_provenance_pack_to_dict(scenario_pack),
+        "contention_provenance": scenario_provenance_pack_to_dict(contention_pack),
+        "assumptions": {
+            "shared_bandwidth_clients": system.contention.shared_bandwidth_clients,
+            "arbitration_efficiency": system.contention.arbitration_efficiency,
+            "calibration_overhead_fraction": (
+                system.contention.calibration_overhead_fraction
+            ),
+            "sram": memory_tier_config_to_dict(system.sram),
+            "intermediate": memory_tier_config_to_dict(system.intermediate),
+            "off_chip": memory_tier_config_to_dict(system.off_chip),
+        },
+        "note": (
+            "Memory scenario fields are local modeling assumptions for review "
+            "and sensitivity analysis; they are not paper-published hardware "
+            "measurements unless a card states otherwise."
+        ),
+    }
+
+
+def scenario_provenance_pack_to_dict(pack: ScenarioProvenancePack) -> dict[str, Any]:
+    return {
+        "status": pack.status,
+        "calibration_scope": pack.calibration_scope,
+        "sources": [
+            {
+                "title": source.title,
+                "url": source.url,
+                "reference_id": source.reference_id,
+                "evidence_type": source.evidence_type,
+                "supports": list(source.supports),
+            }
+            for source in pack.sources
+        ],
+        "local_assumptions": list(pack.local_assumptions),
+        "reviewer_note": pack.reviewer_note,
+    }
+
+
+def _custom_scenario_provenance_pack(profile_name: str) -> ScenarioProvenancePack:
+    return ScenarioProvenancePack(
+        status="custom-local-parameters",
+        calibration_scope=(
+            f"Manual system scenario {profile_name!r} assembled from explicit "
+            "tier settings."
+        ),
+        local_assumptions=(
+            "Custom profile tier energy, bandwidth, traffic fractions, timing "
+            "mode, and contention values are authoritative local inputs.",
+        ),
+        reviewer_note=(
+            "No named scenario pack matched this profile; audit the explicit "
+            "model_inputs.system tier values."
+        ),
+    )
+
+
+def _custom_contention_provenance_pack(preset_name: str) -> ScenarioProvenancePack:
+    return ScenarioProvenancePack(
+        status="custom-local-parameters",
+        calibration_scope=(
+            f"Manual contention preset {preset_name!r} assembled from explicit "
+            "contention settings."
+        ),
+        local_assumptions=(
+            "Custom shared-client count, arbitration efficiency, calibration "
+            "guardband, and overlap model are authoritative local inputs.",
+        ),
+        reviewer_note=(
+            "No named contention pack matched this preset; audit the explicit "
+            "model_inputs.system.contention values."
+        ),
+    )
+
+
+def _contention_preset_description(
+    contention: SystemContentionConfig,
+    preset: SystemContentionPreset | None,
+) -> str:
+    if preset is None:
+        return "Custom contention calibration preset."
+    if contention == preset.to_contention_config():
+        return preset.description
+    return (
+        f"Custom overrides applied to {preset.name}: {preset.description} "
+        "Numeric contention assumptions in this scenario are authoritative."
+    )
+
+
 def system_contention_config_to_dict(
     contention: SystemContentionConfig,
-) -> dict[str, float]:
+) -> dict[str, float | str]:
     return {
+        "preset": contention.preset,
         "shared_bandwidth_clients": contention.shared_bandwidth_clients,
         "arbitration_efficiency": contention.arbitration_efficiency,
         "calibration_overhead_fraction": contention.calibration_overhead_fraction,
+        "overlap_model": contention.overlap_model,
     }
 
 
@@ -416,6 +963,31 @@ class SourceQualityConfig:
 
 
 @dataclass(frozen=True)
+class SourceAuditMetric:
+    metric: str
+    quoted_value: str
+    source_location: str
+    note: str = ""
+
+
+@dataclass(frozen=True)
+class SourceAuditConversion:
+    derived_metric: str
+    formula: str
+    inputs: dict[str, str | int | float | bool] = field(default_factory=dict)
+    result: str = ""
+    note: str = ""
+
+
+@dataclass(frozen=True)
+class SourceAuditConfig:
+    quoted_metrics: tuple[SourceAuditMetric, ...] = ()
+    local_assumptions: tuple[str, ...] = ()
+    conversion_math: tuple[SourceAuditConversion, ...] = ()
+    confidence_flags: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
 class BenchmarkConfig:
     benchmark: BenchmarkMeta
     workload: WorkloadConfig
@@ -427,6 +999,7 @@ class BenchmarkConfig:
     provenance: ProvenanceConfig | None = None
     published_calibration: PublishedCalibrationConfig | None = None
     source_quality: SourceQualityConfig | None = None
+    source_audit: SourceAuditConfig | None = None
     assumptions: tuple[str, ...] = ()
 
     def with_updates(self, **changes: Any) -> "BenchmarkConfig":
@@ -507,6 +1080,7 @@ def load_config(path: str | Path) -> BenchmarkConfig:
         provenance=provenance,
         published_calibration=published_calibration,
         source_quality=_optional_source_quality(raw),
+        source_audit=_optional_source_audit(raw),
         assumptions=assumptions,
     )
 
@@ -1059,6 +1633,104 @@ def _optional_source_quality(raw: dict[str, Any]) -> SourceQualityConfig | None:
     )
 
 
+def _optional_source_audit(raw: dict[str, Any]) -> SourceAuditConfig | None:
+    if "source_audit" not in raw:
+        return None
+    audit = _require_mapping(raw, "source_audit")
+    return SourceAuditConfig(
+        quoted_metrics=_source_audit_metrics(audit),
+        local_assumptions=_string_list(
+            audit,
+            "source_audit.local_assumptions",
+            required=False,
+        ),
+        conversion_math=_source_audit_conversions(audit),
+        confidence_flags=_string_list(
+            audit,
+            "source_audit.confidence_flags",
+            required=False,
+        ),
+    )
+
+
+def _source_audit_metrics(raw: dict[str, Any]) -> tuple[SourceAuditMetric, ...]:
+    if "quoted_metrics" not in raw:
+        return ()
+    values = raw["quoted_metrics"]
+    if not isinstance(values, list):
+        raise ValueError("source_audit.quoted_metrics must be a list of mappings")
+
+    parsed: list[SourceAuditMetric] = []
+    for index, value in enumerate(values):
+        if not isinstance(value, dict):
+            raise ValueError(
+                f"source_audit.quoted_metrics[{index}] must be a mapping"
+            )
+        parsed.append(
+            SourceAuditMetric(
+                metric=_required_str(
+                    value,
+                    f"source_audit.quoted_metrics[{index}].metric",
+                ),
+                quoted_value=_required_str(
+                    value,
+                    f"source_audit.quoted_metrics[{index}].quoted_value",
+                ),
+                source_location=_required_str(
+                    value,
+                    f"source_audit.quoted_metrics[{index}].source_location",
+                ),
+                note=_optional_str(
+                    value,
+                    f"source_audit.quoted_metrics[{index}].note",
+                ),
+            )
+        )
+    return tuple(parsed)
+
+
+def _source_audit_conversions(
+    raw: dict[str, Any],
+) -> tuple[SourceAuditConversion, ...]:
+    if "conversion_math" not in raw:
+        return ()
+    values = raw["conversion_math"]
+    if not isinstance(values, list):
+        raise ValueError("source_audit.conversion_math must be a list of mappings")
+
+    parsed: list[SourceAuditConversion] = []
+    for index, value in enumerate(values):
+        if not isinstance(value, dict):
+            raise ValueError(
+                f"source_audit.conversion_math[{index}] must be a mapping"
+            )
+        parsed.append(
+            SourceAuditConversion(
+                derived_metric=_required_str(
+                    value,
+                    f"source_audit.conversion_math[{index}].derived_metric",
+                ),
+                formula=_required_str(
+                    value,
+                    f"source_audit.conversion_math[{index}].formula",
+                ),
+                inputs=_optional_scalar_metrics(
+                    value,
+                    f"source_audit.conversion_math[{index}].inputs",
+                ),
+                result=_required_str(
+                    value,
+                    f"source_audit.conversion_math[{index}].result",
+                ),
+                note=_optional_str(
+                    value,
+                    f"source_audit.conversion_math[{index}].note",
+                ),
+            )
+        )
+    return tuple(parsed)
+
+
 def _source_quality_coverage(raw: dict[str, Any]) -> dict[str, str]:
     coverage = _require_nested_mapping(raw, "source_quality", "coverage")
     parsed: dict[str, str] = {}
@@ -1258,6 +1930,44 @@ def _optional_memory_timing_mode(
     return mode
 
 
+def _contention_preset_with_default(
+    raw: dict[str, Any],
+    dotted_key: str,
+    *,
+    default: str,
+) -> str:
+    key = dotted_key.rsplit(".", 1)[-1]
+    if key not in raw:
+        return default
+    value = raw[key]
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{dotted_key} must be a non-empty string")
+    preset = value.strip()
+    if preset not in SYSTEM_CONTENTION_PRESETS:
+        choices = ", ".join(sorted(SYSTEM_CONTENTION_PRESETS))
+        raise ValueError(f"{dotted_key} must be one of: {choices}")
+    return preset
+
+
+def _contention_overlap_model_with_default(
+    raw: dict[str, Any],
+    dotted_key: str,
+    *,
+    default: str,
+) -> str:
+    key = dotted_key.rsplit(".", 1)[-1]
+    if key not in raw:
+        return default
+    value = raw[key]
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{dotted_key} must be a non-empty string")
+    overlap_model = value.strip()
+    if overlap_model not in SYSTEM_CONTENTION_OVERLAP_MODELS:
+        choices = ", ".join(SYSTEM_CONTENTION_OVERLAP_MODELS)
+        raise ValueError(f"{dotted_key} must be one of: {choices}")
+    return overlap_model
+
+
 def _system_contention_config(
     raw: dict[str, Any] | None,
     section: str,
@@ -1267,21 +1977,37 @@ def _system_contention_config(
     if raw is None:
         return default
 
+    preset = _contention_preset_with_default(
+        raw,
+        f"{section}.preset",
+        default=default.preset,
+    )
+    base = (
+        SYSTEM_CONTENTION_PRESETS[preset].to_contention_config()
+        if preset != default.preset
+        else default
+    )
     return SystemContentionConfig(
+        preset=preset,
         shared_bandwidth_clients=_positive_float_with_default(
             raw,
             f"{section}.shared_bandwidth_clients",
-            default=default.shared_bandwidth_clients,
+            default=base.shared_bandwidth_clients,
         ),
         arbitration_efficiency=_efficiency_with_default(
             raw,
             f"{section}.arbitration_efficiency",
-            default=default.arbitration_efficiency,
+            default=base.arbitration_efficiency,
         ),
         calibration_overhead_fraction=_non_negative_float_with_default(
             raw,
             f"{section}.calibration_overhead_fraction",
-            default=default.calibration_overhead_fraction,
+            default=base.calibration_overhead_fraction,
+        ),
+        overlap_model=_contention_overlap_model_with_default(
+            raw,
+            f"{section}.overlap_model",
+            default=base.overlap_model,
         ),
     )
 
@@ -1418,7 +2144,17 @@ def _required_str(raw: dict[str, Any], dotted_key: str) -> str:
     value = raw.get(key)
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f"{dotted_key} must be a non-empty string")
-    return value
+    return value.strip()
+
+
+def _optional_str(raw: dict[str, Any], dotted_key: str) -> str:
+    key = dotted_key.rsplit(".", 1)[-1]
+    if key not in raw:
+        return ""
+    value = raw[key]
+    if not isinstance(value, str):
+        raise ValueError(f"{dotted_key} must be a string")
+    return value.strip()
 
 
 def _positive_int(raw: dict[str, Any], dotted_key: str) -> int:

@@ -6,6 +6,7 @@ Same 64x64 photonic matmul workload as the starter card, using the pcie_attached
 
 
 
+
 ## Workload
 
 | Metric | Value |
@@ -63,11 +64,29 @@ simulator.
 | Intermediate/cache | 8192 bytes | 4096 bytes | 2457.600 pJ | 33.33% | 0.40% | 0.40% | 96.000 ns | 237.176 ns | 47.4353 | 54.400 bytes/ns | 2457.600 bytes/ns | 45.1765 | -2403.200 bytes/ns |
 | Off-chip/DRAM | 8192 bytes | 4096 bytes | 614400.000 pJ | 33.33% | 99.56% | 98.88% | 1536.000 ns | 3794.824 ns | 758.965 | 3.400 bytes/ns | 2457.600 bytes/ns | 722.824 | -2454.200 bytes/ns |
 
+### Hierarchy Energy Breakdown
+
+This table is a local system-energy decomposition by hierarchy level. It is
+not a published hardware energy breakdown.
+
+| Component | Energy | System share |
+| --- | ---: | ---: |
+| Local compute/conversion | 4251.648 pJ | 0.68% |
+| SRAM movement | 245.760 pJ | 0.04% |
+| Intermediate/cache movement | 2457.600 pJ | 0.40% |
+| Off-chip/DRAM movement | 614400.000 pJ | 98.88% |
+| Total movement | 617103.360 pJ | 99.32% |
+
 | Metric | Value |
 | --- | ---: |
 | System profile | pcie_attached |
 | Profile tier overrides | none |
+| Memory scenario | pcie_attached |
+| Scenario description | Local SRAM plus a host/PCIe-attached memory path with lower effective bandwidth and higher movement energy. |
 | Memory timing mode | serialized |
+| Contention preset | pcie_round_robin |
+| Contention preset description | Host/PCIe-attached path: two clients share a serialized host link with round-robin arbitration and explicit protocol guardband. |
+| Contention overlap model | serialized_host_link |
 | Shared bandwidth clients | 2 |
 | Arbitration efficiency | 0.85 |
 | Calibration/control overhead | 0.05 |
@@ -109,6 +128,8 @@ simulator.
 | Effective loaded hierarchy bandwidth | 22.423 bytes/ns |
 | Contention-only loaded hierarchy bandwidth | 9.530 bytes/ns |
 | Contention-adjusted loaded hierarchy bandwidth | 9.076 bytes/ns |
+| Effective usable bandwidth under load | 9.530 bytes/ns |
+| Guardbanded usable bandwidth under load | 9.076 bytes/ns |
 | Transfer-to-compute time ratio | 328.8 |
 | Bandwidth-limited tier | serialized_tier_path |
 | Bandwidth-limited batch latency | 1644.000 ns |
@@ -119,6 +140,17 @@ simulator.
 | Contention-adjusted transfer-to-compute time ratio | 812.329 |
 | Contention pressure ratio | 812.329 |
 | Contention-adjusted equivalent ops/s | 129082609199.398 |
+
+### Scenario Provenance Packs
+
+These packs justify the selected local memory hierarchy and contention preset
+without implying measured end-to-end hardware behavior.
+
+| Pack | Status | Calibration scope | Sources | Local assumptions | Reviewer note |
+| --- | --- | --- | --- | --- | --- |
+| Memory scenario | source-context-plus-local-parameters | Serialized host/PCIe-attached path for cards whose data movement leaves the local accelerator package. | PCI-SIG PCI Express 6.0 specification overview (PCIe 6.0 specification overview); Lightning: A reconfigurable photonic-electronic SmartNIC for fast and energy-efficient inference (10.1145/3603269.3604821) | Host-link bandwidth and 50 pJ/byte movement are conservative local parameters.; The serialized timing mode is a local review guardrail for host-attached designs. | The pack makes host-link exposure visible without claiming a full PCIe protocol simulation. |
+| Contention preset | source-context-plus-local-parameters | Serialized host-link contention with a local round-robin sharing and protocol guardband model. | PCI-SIG PCI Express 6.0 specification overview (PCIe 6.0 specification overview); Lightning: A reconfigurable photonic-electronic SmartNIC for fast and energy-efficient inference (10.1145/3603269.3604821) | Two modeled clients, 0.85 arbitration efficiency, and 0.05 guardband are local host-link review parameters. | Use to catch host-attached designs whose ranking depends on assuming free host movement. |
+
 
 ## Energy
 
@@ -177,3 +209,4 @@ simulator.
 - Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.
 - The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.
 - System contention fields model shared bandwidth clients, arbitration efficiency, and calibration/control guardband as local assumptions; they are not inferred from published hardware unless a card says so.
+- Memory scenario and contention preset names describe local review assumptions, including the overlap model used to interpret transfer timing; they are not benchmark claims.

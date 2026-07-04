@@ -19,7 +19,7 @@
 
       <div class="counts" aria-label="Artifact counts">
         <div class="count-box">
-          <strong id="artifact-count">63</strong>
+          <strong id="artifact-count">71</strong>
           <span>loaded artifacts</span>
         </div>
         <div class="count-box">
@@ -63,6 +63,14 @@
         <button id="clear-external" class="action-button" type="button">Clear external</button>
         <div id="external-message" class="preset-message" aria-live="polite"></div>
         <div id="external-diagnostics" class="external-diagnostics" aria-live="polite"></div>
+      </div>
+
+      <div class="decision-packet-panel" aria-label="Decision packet replay">
+        <label id="decision-packet-drop-zone" class="file-picker decision-packet-drop-zone">
+          <span>Replay decision packet</span>
+          <input id="decision-packet-file" type="file" accept="application/json,.json" aria-label="Replay decision packet">
+        </label>
+        <div id="decision-packet-message" class="preset-message" aria-live="polite"></div>
       </div>
 
       <div class="filters">

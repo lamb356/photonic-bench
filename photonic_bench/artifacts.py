@@ -126,6 +126,10 @@ MATMUL_ARTIFACT_RECIPES: tuple[MatmulArtifactRecipe, ...] = (
         "profile_sensitivity_64x64_on_chip_sram",
     ),
     MatmulArtifactRecipe(
+        "profile_sensitivity_64x64_on_package_sram.yaml",
+        "profile_sensitivity_64x64_on_package_sram",
+    ),
+    MatmulArtifactRecipe(
         "profile_sensitivity_64x64_hbm.yaml",
         "profile_sensitivity_64x64_hbm",
     ),
@@ -136,6 +140,10 @@ MATMUL_ARTIFACT_RECIPES: tuple[MatmulArtifactRecipe, ...] = (
     MatmulArtifactRecipe(
         "profile_sensitivity_64x64_pcie_attached.yaml",
         "profile_sensitivity_64x64_pcie_attached",
+    ),
+    MatmulArtifactRecipe(
+        "profile_sensitivity_64x64_optical_interconnect.yaml",
+        "profile_sensitivity_64x64_optical_interconnect",
     ),
     MatmulArtifactRecipe("nature_pace_64x64.yaml", "nature_pace_64x64"),
     MatmulArtifactRecipe(
@@ -207,6 +215,30 @@ MATMUL_ARTIFACT_RECIPES: tuple[MatmulArtifactRecipe, ...] = (
     MatmulArtifactRecipe(
         "dong_2023_continuous_time_tensor_core_surrogate.yaml",
         "dong_2023_continuous_time_tensor_core_surrogate",
+    ),
+    MatmulArtifactRecipe(
+        "shen_2017_coherent_onn_surrogate.yaml",
+        "shen_2017_coherent_onn_surrogate",
+    ),
+    MatmulArtifactRecipe(
+        "tait_2017_microring_weight_bank_surrogate.yaml",
+        "tait_2017_microring_weight_bank_surrogate",
+    ),
+    MatmulArtifactRecipe(
+        "chipai_2025_photonic_chiplet_surrogate.yaml",
+        "chipai_2025_photonic_chiplet_surrogate",
+    ),
+    MatmulArtifactRecipe(
+        "lightening_transformer_2024_surrogate.yaml",
+        "lightening_transformer_2024_surrogate",
+    ),
+    MatmulArtifactRecipe(
+        "lightning_2023_smartnic_surrogate.yaml",
+        "lightning_2023_smartnic_surrogate",
+    ),
+    MatmulArtifactRecipe(
+        "adept_2023_electro_photonic_surrogate.yaml",
+        "adept_2023_electro_photonic_surrogate",
     ),
     MatmulArtifactRecipe(
         "meyer_2026_reconfigurable_ptp_surrogate.yaml",

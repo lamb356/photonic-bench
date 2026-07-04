@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+from photonic_bench.config import system_memory_scenario_to_dict
 from photonic_bench.model import BenchmarkResult
+from photonic_bench.source_audit import build_source_audit
 
 
 REPORT_ASSUMPTIONS = (
@@ -23,6 +25,7 @@ def render_markdown(result: BenchmarkResult) -> str:
     system = result.system
     workload = config.workload
     execution = config.execution
+    scenario = system_memory_scenario_to_dict(config.system)
 
     description = config.benchmark.description or "No description provided."
     peripheral_percent = energy.peripheral_share * 100
@@ -36,6 +39,7 @@ def render_markdown(result: BenchmarkResult) -> str:
 {_render_provenance(config)}
 {_render_published_calibration(result)}
 {_render_source_quality(result)}
+{_render_source_audit(result)}
 {_render_calibration_fit(result)}
 ## Workload
 
@@ -94,11 +98,29 @@ simulator.
 | Intermediate/cache | {_bytes(system.intermediate.read_bytes)} | {_bytes(system.intermediate.write_bytes)} | {_pj(system.intermediate.total_energy_pj)} | {system.intermediate.traffic_share * 100:.2f}% | {system.intermediate.movement_energy_share * 100:.2f}% | {system.intermediate.system_energy_share * 100:.2f}% | {_ns(system.intermediate.transfer_time_ns)} | {_ns(system.intermediate.calibration_adjusted_transfer_time_ns)} | {system.intermediate.contention_adjusted_transfer_pressure_ratio:.6g} | {_bytes_per_ns(system.intermediate.effective_bandwidth_bytes_per_ns)} | {_bytes_per_ns(system.intermediate.compute_window_required_bandwidth_bytes_per_ns)} | {system.intermediate.contention_bandwidth_utilization:.6g} | {_bytes_per_ns(system.intermediate.contention_bandwidth_headroom_bytes_per_ns)} |
 | Off-chip/DRAM | {_bytes(system.off_chip.read_bytes)} | {_bytes(system.off_chip.write_bytes)} | {_pj(system.off_chip.total_energy_pj)} | {system.off_chip.traffic_share * 100:.2f}% | {system.off_chip.movement_energy_share * 100:.2f}% | {system.off_chip.system_energy_share * 100:.2f}% | {_ns(system.off_chip.transfer_time_ns)} | {_ns(system.off_chip.calibration_adjusted_transfer_time_ns)} | {system.off_chip.contention_adjusted_transfer_pressure_ratio:.6g} | {_bytes_per_ns(system.off_chip.effective_bandwidth_bytes_per_ns)} | {_bytes_per_ns(system.off_chip.compute_window_required_bandwidth_bytes_per_ns)} | {system.off_chip.contention_bandwidth_utilization:.6g} | {_bytes_per_ns(system.off_chip.contention_bandwidth_headroom_bytes_per_ns)} |
 
+### Hierarchy Energy Breakdown
+
+This table is a local system-energy decomposition by hierarchy level. It is
+not a published hardware energy breakdown.
+
+| Component | Energy | System share |
+| --- | ---: | ---: |
+| Local compute/conversion | {_pj(system.local_compute_and_conversion_energy_pj)} | {system.local_compute_and_conversion_energy_share * 100:.2f}% |
+| SRAM movement | {_pj(system.sram.total_energy_pj)} | {system.sram.system_energy_share * 100:.2f}% |
+| Intermediate/cache movement | {_pj(system.intermediate.total_energy_pj)} | {system.intermediate.system_energy_share * 100:.2f}% |
+| Off-chip/DRAM movement | {_pj(system.off_chip.total_energy_pj)} | {system.off_chip.system_energy_share * 100:.2f}% |
+| Total movement | {_pj(system.total_movement_energy_pj)} | {system.movement_energy_share * 100:.2f}% |
+
 | Metric | Value |
 | --- | ---: |
 | System profile | {config.system.profile} |
 | Profile tier overrides | {_profile_overrides(config.system.profile_overrides)} |
+| Memory scenario | {scenario["name"]} |
+| Scenario description | {scenario["description"]} |
 | Memory timing mode | {system.memory_timing_mode} |
+| Contention preset | {system.contention_preset} |
+| Contention preset description | {scenario["contention_preset_description"]} |
+| Contention overlap model | {system.contention_overlap_model} |
 | Shared bandwidth clients | {system.shared_bandwidth_clients:.6g} |
 | Arbitration efficiency | {system.bandwidth_arbitration_efficiency:.6g} |
 | Calibration/control overhead | {system.calibration_overhead_fraction:.6g} |
@@ -140,6 +162,8 @@ simulator.
 | Effective loaded hierarchy bandwidth | {_bytes_per_ns(system.effective_loaded_bandwidth_bytes_per_ns)} |
 | Contention-only loaded hierarchy bandwidth | {_bytes_per_ns(system.contention_only_loaded_bandwidth_bytes_per_ns)} |
 | Contention-adjusted loaded hierarchy bandwidth | {_bytes_per_ns(system.contention_adjusted_loaded_bandwidth_bytes_per_ns)} |
+| Effective usable bandwidth under load | {_bytes_per_ns(system.effective_usable_bandwidth_under_load_bytes_per_ns)} |
+| Guardbanded usable bandwidth under load | {_bytes_per_ns(system.guardbanded_usable_bandwidth_under_load_bytes_per_ns)} |
 | Transfer-to-compute time ratio | {system.transfer_to_compute_time_ratio:.6g} |
 | Bandwidth-limited tier | {system.bandwidth_limited_tier} |
 | Bandwidth-limited batch latency | {_ns(system.bandwidth_limited_batch_latency_ns)} |
@@ -151,6 +175,7 @@ simulator.
 | Contention pressure ratio | {system.contention_pressure_ratio:.6g} |
 | Contention-adjusted equivalent ops/s | {system.contention_adjusted_equivalent_ops_per_second:.3f} |
 
+{_render_scenario_provenance(scenario)}
 ## Energy
 
 | Metric | Value |
@@ -373,6 +398,85 @@ These rows summarize source evidence coverage for this published reference card.
 """
 
 
+def _render_source_audit(result: BenchmarkResult) -> str:
+    audit = build_source_audit(
+        result.config,
+        result.published_calibration,
+        equivalent_ops=result.equivalent_ops,
+    )
+    if audit is None:
+        return ""
+
+    metric_rows = "\n".join(
+        "| {metric} | {value} | {location} | {note} |".format(
+            metric=_escape_pipe(row["metric"]),
+            value=_escape_pipe(row["quoted_value"]),
+            location=_escape_pipe(row["source_location"]),
+            note=_escape_pipe(row.get("note", "")),
+        )
+        for row in audit["quoted_metrics"]
+    )
+    conversion_rows = "\n".join(
+        "| {metric} | {formula} | {inputs} | {result} | {note} |".format(
+            metric=_escape_pipe(row["derived_metric"]),
+            formula=_escape_pipe(row["formula"]),
+            inputs=_escape_pipe(_format_audit_inputs(row.get("inputs", {}))),
+            result=_escape_pipe(row["result"]),
+            note=_escape_pipe(row.get("note", "")),
+        )
+        for row in audit["conversion_math"]
+    )
+    assumptions = "\n".join(
+        f"- {assumption}" for assumption in audit["local_assumptions"]
+    )
+    flags = "\n".join(f"- {flag}" for flag in audit["confidence_flags"])
+
+    return f"""## Source Audit
+
+These rows keep quoted source metrics, direct conversion math, local assumptions,
+and confidence flags separate. They do not turn local surrogate estimates into
+paper measurements.
+
+| Metric | Quoted value | Source location | Note |
+| --- | --- | --- | --- |
+{metric_rows}
+
+| Derived metric | Formula | Inputs | Result | Note |
+| --- | --- | --- | ---: | --- |
+{conversion_rows}
+
+Local assumptions:
+
+{assumptions or "- None recorded."}
+
+Confidence flags:
+
+{flags or "- None recorded."}
+
+Boundary note: {audit["separation_note"]}
+
+"""
+
+
+def _render_scenario_provenance(scenario: dict[str, object]) -> str:
+    scenario_pack = scenario.get("scenario_provenance")
+    contention_pack = scenario.get("contention_provenance")
+    if not isinstance(scenario_pack, dict) or not isinstance(contention_pack, dict):
+        return ""
+
+    return f"""### Scenario Provenance Packs
+
+These packs justify the selected local memory hierarchy and contention preset
+without implying measured end-to-end hardware behavior.
+
+| Pack | Status | Calibration scope | Sources | Local assumptions | Reviewer note |
+| --- | --- | --- | --- | --- | --- |
+| Memory scenario | {_pack_status(scenario_pack)} | {_pack_scope(scenario_pack)} | {_pack_sources(scenario_pack)} | {_pack_assumptions(scenario_pack)} | {_pack_note(scenario_pack)} |
+| Contention preset | {_pack_status(contention_pack)} | {_pack_scope(contention_pack)} | {_pack_sources(contention_pack)} | {_pack_assumptions(contention_pack)} | {_pack_note(contention_pack)} |
+
+"""
+
+
 def _render_calibration_fit(result: BenchmarkResult) -> str:
     fit = result.calibration_fit
     if fit is None:
@@ -446,6 +550,11 @@ def result_assumptions(result: BenchmarkResult) -> tuple[str, ...]:
             "efficiency, and calibration/control guardband as local assumptions; "
             "they are not inferred from published hardware unless a card says so."
         ),
+        (
+            "Memory scenario and contention preset names describe local review "
+            "assumptions, including the overlap model used to interpret transfer "
+            "timing; they are not benchmark claims."
+        ),
     )
 
 
@@ -473,3 +582,46 @@ def _format_metric_value(value: float | int, unit: str) -> str:
 
 def _humanize_metric_name(name: str) -> str:
     return name.replace("_", " ").capitalize()
+
+
+def _format_audit_inputs(inputs: object) -> str:
+    if not isinstance(inputs, dict) or not inputs:
+        return ""
+    return ", ".join(f"{key}={value}" for key, value in inputs.items())
+
+
+def _escape_pipe(value: object) -> str:
+    return str(value).replace("|", "\\|")
+
+
+def _pack_status(pack: dict[str, object]) -> str:
+    return _escape_pipe(pack.get("status", ""))
+
+
+def _pack_scope(pack: dict[str, object]) -> str:
+    return _escape_pipe(pack.get("calibration_scope", ""))
+
+
+def _pack_sources(pack: dict[str, object]) -> str:
+    sources = pack.get("sources")
+    if not isinstance(sources, list) or not sources:
+        return "explicit local assumption"
+    labels = []
+    for source in sources:
+        if not isinstance(source, dict):
+            continue
+        title = source.get("title", "source")
+        reference = source.get("reference_id", "")
+        labels.append(f"{title} ({reference})" if reference else str(title))
+    return _escape_pipe("; ".join(labels))
+
+
+def _pack_assumptions(pack: dict[str, object]) -> str:
+    assumptions = pack.get("local_assumptions")
+    if not isinstance(assumptions, list) or not assumptions:
+        return ""
+    return _escape_pipe("; ".join(str(item) for item in assumptions))
+
+
+def _pack_note(pack: dict[str, object]) -> str:
+    return _escape_pipe(pack.get("reviewer_note", ""))

@@ -51,11 +51,79 @@ window.PhotonicBenchPayloadRegistry["tang_2025_waveguide_mvm_surrogate.json"] = 
     "system": {
       "profile": "default",
       "profile_overrides": [],
+      "scenario": {
+        "name": "default",
+        "description": "PhotonicBench baseline: local SRAM plus a conservative generic off-chip/DRAM tier matching the historical defaults.",
+        "profile_overrides": [],
+        "memory_timing_mode": "overlapped",
+        "contention_preset": "single_client",
+        "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+        "overlap_model": "profile_timing_mode",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+          "sources": [
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+            "The scenario is a conservative baseline for sensitivity comparisons."
+          ],
+          "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+        },
+        "contention_provenance": {
+          "status": "local-baseline",
+          "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+          "sources": [],
+          "local_assumptions": [
+            "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+          ],
+          "reviewer_note": "Use as the no-contention reference point."
+        },
+        "assumptions": {
+          "shared_bandwidth_clients": 1.0,
+          "arbitration_efficiency": 1.0,
+          "calibration_overhead_fraction": 0.0,
+          "sram": {
+            "read_energy_pj_per_byte": 0.02,
+            "write_energy_pj_per_byte": 0.02,
+            "bandwidth_bytes_per_ns": 1024.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "intermediate": {
+            "read_energy_pj_per_byte": 0.2,
+            "write_energy_pj_per_byte": 0.2,
+            "bandwidth_bytes_per_ns": 256.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "off_chip": {
+            "read_energy_pj_per_byte": 10.0,
+            "write_energy_pj_per_byte": 10.0,
+            "bandwidth_bytes_per_ns": 16.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          }
+        },
+        "note": "Memory scenario fields are local modeling assumptions for review and sensitivity analysis; they are not paper-published hardware measurements unless a card states otherwise."
+      },
       "memory_timing_mode": "overlapped",
       "contention": {
+        "preset": "single_client",
         "shared_bandwidth_clients": 1.0,
         "arbitration_efficiency": 1.0,
-        "calibration_overhead_fraction": 0.0
+        "calibration_overhead_fraction": 0.0,
+        "overlap_model": "profile_timing_mode"
       },
       "sram": {
         "read_energy_pj_per_byte": 0.02,
@@ -109,12 +177,82 @@ window.PhotonicBenchPayloadRegistry["tang_2025_waveguide_mvm_surrogate.json"] = 
     "system": {
       "profile": "default",
       "profile_overrides": [],
+      "memory_scenario": {
+        "name": "default",
+        "description": "PhotonicBench baseline: local SRAM plus a conservative generic off-chip/DRAM tier matching the historical defaults.",
+        "profile_overrides": [],
+        "memory_timing_mode": "overlapped",
+        "contention_preset": "single_client",
+        "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+        "overlap_model": "profile_timing_mode",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+          "sources": [
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+            "The scenario is a conservative baseline for sensitivity comparisons."
+          ],
+          "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+        },
+        "contention_provenance": {
+          "status": "local-baseline",
+          "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+          "sources": [],
+          "local_assumptions": [
+            "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+          ],
+          "reviewer_note": "Use as the no-contention reference point."
+        },
+        "assumptions": {
+          "shared_bandwidth_clients": 1.0,
+          "arbitration_efficiency": 1.0,
+          "calibration_overhead_fraction": 0.0,
+          "sram": {
+            "read_energy_pj_per_byte": 0.02,
+            "write_energy_pj_per_byte": 0.02,
+            "bandwidth_bytes_per_ns": 1024.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "intermediate": {
+            "read_energy_pj_per_byte": 0.2,
+            "write_energy_pj_per_byte": 0.2,
+            "bandwidth_bytes_per_ns": 256.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "off_chip": {
+            "read_energy_pj_per_byte": 10.0,
+            "write_energy_pj_per_byte": 10.0,
+            "bandwidth_bytes_per_ns": 16.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          }
+        },
+        "note": "Memory scenario fields are local modeling assumptions for review and sensitivity analysis; they are not paper-published hardware measurements unless a card states otherwise."
+      },
       "memory_timing_mode": "overlapped",
       "contention": {
+        "preset": "single_client",
         "shared_bandwidth_clients": 1.0,
         "arbitration_efficiency": 1.0,
-        "calibration_overhead_fraction": 0.0
+        "calibration_overhead_fraction": 0.0,
+        "overlap_model": "profile_timing_mode"
       },
+      "contention_preset": "single_client",
+      "contention_overlap_model": "profile_timing_mode",
       "tiers": {
         "sram": {
           "name": "sram",
@@ -203,6 +341,31 @@ window.PhotonicBenchPayloadRegistry["tang_2025_waveguide_mvm_surrogate.json"] = 
       "total_system_energy_pj": 251.352,
       "system_energy_per_mac_pj": 15.7095,
       "system_energy_per_op_pj": 7.85475,
+      "hierarchy_energy_breakdown": {
+        "local_compute_and_conversion": {
+          "energy_pj": 6.072,
+          "share": 0.024157357013272224
+        },
+        "sram": {
+          "energy_pj": 0.48000000000000004,
+          "share": 0.001909672491167765
+        },
+        "intermediate": {
+          "energy_pj": 4.8,
+          "share": 0.019096724911677646
+        },
+        "off_chip": {
+          "energy_pj": 240.0,
+          "share": 0.9548362455838824
+        },
+        "movement_total": {
+          "energy_pj": 245.28,
+          "share": 0.9758426429867277
+        },
+        "total_system_energy_pj": 251.352,
+        "dominant_component": "off_chip",
+        "note": "Hierarchy energy is a local decomposition of compute/conversion energy plus modeled movement energy by tier; it is not a published hardware energy breakdown."
+      },
       "local_compute_and_conversion_energy_share": 0.024157357013272224,
       "movement_energy_share": 0.9758426429867277,
       "movement_to_compute_energy_ratio": 40.39525691699605,
@@ -238,6 +401,8 @@ window.PhotonicBenchPayloadRegistry["tang_2025_waveguide_mvm_surrogate.json"] = 
       "effective_loaded_bandwidth_bytes_per_ns": 48.0,
       "contention_only_loaded_bandwidth_bytes_per_ns": 48.0,
       "contention_adjusted_loaded_bandwidth_bytes_per_ns": 48.0,
+      "effective_usable_bandwidth_under_load_bytes_per_ns": 48.0,
+      "guardbanded_usable_bandwidth_under_load_bytes_per_ns": 48.0,
       "transfer_to_compute_time_ratio": 1.5,
       "bandwidth_limited_batch_latency_ns": 1.5,
       "bandwidth_pressure_ratio": 1.5,
@@ -329,6 +494,89 @@ window.PhotonicBenchPayloadRegistry["tang_2025_waveguide_mvm_surrogate.json"] = 
       ],
       "note": "Source quality grades summarize evidence coverage for the published reference card. They do not upgrade local surrogate estimates into paper measurements."
     },
+    "source_audit": {
+      "quoted_metrics": [
+        {
+          "metric": "Architecture",
+          "quoted_value": "Waveguide-multiplexed intensity MVM processor with multiport Ge photodetectors",
+          "source_location": "published_calibration.architecture",
+          "note": "Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics."
+        },
+        {
+          "metric": "Demonstrated mvm shape",
+          "quoted_value": "4x4",
+          "source_location": "published_calibration.additional_metrics.demonstrated_mvm_shape",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Photodetector ports",
+          "quoted_value": "16",
+          "source_location": "published_calibration.additional_metrics.photodetector_ports",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Photodetector 3db bandwidth ghz",
+          "quoted_value": "11.8",
+          "source_location": "published_calibration.additional_metrics.photodetector_3db_bandwidth_ghz",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Photodetector bias voltage v",
+          "quoted_value": "-3",
+          "source_location": "published_calibration.additional_metrics.photodetector_bias_voltage_v",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Projected scaled ports",
+          "quoted_value": "250",
+          "source_location": "published_calibration.additional_metrics.projected_scaled_ports",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Projected scaled bandwidth ghz",
+          "quoted_value": "6.1",
+          "source_location": "published_calibration.additional_metrics.projected_scaled_bandwidth_ghz",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Iris accuracy percent",
+          "quoted_value": "93.3",
+          "source_location": "published_calibration.additional_metrics.iris_accuracy_percent",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Fashion mnist sim accuracy percent",
+          "quoted_value": "90.53",
+          "source_location": "published_calibration.additional_metrics.fashion_mnist_sim_accuracy_percent",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Surrogate mapping",
+          "quoted_value": "m=1, k=4, n=4 encodes the demonstrated 4x4 MVM primitive; it does not model multiport photodetector analog summing physics.",
+          "source_location": "published_calibration.additional_metrics.surrogate_mapping",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        }
+      ],
+      "local_assumptions": [
+        "Local surrogate type: direct_4x4_waveguide_mvm_surrogate.",
+        "Direct primitive shape and detector bandwidth are reported, but energy and exact system timing are not converted into local model outputs.",
+        "The local card uses a dense 4x4 MVM bookkeeping surrogate for the paper's waveguide-multiplexed MVM demonstration.",
+        "Paper-reported photodetector bandwidth, port scaling, and task accuracy remain published reference metadata.",
+        "Local converter energy, system tiers, timing, and noise settings are generic PhotonicBench assumptions."
+      ],
+      "conversion_math": [],
+      "confidence_flags": [
+        "claim_status=paper-reported 4x4 MVM and multiport photodetector metrics; matmul-surrogate local model",
+        "source_doi=10.1364/OPTICA.552023",
+        "source_quality_grade=B",
+        "coverage.accuracy=reported",
+        "coverage.area=not_reported",
+        "coverage.energy=not_reported",
+        "coverage.precision=not_reported",
+        "coverage.throughput=derived"
+      ],
+      "separation_note": "Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs."
+    },
     "separation_note": "Published values are paper-reported references or direct unit conversions, not local component-model estimates."
   },
   "calibration_fit": null,
@@ -349,7 +597,8 @@ window.PhotonicBenchPayloadRegistry["tang_2025_waveguide_mvm_surrogate.json"] = 
     "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
     "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.",
     "The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.",
-    "System contention fields model shared bandwidth clients, arbitration efficiency, and calibration/control guardband as local assumptions; they are not inferred from published hardware unless a card says so."
+    "System contention fields model shared bandwidth clients, arbitration efficiency, and calibration/control guardband as local assumptions; they are not inferred from published hardware unless a card says so.",
+    "Memory scenario and contention preset names describe local review assumptions, including the overlap model used to interpret transfer timing; they are not benchmark claims."
   ],
   "provenance": {
     "source_title": "Waveguide-multiplexed photonic matrix-vector multiplication processor using multiport photodetectors",

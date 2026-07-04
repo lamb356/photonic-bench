@@ -57,6 +57,20 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
                             "matmul_64x64.json",
                         ],
                         "pinned_id": "nature_pace_64x64.json",
+                        "analysis_intent": {
+                            "analysis_focus": "provenance",
+                            "score_profile": "provenance",
+                            "pareto_mode": "contention-throughput",
+                            "filters": {
+                                "kind": "all",
+                                "boundary": "all",
+                                "quality": "all",
+                                "sort": "name",
+                                "grouping": "schema",
+                                "search": "",
+                            },
+                        },
+                        "reviewer_notes": "Imported reviewer note.",
                     }
                 ],
             }
@@ -175,6 +189,7 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
             assert int(page.locator("#compare-count").text_content()) <= 3
             page.get_by_role("button", name="Compare visible").click()
             page.locator("#analysis-focus").select_option("provenance")
+            page.locator("#reviewer-notes").fill("Smoke reviewer note.")
             page.locator("#preset-name").fill("Smoke local preset")
             page.get_by_role("button", name="Save").click()
             page.get_by_text("Saved Smoke local preset.").wait_for()
@@ -184,11 +199,17 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
                 encoding="utf-8"
             )
             assert "photonic-bench-comparison-presets-v1" in preset_text
+            assert "analysis_intent" in preset_text
+            assert "Smoke reviewer note." in preset_text
             page.locator("#import-preset-file").set_input_files(str(imported_presets))
             page.get_by_text("Imported 1 browser-local preset(s).").wait_for()
             page.locator("#preset-select").select_option(label="Imported smoke preset (local)")
             page.locator("#load-preset").click()
             page.get_by_text("Loaded Imported smoke preset.").wait_for()
+            assert page.locator("#analysis-focus").input_value() == "provenance"
+            assert page.locator("#reviewer-notes").input_value() == (
+                "Imported reviewer note."
+            )
             with page.expect_download() as csv_download:
                 page.get_by_role("button", name="Download CSV").click()
             assert csv_download.value.suggested_filename.endswith(".csv")
@@ -197,6 +218,8 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
                 '"analysis_focus","score_profile","score_weights","artifact_id","benchmark"'
                 in csv_text
             )
+            assert "memory_scenario" in csv_text
+            assert "effective_usable_bandwidth_under_load_bytes_per_ns" in csv_text
             assert "comparison_boundary_notes" in csv_text
             assert '"provenance"' in csv_text
             page.get_by_role("button", name="Reset filters").click()
@@ -278,6 +301,16 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
                 "contention_only_loaded_bandwidth_bytes_per_ns"
                 in export_json["artifacts"][0]
             )
+            assert "memory_scenario" in export_json["artifacts"][0]
+            assert "contention_preset" in export_json["artifacts"][0]
+            assert (
+                "effective_usable_bandwidth_under_load_bytes_per_ns"
+                in export_json["artifacts"][0]
+            )
+            assert (
+                "guardbanded_usable_bandwidth_under_load_bytes_per_ns"
+                in export_json["artifacts"][0]
+            )
             assert (
                 "guardbanded_loaded_hierarchy_bandwidth_bytes_per_ns"
                 in export_json["artifacts"][0]
@@ -307,11 +340,88 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
             assert "Analysis focus: Provenance" in markdown_text
             assert "Score profile: Provenance" in markdown_text
             assert "Score weights:" in markdown_text
+            assert "Memory scenario" in markdown_text
             assert "## Recommendations" in markdown_text
             assert "## Review Checklist" in markdown_text
 
+            page.locator("#reviewer-notes").fill("Decision packet smoke note.")
+            with page.expect_download() as packet_json_download:
+                page.get_by_role("button", name="Decision Packet JSON").click()
+            packet_path = Path(packet_json_download.value.path())
+            packet_json = json.loads(
+                packet_path.read_text(encoding="utf-8")
+            )
+            packet_schema = json.loads(
+                Path("docs/photonic-bench-decision-packet-v1.schema.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            jsonschema.validate(
+                packet_json,
+                packet_schema,
+                format_checker=jsonschema.FormatChecker(),
+            )
+            assert packet_json["schema_version"] == "photonic-bench-decision-packet-v1"
+            assert packet_json["reviewer_notes"] == "Decision packet smoke note."
+            assert packet_json["selected_artifacts"]
+            assert packet_json["top_tradeoffs"]["recommendations"][0][
+                "why_ranked_here"
+            ].startswith("Why this card ranks here")
+            assert packet_json["comparison_export"]["schema_version"] == (
+                "photonic-bench-comparison-export-v1"
+            )
+            original_packet_ids = list(packet_json["selected_artifact_ids"])
+            packet_json["reviewer_notes"] = "Replayed packet smoke note."
+            packet_json["selected_artifact_ids"] = [
+                *original_packet_ids,
+                "stale_replay_artifact.json",
+            ]
+            replay_packet = tmp_path / "decision_packet_replay.json"
+            replay_packet.write_text(
+                json.dumps(packet_json),
+                encoding="utf-8",
+            )
+            page.get_by_role("button", name="Clear comparison").click()
+            assert page.locator("#compare-count").text_content() == "0"
+            page.locator("#decision-packet-file").set_input_files(str(replay_packet))
+            page.get_by_text(
+                "Replayed "
+                f"{len(original_packet_ids)} artifact(s); missing: stale_replay_artifact.json"
+            ).wait_for()
+            page.get_by_role("heading", name="Decision Packet Replay").wait_for()
+            page.get_by_text("Missing artifact IDs: stale_replay_artifact.json").wait_for()
+            page.get_by_role("heading", name="Artifact Comparison").wait_for()
+            assert page.locator("#compare-count").text_content() == str(
+                len(original_packet_ids)
+            )
+            assert page.locator("#reviewer-notes").input_value() == (
+                "Replayed packet smoke note."
+            )
+            assert page.locator("#analysis-focus").input_value() == "provenance"
+            page.get_by_role("heading", name="Scenario Sensitivity Dashboard").wait_for()
+            page.get_by_text("not measured hardware sweeps").first.wait_for()
+            page.locator("#scenario-subject").select_option(
+                "profile_sensitivity_64x64_hbm.json"
+            )
+            assert page.locator("#scenario-subject").input_value() == (
+                "profile_sensitivity_64x64_hbm.json"
+            )
+            page.get_by_text("optical_interconnect").first.wait_for()
+            page.get_by_text("Throughput ratio").first.wait_for()
+            with page.expect_download() as packet_markdown_download:
+                page.get_by_role("button", name="Decision Packet Markdown").click()
+            packet_markdown = Path(packet_markdown_download.value.path()).read_text(
+                encoding="utf-8"
+            )
+            assert "# PhotonicBench Decision Packet" in packet_markdown
+            assert "## Selected Artifacts" in packet_markdown
+            assert "Replayed packet smoke note." in packet_markdown
+
             page.locator('button[data-id="nature_pace_64x64.json"]').click()
             page.get_by_role("heading", name="Published Reference").wait_for()
+            page.get_by_role("heading", name="Scenario Provenance Packs").wait_for()
+            page.get_by_role("heading", name="Source Audit").wait_for()
+            page.get_by_text("Quoted metrics are source-reported values").wait_for()
 
             page.locator('input[data-compare-id="nature_pace_64x64.json"]').check()
             page.locator('button[data-pin-id="nature_pace_64x64.json"]').click()

@@ -2,6 +2,20 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://photonicbench.local/schemas/photonic-bench-transformer-layer-report-v1.schema.json",
   "title": "PhotonicBench transformer layer aggregate report v1",
+  "x-schema-version-policy": {
+    "schema_identifier": "photonic-bench-transformer-layer-report-v1",
+    "compatible_changes": [
+      "Add optional properties to existing objects.",
+      "Add shared $defs that are only referenced by optional properties.",
+      "Clarify descriptions, examples, or documentation without changing meaning."
+    ],
+    "breaking_changes": [
+      "Add new required properties.",
+      "Remove or rename existing properties.",
+      "Change units, nullability, value type, or local-model versus published-reference semantics."
+    ],
+    "breaking_change_action": "Use a new schema_version string and a new schema file."
+  },
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -339,8 +353,11 @@
       "required": [
         "profile",
         "profile_overrides",
+        "memory_scenario",
         "memory_timing_mode",
         "contention",
+        "contention_preset",
+        "contention_overlap_model",
         "local_compute_and_conversion_energy_pj",
         "total_movement_energy_pj",
         "total_system_energy_pj",
@@ -353,6 +370,7 @@
         "contention_adjusted_serial_batch_latency_ns",
         "system_energy_per_mac_pj",
         "system_energy_per_op_pj",
+        "hierarchy_energy_breakdown",
         "local_compute_and_conversion_energy_share",
         "movement_energy_share",
         "movement_to_compute_energy_ratio",
@@ -381,6 +399,8 @@
         "effective_loaded_bandwidth_bytes_per_ns",
         "contention_only_loaded_bandwidth_bytes_per_ns",
         "contention_adjusted_loaded_bandwidth_bytes_per_ns",
+        "effective_usable_bandwidth_under_load_bytes_per_ns",
+        "guardbanded_usable_bandwidth_under_load_bytes_per_ns",
         "transfer_to_compute_time_ratio",
         "bandwidth_pressure_ratio",
         "contention_adjusted_transfer_to_compute_time_ratio",
@@ -397,8 +417,11 @@
           "type": "array",
           "items": {"type": "string"}
         },
+        "memory_scenario": {"$ref": "#/$defs/memoryScenario"},
         "memory_timing_mode": {"enum": ["overlapped", "serialized"]},
         "contention": {"$ref": "#/$defs/systemContentionInputs"},
+        "contention_preset": {"type": "string"},
+        "contention_overlap_model": {"type": "string"},
         "local_compute_and_conversion_energy_pj": {"type": "number", "minimum": 0},
         "total_movement_energy_pj": {"type": "number", "minimum": 0},
         "total_system_energy_pj": {"type": "number", "minimum": 0},
@@ -432,6 +455,7 @@
         },
         "system_energy_per_mac_pj": {"type": "number", "minimum": 0},
         "system_energy_per_op_pj": {"type": "number", "minimum": 0},
+        "hierarchy_energy_breakdown": {"$ref": "#/$defs/hierarchyEnergyBreakdown"},
         "local_compute_and_conversion_energy_share": {
           "type": "number",
           "minimum": 0,
@@ -504,6 +528,14 @@
           "minimum": 0
         },
         "contention_adjusted_loaded_bandwidth_bytes_per_ns": {
+          "type": "number",
+          "minimum": 0
+        },
+        "effective_usable_bandwidth_under_load_bytes_per_ns": {
+          "type": "number",
+          "minimum": 0
+        },
+        "guardbanded_usable_bandwidth_under_load_bytes_per_ns": {
           "type": "number",
           "minimum": 0
         },
@@ -610,22 +642,181 @@
         }
       }
     },
-    "systemContentionInputs": {
+    "memoryScenario": {
       "type": "object",
       "required": [
-        "shared_bandwidth_clients",
-        "arbitration_efficiency",
-        "calibration_overhead_fraction"
+        "name",
+        "description",
+        "profile_overrides",
+        "memory_timing_mode",
+        "contention_preset",
+        "contention_preset_description",
+        "overlap_model",
+        "assumptions",
+        "note"
       ],
       "additionalProperties": false,
       "properties": {
+        "name": {"type": "string"},
+        "description": {"type": "string"},
+        "profile_overrides": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "memory_timing_mode": {"enum": ["overlapped", "serialized"]},
+        "contention_preset": {"type": "string"},
+        "contention_preset_description": {"type": "string"},
+        "overlap_model": {"type": "string"},
+        "scenario_provenance": {"$ref": "#/$defs/scenarioProvenancePack"},
+        "contention_provenance": {"$ref": "#/$defs/scenarioProvenancePack"},
+        "assumptions": {
+          "type": "object",
+          "required": [
+            "shared_bandwidth_clients",
+            "arbitration_efficiency",
+            "calibration_overhead_fraction",
+            "sram",
+            "intermediate",
+            "off_chip"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "shared_bandwidth_clients": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "arbitration_efficiency": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1
+            },
+            "calibration_overhead_fraction": {"type": "number", "minimum": 0},
+            "sram": {"$ref": "#/$defs/memoryScenarioTier"},
+            "intermediate": {"$ref": "#/$defs/memoryScenarioTier"},
+            "off_chip": {"$ref": "#/$defs/memoryScenarioTier"}
+          }
+        },
+        "note": {"type": "string"}
+      }
+    },
+    "scenarioProvenancePack": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "calibration_scope",
+        "sources",
+        "local_assumptions",
+        "reviewer_note"
+      ],
+      "properties": {
+        "status": {"type": "string"},
+        "calibration_scope": {"type": "string"},
+        "sources": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/scenarioProvenanceSource"}
+        },
+        "local_assumptions": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "reviewer_note": {"type": "string"}
+      }
+    },
+    "scenarioProvenanceSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "url",
+        "reference_id",
+        "evidence_type",
+        "supports"
+      ],
+      "properties": {
+        "title": {"type": "string"},
+        "url": {"type": "string"},
+        "reference_id": {"type": "string"},
+        "evidence_type": {"type": "string"},
+        "supports": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "memoryScenarioTier": {
+      "type": "object",
+      "required": [
+        "read_energy_pj_per_byte",
+        "write_energy_pj_per_byte",
+        "bandwidth_bytes_per_ns",
+        "read_fraction",
+        "write_fraction"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "read_energy_pj_per_byte": {"type": "number", "minimum": 0},
+        "write_energy_pj_per_byte": {"type": "number", "minimum": 0},
+        "bandwidth_bytes_per_ns": {"type": "number", "exclusiveMinimum": 0},
+        "read_fraction": {"type": "number", "minimum": 0, "maximum": 1},
+        "write_fraction": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "hierarchyEnergyBreakdown": {
+      "type": "object",
+      "required": [
+        "local_compute_and_conversion",
+        "sram",
+        "intermediate",
+        "off_chip",
+        "movement_total",
+        "total_system_energy_pj",
+        "dominant_component",
+        "note"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "local_compute_and_conversion": {
+          "$ref": "#/$defs/hierarchyEnergyComponent"
+        },
+        "sram": {"$ref": "#/$defs/hierarchyEnergyComponent"},
+        "intermediate": {"$ref": "#/$defs/hierarchyEnergyComponent"},
+        "off_chip": {"$ref": "#/$defs/hierarchyEnergyComponent"},
+        "movement_total": {"$ref": "#/$defs/hierarchyEnergyComponent"},
+        "total_system_energy_pj": {"type": "number", "minimum": 0},
+        "dominant_component": {"type": "string"},
+        "note": {"type": "string"}
+      }
+    },
+    "hierarchyEnergyComponent": {
+      "type": "object",
+      "required": ["energy_pj", "share"],
+      "additionalProperties": false,
+      "properties": {
+        "energy_pj": {"type": "number", "minimum": 0},
+        "share": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "systemContentionInputs": {
+      "type": "object",
+      "required": [
+        "preset",
+        "shared_bandwidth_clients",
+        "arbitration_efficiency",
+        "calibration_overhead_fraction",
+        "overlap_model"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "preset": {"type": "string"},
         "shared_bandwidth_clients": {"type": "number", "exclusiveMinimum": 0},
         "arbitration_efficiency": {
           "type": "number",
           "exclusiveMinimum": 0,
           "maximum": 1
         },
-        "calibration_overhead_fraction": {"type": "number", "minimum": 0}
+        "calibration_overhead_fraction": {"type": "number", "minimum": 0},
+        "overlap_model": {"type": "string"}
       }
     }
   }

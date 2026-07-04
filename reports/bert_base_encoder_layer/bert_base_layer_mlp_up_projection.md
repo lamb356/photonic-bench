@@ -6,6 +6,7 @@ Dense one-layer BERT-base style encoder benchmark shape with hidden size 768, 12
 
 
 
+
 ## Workload
 
 | Metric | Value |
@@ -63,11 +64,29 @@ simulator.
 | Intermediate/cache | 2457600 bytes | 393216 bytes | 570163.200 pJ | 33.33% | 1.96% | 1.84% | 11136.000 ns | 11136.000 ns | 2227.2 | 256.000 bytes/ns | 570163.200 bytes/ns | 2227.2 | -569907.200 bytes/ns |
 | Off-chip/DRAM | 2457600 bytes | 393216 bytes | 28508160.000 pJ | 33.33% | 97.85% | 91.92% | 178176.000 ns | 178176.000 ns | 35635.2 | 16.000 bytes/ns | 570163.200 bytes/ns | 35635.2 | -570147.200 bytes/ns |
 
+### Hierarchy Energy Breakdown
+
+This table is a local system-energy decomposition by hierarchy level. It is
+not a published hardware energy breakdown.
+
+| Component | Energy | System share |
+| --- | ---: | ---: |
+| Local compute/conversion | 1877999.616 pJ | 6.06% |
+| SRAM movement | 57016.320 pJ | 0.18% |
+| Intermediate/cache movement | 570163.200 pJ | 1.84% |
+| Off-chip/DRAM movement | 28508160.000 pJ | 91.92% |
+| Total movement | 29135339.520 pJ | 93.94% |
+
 | Metric | Value |
 | --- | ---: |
 | System profile | default |
 | Profile tier overrides | none |
+| Memory scenario | default |
+| Scenario description | PhotonicBench baseline: local SRAM plus a conservative generic off-chip/DRAM tier matching the historical defaults. |
 | Memory timing mode | overlapped |
+| Contention preset | single_client |
+| Contention preset description | Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband. |
+| Contention overlap model | profile_timing_mode |
 | Shared bandwidth clients | 1 |
 | Arbitration efficiency | 1 |
 | Calibration/control overhead | 0 |
@@ -109,6 +128,8 @@ simulator.
 | Effective loaded hierarchy bandwidth | 48.000 bytes/ns |
 | Contention-only loaded hierarchy bandwidth | 48.000 bytes/ns |
 | Contention-adjusted loaded hierarchy bandwidth | 48.000 bytes/ns |
+| Effective usable bandwidth under load | 48.000 bytes/ns |
+| Guardbanded usable bandwidth under load | 48.000 bytes/ns |
 | Transfer-to-compute time ratio | 35635.2 |
 | Bandwidth-limited tier | off_chip |
 | Bandwidth-limited batch latency | 178176.000 ns |
@@ -119,6 +140,17 @@ simulator.
 | Contention-adjusted transfer-to-compute time ratio | 35635.2 |
 | Contention pressure ratio | 35635.2 |
 | Contention-adjusted equivalent ops/s | 3389793103448.275 |
+
+### Scenario Provenance Packs
+
+These packs justify the selected local memory hierarchy and contention preset
+without implying measured end-to-end hardware behavior.
+
+| Pack | Status | Calibration scope | Sources | Local assumptions | Reviewer note |
+| --- | --- | --- | --- | --- | --- |
+| Memory scenario | source-context-plus-local-parameters | Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions. | Computing's energy problem (and what we can do about it) (10.1109/ISSCC.2014.6757323) | SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.; The scenario is a conservative baseline for sensitivity comparisons. | Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior. |
+| Contention preset | local-baseline | Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband. | explicit local assumption | shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions. | Use as the no-contention reference point. |
+
 
 ## Energy
 
@@ -183,3 +215,4 @@ simulator.
 - Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.
 - The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.
 - System contention fields model shared bandwidth clients, arbitration efficiency, and calibration/control guardband as local assumptions; they are not inferred from published hardware unless a card says so.
+- Memory scenario and contention preset names describe local review assumptions, including the overlap model used to interpret transfer timing; they are not benchmark claims.

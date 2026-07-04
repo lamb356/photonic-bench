@@ -6,6 +6,7 @@ Same 64x64 photonic matmul workload as the starter card, using the ddr system pr
 
 
 
+
 ## Workload
 
 | Metric | Value |
@@ -59,18 +60,36 @@ simulator.
 
 | Tier | Read bytes | Write bytes | Movement energy | Traffic share | Movement share | System share | Transfer time | Guardbanded transfer | Tier pressure | Effective bandwidth | Required bandwidth | Utilization | Headroom |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| SRAM | 8192 bytes | 4096 bytes | 245.760 pJ | 33.33% | 0.20% | 0.19% | 12.000 ns | 12.000 ns | 2.4 | 1024.000 bytes/ns | 2457.600 bytes/ns | 2.4 | -1433.600 bytes/ns |
-| Intermediate/cache | 8192 bytes | 4096 bytes | 2457.600 pJ | 33.33% | 1.96% | 1.89% | 48.000 ns | 48.000 ns | 9.6 | 256.000 bytes/ns | 2457.600 bytes/ns | 9.6 | -2201.600 bytes/ns |
-| Off-chip/DRAM | 8192 bytes | 4096 bytes | 122880.000 pJ | 33.33% | 97.85% | 94.64% | 768.000 ns | 768.000 ns | 153.6 | 16.000 bytes/ns | 2457.600 bytes/ns | 153.6 | -2441.600 bytes/ns |
+| SRAM | 8192 bytes | 4096 bytes | 245.760 pJ | 33.33% | 0.20% | 0.19% | 12.000 ns | 69.120 ns | 13.824 | 192.000 bytes/ns | 2457.600 bytes/ns | 12.8 | -2265.600 bytes/ns |
+| Intermediate/cache | 8192 bytes | 4096 bytes | 2457.600 pJ | 33.33% | 1.96% | 1.89% | 48.000 ns | 276.480 ns | 55.296 | 48.000 bytes/ns | 2457.600 bytes/ns | 51.2 | -2409.600 bytes/ns |
+| Off-chip/DRAM | 8192 bytes | 4096 bytes | 122880.000 pJ | 33.33% | 97.85% | 94.64% | 768.000 ns | 4423.680 ns | 884.736 | 3.000 bytes/ns | 2457.600 bytes/ns | 819.2 | -2454.600 bytes/ns |
+
+### Hierarchy Energy Breakdown
+
+This table is a local system-energy decomposition by hierarchy level. It is
+not a published hardware energy breakdown.
+
+| Component | Energy | System share |
+| --- | ---: | ---: |
+| Local compute/conversion | 4251.648 pJ | 3.27% |
+| SRAM movement | 245.760 pJ | 0.19% |
+| Intermediate/cache movement | 2457.600 pJ | 1.89% |
+| Off-chip/DRAM movement | 122880.000 pJ | 94.64% |
+| Total movement | 125583.360 pJ | 96.73% |
 
 | Metric | Value |
 | --- | ---: |
 | System profile | ddr |
 | Profile tier overrides | none |
+| Memory scenario | ddr |
+| Scenario description | Local SRAM plus a generic DDR-class off-chip memory tier. This matches the baseline off-chip movement defaults. |
 | Memory timing mode | overlapped |
-| Shared bandwidth clients | 1 |
-| Arbitration efficiency | 1 |
-| Calibration/control overhead | 0 |
+| Contention preset | ddr_controller |
+| Contention preset description | DDR/controller-style sharing: multiple clients and controller turnaround reduce usable bandwidth and add a larger guardband. |
+| Contention overlap model | serialized_tier_path |
+| Shared bandwidth clients | 4 |
+| Arbitration efficiency | 0.75 |
+| Calibration/control overhead | 0.08 |
 | Local compute/conversion energy | 4251.648 pJ |
 | Total movement energy | 125583.360 pJ |
 | Total system energy | 129835.008 pJ |
@@ -91,34 +110,47 @@ simulator.
 | Nominal memory bottleneck tier | off_chip |
 | Contention memory bottleneck tier | off_chip |
 | Max tier nominal pressure ratio | 153.6 |
-| Max tier contention pressure ratio | 153.6 |
+| Max tier contention pressure ratio | 884.736 |
 | Max tier movement-energy share | 97.85% |
 | Max tier system energy share | 94.64% |
 | Contention bandwidth saturation tier | off_chip |
-| Max tier contention bandwidth utilization | 153.6 |
-| Min tier contention bandwidth headroom ratio | 0.00651042 |
+| Max tier contention bandwidth utilization | 819.2 |
+| Min tier contention bandwidth headroom ratio | 0.0012207 |
 | Max transfer time | 768.000 ns |
 | Serialized transfer time | 828.000 ns |
 | Effective transfer time | 768.000 ns |
-| Contention bandwidth derate | 1 |
-| Contention-adjusted effective transfer | 768.000 ns |
-| Calibration-adjusted effective transfer | 768.000 ns |
-| Calibration guardband time | 0.000 ns |
-| Contention transfer overhead | 0.00% |
-| Total transfer overhead | 0.00% |
+| Contention bandwidth derate | 0.1875 |
+| Contention-adjusted effective transfer | 4096.000 ns |
+| Calibration-adjusted effective transfer | 4423.680 ns |
+| Calibration guardband time | 327.680 ns |
+| Contention transfer overhead | 433.33% |
+| Total transfer overhead | 476.00% |
 | Effective loaded hierarchy bandwidth | 48.000 bytes/ns |
-| Contention-only loaded hierarchy bandwidth | 48.000 bytes/ns |
-| Contention-adjusted loaded hierarchy bandwidth | 48.000 bytes/ns |
+| Contention-only loaded hierarchy bandwidth | 9.000 bytes/ns |
+| Contention-adjusted loaded hierarchy bandwidth | 8.333 bytes/ns |
+| Effective usable bandwidth under load | 9.000 bytes/ns |
+| Guardbanded usable bandwidth under load | 8.333 bytes/ns |
 | Transfer-to-compute time ratio | 153.6 |
 | Bandwidth-limited tier | off_chip |
 | Bandwidth-limited batch latency | 768.000 ns |
 | Bandwidth pressure ratio | 153.6 |
 | Bandwidth-limited equivalent ops/s | 682666666666.667 |
 | Contention-limited tier | off_chip |
-| Contention-adjusted batch latency | 768.000 ns |
-| Contention-adjusted transfer-to-compute time ratio | 153.6 |
-| Contention pressure ratio | 153.6 |
-| Contention-adjusted equivalent ops/s | 682666666666.667 |
+| Contention-adjusted batch latency | 4423.680 ns |
+| Contention-adjusted transfer-to-compute time ratio | 884.736 |
+| Contention pressure ratio | 884.736 |
+| Contention-adjusted equivalent ops/s | 118518518518.518 |
+
+### Scenario Provenance Packs
+
+These packs justify the selected local memory hierarchy and contention preset
+without implying measured end-to-end hardware behavior.
+
+| Pack | Status | Calibration scope | Sources | Local assumptions | Reviewer note |
+| --- | --- | --- | --- | --- | --- |
+| Memory scenario | source-context-plus-local-parameters | Generic DDR-class off-chip tier matching the conservative PhotonicBench baseline movement defaults. | JEDEC DDR5 SDRAM standard catalog (JEDEC JESD79-5); Computing's energy problem (and what we can do about it) (10.1109/ISSCC.2014.6757323) | The 16 bytes/ns off-chip bandwidth and 10 pJ/byte energy are local default parameters.; Controller turnaround is represented by the local contention preset. | Use this scenario to expose cards that become movement-bound when off-chip traffic is DDR-like. |
+| Contention preset | source-context-plus-local-parameters | DDR/controller-style sharing with local multi-client derate and larger control guardband. | JEDEC DDR5 SDRAM standard catalog (JEDEC JESD79-5) | Four modeled clients, 0.75 arbitration efficiency, and 0.08 guardband are local controller-stress assumptions. | Use when off-chip traffic should be penalized for controller and turnaround pressure. |
+
 
 ## Energy
 
@@ -177,3 +209,4 @@ simulator.
 - Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.
 - The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.
 - System contention fields model shared bandwidth clients, arbitration efficiency, and calibration/control guardband as local assumptions; they are not inferred from published hardware unless a card says so.
+- Memory scenario and contention preset names describe local review assumptions, including the overlap model used to interpret transfer timing; they are not benchmark claims.

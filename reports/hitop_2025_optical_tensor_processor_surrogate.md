@@ -56,6 +56,52 @@ Source-quality notes:
 - Useful efficiency and scale evidence, but this card does not encode a single reported TOPS value or exact HITOP streaming schedule.
 
 
+## Source Audit
+
+These rows keep quoted source metrics, direct conversion math, local assumptions,
+and confidence flags separate. They do not turn local surrogate estimates into
+paper measurements.
+
+| Metric | Quoted value | Source location | Note |
+| --- | --- | --- | --- |
+| Architecture | Space-time-wavelength hypermultiplexed integrated photonic tensor processor | published_calibration.architecture | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Energy efficiency including lasers | 40.0 | published_calibration.energy_efficiency_including_lasers_tops_per_watt | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Reported throughput note | Source reports trillions of operations per second but no single scalar TOPS value is encoded in this card. | published_calibration.additional_metrics.reported_throughput_note | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Reported energy per op fj from efficiency | 25 | published_calibration.additional_metrics.reported_energy_per_op_fj_from_efficiency | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Model parameters validated | 405000 | published_calibration.additional_metrics.model_parameters_validated | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Multiplexing dimensions | space-time-wavelength | published_calibration.additional_metrics.multiplexing_dimensions | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Dataset url | https://datadryad.org/dataset/doi:10.5061/dryad.kprr4xhgj | published_calibration.additional_metrics.dataset_url | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Surrogate mapping | m=64, k=64, n=64 is a dense local surrogate for HITOP tensor processing; not an exact space-time-wavelength streaming schedule. | published_calibration.additional_metrics.surrogate_mapping | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+
+| Derived metric | Formula | Inputs | Result | Note |
+| --- | --- | --- | ---: | --- |
+| energy_per_op_including_lasers_pj | 1 / energy_efficiency_including_lasers_tops_per_watt | energy_efficiency_including_lasers_tops_per_watt=40.0 | 0.025 |  |
+| energy_per_mac_including_lasers_pj | 2 / energy_efficiency_including_lasers_tops_per_watt | energy_efficiency_including_lasers_tops_per_watt=40.0 | 0.05 |  |
+| total_energy_including_lasers_pj | equivalent_ops / energy_efficiency_including_lasers_tops_per_watt | energy_efficiency_including_lasers_tops_per_watt=40.0, equivalent_ops=524288 | 13107.2 |  |
+| model_to_published_including_lasers_ratio | local_model.energy.total_pj / published_reference.derived_unit_conversions.total_energy_including_lasers_pj | published_total_energy_including_lasers_pj=13107.2 | 0.324375 | Diagnostic ratio only; it does not change local_model or published_reference. |
+
+Local assumptions:
+
+- Local surrogate type: dense_hypermultiplexed_tensor_surrogate.
+- Useful efficiency and scale evidence, but this card does not encode a single reported TOPS value or exact HITOP streaming schedule.
+- Source reports HITOP operating at 40 TOPS/W and trillion-operation-per-second scale; PhotonicBench keeps those values as published references.
+- Local timing, converter energy, system tiers, and noise settings are generic PhotonicBench assumptions, not HITOP device extraction.
+- Weight-stationary mode is used only to model one reused surrogate right operand within a dense local tile.
+
+Confidence flags:
+
+- claim_status=paper-reported HITOP efficiency/scale claims; matmul-surrogate local model
+- source_doi=10.1126/sciadv.adu0228
+- source_quality_grade=C
+- coverage.accuracy=not_reported
+- coverage.area=not_reported
+- coverage.energy=reported
+- coverage.precision=not_reported
+- coverage.throughput=derived
+
+Boundary note: Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs.
+
+
 
 ## Workload
 
@@ -114,11 +160,29 @@ simulator.
 | Intermediate/cache | 8192 bytes | 4096 bytes | 2457.600 pJ | 33.33% | 1.96% | 1.89% | 48.000 ns | 48.000 ns | 48 | 256.000 bytes/ns | 12288.000 bytes/ns | 48 | -12032.000 bytes/ns |
 | Off-chip/DRAM | 8192 bytes | 4096 bytes | 122880.000 pJ | 33.33% | 97.85% | 94.64% | 768.000 ns | 768.000 ns | 768 | 16.000 bytes/ns | 12288.000 bytes/ns | 768 | -12272.000 bytes/ns |
 
+### Hierarchy Energy Breakdown
+
+This table is a local system-energy decomposition by hierarchy level. It is
+not a published hardware energy breakdown.
+
+| Component | Energy | System share |
+| --- | ---: | ---: |
+| Local compute/conversion | 4251.648 pJ | 3.27% |
+| SRAM movement | 245.760 pJ | 0.19% |
+| Intermediate/cache movement | 2457.600 pJ | 1.89% |
+| Off-chip/DRAM movement | 122880.000 pJ | 94.64% |
+| Total movement | 125583.360 pJ | 96.73% |
+
 | Metric | Value |
 | --- | ---: |
 | System profile | default |
 | Profile tier overrides | none |
+| Memory scenario | default |
+| Scenario description | PhotonicBench baseline: local SRAM plus a conservative generic off-chip/DRAM tier matching the historical defaults. |
 | Memory timing mode | overlapped |
+| Contention preset | single_client |
+| Contention preset description | Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband. |
+| Contention overlap model | profile_timing_mode |
 | Shared bandwidth clients | 1 |
 | Arbitration efficiency | 1 |
 | Calibration/control overhead | 0 |
@@ -160,6 +224,8 @@ simulator.
 | Effective loaded hierarchy bandwidth | 48.000 bytes/ns |
 | Contention-only loaded hierarchy bandwidth | 48.000 bytes/ns |
 | Contention-adjusted loaded hierarchy bandwidth | 48.000 bytes/ns |
+| Effective usable bandwidth under load | 48.000 bytes/ns |
+| Guardbanded usable bandwidth under load | 48.000 bytes/ns |
 | Transfer-to-compute time ratio | 768 |
 | Bandwidth-limited tier | off_chip |
 | Bandwidth-limited batch latency | 768.000 ns |
@@ -170,6 +236,17 @@ simulator.
 | Contention-adjusted transfer-to-compute time ratio | 768 |
 | Contention pressure ratio | 768 |
 | Contention-adjusted equivalent ops/s | 682666666666.667 |
+
+### Scenario Provenance Packs
+
+These packs justify the selected local memory hierarchy and contention preset
+without implying measured end-to-end hardware behavior.
+
+| Pack | Status | Calibration scope | Sources | Local assumptions | Reviewer note |
+| --- | --- | --- | --- | --- | --- |
+| Memory scenario | source-context-plus-local-parameters | Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions. | Computing's energy problem (and what we can do about it) (10.1109/ISSCC.2014.6757323) | SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.; The scenario is a conservative baseline for sensitivity comparisons. | Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior. |
+| Contention preset | local-baseline | Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband. | explicit local assumption | shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions. | Use as the no-contention reference point. |
+
 
 ## Energy
 
@@ -229,3 +306,4 @@ simulator.
 - Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.
 - The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.
 - System contention fields model shared bandwidth clients, arbitration efficiency, and calibration/control guardband as local assumptions; they are not inferred from published hardware unless a card says so.
+- Memory scenario and contention preset names describe local review assumptions, including the overlap model used to interpret transfer timing; they are not benchmark claims.

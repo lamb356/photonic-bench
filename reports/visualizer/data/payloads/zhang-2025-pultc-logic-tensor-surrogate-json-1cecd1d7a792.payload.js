@@ -51,11 +51,79 @@ window.PhotonicBenchPayloadRegistry["zhang_2025_pultc_logic_tensor_surrogate.jso
     "system": {
       "profile": "default",
       "profile_overrides": [],
+      "scenario": {
+        "name": "default",
+        "description": "PhotonicBench baseline: local SRAM plus a conservative generic off-chip/DRAM tier matching the historical defaults.",
+        "profile_overrides": [],
+        "memory_timing_mode": "overlapped",
+        "contention_preset": "single_client",
+        "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+        "overlap_model": "profile_timing_mode",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+          "sources": [
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+            "The scenario is a conservative baseline for sensitivity comparisons."
+          ],
+          "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+        },
+        "contention_provenance": {
+          "status": "local-baseline",
+          "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+          "sources": [],
+          "local_assumptions": [
+            "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+          ],
+          "reviewer_note": "Use as the no-contention reference point."
+        },
+        "assumptions": {
+          "shared_bandwidth_clients": 1.0,
+          "arbitration_efficiency": 1.0,
+          "calibration_overhead_fraction": 0.0,
+          "sram": {
+            "read_energy_pj_per_byte": 0.02,
+            "write_energy_pj_per_byte": 0.02,
+            "bandwidth_bytes_per_ns": 1024.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "intermediate": {
+            "read_energy_pj_per_byte": 0.2,
+            "write_energy_pj_per_byte": 0.2,
+            "bandwidth_bytes_per_ns": 256.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "off_chip": {
+            "read_energy_pj_per_byte": 10.0,
+            "write_energy_pj_per_byte": 10.0,
+            "bandwidth_bytes_per_ns": 16.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          }
+        },
+        "note": "Memory scenario fields are local modeling assumptions for review and sensitivity analysis; they are not paper-published hardware measurements unless a card states otherwise."
+      },
       "memory_timing_mode": "overlapped",
       "contention": {
+        "preset": "single_client",
         "shared_bandwidth_clients": 1.0,
         "arbitration_efficiency": 1.0,
-        "calibration_overhead_fraction": 0.0
+        "calibration_overhead_fraction": 0.0,
+        "overlap_model": "profile_timing_mode"
       },
       "sram": {
         "read_energy_pj_per_byte": 0.02,
@@ -109,12 +177,82 @@ window.PhotonicBenchPayloadRegistry["zhang_2025_pultc_logic_tensor_surrogate.jso
     "system": {
       "profile": "default",
       "profile_overrides": [],
+      "memory_scenario": {
+        "name": "default",
+        "description": "PhotonicBench baseline: local SRAM plus a conservative generic off-chip/DRAM tier matching the historical defaults.",
+        "profile_overrides": [],
+        "memory_timing_mode": "overlapped",
+        "contention_preset": "single_client",
+        "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+        "overlap_model": "profile_timing_mode",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+          "sources": [
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+            "The scenario is a conservative baseline for sensitivity comparisons."
+          ],
+          "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+        },
+        "contention_provenance": {
+          "status": "local-baseline",
+          "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+          "sources": [],
+          "local_assumptions": [
+            "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+          ],
+          "reviewer_note": "Use as the no-contention reference point."
+        },
+        "assumptions": {
+          "shared_bandwidth_clients": 1.0,
+          "arbitration_efficiency": 1.0,
+          "calibration_overhead_fraction": 0.0,
+          "sram": {
+            "read_energy_pj_per_byte": 0.02,
+            "write_energy_pj_per_byte": 0.02,
+            "bandwidth_bytes_per_ns": 1024.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "intermediate": {
+            "read_energy_pj_per_byte": 0.2,
+            "write_energy_pj_per_byte": 0.2,
+            "bandwidth_bytes_per_ns": 256.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "off_chip": {
+            "read_energy_pj_per_byte": 10.0,
+            "write_energy_pj_per_byte": 10.0,
+            "bandwidth_bytes_per_ns": 16.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          }
+        },
+        "note": "Memory scenario fields are local modeling assumptions for review and sensitivity analysis; they are not paper-published hardware measurements unless a card states otherwise."
+      },
       "memory_timing_mode": "overlapped",
       "contention": {
+        "preset": "single_client",
         "shared_bandwidth_clients": 1.0,
         "arbitration_efficiency": 1.0,
-        "calibration_overhead_fraction": 0.0
+        "calibration_overhead_fraction": 0.0,
+        "overlap_model": "profile_timing_mode"
       },
+      "contention_preset": "single_client",
+      "contention_overlap_model": "profile_timing_mode",
       "tiers": {
         "sram": {
           "name": "sram",
@@ -203,6 +341,31 @@ window.PhotonicBenchPayloadRegistry["zhang_2025_pultc_logic_tensor_surrogate.jso
       "total_system_energy_pj": 1013.04,
       "system_energy_per_mac_pj": 6.3315,
       "system_energy_per_op_pj": 3.16575,
+      "hierarchy_energy_breakdown": {
+        "local_compute_and_conversion": {
+          "energy_pj": 31.919999999999998,
+          "share": 0.03150912106135987
+        },
+        "sram": {
+          "energy_pj": 1.9200000000000002,
+          "share": 0.00189528547737503
+        },
+        "intermediate": {
+          "energy_pj": 19.200000000000003,
+          "share": 0.018952854773750298
+        },
+        "off_chip": {
+          "energy_pj": 960.0,
+          "share": 0.9476427386875148
+        },
+        "movement_total": {
+          "energy_pj": 981.12,
+          "share": 0.9684908789386402
+        },
+        "total_system_energy_pj": 1013.04,
+        "dominant_component": "off_chip",
+        "note": "Hierarchy energy is a local decomposition of compute/conversion energy plus modeled movement energy by tier; it is not a published hardware energy breakdown."
+      },
       "local_compute_and_conversion_energy_share": 0.03150912106135987,
       "movement_energy_share": 0.9684908789386402,
       "movement_to_compute_energy_ratio": 30.73684210526316,
@@ -238,6 +401,8 @@ window.PhotonicBenchPayloadRegistry["zhang_2025_pultc_logic_tensor_surrogate.jso
       "effective_loaded_bandwidth_bytes_per_ns": 48.0,
       "contention_only_loaded_bandwidth_bytes_per_ns": 48.0,
       "contention_adjusted_loaded_bandwidth_bytes_per_ns": 48.0,
+      "effective_usable_bandwidth_under_load_bytes_per_ns": 48.0,
+      "guardbanded_usable_bandwidth_under_load_bytes_per_ns": 48.0,
       "transfer_to_compute_time_ratio": 6.0,
       "bandwidth_limited_batch_latency_ns": 6.0,
       "bandwidth_pressure_ratio": 6.0,
@@ -327,6 +492,77 @@ window.PhotonicBenchPayloadRegistry["zhang_2025_pultc_logic_tensor_surrogate.jso
       ],
       "note": "Source quality grades summarize evidence coverage for the published reference card. They do not upgrade local surrogate estimates into paper measurements."
     },
+    "source_audit": {
+      "quoted_metrics": [
+        {
+          "metric": "Architecture",
+          "quoted_value": "Photonic universal logic tensor core with microring nonlinear mapping and MZI mesh linear transform",
+          "source_location": "published_calibration.architecture",
+          "note": "Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics."
+        },
+        {
+          "metric": "Wavelength channels",
+          "quoted_value": "10",
+          "source_location": "published_calibration.additional_metrics.wavelength_channels",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Spatial channels",
+          "quoted_value": "4",
+          "source_location": "published_calibration.additional_metrics.spatial_channels",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Line rate gbps per channel",
+          "quoted_value": "50",
+          "source_location": "published_calibration.additional_metrics.line_rate_gbps_per_channel",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Measured mrm eo bandwidth ghz",
+          "quoted_value": "53.73",
+          "source_location": "published_calibration.additional_metrics.measured_mrm_eo_bandwidth_ghz",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Reported logic capacity note",
+          "quoted_value": "beyond Tbit/s per core in the published title; supporting preprint reports beyond TOPS per core and optimized 40 TOPS.",
+          "source_location": "published_calibration.additional_metrics.reported_logic_capacity_note",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Supporting preprint url",
+          "quoted_value": "https://arxiv.org/abs/2504.20331",
+          "source_location": "published_calibration.additional_metrics.supporting_preprint_url",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Surrogate mapping",
+          "quoted_value": "m=4, k=4, n=10 is a compact bookkeeping surrogate for four spatial channels and ten wavelengths; it is not a Boolean logic tensor simulator.",
+          "source_location": "published_calibration.additional_metrics.surrogate_mapping",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        }
+      ],
+      "local_assumptions": [
+        "Local surrogate type: logic_tensor_dense_bookkeeping_surrogate.",
+        "This is a logic tensor processor, so the local dense matmul shape is only a comparison placeholder and must not be read as an exact operation mapping.",
+        "The local card preserves the paper's wavelength, spatial, and line-rate metadata without converting logic capacity into local matrix-multiply throughput.",
+        "The dense tile is intentionally a low-confidence bookkeeping surrogate for visual comparison only.",
+        "Local converter energy, system tiers, timing, and noise settings are generic PhotonicBench assumptions."
+      ],
+      "conversion_math": [],
+      "confidence_flags": [
+        "claim_status=paper-reported PULTC wavelength/spatial logic tensor metrics; matmul-surrogate local model",
+        "source_doi=10.1364/OPTICA.557867",
+        "source_quality_grade=C",
+        "coverage.accuracy=not_applicable",
+        "coverage.area=not_reported",
+        "coverage.energy=not_reported",
+        "coverage.precision=not_applicable",
+        "coverage.throughput=reported"
+      ],
+      "separation_note": "Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs."
+    },
     "separation_note": "Published values are paper-reported references or direct unit conversions, not local component-model estimates."
   },
   "calibration_fit": null,
@@ -347,7 +583,8 @@ window.PhotonicBenchPayloadRegistry["zhang_2025_pultc_logic_tensor_surrogate.jso
     "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
     "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.",
     "The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.",
-    "System contention fields model shared bandwidth clients, arbitration efficiency, and calibration/control guardband as local assumptions; they are not inferred from published hardware unless a card says so."
+    "System contention fields model shared bandwidth clients, arbitration efficiency, and calibration/control guardband as local assumptions; they are not inferred from published hardware unless a card says so.",
+    "Memory scenario and contention preset names describe local review assumptions, including the overlap model used to interpret transfer timing; they are not benchmark claims."
   ],
   "provenance": {
     "source_title": "Photonic logic tensor computing beyond Tbit/s per core",

@@ -51,11 +51,79 @@ window.PhotonicBenchPayloadRegistry["dong_2023_continuous_time_tensor_core_surro
     "system": {
       "profile": "default",
       "profile_overrides": [],
+      "scenario": {
+        "name": "default",
+        "description": "PhotonicBench baseline: local SRAM plus a conservative generic off-chip/DRAM tier matching the historical defaults.",
+        "profile_overrides": [],
+        "memory_timing_mode": "overlapped",
+        "contention_preset": "single_client",
+        "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+        "overlap_model": "profile_timing_mode",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+          "sources": [
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+            "The scenario is a conservative baseline for sensitivity comparisons."
+          ],
+          "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+        },
+        "contention_provenance": {
+          "status": "local-baseline",
+          "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+          "sources": [],
+          "local_assumptions": [
+            "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+          ],
+          "reviewer_note": "Use as the no-contention reference point."
+        },
+        "assumptions": {
+          "shared_bandwidth_clients": 1.0,
+          "arbitration_efficiency": 1.0,
+          "calibration_overhead_fraction": 0.0,
+          "sram": {
+            "read_energy_pj_per_byte": 0.02,
+            "write_energy_pj_per_byte": 0.02,
+            "bandwidth_bytes_per_ns": 1024.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "intermediate": {
+            "read_energy_pj_per_byte": 0.2,
+            "write_energy_pj_per_byte": 0.2,
+            "bandwidth_bytes_per_ns": 256.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "off_chip": {
+            "read_energy_pj_per_byte": 10.0,
+            "write_energy_pj_per_byte": 10.0,
+            "bandwidth_bytes_per_ns": 16.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          }
+        },
+        "note": "Memory scenario fields are local modeling assumptions for review and sensitivity analysis; they are not paper-published hardware measurements unless a card states otherwise."
+      },
       "memory_timing_mode": "overlapped",
       "contention": {
+        "preset": "single_client",
         "shared_bandwidth_clients": 1.0,
         "arbitration_efficiency": 1.0,
-        "calibration_overhead_fraction": 0.0
+        "calibration_overhead_fraction": 0.0,
+        "overlap_model": "profile_timing_mode"
       },
       "sram": {
         "read_energy_pj_per_byte": 0.02,
@@ -109,12 +177,82 @@ window.PhotonicBenchPayloadRegistry["dong_2023_continuous_time_tensor_core_surro
     "system": {
       "profile": "default",
       "profile_overrides": [],
+      "memory_scenario": {
+        "name": "default",
+        "description": "PhotonicBench baseline: local SRAM plus a conservative generic off-chip/DRAM tier matching the historical defaults.",
+        "profile_overrides": [],
+        "memory_timing_mode": "overlapped",
+        "contention_preset": "single_client",
+        "contention_preset_description": "Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+        "overlap_model": "profile_timing_mode",
+        "scenario_provenance": {
+          "status": "source-context-plus-local-parameters",
+          "calibration_scope": "Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions.",
+          "sources": [
+            {
+              "title": "Computing's energy problem (and what we can do about it)",
+              "url": "https://doi.org/10.1109/ISSCC.2014.6757323",
+              "reference_id": "10.1109/ISSCC.2014.6757323",
+              "evidence_type": "memory-energy hierarchy context",
+              "supports": [
+                "local SRAM/intermediate/off-chip tier separation",
+                "data movement can dominate efficient compute"
+              ]
+            }
+          ],
+          "local_assumptions": [
+            "SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.",
+            "The scenario is a conservative baseline for sensitivity comparisons."
+          ],
+          "reviewer_note": "Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior."
+        },
+        "contention_provenance": {
+          "status": "local-baseline",
+          "calibration_scope": "Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband.",
+          "sources": [],
+          "local_assumptions": [
+            "shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions."
+          ],
+          "reviewer_note": "Use as the no-contention reference point."
+        },
+        "assumptions": {
+          "shared_bandwidth_clients": 1.0,
+          "arbitration_efficiency": 1.0,
+          "calibration_overhead_fraction": 0.0,
+          "sram": {
+            "read_energy_pj_per_byte": 0.02,
+            "write_energy_pj_per_byte": 0.02,
+            "bandwidth_bytes_per_ns": 1024.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "intermediate": {
+            "read_energy_pj_per_byte": 0.2,
+            "write_energy_pj_per_byte": 0.2,
+            "bandwidth_bytes_per_ns": 256.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "off_chip": {
+            "read_energy_pj_per_byte": 10.0,
+            "write_energy_pj_per_byte": 10.0,
+            "bandwidth_bytes_per_ns": 16.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          }
+        },
+        "note": "Memory scenario fields are local modeling assumptions for review and sensitivity analysis; they are not paper-published hardware measurements unless a card states otherwise."
+      },
       "memory_timing_mode": "overlapped",
       "contention": {
+        "preset": "single_client",
         "shared_bandwidth_clients": 1.0,
         "arbitration_efficiency": 1.0,
-        "calibration_overhead_fraction": 0.0
+        "calibration_overhead_fraction": 0.0,
+        "overlap_model": "profile_timing_mode"
       },
+      "contention_preset": "single_client",
+      "contention_overlap_model": "profile_timing_mode",
       "tiers": {
         "sram": {
           "name": "sram",
@@ -203,6 +341,31 @@ window.PhotonicBenchPayloadRegistry["dong_2023_continuous_time_tensor_core_surro
       "total_system_energy_pj": 6440.58,
       "system_energy_per_mac_pj": 7.1562,
       "system_energy_per_op_pj": 3.5781,
+      "hierarchy_energy_breakdown": {
+        "local_compute_and_conversion": {
+          "energy_pj": 216.60000000000002,
+          "share": 0.033630511537780766
+        },
+        "sram": {
+          "energy_pj": 12.18,
+          "share": 0.0018911340283017989
+        },
+        "intermediate": {
+          "energy_pj": 121.80000000000001,
+          "share": 0.01891134028301799
+        },
+        "off_chip": {
+          "energy_pj": 6090.0,
+          "share": 0.9455670141508995
+        },
+        "movement_total": {
+          "energy_pj": 6223.98,
+          "share": 0.9663694884622192
+        },
+        "total_system_energy_pj": 6440.58,
+        "dominant_component": "off_chip",
+        "note": "Hierarchy energy is a local decomposition of compute/conversion energy plus modeled movement energy by tier; it is not a published hardware energy breakdown."
+      },
       "local_compute_and_conversion_energy_share": 0.033630511537780766,
       "movement_energy_share": 0.9663694884622192,
       "movement_to_compute_energy_ratio": 28.734903047091407,
@@ -238,6 +401,8 @@ window.PhotonicBenchPayloadRegistry["dong_2023_continuous_time_tensor_core_surro
       "effective_loaded_bandwidth_bytes_per_ns": 48.0,
       "contention_only_loaded_bandwidth_bytes_per_ns": 48.0,
       "contention_adjusted_loaded_bandwidth_bytes_per_ns": 48.0,
+      "effective_usable_bandwidth_under_load_bytes_per_ns": 48.0,
+      "guardbanded_usable_bandwidth_under_load_bytes_per_ns": 48.0,
       "transfer_to_compute_time_ratio": 38.0625,
       "bandwidth_limited_batch_latency_ns": 38.0625,
       "bandwidth_pressure_ratio": 38.0625,
@@ -327,6 +492,72 @@ window.PhotonicBenchPayloadRegistry["dong_2023_continuous_time_tensor_core_surro
       ],
       "note": "Source quality grades summarize evidence coverage for the published reference card. They do not upgrade local surrogate estimates into paper measurements."
     },
+    "source_audit": {
+      "quoted_metrics": [
+        {
+          "metric": "Architecture",
+          "quoted_value": "Electro-optically controlled photonic tensor core with spatial, wavelength, and RF degrees of freedom",
+          "source_location": "published_calibration.architecture",
+          "note": "Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics."
+        },
+        {
+          "metric": "Reported parallelism",
+          "quoted_value": "100",
+          "source_location": "published_calibration.additional_metrics.reported_parallelism",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Rf components",
+          "quoted_value": "50",
+          "source_location": "published_calibration.additional_metrics.rf_components",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Wdm channels",
+          "quoted_value": "2",
+          "source_location": "published_calibration.additional_metrics.wdm_channels",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Reported ecg signals",
+          "quoted_value": "100",
+          "source_location": "published_calibration.additional_metrics.reported_ecg_signals",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Reported cnn accuracy percent",
+          "quoted_value": "93.5",
+          "source_location": "published_calibration.additional_metrics.reported_cnn_accuracy_percent",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        },
+        {
+          "metric": "Surrogate mapping",
+          "quoted_value": "m=3, k=3, n=100 follows the paper's 3x3 kernel and 3x100 ECG input framing; it is not a continuous-time RF/WDM simulation.",
+          "source_location": "published_calibration.additional_metrics.surrogate_mapping",
+          "note": "Source-specific metric or surrogate boundary metadata provided by the card YAML."
+        }
+      ],
+      "local_assumptions": [
+        "Local surrogate type: continuous_time_tensor_core_ecg_matmul_surrogate.",
+        "The source reports a hardware photonic tensor core using spatial, wavelength, and RF degrees of freedom with parallelism of 100.",
+        "Local dense matmul accounting does not model RF multiplexing, PCM memory programming, optical routing, or clinical ECG preprocessing.",
+        "The dense surrogate preserves the reported 3x3-kernel and 100-signal ECG demonstration scale.",
+        "Local timing, energy, converter, and system movement values are generic PhotonicBench assumptions.",
+        "Weight-stationary mode approximates fixed tensor-core weights for one local ECG convolution tile."
+      ],
+      "conversion_math": [],
+      "confidence_flags": [
+        "claim_status=paper-reported continuous-time higher-dimensional photonic tensor core; ECG-convolution matmul-surrogate local model",
+        "source_doi=10.1038/s41566-023-01313-x",
+        "source_quality_grade=B",
+        "coverage.accuracy=reported",
+        "coverage.area=not_reported",
+        "coverage.energy=not_reported",
+        "coverage.precision=reported",
+        "coverage.throughput=derived"
+      ],
+      "separation_note": "Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs."
+    },
     "separation_note": "Published values are paper-reported references or direct unit conversions, not local component-model estimates."
   },
   "calibration_fit": null,
@@ -347,7 +578,8 @@ window.PhotonicBenchPayloadRegistry["dong_2023_continuous_time_tensor_core_surro
     "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
     "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.",
     "The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.",
-    "System contention fields model shared bandwidth clients, arbitration efficiency, and calibration/control guardband as local assumptions; they are not inferred from published hardware unless a card says so."
+    "System contention fields model shared bandwidth clients, arbitration efficiency, and calibration/control guardband as local assumptions; they are not inferred from published hardware unless a card says so.",
+    "Memory scenario and contention preset names describe local review assumptions, including the overlap model used to interpret transfer timing; they are not benchmark claims."
   ],
   "provenance": {
     "source_title": "Higher-dimensional processing using a photonic tensor core with continuous-time data",

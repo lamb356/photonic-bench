@@ -54,6 +54,51 @@ Source-quality notes:
 - The source directly demonstrates matrix-matrix multiplication and publishes code/data, but no scalar TOPS or TOPS/W value is encoded in this card.
 
 
+## Source Audit
+
+These rows keep quoted source metrics, direct conversion math, local assumptions,
+and confidence flags separate. They do not turn local surrogate estimates into
+paper measurements.
+
+| Metric | Quoted value | Source location | Note |
+| --- | --- | --- | --- |
+| Architecture | Parallel optical matrix-matrix multiplication with coherent light | published_calibration.architecture | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Demonstrated nonnegative matrix size | 20 | published_calibration.additional_metrics.demonstrated_nonnegative_matrix_size | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Demonstrated real valued matrix size | 10 | published_calibration.additional_metrics.demonstrated_real_valued_matrix_size | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Quantitative matrix sizes | 10,20,30,40,50 | published_calibration.additional_metrics.quantitative_matrix_sizes | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Random matrix pairs per size | 50 | published_calibration.additional_metrics.random_matrix_pairs_per_size | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Mean absolute error less than | 0.15 | published_calibration.additional_metrics.mean_absolute_error_less_than | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Normalized rmse less than | 0.1 | published_calibration.additional_metrics.normalized_rmse_less_than | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Data doi | 10.6084/m9.figshare.30173512 | published_calibration.additional_metrics.data_doi | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Code url | https://github.com/DecadeBin/POMMM.git | published_calibration.additional_metrics.code_url | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Surrogate mapping | m=20, k=20, n=20 matches the reported non-negative POMMM matrix-matrix demonstration; it is not a full optical-field propagation or camera-readout reproduction. | published_calibration.additional_metrics.surrogate_mapping | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+
+| Derived metric | Formula | Inputs | Result | Note |
+| --- | --- | --- | ---: | --- |
+
+
+Local assumptions:
+
+- Local surrogate type: dense_pommm_matrix_matrix_surrogate.
+- The source directly demonstrates matrix-matrix multiplication and publishes code/data, but no scalar TOPS or TOPS/W value is encoded in this card.
+- Source-reported accuracy/error and matrix-size evidence are preserved as published references.
+- Local optical MAC energy, converter energy, SRAM/intermediate/off-chip tiers, and one-nanosecond latency are generic PhotonicBench assumptions.
+- Weight-stationary mode approximates reusing the right operand within the local dense tile and does not model coherent field propagation, imaging, or camera readout.
+
+Confidence flags:
+
+- claim_status=paper-reported optical matrix-matrix multiplication; matmul-surrogate local model
+- source_doi=10.1038/s41566-025-01799-7
+- source_quality_grade=B
+- coverage.accuracy=reported
+- coverage.area=not_reported
+- coverage.energy=not_reported
+- coverage.precision=derived
+- coverage.throughput=not_reported
+
+Boundary note: Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs.
+
+
 
 ## Workload
 
@@ -112,11 +157,29 @@ simulator.
 | Intermediate/cache | 800 bytes | 400 bytes | 240.000 pJ | 33.33% | 1.96% | 1.90% | 4.688 ns | 4.688 ns | 4.6875 | 256.000 bytes/ns | 1200.000 bytes/ns | 4.6875 | -944.000 bytes/ns |
 | Off-chip/DRAM | 800 bytes | 400 bytes | 12000.000 pJ | 33.33% | 97.85% | 94.91% | 75.000 ns | 75.000 ns | 75 | 16.000 bytes/ns | 1200.000 bytes/ns | 75 | -1184.000 bytes/ns |
 
+### Hierarchy Energy Breakdown
+
+This table is a local system-energy decomposition by hierarchy level. It is
+not a published hardware energy breakdown.
+
+| Component | Energy | System share |
+| --- | ---: | ---: |
+| Local compute/conversion | 380.000 pJ | 3.01% |
+| SRAM movement | 24.000 pJ | 0.19% |
+| Intermediate/cache movement | 240.000 pJ | 1.90% |
+| Off-chip/DRAM movement | 12000.000 pJ | 94.91% |
+| Total movement | 12264.000 pJ | 96.99% |
+
 | Metric | Value |
 | --- | ---: |
 | System profile | default |
 | Profile tier overrides | none |
+| Memory scenario | default |
+| Scenario description | PhotonicBench baseline: local SRAM plus a conservative generic off-chip/DRAM tier matching the historical defaults. |
 | Memory timing mode | overlapped |
+| Contention preset | single_client |
+| Contention preset description | Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband. |
+| Contention overlap model | profile_timing_mode |
 | Shared bandwidth clients | 1 |
 | Arbitration efficiency | 1 |
 | Calibration/control overhead | 0 |
@@ -158,6 +221,8 @@ simulator.
 | Effective loaded hierarchy bandwidth | 48.000 bytes/ns |
 | Contention-only loaded hierarchy bandwidth | 48.000 bytes/ns |
 | Contention-adjusted loaded hierarchy bandwidth | 48.000 bytes/ns |
+| Effective usable bandwidth under load | 48.000 bytes/ns |
+| Guardbanded usable bandwidth under load | 48.000 bytes/ns |
 | Transfer-to-compute time ratio | 75 |
 | Bandwidth-limited tier | off_chip |
 | Bandwidth-limited batch latency | 75.000 ns |
@@ -168,6 +233,17 @@ simulator.
 | Contention-adjusted transfer-to-compute time ratio | 75 |
 | Contention pressure ratio | 75 |
 | Contention-adjusted equivalent ops/s | 213333333333.333 |
+
+### Scenario Provenance Packs
+
+These packs justify the selected local memory hierarchy and contention preset
+without implying measured end-to-end hardware behavior.
+
+| Pack | Status | Calibration scope | Sources | Local assumptions | Reviewer note |
+| --- | --- | --- | --- | --- | --- |
+| Memory scenario | source-context-plus-local-parameters | Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions. | Computing's energy problem (and what we can do about it) (10.1109/ISSCC.2014.6757323) | SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.; The scenario is a conservative baseline for sensitivity comparisons. | Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior. |
+| Contention preset | local-baseline | Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband. | explicit local assumption | shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions. | Use as the no-contention reference point. |
+
 
 ## Energy
 
@@ -227,3 +303,4 @@ simulator.
 - Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.
 - The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.
 - System contention fields model shared bandwidth clients, arbitration efficiency, and calibration/control guardband as local assumptions; they are not inferred from published hardware unless a card says so.
+- Memory scenario and contention preset names describe local review assumptions, including the overlap model used to interpret transfer timing; they are not benchmark claims.

@@ -52,6 +52,49 @@ Source-quality notes:
 - Local dense matmul accounting does not model RF multiplexing, PCM memory programming, optical routing, or clinical ECG preprocessing.
 
 
+## Source Audit
+
+These rows keep quoted source metrics, direct conversion math, local assumptions,
+and confidence flags separate. They do not turn local surrogate estimates into
+paper measurements.
+
+| Metric | Quoted value | Source location | Note |
+| --- | --- | --- | --- |
+| Architecture | Electro-optically controlled photonic tensor core with spatial, wavelength, and RF degrees of freedom | published_calibration.architecture | Config-level source metric copied into the structured audit; exact paper section may be supplied in YAML source_audit.quoted_metrics. |
+| Reported parallelism | 100 | published_calibration.additional_metrics.reported_parallelism | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Rf components | 50 | published_calibration.additional_metrics.rf_components | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Wdm channels | 2 | published_calibration.additional_metrics.wdm_channels | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Reported ecg signals | 100 | published_calibration.additional_metrics.reported_ecg_signals | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Reported cnn accuracy percent | 93.5 | published_calibration.additional_metrics.reported_cnn_accuracy_percent | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+| Surrogate mapping | m=3, k=3, n=100 follows the paper's 3x3 kernel and 3x100 ECG input framing; it is not a continuous-time RF/WDM simulation. | published_calibration.additional_metrics.surrogate_mapping | Source-specific metric or surrogate boundary metadata provided by the card YAML. |
+
+| Derived metric | Formula | Inputs | Result | Note |
+| --- | --- | --- | ---: | --- |
+
+
+Local assumptions:
+
+- Local surrogate type: continuous_time_tensor_core_ecg_matmul_surrogate.
+- The source reports a hardware photonic tensor core using spatial, wavelength, and RF degrees of freedom with parallelism of 100.
+- Local dense matmul accounting does not model RF multiplexing, PCM memory programming, optical routing, or clinical ECG preprocessing.
+- The dense surrogate preserves the reported 3x3-kernel and 100-signal ECG demonstration scale.
+- Local timing, energy, converter, and system movement values are generic PhotonicBench assumptions.
+- Weight-stationary mode approximates fixed tensor-core weights for one local ECG convolution tile.
+
+Confidence flags:
+
+- claim_status=paper-reported continuous-time higher-dimensional photonic tensor core; ECG-convolution matmul-surrogate local model
+- source_doi=10.1038/s41566-023-01313-x
+- source_quality_grade=B
+- coverage.accuracy=reported
+- coverage.area=not_reported
+- coverage.energy=not_reported
+- coverage.precision=reported
+- coverage.throughput=derived
+
+Boundary note: Quoted metrics are source-reported values or source-adjacent card metadata. Conversion math is a direct unit conversion from published_calibration fields. Local assumptions remain separate PhotonicBench surrogate/model inputs.
+
+
 
 ## Workload
 
@@ -110,11 +153,29 @@ simulator.
 | Intermediate/cache | 309 bytes | 300 bytes | 121.800 pJ | 33.33% | 1.96% | 1.89% | 2.379 ns | 2.379 ns | 2.37891 | 256.000 bytes/ns | 609.000 bytes/ns | 2.37891 | -353.000 bytes/ns |
 | Off-chip/DRAM | 309 bytes | 300 bytes | 6090.000 pJ | 33.33% | 97.85% | 94.56% | 38.062 ns | 38.062 ns | 38.0625 | 16.000 bytes/ns | 609.000 bytes/ns | 38.0625 | -593.000 bytes/ns |
 
+### Hierarchy Energy Breakdown
+
+This table is a local system-energy decomposition by hierarchy level. It is
+not a published hardware energy breakdown.
+
+| Component | Energy | System share |
+| --- | ---: | ---: |
+| Local compute/conversion | 216.600 pJ | 3.36% |
+| SRAM movement | 12.180 pJ | 0.19% |
+| Intermediate/cache movement | 121.800 pJ | 1.89% |
+| Off-chip/DRAM movement | 6090.000 pJ | 94.56% |
+| Total movement | 6223.980 pJ | 96.64% |
+
 | Metric | Value |
 | --- | ---: |
 | System profile | default |
 | Profile tier overrides | none |
+| Memory scenario | default |
+| Scenario description | PhotonicBench baseline: local SRAM plus a conservative generic off-chip/DRAM tier matching the historical defaults. |
 | Memory timing mode | overlapped |
+| Contention preset | single_client |
+| Contention preset description | Dedicated memory path: one modeled client, no arbitration loss, and no calibration/control guardband. |
+| Contention overlap model | profile_timing_mode |
 | Shared bandwidth clients | 1 |
 | Arbitration efficiency | 1 |
 | Calibration/control overhead | 0 |
@@ -156,6 +217,8 @@ simulator.
 | Effective loaded hierarchy bandwidth | 48.000 bytes/ns |
 | Contention-only loaded hierarchy bandwidth | 48.000 bytes/ns |
 | Contention-adjusted loaded hierarchy bandwidth | 48.000 bytes/ns |
+| Effective usable bandwidth under load | 48.000 bytes/ns |
+| Guardbanded usable bandwidth under load | 48.000 bytes/ns |
 | Transfer-to-compute time ratio | 38.0625 |
 | Bandwidth-limited tier | off_chip |
 | Bandwidth-limited batch latency | 38.062 ns |
@@ -166,6 +229,17 @@ simulator.
 | Contention-adjusted transfer-to-compute time ratio | 38.0625 |
 | Contention pressure ratio | 38.0625 |
 | Contention-adjusted equivalent ops/s | 47290640394.089 |
+
+### Scenario Provenance Packs
+
+These packs justify the selected local memory hierarchy and contention preset
+without implying measured end-to-end hardware behavior.
+
+| Pack | Status | Calibration scope | Sources | Local assumptions | Reviewer note |
+| --- | --- | --- | --- | --- | --- |
+| Memory scenario | source-context-plus-local-parameters | Historical PhotonicBench SRAM/intermediate/off-chip defaults; tier numbers are local assumptions. | Computing's energy problem (and what we can do about it) (10.1109/ISSCC.2014.6757323) | SRAM, intermediate, and off-chip pJ/byte and bandwidth values are PhotonicBench defaults, not paper-measured hardware values.; The scenario is a conservative baseline for sensitivity comparisons. | Use this as a baseline scenario only; prefer a named profile when the card is intended to stress a specific hierarchy behavior. |
+| Contention preset | local-baseline | Dedicated path: one modeled client, no arbitration loss, and no calibration/control guardband. | explicit local assumption | shared_bandwidth_clients=1, arbitration_efficiency=1, and calibration_overhead_fraction=0 are local baseline assumptions. | Use as the no-contention reference point. |
+
 
 ## Energy
 
@@ -225,3 +299,4 @@ simulator.
 - Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.
 - The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.
 - System contention fields model shared bandwidth clients, arbitration efficiency, and calibration/control guardband as local assumptions; they are not inferred from published hardware unless a card says so.
+- Memory scenario and contention preset names describe local review assumptions, including the overlap model used to interpret transfer timing; they are not benchmark claims.

@@ -331,6 +331,9 @@ def test_transformer_layer_report_to_dict_aggregates_decomposed_json_cards() -> 
         / system["tiers"]["off_chip"]["effective_bandwidth_bytes_per_ns"]
     )
     assert system["contention_bandwidth_derate_factor"] == pytest.approx(1.0)
+    assert system["memory_scenario"]["name"] == "default"
+    assert system["contention_preset"] == "single_client"
+    assert system["contention_overlap_model"] == "profile_timing_mode"
     assert system["effective_loaded_bandwidth_bytes_per_ns"] == pytest.approx(
         system["total_hierarchy_bytes"] / system["serial_transfer_time_ns"]
     )
@@ -347,6 +350,13 @@ def test_transformer_layer_report_to_dict_aggregates_decomposed_json_cards() -> 
             - system["calibration_guardband_time_ns"]
         )
     )
+    assert system[
+        "effective_usable_bandwidth_under_load_bytes_per_ns"
+    ] == pytest.approx(system["contention_only_loaded_bandwidth_bytes_per_ns"])
+    assert system[
+        "guardbanded_usable_bandwidth_under_load_bytes_per_ns"
+    ] == pytest.approx(system["contention_adjusted_loaded_bandwidth_bytes_per_ns"])
+    assert system["hierarchy_energy_breakdown"]["dominant_component"] == "off_chip"
     assert system["max_tier_system_energy_share"] == pytest.approx(
         max(tier["system_energy_share"] for tier in system["tiers"].values())
     )
@@ -479,6 +489,9 @@ def test_transformer_model_report_to_dict_weights_layer_counts() -> None:
         )
     )
     assert system["contention_bandwidth_derate_factor"] == pytest.approx(1.0)
+    assert system["memory_scenario"]["name"] == "default"
+    assert system["contention_preset"] == "single_client"
+    assert system["contention_overlap_model"] == "profile_timing_mode"
     assert system["effective_loaded_bandwidth_bytes_per_ns"] == pytest.approx(
         system["total_hierarchy_bytes"] / system["serial_transfer_time_ns"]
     )
@@ -495,6 +508,13 @@ def test_transformer_model_report_to_dict_weights_layer_counts() -> None:
             - system["calibration_guardband_time_ns"]
         )
     )
+    assert system[
+        "effective_usable_bandwidth_under_load_bytes_per_ns"
+    ] == pytest.approx(system["contention_only_loaded_bandwidth_bytes_per_ns"])
+    assert system[
+        "guardbanded_usable_bandwidth_under_load_bytes_per_ns"
+    ] == pytest.approx(system["contention_adjusted_loaded_bandwidth_bytes_per_ns"])
+    assert system["hierarchy_energy_breakdown"]["dominant_component"] == "off_chip"
     assert system["max_tier_system_energy_share"] == pytest.approx(
         max(tier["system_energy_share"] for tier in system["tiers"].values())
     )

@@ -1,0 +1,107 @@
+benchmark:
+  name: Lightning 2023 photonic-electronic SmartNIC surrogate
+  description: Source-backed host/network-attached card for the SIGCOMM 2023 Lightning SmartNIC. The paper demonstrates a photonic-electronic inference datapath connected to a 100 Gbps NIC and local DDR; this config uses a LeNet-style 784x300 matvec surrogate under the pcie_attached scenario for PhotonicBench comparison only.
+workload:
+  type: matmul
+  m: 1
+  n: 300
+  k: 784
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 8
+    energy_pj_per_conversion: 0.5
+  vector_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+  weight_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+execution:
+  batch_size: 1
+  vector_reuse_factor: 1
+  weight_reuse_factor: 1
+  weight_stationary: false
+  pipeline:
+    stages: 1
+system:
+  profile: pcie_attached
+timing:
+  optical_latency_ns: 1
+  adc_latency_ns: 0
+  dac_latency_ns: 0
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 1
+provenance:
+  source_title: "Lightning: A reconfigurable photonic-electronic SmartNIC for fast and energy-efficient inference"
+  source_url: https://dl.acm.org/doi/10.1145/3603269.3604821
+  doi: 10.1145/3603269.3604821
+  venue: ACM SIGCOMM 2023
+  claim_status: paper-reported SmartNIC prototype and large-DNN simulation metrics; host/network-attached matvec surrogate
+published_calibration:
+  architecture: Reconfigurable photonic-electronic SmartNIC datapath
+  additional_metrics:
+    realtime_network_rate_gbps: 100
+    prototype_frequency_ghz: 4.055
+    mac_accuracy_percent: 99.25
+    mnist_accuracy_percent: 96.2
+    top5_accuracy_delta_vs_digital_percent: 2.25
+    serve_time_speedup_vs_nvidia_a100_x: 337
+    serve_time_speedup_vs_a100x_dpu_x: 329
+    serve_time_speedup_vs_brainwave_smartnic_x: 42
+    energy_reduction_vs_nvidia_a100_x: 352
+    energy_reduction_vs_a100x_dpu_x: 419
+    energy_reduction_vs_brainwave_smartnic_x: 54
+    ddr_data_rate_gbps: 170
+    cmac_input_rate_gbps: 100
+    aggregate_weight_dac_data_rate_gbps: 64.88
+    surrogate_mapping: m=1, k=784, n=300 mirrors the paper's LeNet-300-100 first-layer example; it is not the full packet DAG, RFSoC datapath, DDR controller, or large-model simulation.
+source_quality:
+  reported_metrics:
+    - network_rate
+    - prototype_frequency
+    - accuracy
+    - relative_latency_reduction
+    - relative_energy_reduction
+    - memory_data_rate
+  local_surrogate_type: host_network_attached_lenet_matvec_surrogate
+  coverage:
+    throughput: reported
+    energy: reported
+    accuracy: reported
+    area: reported
+    precision: reported
+  confidence_grade: B
+  notes:
+    - Source reports prototype frequency, NIC rate, accuracy, relative serve-time/energy results, and DDR datapath rates; PhotonicBench uses a single local matvec to stress host-attached movement.
+source_audit:
+  quoted_metrics:
+    - metric: Real-time inference network rate
+      quoted_value: "100 Gbps"
+      source_location: MIT Lightning project page and SIGCOMM 2023 paper
+    - metric: Prototype photonic computation frequency
+      quoted_value: "4.055 GHz"
+      source_location: SIGCOMM 2023 paper abstract and Section 6.1
+    - metric: Average inference serve-time speedup
+      quoted_value: "337x vs Nvidia A100, 329x vs A100X DPU, 42x vs Brainwave SmartNIC"
+      source_location: SIGCOMM 2023 paper abstract
+    - metric: Average inference energy reduction
+      quoted_value: "352x vs Nvidia A100, 419x vs A100X DPU, 54x vs Brainwave SmartNIC"
+      source_location: SIGCOMM 2023 paper abstract
+    - metric: DDR datapath rate
+      quoted_value: "approximately 170 Gbps"
+      source_location: SIGCOMM 2023 paper Section 6.1
+  local_assumptions:
+    - Local 784x300 matvec mirrors a paper example layer only; the SmartNIC packet DAG and full inference serving system are not reproduced.
+    - The pcie_attached scenario is used to stress host/network-attached movement even though the paper avoids punting inference packets through host PCIe.
+  confidence_flags:
+    - prototype_plus_simulation_metrics
+    - host_link_scenario_is_local_stress_case
+assumptions:
+  - Source network-rate, frequency, accuracy, DDR-rate, and relative speed/energy values remain under published_calibration and published_reference.
+  - The local pcie_attached profile intentionally penalizes host-attached movement for review sensitivity; it is not a cycle-accurate Lightning datapath model.
+  - Local optical MAC energy, converter energy, one-nanosecond latency, and movement pJ/byte are generic PhotonicBench assumptions.

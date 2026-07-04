@@ -16,12 +16,17 @@
     paretoMode: "energy-throughput",
     analysisFocus: "balanced",
     customScoreWeights: {},
+    reviewerNotes: "",
     topVisibleCount: 5,
     payloadCache: new Map(),
     payloadPromises: new Map(),
     userPresets: [],
     presetMessage: "",
     presetMessageIsWarning: false,
+    decisionPacketMessage: "",
+    decisionPacketMessageIsWarning: false,
+    decisionPacketReplay: null,
+    scenarioSubjectId: null,
     externalIds: new Set(),
     externalMessage: "",
     externalMessageIsWarning: false,
@@ -32,6 +37,7 @@
   const USER_PRESETS_KEY = "photonic-bench-comparison-presets:v1";
   const SCORE_WEIGHTS_KEY = "photonic-bench-score-weights:v1";
   const COMPARISON_EXPORT_SCHEMA = "photonic-bench-comparison-export-v1";
+  const DECISION_PACKET_SCHEMA = "photonic-bench-decision-packet-v1";
   const PRESET_EXPORT_SCHEMA = "photonic-bench-comparison-presets-v1";
   const URL_STATE_VERSION = "1";
   const DEFAULT_STATE = {
@@ -159,6 +165,30 @@
       importPresetFile((event.target.files || [])[0]);
       event.target.value = "";
     });
+
+  document
+    .getElementById("decision-packet-file")
+    .addEventListener("change", (event) => {
+      importDecisionPacketFile((event.target.files || [])[0]);
+      event.target.value = "";
+    });
+
+  const decisionPacketDropZone = document.getElementById("decision-packet-drop-zone");
+  ["dragenter", "dragover"].forEach((eventName) => {
+    decisionPacketDropZone.addEventListener(eventName, (event) => {
+      event.preventDefault();
+      decisionPacketDropZone.classList.add("drag-active");
+    });
+  });
+  ["dragleave", "drop"].forEach((eventName) => {
+    decisionPacketDropZone.addEventListener(eventName, (event) => {
+      event.preventDefault();
+      decisionPacketDropZone.classList.remove("drag-active");
+    });
+  });
+  decisionPacketDropZone.addEventListener("drop", (event) => {
+    importDecisionPacketFile((event.dataTransfer?.files || [])[0]);
+  });
 
   document
     .getElementById("external-report-file")
@@ -332,7 +362,10 @@
         summary.source_quality_grade,
         summary.source_surrogate_type,
         summary.system_profile,
+        summary.memory_scenario,
         summary.memory_timing_mode,
+        summary.contention_preset,
+        summary.contention_overlap_model,
         ...(summary.boundary_tags || []),
       ]
         .join(" ")
@@ -780,11 +813,95 @@
           new Set(preset.artifact_ids.filter((id) => typeof id === "string"))
         ),
         pinned_id: typeof preset.pinned_id === "string" ? preset.pinned_id : null,
+        analysis_intent: sanitizeAnalysisIntent(preset.analysis_intent || {}),
+        reviewer_notes:
+          typeof preset.reviewer_notes === "string" ? preset.reviewer_notes : "",
       }));
   }
 
   function writeUserPresets() {
     localStorage.setItem(USER_PRESETS_KEY, JSON.stringify(state.userPresets));
+  }
+
+  function sanitizeAnalysisIntent(value) {
+    if (!value || typeof value !== "object") {
+      return {};
+    }
+    const filters =
+      value.filters && typeof value.filters === "object" ? value.filters : {};
+    const sanitizedFilters = {
+      search:
+        typeof filters.search === "string" ? filters.search.toLowerCase() : "",
+      schema: safeOption(
+        filters.schema ?? filters.kind,
+        VALID_KINDS,
+        DEFAULT_STATE.kind
+      ),
+      boundary: safeOption(
+        filters.boundary,
+        VALID_BOUNDARIES,
+        DEFAULT_STATE.boundary
+      ),
+      source_quality: safeOption(
+        filters.source_quality ?? filters.quality,
+        VALID_SOURCE_QUALITIES,
+        DEFAULT_STATE.quality
+      ),
+      sort: safeOption(filters.sort, VALID_SORTS, DEFAULT_STATE.sort),
+      grouping: safeOption(
+        filters.grouping ?? filters.group,
+        VALID_GROUPS,
+        DEFAULT_STATE.group
+      ),
+    };
+    const analysisFocus = safeOption(
+      value.analysis_focus,
+      Object.keys(comparisonFocusOptions()),
+      ""
+    );
+    const paretoMode = safeOption(
+      value.pareto_mode,
+      Object.keys(paretoSpecs()),
+      ""
+    );
+    const scoreWeights = sanitizeIntentScoreWeights(value.score_weights || {});
+    return {
+      analysis_focus: analysisFocus || DEFAULT_STATE.analysisFocus,
+      score_profile:
+        typeof value.score_profile === "string" ? value.score_profile : null,
+      score_weights: scoreWeights,
+      pareto_mode: paretoMode || DEFAULT_STATE.paretoMode,
+      filters: sanitizedFilters,
+    };
+  }
+
+  function currentAnalysisIntent() {
+    return {
+      analysis_focus: state.analysisFocus,
+      score_profile: activeScoreProfileSummary(activeComparisonFocus()).key,
+      score_weights: sanitizeScoreWeights(state.customScoreWeights),
+      pareto_mode: state.paretoMode,
+      filters: currentFilterState(),
+    };
+  }
+
+  function sanitizeIntentScoreWeights(value) {
+    if (Array.isArray(value)) {
+      return sanitizeScoreWeights(
+        Object.fromEntries(
+          value
+            .filter(
+              (entry) =>
+                entry &&
+                typeof entry.metric === "string" &&
+                entry.metric.trim() &&
+                entry.weight !== undefined
+            )
+            .map((entry) => [entry.metric, entry.weight])
+        )
+      );
+    }
+    return sanitizeScoreWeights(value || {});
   }
 
   function exportUserPresets() {
@@ -800,6 +917,8 @@
         description: preset.description || "",
         artifact_ids: preset.artifact_ids,
         pinned_id: preset.pinned_id || null,
+        analysis_intent: sanitizeAnalysisIntent(preset.analysis_intent || {}),
+        reviewer_notes: preset.reviewer_notes || "",
       })),
     };
     downloadText(
@@ -864,9 +983,16 @@
     renderPresetControls();
   }
 
+  function setDecisionPacketMessage(message, isWarning = false) {
+    state.decisionPacketMessage = message;
+    state.decisionPacketMessageIsWarning = isWarning;
+    renderDecisionPacketControls();
+  }
+
   function applyPreset(preset) {
     const validIds = preset.artifact_ids.filter((id) => byId.has(id));
     const missingIds = preset.artifact_ids.filter((id) => !byId.has(id));
+    applyPresetAnalysisIntent(preset);
     state.compareIds = new Set(validIds);
     state.pinnedId =
       preset.pinned_id && state.compareIds.has(preset.pinned_id)
@@ -878,6 +1004,160 @@
       ? `Loaded ${validIds.length} artifact(s); missing: ${missingIds.join(", ")}`
       : `Loaded ${preset.name}.`;
     state.presetMessageIsWarning = missingIds.length > 0;
+    render();
+  }
+
+  function applyPresetAnalysisIntent(preset) {
+    applyAnalysisIntent(preset.analysis_intent || {}, preset.reviewer_notes);
+  }
+
+  function applyAnalysisIntent(analysisIntent, reviewerNotes) {
+    const intent = sanitizeAnalysisIntent(analysisIntent || {});
+    const filters = intent.filters || {};
+    state.search = filters.search ?? state.search;
+    state.kind = safeOption(filters.schema, VALID_KINDS, state.kind);
+    state.boundary = safeOption(filters.boundary, VALID_BOUNDARIES, state.boundary);
+    state.quality = safeOption(
+      filters.source_quality,
+      VALID_SOURCE_QUALITIES,
+      state.quality
+    );
+    state.sort = safeOption(filters.sort, VALID_SORTS, state.sort);
+    state.group = safeOption(filters.grouping, VALID_GROUPS, state.group);
+    state.analysisFocus = safeOption(
+      intent.analysis_focus,
+      Object.keys(comparisonFocusOptions()),
+      state.analysisFocus
+    );
+    state.paretoMode = safeOption(
+      intent.pareto_mode,
+      Object.keys(paretoSpecs()),
+      state.paretoMode
+    );
+    state.customScoreWeights = sanitizeScoreWeights(intent.score_weights || {});
+    writeScoreWeights();
+    state.reviewerNotes =
+      typeof reviewerNotes === "string" ? reviewerNotes : "";
+  }
+
+  function importDecisionPacketFile(file) {
+    if (!file) {
+      return;
+    }
+    file
+      .text()
+      .then((text) => {
+        const replay = validateDecisionPacketImport(JSON.parse(text), file.name);
+        applyDecisionPacketReplay(replay);
+      })
+      .catch((error) => {
+        setDecisionPacketMessage(`Decision packet replay failed: ${error.message}`, true);
+      });
+  }
+
+  function validateDecisionPacketImport(payload, fileName = "decision packet") {
+    if (!payload || typeof payload !== "object") {
+      throw new Error("expected a JSON object");
+    }
+    if (payload.schema_version !== DECISION_PACKET_SCHEMA) {
+      throw new Error(`expected schema_version ${DECISION_PACKET_SCHEMA}`);
+    }
+    const selectedIds = uniqueStrings(
+      Array.isArray(payload.selected_artifact_ids)
+        ? payload.selected_artifact_ids
+        : []
+    );
+    const embeddedIds = uniqueStrings(
+      Array.isArray(payload.comparison_export?.selected_artifact_ids)
+        ? payload.comparison_export.selected_artifact_ids
+        : []
+    );
+    const artifactSummaryIds = uniqueStrings(
+      Array.isArray(payload.selected_artifacts)
+        ? payload.selected_artifacts.map((entry) => entry?.artifact_id)
+        : []
+    );
+    const artifactIds = selectedIds.length
+      ? selectedIds
+      : embeddedIds.length
+        ? embeddedIds
+        : artifactSummaryIds;
+    if (!artifactIds.length) {
+      throw new Error("no selected artifact IDs found");
+    }
+    const validIds = artifactIds.filter((id) => byId.has(id));
+    const missingIds = artifactIds.filter((id) => !byId.has(id));
+    if (!validIds.length) {
+      throw new Error("none of the packet artifact IDs exist in this index");
+    }
+    const pinnedId =
+      typeof payload.pinned_baseline?.artifact_id === "string"
+        ? payload.pinned_baseline.artifact_id
+        : typeof payload.comparison_export?.pinned_id === "string"
+          ? payload.comparison_export.pinned_id
+          : null;
+    return {
+      fileName,
+      payload,
+      validIds,
+      missingIds,
+      pinnedId: validIds.includes(pinnedId) ? pinnedId : validIds[0],
+      analysisIntent: packetAnalysisIntent(payload),
+      reviewerNotes:
+        typeof payload.reviewer_notes === "string" ? payload.reviewer_notes : "",
+      checklistCount: Array.isArray(payload.checklist_status)
+        ? payload.checklist_status.length
+        : 0,
+    };
+  }
+
+  function uniqueStrings(values) {
+    return Array.from(new Set(values.filter((value) => typeof value === "string")));
+  }
+
+  function packetAnalysisIntent(payload) {
+    if (payload.analysis_intent && typeof payload.analysis_intent === "object") {
+      return payload.analysis_intent;
+    }
+    const comparison = payload.comparison_export || {};
+    const comparisonFocus =
+      comparison.analysis_focus && typeof comparison.analysis_focus === "object"
+        ? comparison.analysis_focus
+        : {};
+    return {
+      analysis_focus: comparisonFocus.key,
+      score_profile: comparisonFocus.score_profile?.key,
+      score_weights: comparisonFocus.score_weights,
+      filters: comparison.filters,
+    };
+  }
+
+  function applyDecisionPacketReplay(replay) {
+    applyAnalysisIntent(replay.analysisIntent, replay.reviewerNotes);
+    state.compareIds = new Set(replay.validIds);
+    state.pinnedId = replay.validIds.includes(replay.pinnedId)
+      ? replay.pinnedId
+      : replay.validIds[0];
+    state.selectedId = state.pinnedId || replay.validIds[0] || state.selectedId;
+    state.view = "compare";
+    state.decisionPacketReplay = {
+      file_name: replay.fileName,
+      schema_version: replay.payload.schema_version,
+      generated_at:
+        typeof replay.payload.generated_at === "string"
+          ? replay.payload.generated_at
+          : null,
+      imported_at: new Date().toISOString(),
+      restored_artifact_count: replay.validIds.length,
+      missing_artifact_ids: replay.missingIds,
+      pinned_id: state.pinnedId,
+      reviewer_notes_restored: Boolean(replay.reviewerNotes),
+      checklist_entry_count: replay.checklistCount,
+    };
+    state.decisionPacketMessage = replay.missingIds.length
+      ? `Replayed ${replay.validIds.length} artifact(s); missing: ${replay.missingIds.join(", ")}`
+      : `Replayed decision packet with ${replay.validIds.length} artifact(s).`;
+    state.decisionPacketMessageIsWarning = replay.missingIds.length > 0;
     render();
   }
 
@@ -894,11 +1174,13 @@
     }
     const nextPreset = {
       name,
-      description: "Saved in this browser.",
+      description: "Saved in this browser with full analysis intent.",
       artifact_ids: artifactIds,
       pinned_id: state.pinnedId && state.compareIds.has(state.pinnedId)
         ? state.pinnedId
         : artifactIds[0],
+      analysis_intent: currentAnalysisIntent(),
+      reviewer_notes: state.reviewerNotes,
     };
     const existingIndex = state.userPresets.findIndex(
       (preset) => preset.name.toLowerCase() === name.toLowerCase()
@@ -1661,6 +1943,13 @@
         "max_tier_system_energy_share"
       ),
       system_profile: optionalString(localModel, sourcePath, "system", "profile"),
+      memory_scenario: optionalString(
+        localModel,
+        sourcePath,
+        "system",
+        "memory_scenario",
+        "name"
+      ),
       system_profile_overrides: optionalStringArray(
         localModel,
         sourcePath,
@@ -1672,6 +1961,18 @@
         sourcePath,
         "system",
         "memory_timing_mode"
+      ),
+      contention_preset: optionalString(
+        localModel,
+        sourcePath,
+        "system",
+        "contention_preset"
+      ),
+      contention_overlap_model: optionalString(
+        localModel,
+        sourcePath,
+        "system",
+        "contention_overlap_model"
       ),
       effective_transfer_time_ns: optionalNumber(
         localModel,
@@ -1702,6 +2003,18 @@
         sourcePath,
         "system",
         "contention_adjusted_loaded_bandwidth_bytes_per_ns"
+      ),
+      effective_usable_bandwidth_under_load_bytes_per_ns: optionalNumber(
+        localModel,
+        sourcePath,
+        "system",
+        "effective_usable_bandwidth_under_load_bytes_per_ns"
+      ),
+      guardbanded_usable_bandwidth_under_load_bytes_per_ns: optionalNumber(
+        localModel,
+        sourcePath,
+        "system",
+        "guardbanded_usable_bandwidth_under_load_bytes_per_ns"
       ),
       transfer_to_compute_time_ratio: optionalNumber(
         localModel,
@@ -1964,6 +2277,12 @@
     const message = document.getElementById("preset-message");
     message.textContent = state.presetMessage;
     message.classList.toggle("warn", state.presetMessageIsWarning);
+  }
+
+  function renderDecisionPacketControls() {
+    const message = document.getElementById("decision-packet-message");
+    message.textContent = state.decisionPacketMessage;
+    message.classList.toggle("warn", state.decisionPacketMessageIsWarning);
   }
 
   function renderList() {
@@ -2229,11 +2548,34 @@
           ),
         ];
       });
+    const hierarchyEnergy = system.hierarchy_energy_breakdown || {};
+    const hierarchyEnergyRows = [
+      [
+        "Local compute/conversion",
+        hierarchyEnergy.local_compute_and_conversion,
+      ],
+      ["SRAM movement", hierarchyEnergy.sram],
+      ["Intermediate/cache movement", hierarchyEnergy.intermediate],
+      ["Off-chip/DRAM movement", hierarchyEnergy.off_chip],
+      ["Total movement", hierarchyEnergy.movement_total],
+    ].map(([label, entry]) => [
+      escapeHtml(label),
+      escapeHtml(formatPj(entry?.energy_pj)),
+      escapeHtml(formatPercent(entry?.share)),
+    ]);
     const contention = system.contention || {};
+    const scenario = system.memory_scenario || {};
     const summaryRows = [
       ["System profile", system.profile || "n/a"],
       ["Profile tier overrides", formatProfileOverrides(system.profile_overrides)],
+      ["Memory scenario", scenario.name || system.profile || "n/a"],
+      ["Scenario description", scenario.description || "n/a"],
       ["Memory timing mode", system.memory_timing_mode || "n/a"],
+      ["Contention preset", system.contention_preset || contention.preset || "n/a"],
+      [
+        "Contention overlap model",
+        system.contention_overlap_model || contention.overlap_model || "n/a",
+      ],
       ["Shared bandwidth clients", formatNumber(contention.shared_bandwidth_clients)],
       ["Arbitration efficiency", formatPercent(contention.arbitration_efficiency)],
       [
@@ -2348,6 +2690,16 @@
         formatBytesPerNs(system.contention_only_loaded_bandwidth_bytes_per_ns),
       ],
       [
+        "Effective usable bandwidth under load",
+        formatBytesPerNs(system.effective_usable_bandwidth_under_load_bytes_per_ns),
+      ],
+      [
+        "Guardbanded usable bandwidth under load",
+        formatBytesPerNs(
+          system.guardbanded_usable_bandwidth_under_load_bytes_per_ns
+        ),
+      ],
+      [
         "Transfer/compute time ratio",
         formatNumber(system.transfer_to_compute_time_ratio),
       ],
@@ -2405,9 +2757,19 @@
           "comparison-table"
         )}
         ${simpleTable(
+          [
+            { label: "Hierarchy component" },
+            { label: "Energy", num: true },
+            { label: "System share", num: true },
+          ],
+          hierarchyEnergyRows,
+          "comparison-table"
+        )}
+        ${simpleTable(
           [{ label: "Metric" }, { label: "Value", num: true }],
           summaryRows.map(([label, value]) => [escapeHtml(label), escapeHtml(value)])
         )}
+        ${renderScenarioProvenancePacks(scenario)}
       </section>
     `;
   }
@@ -2452,6 +2814,128 @@
           : ""
       }
     `;
+  }
+
+  function renderSourceAudit(sourceAudit) {
+    if (!isPlainObject(sourceAudit)) {
+      return '<div class="notes"><p>No source_audit block is attached to this card.</p></div>';
+    }
+    const metricRows = Array.isArray(sourceAudit.quoted_metrics)
+      ? sourceAudit.quoted_metrics.map((row) => [
+          escapeHtml(row.metric || "n/a"),
+          escapeHtml(row.quoted_value || "n/a"),
+          escapeHtml(row.source_location || "n/a"),
+          escapeHtml(row.note || ""),
+        ])
+      : [];
+    const conversionRows = Array.isArray(sourceAudit.conversion_math)
+      ? sourceAudit.conversion_math.map((row) => [
+          escapeHtml(row.derived_metric || "n/a"),
+          escapeHtml(row.formula || "n/a"),
+          escapeHtml(formatAuditInputs(row.inputs)),
+          escapeHtml(row.result || "n/a"),
+          escapeHtml(row.note || ""),
+        ])
+      : [];
+    const assumptions = Array.isArray(sourceAudit.local_assumptions)
+      ? sourceAudit.local_assumptions
+      : [];
+    const flags = Array.isArray(sourceAudit.confidence_flags)
+      ? sourceAudit.confidence_flags
+      : [];
+    return `
+      <div class="notes"><p>${escapeHtml(sourceAudit.separation_note || "Quoted metrics, conversion math, and local assumptions stay separate.")}</p></div>
+      ${simpleTable(
+        [
+          { label: "Metric" },
+          { label: "Quoted value" },
+          { label: "Source location" },
+          { label: "Note" },
+        ],
+        metricRows.length ? metricRows : [["n/a", "n/a", "n/a", ""]]
+      )}
+      ${simpleTable(
+        [
+          { label: "Derived metric" },
+          { label: "Formula" },
+          { label: "Inputs" },
+          { label: "Result", num: true },
+          { label: "Note" },
+        ],
+        conversionRows.length ? conversionRows : [["n/a", "n/a", "", "n/a", ""]]
+      )}
+      <div class="grid-2">
+        <div class="notes">
+          <strong>Local assumptions</strong>
+          ${(assumptions.length ? assumptions : ["None recorded."])
+            .map((item) => `<p>${escapeHtml(item)}</p>`)
+            .join("")}
+        </div>
+        <div class="notes">
+          <strong>Confidence flags</strong>
+          ${(flags.length ? flags : ["None recorded."])
+            .map((item) => `<p>${escapeHtml(item)}</p>`)
+            .join("")}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderScenarioProvenancePacks(scenario) {
+    if (!isPlainObject(scenario)) return "";
+    const packs = [
+      ["Memory scenario", scenario.scenario_provenance],
+      ["Contention preset", scenario.contention_provenance],
+    ].filter(([, pack]) => isPlainObject(pack));
+    if (!packs.length) return "";
+    const rows = packs.map(([label, pack]) => [
+      escapeHtml(label),
+      escapeHtml(pack.status || "n/a"),
+      escapeHtml(pack.calibration_scope || "n/a"),
+      escapeHtml(formatScenarioPackSources(pack.sources)),
+      escapeHtml(formatList(pack.local_assumptions)),
+      escapeHtml(pack.reviewer_note || ""),
+    ]);
+    return `
+      <h4>Scenario Provenance Packs</h4>
+      <div class="notes"><p>These packs justify local memory-hierarchy and contention assumptions; they are not measured end-to-end hardware behavior.</p></div>
+      ${simpleTable(
+        [
+          { label: "Pack" },
+          { label: "Status" },
+          { label: "Calibration scope" },
+          { label: "Sources" },
+          { label: "Local assumptions" },
+          { label: "Reviewer note" },
+        ],
+        rows,
+        "comparison-table"
+      )}
+    `;
+  }
+
+  function formatScenarioPackSources(sources) {
+    if (!Array.isArray(sources) || !sources.length) return "explicit local assumption";
+    return sources
+      .map((source) => {
+        if (!isPlainObject(source)) return "source";
+        const title = source.title || "source";
+        const reference = source.reference_id ? ` (${source.reference_id})` : "";
+        return `${title}${reference}`;
+      })
+      .join("; ");
+  }
+
+  function formatAuditInputs(inputs) {
+    if (!isPlainObject(inputs)) return "";
+    return Object.entries(inputs)
+      .map(([key, value]) => `${key}=${defaultFormatter(value)}`)
+      .join(", ");
+  }
+
+  function formatList(values) {
+    if (!Array.isArray(values) || !values.length) return "";
+    return values.join("; ");
   }
 
   function renderConcepts() {
@@ -2543,6 +3027,7 @@
     return `
       ${header(summary)}
       ${renderConcepts()}
+      ${renderScenarioSensitivityDashboard(artifact, true)}
       <div class="grid-2">
         <section class="panel">
           <h3>Workload Shape</h3>
@@ -2586,6 +3071,10 @@
           }
         </section>
       </div>
+      <section class="panel">
+        <h3>Source Audit</h3>
+        ${renderSourceAudit(published?.source_audit)}
+      </section>
       <div class="grid-2">
         <section class="panel">
           <h3>Provenance</h3>
@@ -2933,6 +3422,7 @@
           artifact.summary.kind === "transformer_layer"
             ? renderTransformer(artifact, payload)
             : renderMatmul(artifact, payload);
+        wireScenarioSensitivityControls(detail);
       })
       .catch((error) => {
         detail.innerHTML = `<div class="empty">Could not load artifact payload: ${escapeHtml(error.message)}</div>`;
@@ -2970,11 +3460,17 @@
         (summary) => formatNumber(summary.movement_to_compute_energy_ratio),
       ],
       ["System profile", (summary) => summary.system_profile || "n/a"],
+      ["Memory scenario", (summary) => summary.memory_scenario || "n/a"],
       [
         "Profile tier overrides",
         (summary) => formatProfileOverrides(summary.system_profile_overrides),
       ],
       ["Memory timing mode", (summary) => summary.memory_timing_mode || "n/a"],
+      ["Contention preset", (summary) => summary.contention_preset || "n/a"],
+      [
+        "Contention overlap model",
+        (summary) => summary.contention_overlap_model || "n/a",
+      ],
       [
         "Effective transfer time",
         (summary) => formatNs(summary.effective_transfer_time_ns),
@@ -2988,6 +3484,20 @@
         "Contention-only loaded bandwidth",
         (summary) =>
           formatBytesPerNs(summary.contention_only_loaded_bandwidth_bytes_per_ns),
+      ],
+      [
+        "Effective usable bandwidth under load",
+        (summary) =>
+          formatBytesPerNs(
+            summary.effective_usable_bandwidth_under_load_bytes_per_ns
+          ),
+      ],
+      [
+        "Guardbanded usable bandwidth under load",
+        (summary) =>
+          formatBytesPerNs(
+            summary.guardbanded_usable_bandwidth_under_load_bytes_per_ns
+          ),
       ],
       [
         "Hierarchy equivalent ops/byte",
@@ -4078,6 +4588,7 @@
                   <strong>${escapeHtml(entry.artifact.summary.benchmark_name)}</strong>
                   <span>${escapeHtml(entry.bestUse)}</span>
                   <code>${escapeHtml(formatNumber(entry.score))} focus score</code>
+                  <span>${escapeHtml(recommendationRankExplanation(entry))}</span>
                   ${renderScoreExplanation(entry.scoreExplanation)}
                 </div>
               `
@@ -4600,8 +5111,8 @@
     return tier ? `${systemTierLabel(tier)} (${count})` : "n/a";
   }
 
-  function renderBottleneckStack(artifacts) {
-    const ranked = artifacts
+  function rankedBottleneckStack(artifacts) {
+    return artifacts
       .filter((artifact) => {
         const pressure = Number(
           artifact.summary.max_tier_contention_adjusted_transfer_pressure_ratio
@@ -4638,6 +5149,19 @@
         }
       )
       .slice(0, 8);
+  }
+
+  function bottleneckRankExplanation(artifact) {
+    const summary = artifact.summary;
+    return [
+      `ranked by worst local tier pressure ${formatNumber(summary.max_tier_contention_adjusted_transfer_pressure_ratio)}`,
+      `then bandwidth utilization ${formatNumber(summary.max_tier_contention_bandwidth_utilization)}`,
+      `bottleneck ${systemTierLabel(summary.contention_memory_bottleneck_tier || "n/a")}`,
+    ].join("; ");
+  }
+
+  function renderBottleneckStack(artifacts) {
+    const ranked = rankedBottleneckStack(artifacts);
     if (!ranked.length) {
       return "";
     }
@@ -4657,6 +5181,7 @@
         escapeHtml(systemTierLabel(summary.dominant_movement_energy_tier || "n/a")),
         escapeHtml(formatPercent(summary.max_tier_movement_energy_share)),
         escapeHtml(systemTierLabel(summary.dominant_traffic_tier || "n/a")),
+        escapeHtml(bottleneckRankExplanation(artifact)),
       ];
     });
     return `
@@ -4679,6 +5204,7 @@
             { label: "Movement tier" },
             { label: "Movement share", num: true },
             { label: "Traffic tier" },
+            { label: "Why rank" },
           ],
           rows,
           "comparison-table"
@@ -4688,8 +5214,8 @@
     `;
   }
 
-  function renderEnergyStack(artifacts) {
-    const ranked = artifacts
+  function rankedEnergyStack(artifacts) {
+    return artifacts
       .filter((artifact) => {
         const movementRatio = Number(artifact.summary.movement_to_compute_energy_ratio);
         const tierShare = Number(artifact.summary.max_tier_system_energy_share);
@@ -4712,6 +5238,36 @@
         );
       })
       .slice(0, 8);
+  }
+
+  function energyRankExplanation(artifact) {
+    const summary = artifact.summary;
+    return [
+      `ranked by movement/compute energy ${formatNumber(summary.movement_to_compute_energy_ratio)}`,
+      `then largest tier system share ${formatPercent(summary.max_tier_system_energy_share)}`,
+      `dominant system energy ${systemTierLabel(summary.dominant_system_energy_component || "n/a")}`,
+    ].join("; ");
+  }
+
+  function recommendationRankExplanation(entry) {
+    const components = (entry.scoreExplanation.components || [])
+      .filter((component) => component.included)
+      .sort(
+        (left, right) =>
+          Number(right.contribution || 0) - Number(left.contribution || 0)
+      )
+      .slice(0, 3)
+      .map(
+        (component) =>
+          `${component.metric} contributed ${formatNumber(component.contribution)}`
+      );
+    return components.length
+      ? `Why this card ranks here: ${components.join("; ")}.`
+      : "Why this card ranks here: no finite weighted score components were available.";
+  }
+
+  function renderEnergyStack(artifacts) {
+    const ranked = rankedEnergyStack(artifacts);
     if (!ranked.length) {
       return "";
     }
@@ -4731,6 +5287,7 @@
         escapeHtml(formatNumber(summary.movement_to_compute_energy_ratio)),
         escapeHtml(systemTierLabel(summary.dominant_movement_energy_tier || "n/a")),
         escapeHtml(formatPercent(summary.max_tier_system_energy_share)),
+        escapeHtml(energyRankExplanation(artifact)),
       ];
     });
     return `
@@ -4757,6 +5314,7 @@
             { label: "Movement/compute", num: true },
             { label: "Movement tier" },
             { label: "Tier system share", num: true },
+            { label: "Why rank" },
           ],
           rows,
           "comparison-table"
@@ -5081,6 +5639,308 @@
     `;
   }
 
+  function renderDecisionPacketReplayPanel() {
+    const replay = state.decisionPacketReplay;
+    if (!replay) {
+      return "";
+    }
+    const missing = replay.missing_artifact_ids || [];
+    const missingText = missing.length ? missing.join(", ") : "none";
+    return `
+      <section class="panel decision-replay-panel">
+        <h3>Decision Packet Replay</h3>
+        <div class="metric-grid">
+          ${metric("Replay source", replay.file_name || "browser import", replay.schema_version)}
+          ${metric("Restored artifacts", formatNumber(replay.restored_artifact_count), "matched live index IDs")}
+          ${metric("Pinned baseline", replay.pinned_id || "none", "restored when present")}
+          ${metric("Checklist entries", formatNumber(replay.checklist_entry_count), "packet snapshot")}
+        </div>
+        <div class="notes">
+          <p>Imported packet state is replayed against the live generated artifact index; generated reports are not modified by replay.</p>
+          <p>${escapeHtml(missing.length ? `Missing artifact IDs: ${missingText}` : "No stale artifact IDs were reported during replay.")}</p>
+          <p>${escapeHtml(replay.generated_at ? `Packet generated at ${replay.generated_at}; replayed at ${replay.imported_at}.` : `Packet replayed at ${replay.imported_at}.`)}</p>
+        </div>
+      </section>
+    `;
+  }
+
+  function scenarioSweepKey(summary) {
+    const sourcePath = summary.source_path || summary.id || "";
+    const sensitivityMatch = sourcePath.match(/^(.*profile_sensitivity_[0-9]+x[0-9]+)_/);
+    if (sensitivityMatch) {
+      return sensitivityMatch[1];
+    }
+    return [
+      summary.kind,
+      summary.macs,
+      summary.equivalent_ops,
+      summary.output_elements,
+      summary.total_energy_pj,
+      summary.memory_traffic_bytes,
+      summary.latency_label,
+    ].join("|");
+  }
+
+  function scenarioLabel(summary) {
+    return summary.memory_scenario || summary.system_profile || "default";
+  }
+
+  function scenarioSortKey(summary) {
+    const order = [
+      "on_chip_sram",
+      "on_package_sram",
+      "hbm",
+      "ddr",
+      "pcie_attached",
+      "optical_interconnect",
+      "default",
+    ];
+    const label = scenarioLabel(summary);
+    const index = order.indexOf(label);
+    return [index === -1 ? order.length : index, label, summary.benchmark_name];
+  }
+
+  function compareScenarioSortKeys(left, right) {
+    const leftKey = scenarioSortKey(left.summary);
+    const rightKey = scenarioSortKey(right.summary);
+    if (leftKey[0] !== rightKey[0]) {
+      return leftKey[0] - rightKey[0];
+    }
+    if (leftKey[1] !== rightKey[1]) {
+      return leftKey[1].localeCompare(rightKey[1]);
+    }
+    return leftKey[2].localeCompare(rightKey[2]);
+  }
+
+  function scenarioSensitivityGroups() {
+    const groups = new Map();
+    state.data.artifacts.forEach((artifact) => {
+      const summary = artifact.summary;
+      if (summary.kind !== "matmul_card" || summary.is_external) {
+        return;
+      }
+      if (
+        !Number.isFinite(Number(summary.macs)) ||
+        !Number.isFinite(Number(summary.equivalent_ops)) ||
+        !Number.isFinite(Number(summary.output_elements))
+      ) {
+        return;
+      }
+      const key = scenarioSweepKey(summary);
+      const group = groups.get(key) || [];
+      group.push(artifact);
+      groups.set(key, group);
+    });
+    return Array.from(groups.values())
+      .map((group) => group.sort(compareScenarioSortKeys))
+      .filter((group) => {
+        const key = scenarioSweepKey(group[0].summary);
+        const dedicatedSensitivityGroup =
+          key.includes("profile_sensitivity_") ||
+          group.every((artifact) =>
+            String(artifact.summary.source_path || "").includes("profile_sensitivity_")
+          );
+        const scenarios = new Set(group.map((artifact) => scenarioLabel(artifact.summary)));
+        return dedicatedSensitivityGroup && group.length >= 2 && scenarios.size >= 2;
+      });
+  }
+
+  function scenarioSensitivitySubjectOptions() {
+    return scenarioSensitivityGroups()
+      .flat()
+      .sort((left, right) =>
+        left.summary.benchmark_name.localeCompare(right.summary.benchmark_name)
+      );
+  }
+
+  function scenarioSensitivityPeers(subjectArtifact) {
+    if (!subjectArtifact) {
+      return [];
+    }
+    const key = scenarioSweepKey(subjectArtifact.summary);
+    const group = scenarioSensitivityGroups().find(
+      (candidate) => scenarioSweepKey(candidate[0].summary) === key
+    );
+    return group || [];
+  }
+
+  function scenarioSensitivitySubject(preferredArtifact, forcePreferred = false) {
+    const options = scenarioSensitivitySubjectOptions();
+    if (!options.length) {
+      state.scenarioSubjectId = null;
+      return null;
+    }
+    const preferredId = preferredArtifact?.summary?.id || null;
+    const optionIds = new Set(options.map((artifact) => artifact.summary.id));
+    if (forcePreferred && preferredId && optionIds.has(preferredId)) {
+      state.scenarioSubjectId = preferredId;
+    }
+    if (!state.scenarioSubjectId || !optionIds.has(state.scenarioSubjectId)) {
+      state.scenarioSubjectId =
+        preferredId && optionIds.has(preferredId)
+          ? preferredId
+          : options[0].summary.id;
+    }
+    return byId.get(state.scenarioSubjectId) || options[0];
+  }
+
+  function renderScenarioSensitivityDashboard(
+    preferredArtifact = null,
+    forcePreferred = false
+  ) {
+    const options = scenarioSensitivitySubjectOptions();
+    if (!options.length) {
+      return "";
+    }
+    const subject = scenarioSensitivitySubject(preferredArtifact, forcePreferred);
+    const peers = scenarioSensitivityPeers(subject);
+    if (!subject || peers.length < 2) {
+      return "";
+    }
+    const baseline = subject.summary;
+    const bestThroughput = bestArtifactForScenarioMetric(
+      peers,
+      (summary) => summary.contention_adjusted_throughput_equivalent_ops_per_second,
+      "higher"
+    );
+    const lowestEnergy = bestArtifactForScenarioMetric(
+      peers,
+      (summary) => summary.system_energy_per_op_pj,
+      "lower"
+    );
+    const lowestLatency = bestArtifactForScenarioMetric(
+      peers,
+      (summary) => summary.contention_adjusted_latency_ns,
+      "lower"
+    );
+    const rows = peers.map((artifact) => {
+      const summary = artifact.summary;
+      const isSelected = summary.id === baseline.id;
+      return [
+        `${escapeHtml(scenarioLabel(summary))}${
+          isSelected ? ' <span class="badge layer">selected</span>' : ""
+        }`,
+        escapeHtml(summary.contention_preset || "n/a"),
+        escapeHtml(formatPj(summary.system_energy_per_op_pj)),
+        escapeHtml(formatNs(summary.contention_adjusted_latency_ns)),
+        escapeHtml(
+          formatThroughput(
+            summary.contention_adjusted_throughput_equivalent_ops_per_second
+          )
+        ),
+        escapeHtml(
+          formatBytesPerNs(
+            summary.effective_usable_bandwidth_under_load_bytes_per_ns
+          )
+        ),
+        escapeHtml(
+          formatBytesPerNs(
+            summary.guardbanded_usable_bandwidth_under_load_bytes_per_ns
+          )
+        ),
+        escapeHtml(systemTierLabel(summary.contention_memory_bottleneck_tier || "n/a")),
+        escapeHtml(formatNumber(summary.max_tier_contention_bandwidth_utilization)),
+        escapeHtml(formatNumber(summary.min_tier_contention_bandwidth_headroom_ratio)),
+        escapeHtml(
+          formatDelta(
+            summary.system_energy_per_op_pj,
+            baseline.system_energy_per_op_pj,
+            formatPj
+          )
+        ),
+        escapeHtml(
+          formatDelta(
+            summary.contention_adjusted_latency_ns,
+            baseline.contention_adjusted_latency_ns,
+            formatNs
+          )
+        ),
+        escapeHtml(
+          formatRatio(
+            summary.contention_adjusted_throughput_equivalent_ops_per_second,
+            baseline.contention_adjusted_throughput_equivalent_ops_per_second
+          )
+        ),
+      ];
+    });
+    return `
+      <section class="panel scenario-dashboard">
+        <div class="panel-heading scenario-heading">
+          <div>
+            <h3>Scenario Sensitivity Dashboard</h3>
+            <div class="description">Local-model sweep over checked artifacts with matched workload identity; these rows are not measured hardware sweeps.</div>
+          </div>
+          <label class="scenario-subject-control">
+            <span>Sensitivity subject</span>
+            <select id="scenario-subject" aria-label="Scenario sensitivity subject">
+              ${options
+                .map(
+                  (artifact) =>
+                    `<option value="${escapeHtml(artifact.summary.id)}"${
+                      artifact.summary.id === subject.summary.id ? " selected" : ""
+                    }>${escapeHtml(artifact.summary.benchmark_name)}</option>`
+                )
+                .join("")}
+            </select>
+          </label>
+        </div>
+        <div class="metric-grid">
+          ${metric("Scenario rows", formatNumber(peers.length), "matched artifacts")}
+          ${metric("Selected scenario", scenarioLabel(baseline), baseline.contention_preset || "contention preset")}
+          ${metric("Lowest energy/op", lowestEnergy ? scenarioLabel(lowestEnergy.summary) : "n/a", "system pJ/op")}
+          ${metric("Best throughput", bestThroughput ? scenarioLabel(bestThroughput.summary) : "n/a", "contention-adjusted")}
+          ${metric("Lowest latency", lowestLatency ? scenarioLabel(lowestLatency.summary) : "n/a", "contention-adjusted")}
+        </div>
+        ${simpleTable(
+          [
+            { label: "Scenario" },
+            { label: "Contention preset" },
+            { label: "System energy/op", num: true },
+            { label: "Contention latency", num: true },
+            { label: "Contention throughput", num: true },
+            { label: "Usable BW", num: true },
+            { label: "Guardbanded BW", num: true },
+            { label: "Bottleneck tier" },
+            { label: "BW utilization", num: true },
+            { label: "BW headroom", num: true },
+            { label: "Energy delta", num: true },
+            { label: "Latency delta", num: true },
+            { label: "Throughput ratio", num: true },
+          ],
+          rows,
+          "comparison-table scenario-table"
+        )}
+      </section>
+    `;
+  }
+
+  function bestArtifactForScenarioMetric(group, getter, direction) {
+    const values = group
+      .map((artifact) => ({
+        artifact,
+        value: Number(getter(artifact.summary)),
+      }))
+      .filter((entry) => Number.isFinite(entry.value));
+    if (!values.length) {
+      return null;
+    }
+    values.sort((left, right) =>
+      direction === "higher" ? right.value - left.value : left.value - right.value
+    );
+    return values[0].artifact;
+  }
+
+  function wireScenarioSensitivityControls(container) {
+    const select = container.querySelector("#scenario-subject");
+    if (!select) {
+      return;
+    }
+    select.addEventListener("change", (event) => {
+      state.scenarioSubjectId = event.target.value;
+      render();
+    });
+  }
+
   function renderComparisonWorkspace(artifacts, pinnedArtifact, focus) {
     const visibleCount = filteredArtifacts().length;
     return `
@@ -5099,6 +5959,10 @@
           ${metric("Filter state", filterSummaryLabel(), "active artifact slice")}
         </div>
         <div class="notes"><p>Workspace state affects dashboard recommendations and exports, but it does not change the generated JSON reports or their modeling boundaries.</p></div>
+        <label class="reviewer-notes">
+          <span>Reviewer notes</span>
+          <textarea id="reviewer-notes" aria-label="Reviewer notes for decision packet" placeholder="Add review intent, caveats, or handoff notes for the decision packet.">${escapeHtml(state.reviewerNotes)}</textarea>
+        </label>
       </section>
     `;
   }
@@ -5247,8 +6111,11 @@
         movement_to_compute_energy_ratio:
           artifact.summary.movement_to_compute_energy_ratio,
         system_profile: artifact.summary.system_profile,
+        memory_scenario: artifact.summary.memory_scenario,
         system_profile_overrides: artifact.summary.system_profile_overrides || [],
         memory_timing_mode: artifact.summary.memory_timing_mode,
+        contention_preset: artifact.summary.contention_preset,
+        contention_overlap_model: artifact.summary.contention_overlap_model,
         effective_transfer_time_ns: artifact.summary.effective_transfer_time_ns,
         guardbanded_loaded_hierarchy_bandwidth_bytes_per_ns:
           artifact.summary.contention_adjusted_loaded_bandwidth_bytes_per_ns,
@@ -5256,6 +6123,10 @@
           artifact.summary.contention_adjusted_loaded_bandwidth_bytes_per_ns,
         contention_only_loaded_bandwidth_bytes_per_ns:
           artifact.summary.contention_only_loaded_bandwidth_bytes_per_ns,
+        effective_usable_bandwidth_under_load_bytes_per_ns:
+          artifact.summary.effective_usable_bandwidth_under_load_bytes_per_ns,
+        guardbanded_usable_bandwidth_under_load_bytes_per_ns:
+          artifact.summary.guardbanded_usable_bandwidth_under_load_bytes_per_ns,
         hierarchy_equivalent_ops_per_byte:
           artifact.summary.hierarchy_equivalent_ops_per_byte,
         movement_energy_per_hierarchy_byte_pj:
@@ -5362,6 +6233,182 @@
     };
   }
 
+  function decisionPacketExport(
+    artifacts,
+    pinnedArtifact,
+    boundaryNotes,
+    focus,
+    comparisonObject
+  ) {
+    return {
+      schema_version: DECISION_PACKET_SCHEMA,
+      generated_at: new Date().toISOString(),
+      triage_scope:
+        "Local visualizer decision packet. Rankings, explanations, and tradeoffs are UI triage aids, not benchmark claims.",
+      reports_dir: state.data.reports_dir,
+      reviewer_notes: state.reviewerNotes,
+      selected_artifact_ids: artifacts.map((artifact) => artifact.summary.id),
+      pinned_baseline: pinnedArtifact
+        ? {
+            artifact_id: pinnedArtifact.summary.id,
+            benchmark_name: pinnedArtifact.summary.benchmark_name,
+            source_path: pinnedArtifact.summary.source_path,
+          }
+        : null,
+      analysis_intent: {
+        ...currentAnalysisIntent(),
+        score_weights: activeScoreWeightSummary(focus),
+        url_state: stateUrlString(true),
+      },
+      checklist_status: reviewChecklistEntries(artifacts, pinnedArtifact),
+      top_tradeoffs: decisionPacketTradeoffs(artifacts, focus),
+      boundary_notes: boundaryNotes,
+      selected_artifacts: artifacts.map((artifact) =>
+        decisionPacketArtifactSummary(artifact)
+      ),
+      comparison_export: comparisonObject,
+    };
+  }
+
+  function decisionPacketArtifactSummary(artifact) {
+    const summary = artifact.summary;
+    return {
+      artifact_id: summary.id,
+      benchmark_name: summary.benchmark_name,
+      kind: summary.kind,
+      source_path: summary.source_path,
+      system_profile: summary.system_profile,
+      memory_scenario: summary.memory_scenario,
+      memory_timing_mode: summary.memory_timing_mode,
+      contention_preset: summary.contention_preset,
+      contention_overlap_model: summary.contention_overlap_model,
+      has_published_reference: summary.has_published_reference,
+      source_quality_grade: summary.source_quality_grade,
+      local_triage_metrics: {
+        system_energy_per_op_pj: summary.system_energy_per_op_pj,
+        movement_to_compute_energy_ratio:
+          summary.movement_to_compute_energy_ratio,
+        effective_usable_bandwidth_under_load_bytes_per_ns:
+          summary.effective_usable_bandwidth_under_load_bytes_per_ns,
+        guardbanded_usable_bandwidth_under_load_bytes_per_ns:
+          summary.guardbanded_usable_bandwidth_under_load_bytes_per_ns,
+        dominant_system_energy_component:
+          summary.dominant_system_energy_component,
+        contention_memory_bottleneck_tier:
+          summary.contention_memory_bottleneck_tier,
+        max_tier_contention_bandwidth_utilization:
+          summary.max_tier_contention_bandwidth_utilization,
+        min_tier_contention_bandwidth_headroom_ratio:
+          summary.min_tier_contention_bandwidth_headroom_ratio,
+      },
+    };
+  }
+
+  function decisionPacketTradeoffs(artifacts, focus) {
+    return {
+      recommendations: comparisonRecommendations(artifacts, focus).map((entry) => ({
+        group: entry.group,
+        artifact_id: entry.artifact.summary.id,
+        benchmark_name: entry.artifact.summary.benchmark_name,
+        score: entry.score,
+        best_use: entry.bestUse,
+        why_ranked_here: recommendationRankExplanation(entry),
+        score_explanation: entry.scoreExplanation,
+      })),
+      energy_stack: rankedEnergyStack(artifacts).slice(0, 5).map((artifact) => ({
+        artifact_id: artifact.summary.id,
+        benchmark_name: artifact.summary.benchmark_name,
+        movement_to_compute_energy_ratio:
+          artifact.summary.movement_to_compute_energy_ratio,
+        max_tier_system_energy_share:
+          artifact.summary.max_tier_system_energy_share,
+        why_ranked_here: energyRankExplanation(artifact),
+      })),
+      bottleneck_stack: rankedBottleneckStack(artifacts)
+        .slice(0, 5)
+        .map((artifact) => ({
+          artifact_id: artifact.summary.id,
+          benchmark_name: artifact.summary.benchmark_name,
+          max_tier_contention_adjusted_transfer_pressure_ratio:
+            artifact.summary.max_tier_contention_adjusted_transfer_pressure_ratio,
+          max_tier_contention_bandwidth_utilization:
+            artifact.summary.max_tier_contention_bandwidth_utilization,
+          why_ranked_here: bottleneckRankExplanation(artifact),
+        })),
+    };
+  }
+
+  function decisionPacketMarkdown(packet) {
+    const notes = packet.boundary_notes.map((note) => `- ${note}`).join("\n");
+    const checklist = packet.checklist_status
+      .map(
+        (entry) =>
+          `- ${entry.label}: ${checklistStatusLabel(entry.status)} (${entry.value}) - ${entry.note}`
+      )
+      .join("\n");
+    const recommendations = packet.top_tradeoffs.recommendations
+      .map(
+        (entry) =>
+          `- ${entry.group}: ${entry.benchmark_name} (${formatNumber(entry.score)} focus score) - ${entry.why_ranked_here}`
+      )
+      .join("\n");
+    const energy = packet.top_tradeoffs.energy_stack
+      .map((entry) => `- ${entry.benchmark_name}: ${entry.why_ranked_here}`)
+      .join("\n");
+    const bottlenecks = packet.top_tradeoffs.bottleneck_stack
+      .map((entry) => `- ${entry.benchmark_name}: ${entry.why_ranked_here}`)
+      .join("\n");
+    const selectedArtifacts = packet.selected_artifacts
+      .map(
+        (entry) =>
+          `- ${entry.benchmark_name}: scenario=${entry.memory_scenario || "n/a"}, preset=${entry.contention_preset || "n/a"}, system pJ/op=${formatNumber(entry.local_triage_metrics.system_energy_per_op_pj)}`
+      )
+      .join("\n");
+    const weights = packet.analysis_intent.score_weights
+      .map((entry) => `${entry.metric}=${formatNumber(entry.weight)}`)
+      .join(", ");
+    return `# PhotonicBench Decision Packet
+
+Scope: ${packet.triage_scope}
+
+Pinned baseline: ${
+      packet.pinned_baseline ? packet.pinned_baseline.benchmark_name : "none"
+    }
+
+Analysis focus: ${comparisonFocusOptions()[packet.analysis_intent.analysis_focus].label}
+
+Score weights: ${weights || "n/a"}
+
+Reviewer notes:
+
+${packet.reviewer_notes || "n/a"}
+
+## Selected Artifacts
+
+${selectedArtifacts || "- n/a"}
+
+## Checklist Status
+
+${checklist || "- n/a"}
+
+## Recommendations
+
+${recommendations || "- n/a"}
+
+## Energy Stack Reasons
+
+${energy || "- n/a"}
+
+## Bottleneck Stack Reasons
+
+${bottlenecks || "- n/a"}
+
+## Boundary Notes
+
+${notes}
+`;
+  }
+
   function comparisonMarkdown(artifacts, pinnedArtifact, boundaryNotes, focus) {
     const rows = artifacts
       .map((artifact) => {
@@ -5375,11 +6422,20 @@
           formatPercent(summary.local_compute_and_conversion_energy_share),
           formatNumber(summary.movement_to_compute_energy_ratio),
           summary.system_profile || "n/a",
+          summary.memory_scenario || "n/a",
           formatProfileOverrides(summary.system_profile_overrides),
           summary.memory_timing_mode || "n/a",
+          summary.contention_preset || "n/a",
+          summary.contention_overlap_model || "n/a",
           formatNs(summary.effective_transfer_time_ns),
           formatBytesPerNs(summary.contention_adjusted_loaded_bandwidth_bytes_per_ns),
           formatBytesPerNs(summary.contention_only_loaded_bandwidth_bytes_per_ns),
+          formatBytesPerNs(
+            summary.effective_usable_bandwidth_under_load_bytes_per_ns
+          ),
+          formatBytesPerNs(
+            summary.guardbanded_usable_bandwidth_under_load_bytes_per_ns
+          ),
           formatOpsPerByte(summary.hierarchy_equivalent_ops_per_byte),
           formatPj(summary.movement_energy_per_hierarchy_byte_pj),
           systemTierLabel(summary.dominant_traffic_tier || "n/a"),
@@ -5438,6 +6494,67 @@
     const weightSummary = activeScoreWeightSummary(focus)
       .map((entry) => `${entry.metric}=${formatNumber(entry.weight)}`)
       .join(", ");
+    const headers = [
+      "Benchmark",
+      "Kind",
+      "Source",
+      "Local pJ/op",
+      "System pJ/op",
+      "Compute energy share",
+      "Movement/compute energy",
+      "System profile",
+      "Memory scenario",
+      "Profile overrides",
+      "Memory timing",
+      "Contention preset",
+      "Overlap model",
+      "Effective transfer",
+      "Guardbanded loaded BW",
+      "Contention-only loaded BW",
+      "Usable BW under load",
+      "Guardbanded usable BW",
+      "Hierarchy eq ops/byte",
+      "Movement pJ/hierarchy byte",
+      "Dominant traffic tier",
+      "Dominant system energy",
+      "Dominant movement tier",
+      "Memory bottleneck tier",
+      "Worst tier pressure",
+      "Bandwidth saturation tier",
+      "Max bandwidth utilization",
+      "Min bandwidth headroom",
+      "Largest tier movement share",
+      "Largest tier system share",
+      "Off-chip share",
+      "Derate",
+      "Transfer overhead",
+      "Transfer/compute",
+      "Shared clients",
+      "Arbitration eff.",
+      "Calibration overhead",
+      "Latency",
+      "Throughput",
+      "BW-limited throughput",
+      "BW pressure",
+      "Contention latency",
+      "Contention transfer/compute",
+      "Contention pressure",
+      "Contention throughput",
+      "Interface traffic",
+      "Eq ops/byte",
+      "Movement share",
+      "Published reference",
+      "Source grade",
+      "Surrogate type",
+      "Provenance",
+    ];
+    const table = [
+      `| ${headers.map(markdownCell).join(" | ")} |`,
+      `| ${headers.map(() => "---").join(" | ")} |`,
+      rows,
+    ]
+      .filter(Boolean)
+      .join("\n");
     return `# PhotonicBench Comparison Export
 
 Pinned reference: ${
@@ -5452,9 +6569,7 @@ Score profile: ${activeScoreProfileSummary(focus).label}
 
 Score weights: ${weightSummary || "n/a"}
 
-| Benchmark | Kind | Source | Local pJ/op | System pJ/op | Compute energy share | Movement/compute energy | System profile | Profile overrides | Memory timing | Effective transfer | Guardbanded loaded BW | Contention-only loaded BW | Hierarchy eq ops/byte | Movement pJ/hierarchy byte | Dominant traffic tier | Dominant system energy | Dominant movement tier | Memory bottleneck tier | Worst tier pressure | Bandwidth saturation tier | Max bandwidth utilization | Min bandwidth headroom | Largest tier movement share | Largest tier system share | Off-chip share | Derate | Transfer overhead | Transfer/compute | Shared clients | Arbitration eff. | Calibration overhead | Latency | Throughput | BW-limited throughput | BW pressure | Contention latency | Contention transfer/compute | Contention pressure | Contention throughput | Interface traffic | Eq ops/byte | Movement share | Published reference | Source grade | Surrogate type | Provenance |
-| --- | --- | --- | ---: | ---: | ---: | ---: | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- |
-${rows}
+${table}
 
 ## Recommendations
 
@@ -5485,6 +6600,8 @@ ${notes}
       "movement_to_compute_energy_ratio",
       "guardbanded_loaded_hierarchy_bandwidth_bytes_per_ns",
       "contention_only_loaded_bandwidth_bytes_per_ns",
+      "effective_usable_bandwidth_under_load_bytes_per_ns",
+      "guardbanded_usable_bandwidth_under_load_bytes_per_ns",
       "hierarchy_equivalent_ops_per_byte",
       "movement_energy_per_hierarchy_byte_pj",
       "dominant_traffic_tier",
@@ -5516,7 +6633,10 @@ ${notes}
       "source_grade",
       "surrogate_type",
       "system_profile",
+      "memory_scenario",
       "memory_timing_mode",
+      "contention_preset",
+      "contention_overlap_model",
       "boundary_tags",
       "comparison_boundary_notes",
       "provenance",
@@ -5539,6 +6659,8 @@ ${notes}
         summary.movement_to_compute_energy_ratio,
         summary.contention_adjusted_loaded_bandwidth_bytes_per_ns,
         summary.contention_only_loaded_bandwidth_bytes_per_ns,
+        summary.effective_usable_bandwidth_under_load_bytes_per_ns,
+        summary.guardbanded_usable_bandwidth_under_load_bytes_per_ns,
         summary.hierarchy_equivalent_ops_per_byte,
         summary.movement_energy_per_hierarchy_byte_pj,
         summary.dominant_traffic_tier,
@@ -5570,7 +6692,10 @@ ${notes}
         summary.source_quality_grade || "",
         summary.source_surrogate_type || "",
         summary.system_profile || "",
+        summary.memory_scenario || "",
         summary.memory_timing_mode || "",
+        summary.contention_preset || "",
+        summary.contention_overlap_model || "",
         (summary.boundary_tags || []).join("; "),
         boundaryNotes.join(" | "),
         summary.provenance_status || "",
@@ -5605,6 +6730,11 @@ ${notes}
   function comparisonFilename(extension) {
     const stamp = new Date().toISOString().replace(/[:.]/g, "-");
     return `photonic-bench-comparison-${stamp}.${extension}`;
+  }
+
+  function decisionPacketFilename(extension) {
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    return `photonic-bench-decision-packet-${stamp}.${extension}`;
   }
 
   function renderComparison() {
@@ -5660,6 +6790,14 @@ ${notes}
       boundaryNotes,
       focus
     );
+    const decisionPacketObject = decisionPacketExport(
+      artifacts,
+      pinnedArtifact,
+      boundaryNotes,
+      focus,
+      exportObject
+    );
+    const decisionPacketMd = decisionPacketMarkdown(decisionPacketObject);
     const exportCsv = comparisonCsv(artifacts, focus, boundaryNotes);
     const focusOptions = comparisonFocusOptions();
 
@@ -5700,6 +6838,8 @@ ${notes}
             }
           </div>
           <div class="actions">
+            <button class="action-button primary" type="button" data-action="download-decision-packet-json">Decision Packet JSON</button>
+            <button class="action-button" type="button" data-action="download-decision-packet-markdown">Decision Packet Markdown</button>
             <button class="action-button primary" type="button" data-action="download-json">Download JSON</button>
             <button class="action-button" type="button" data-action="download-markdown">Download Markdown</button>
             <button class="action-button" type="button" data-action="download-csv">Download CSV</button>
@@ -5710,6 +6850,8 @@ ${notes}
         </div>
       </section>
       ${renderComparisonWorkspace(artifacts, pinnedArtifact, focus)}
+      ${renderDecisionPacketReplayPanel()}
+      ${renderScenarioSensitivityDashboard(pinnedArtifact || artifacts[0])}
       ${renderSelectionDrawer(artifacts)}
       ${renderComparisonBrief(artifacts)}
       ${renderEnergyStack(artifacts)}
@@ -5743,11 +6885,20 @@ ${notes}
       </section>
     `;
 
+    wireScenarioSensitivityControls(detail);
+
     const focusSelect = detail.querySelector("#analysis-focus");
     if (focusSelect) {
       focusSelect.addEventListener("change", (event) => {
         state.analysisFocus = event.target.value;
         render();
+      });
+    }
+
+    const reviewerNotes = detail.querySelector("#reviewer-notes");
+    if (reviewerNotes) {
+      reviewerNotes.addEventListener("input", (event) => {
+        state.reviewerNotes = event.target.value;
       });
     }
 
@@ -5812,6 +6963,40 @@ ${notes}
         );
       }
     );
+
+    detail
+      .querySelector("[data-action='download-decision-packet-json']")
+      .addEventListener("click", () => {
+        const packet = decisionPacketExport(
+          artifacts,
+          pinnedArtifact,
+          boundaryNotes,
+          focus,
+          comparisonExport(artifacts, pinnedArtifact, boundaryNotes, focus)
+        );
+        downloadText(
+          decisionPacketFilename("json"),
+          `${JSON.stringify(packet, null, 2)}\n`,
+          "application/json"
+        );
+      });
+
+    detail
+      .querySelector("[data-action='download-decision-packet-markdown']")
+      .addEventListener("click", () => {
+        const packet = decisionPacketExport(
+          artifacts,
+          pinnedArtifact,
+          boundaryNotes,
+          focus,
+          comparisonExport(artifacts, pinnedArtifact, boundaryNotes, focus)
+        );
+        downloadText(
+          decisionPacketFilename("md"),
+          decisionPacketMarkdown(packet),
+          "text/markdown"
+        );
+      });
 
     detail.querySelector("[data-action='download-markdown']").addEventListener(
       "click",
@@ -5887,6 +7072,7 @@ ${notes}
     ensurePinnedReference();
     renderModeTabs();
     renderPresetControls();
+    renderDecisionPacketControls();
     renderExternalControls();
     renderList();
     renderIssues();

@@ -1,0 +1,98 @@
+benchmark:
+  name: Lightening-Transformer 2024 dynamic transformer surrogate
+  description: Source-backed activation-heavy card for the HPCA 2024 Lightening-Transformer accelerator. The paper targets dynamic full-range tensor multiplication and optical inter-core broadcast for Transformers; this config uses a dense 128x128 local matmul under the optical_interconnect scenario for PhotonicBench comparison only.
+workload:
+  type: matmul
+  m: 128
+  n: 128
+  k: 128
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 8
+    energy_pj_per_conversion: 0.5
+  vector_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+  weight_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+execution:
+  batch_size: 8
+  vector_reuse_factor: 1
+  weight_reuse_factor: 1
+  weight_stationary: false
+  pipeline:
+    stages: 1
+system:
+  profile: optical_interconnect
+timing:
+  optical_latency_ns: 1
+  adc_latency_ns: 0
+  dac_latency_ns: 0
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 1
+provenance:
+  source_title: "Lightening-Transformer: A dynamically-operated optically-interconnected photonic Transformer accelerator"
+  source_url: https://arxiv.org/abs/2305.19533
+  doi: 10.48550/arXiv.2305.19533
+  venue: HPCA 2024; arXiv:2305.19533
+  claim_status: paper-reported relative energy, latency, EDP, and architecture claims; dense transformer-matmul surrogate
+published_calibration:
+  architecture: Dynamically-operated photonic tensor core with optical inter-core broadcast
+  additional_metrics:
+    energy_reduction_vs_prior_photonic_accelerators_min_x: 2.6
+    latency_reduction_vs_prior_photonic_accelerators_min_x: 12
+    edp_reduction_vs_electronic_transformer_accelerators_orders_min: 2
+    edp_reduction_vs_electronic_transformer_accelerators_orders_max: 3
+    supports_dynamic_full_range_tensor_multiplication: true
+    photonic_inter_core_broadcast: true
+    implementation_available: https://github.com/zhuhanqing/Lightening-Transformer
+    surrogate_mapping: m=128, k=128, n=128 with batch=8 stresses dynamic activation and optical-broadcast movement; it is not the paper's full transformer scheduler, DPTC microarchitecture, or model-accuracy evaluation.
+source_quality:
+  reported_metrics:
+    - relative_energy_reduction
+    - relative_latency_reduction
+    - energy_delay_product
+    - transformer_architecture
+    - dynamic_tensor_core
+  local_surrogate_type: activation_heavy_dynamic_transformer_matmul_surrogate
+  coverage:
+    throughput: reported
+    energy: reported
+    accuracy: reported
+    area: not_reported
+    precision: not_reported
+  confidence_grade: B
+  notes:
+    - Source claims relative energy, latency, EDP, and architecture behavior; PhotonicBench localizes that to one dense activation-heavy matmul and optical_interconnect movement sensitivity.
+source_audit:
+  quoted_metrics:
+    - metric: Energy reduction vs prior photonic accelerators
+      quoted_value: ">2.6x"
+      source_location: Abstract, arXiv:2305.19533 / HPCA 2024
+      note: Relative source claim; no absolute TOPS/W is entered.
+    - metric: Latency reduction vs prior photonic accelerators
+      quoted_value: ">12x"
+      source_location: Abstract, arXiv:2305.19533 / HPCA 2024
+      note: Relative source claim; local_model timing remains a PhotonicBench surrogate.
+    - metric: Energy-delay product vs electronic Transformer accelerators
+      quoted_value: "2 to 3 orders of magnitude lower"
+      source_location: Abstract, arXiv:2305.19533 / HPCA 2024
+    - metric: Dynamic tensor behavior
+      quoted_value: "DPTC supports dynamic and full-range matrix multiplication"
+      source_location: Abstract, arXiv:2305.19533 / HPCA 2024
+  local_assumptions:
+    - Local 128x128 dense matmul and batch=8 are chosen to stress activation-heavy movement, not to reproduce a specific transformer layer.
+    - The optical_interconnect scenario is a local PhotonicBench sensitivity pack for broadcast-style movement.
+  confidence_flags:
+    - relative_metrics_only_no_absolute_tops_per_watt
+    - transformer_scheduler_not_reproduced
+assumptions:
+  - Relative energy, latency, and EDP claims remain under published_calibration and published_reference.
+  - Local optical MAC energy, converter energy, one-nanosecond latency, and hierarchy movement are generic PhotonicBench assumptions.
+  - The non-weight-stationary local execution intentionally stresses dynamic operand movement and does not model the DPTC scheduler or attention/MLP tiling.

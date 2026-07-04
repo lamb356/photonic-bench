@@ -135,6 +135,8 @@ class SystemModelResult:
     shared_bandwidth_clients: float
     bandwidth_arbitration_efficiency: float
     calibration_overhead_fraction: float
+    contention_preset: str
+    contention_overlap_model: str
     contention_bandwidth_derate_factor: float
     contention_adjusted_max_transfer_time_ns: float
     contention_adjusted_serial_transfer_time_ns: float
@@ -146,6 +148,8 @@ class SystemModelResult:
     effective_loaded_bandwidth_bytes_per_ns: float
     contention_only_loaded_bandwidth_bytes_per_ns: float
     contention_adjusted_loaded_bandwidth_bytes_per_ns: float
+    effective_usable_bandwidth_under_load_bytes_per_ns: float
+    guardbanded_usable_bandwidth_under_load_bytes_per_ns: float
     transfer_to_compute_time_ratio: float
     bandwidth_limited_batch_latency_ns: float
     bandwidth_pressure_ratio: float
@@ -607,6 +611,8 @@ def _system_model(
         calibration_overhead_fraction=(
             config.system.contention.calibration_overhead_fraction
         ),
+        contention_preset=config.system.contention.preset,
+        contention_overlap_model=config.system.contention.overlap_model,
         contention_bandwidth_derate_factor=contention_derate,
         contention_adjusted_max_transfer_time_ns=(
             contention_adjusted_max_transfer_time_ns
@@ -634,6 +640,12 @@ def _system_model(
             contention_only_loaded_bandwidth
         ),
         contention_adjusted_loaded_bandwidth_bytes_per_ns=(
+            contention_adjusted_loaded_bandwidth
+        ),
+        effective_usable_bandwidth_under_load_bytes_per_ns=(
+            contention_only_loaded_bandwidth
+        ),
+        guardbanded_usable_bandwidth_under_load_bytes_per_ns=(
             contention_adjusted_loaded_bandwidth
         ),
         transfer_to_compute_time_ratio=_safe_divide(
