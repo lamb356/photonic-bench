@@ -15,6 +15,9 @@
   - The current branch has protective baseline commit `c6cf572`
     (`Add artifact freshness profiles and transformer usability updates`)
     pushed to `origin/codex/artifact-freshness-profiles`.
+  - The branch also has implementation commit `99dbe4f`
+    (`Deepen system modeling and visualizer comparison`) pushed to the same
+    remote branch.
   - Draft PR #4 is open at
     `https://github.com/lamb356/photonic-bench/pull/4`, targeting `master`.
 - Repository automation:
@@ -81,10 +84,11 @@
 
 - This loop started by committing and pushing the existing dirty branch, then
   opening PR #4 before new feature work.
-- Current uncommitted follow-up work has implemented the intermediate/cache
-  tier, memory timing mode, visualizer decision scorecards, `system-profiles`
-  CLI command, four new cards, regenerated artifacts, and a hostile-review
-  boundary-label fix.
+- Follow-up work implemented the intermediate/cache tier, memory timing mode,
+  visualizer decision scorecards, `system-profiles` CLI command, four new
+  cards, regenerated artifacts, and a hostile-review boundary-label fix.
+- Final local gates passed with Ruff, pytest, artifact freshness, JavaScript
+  syntax, JSON parsing, and `git diff --check`.
 - The new implementation should build on the existing visualizer, system model,
   and source-card quality foundation rather than replacing it wholesale.
 - GBrain tools are expected by user instructions, but were not exposed in this
