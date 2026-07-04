@@ -250,3 +250,86 @@
 
 - Commit and push the action-version hardening, then verify the next GitHub
   Actions run.
+
+## 2026-07-04 Cycle 6: Final CI Verification And Critique
+
+### Action-Version Commit And Push
+
+- Re-ran local verification before pushing:
+  - `python -m ruff check`: passed;
+  - `python -m pytest`: 73 passed, 146 warnings;
+  - workflow assertion checked `actions/checkout@v7`,
+    `actions/setup-python@v6`, Playwright install, Ruff, and pytest commands.
+- Staged explicit paths:
+  - `.github/workflows/ci.yml`;
+  - `CHECKLIST.md`;
+  - `PROGRESS.md`.
+- Created commit:
+  - `43c4a4d Update CI action versions`.
+- `.Codex/scripts/generate-reasoning.sh` was not present, so reasoning
+  generation was skipped.
+- Pushed `master` to `origin`.
+- Verified local and remote `master` both pointed to:
+  - `43c4a4d7ff01d82fd0a177cf34412c223ae6f72c`.
+
+### Final Verified Actions Run Before Closeout
+
+- Found GitHub Actions run:
+  - run ID: `28694481430`;
+  - workflow: `CI`;
+  - event: `push`;
+  - commit: `43c4a4d7ff01d82fd0a177cf34412c223ae6f72c`;
+  - URL:
+    `https://github.com/lamb356/photonic-bench/actions/runs/28694481430`.
+- Result:
+  - passed in 50 seconds.
+- Verified job steps from `gh run view`:
+  - checkout succeeded;
+  - Python setup succeeded;
+  - dependency install succeeded;
+  - Playwright browser install succeeded;
+  - Ruff succeeded;
+  - pytest succeeded.
+
+### Mandatory Hostile Senior Reviewer Critique
+
+- Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
+  `RUBRIC.md` before the critique pass.
+- Inspected:
+  - `.github/workflows/ci.yml`;
+  - `pyproject.toml`;
+  - GitHub repository metadata from `gh repo view`;
+  - run `28694481430` from `gh run view`;
+  - `git status --short --branch`;
+  - recent git log.
+
+Findings and disposition:
+
+1. Clean-runner dependency installation was not reliable at first because
+   setuptools flat-layout discovery found `reports`, `thoughts`, and
+   `photonic_bench`.
+   - Severity: high.
+   - Fixed by adding explicit package discovery for `photonic_bench*`.
+   - Verified by local editable install and passing CI.
+2. The first passing CI version used older action majors that emitted a Node 20
+   deprecation annotation.
+   - Severity: medium.
+   - Fixed by checking current upstream action releases and updating to
+     `actions/checkout@v7` and `actions/setup-python@v6`.
+   - Verified by passing CI run `28694481430`.
+3. Repository presentation was incomplete at phase start: no GitHub description
+   and no topics.
+   - Severity: medium.
+   - Fixed with `gh repo edit` and verified with `gh repo view`.
+4. Branch protection / required checks are not configured.
+   - Severity: low for this request.
+   - Disposition: explicitly out of this basic CI/repo-hygiene scope; worth
+     considering later if the repo becomes public or accepts PRs from others.
+
+### Closeout
+
+- Updated state files and `tasks/todo.md` to mark completed items.
+- Because CI now runs on every push to `master`, this final state-only closeout
+  commit will trigger one additional CI run. That run is verified after push and
+  reported in the final response rather than causing an infinite state-file
+  self-reference.

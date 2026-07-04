@@ -11,8 +11,12 @@
   - `master` tracks `origin/master`.
 - Current `HEAD` at phase start:
   - `6358d91 Record GitHub push completion`
-- Existing `.github` state:
-  - no `.github/workflows/` directory exists at phase start.
+- Latest verified CI commit before closeout:
+  - `43c4a4d Update CI action versions`
+- Latest verified CI run before closeout:
+  - `28694481430`
+  - URL: `https://github.com/lamb356/photonic-bench/actions/runs/28694481430`
+  - result: passed.
 
 ## Project Packaging And Verification
 
@@ -33,6 +37,29 @@
   install Chromium and its system dependencies before `pytest`:
   - `python -m playwright install --with-deps chromium`.
 
+## GitHub Actions CI
+
+- Workflow path:
+  - `.github/workflows/ci.yml`
+- Trigger:
+  - push to `master`;
+  - pull requests.
+- Permissions:
+  - `contents: read`.
+- Runner:
+  - `ubuntu-latest`.
+- Actions:
+  - `actions/checkout@v7`;
+  - `actions/setup-python@v6`.
+- Python:
+  - `3.12`.
+- Commands:
+  - `python -m pip install --upgrade pip`;
+  - `python -m pip install -e ".[dev]"`;
+  - `python -m playwright install --with-deps chromium`;
+  - `python -m ruff check`;
+  - `python -m pytest`.
+
 ## GitHub Repository Hygiene
 
 - Repository: `lamb356/photonic-bench`.
@@ -44,16 +71,16 @@
   - `Transparent benchmark cards, JSON artifacts, and visual tools for photonic
     AI accelerator energy/noise claims.`
 - Topic target:
-  - `photonic-computing`
-  - `photonic-accelerator`
+  - `ai-accelerators`
   - `benchmarking`
   - `machine-learning`
-  - `ai-accelerators`
+  - `mlcommons`
+  - `mlperf`
   - `optical-computing`
+  - `photonic-accelerator`
+  - `photonic-computing`
   - `python`
   - `reproducibility`
-  - `mlperf`
-  - `mlcommons`
 
 ## Constraints
 

@@ -132,7 +132,7 @@ Status key:
 
 ## Task 5: Commit, Push, And Actions Verification
 
-- [ ] TODO: Commit, push, and verify GitHub Actions passes.
+- [x] DONE: Commit, push, and verify GitHub Actions passes.
   - Done when:
     - Final diff/status are inspected.
     - Files are staged explicitly.
@@ -141,11 +141,24 @@ Status key:
     - The triggered GitHub Actions run is found and passes.
     - Local `HEAD` and `origin/master` match.
   - Proof:
-    - Pending.
+    - Created and pushed `e8cb999 Add GitHub Actions CI`.
+    - Run `28694399915` triggered on push to `master` and failed in
+      dependency installation; logs were inspected and root cause was fixed.
+    - Created and pushed `f660fe4 Fix editable install package discovery`.
+    - Run `28694440859` triggered on push to `master` and passed in 43
+      seconds.
+    - Created and pushed `43c4a4d Update CI action versions`.
+    - Run `28694481430` triggered on push to `master` and passed in 50
+      seconds.
+    - Verified run `28694481430` job steps all succeeded: checkout, Python
+      setup, dependency install, Playwright browser install, Ruff, and pytest.
+    - Verified local `HEAD` and `origin/master` matched at
+      `43c4a4d7ff01d82fd0a177cf34412c223ae6f72c` before this closeout state
+      update.
 
 ## Task 6: Mandatory Hostile Senior Reviewer Critique
 
-- [ ] TODO: Critique CI reliability and repository presentation, then fix major
+- [x] DONE: Critique CI reliability and repository presentation, then fix major
   issues.
   - Done when:
     - The five required state files are re-read before the critique pass.
@@ -153,11 +166,26 @@ Status key:
     - Major CI or presentation issues are fixed or explicitly justified.
     - Post-fix local verification and relevant GitHub verification pass.
   - Proof:
-    - Pending.
+    - Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
+      `RUBRIC.md` before the critique pass.
+    - Inspected `.github/workflows/ci.yml`, `pyproject.toml`, current GitHub
+      metadata, successful run `28694481430`, and current git status/log.
+    - Finding 1: clean GitHub runner could not install the package because
+      setuptools auto-discovered `reports`, `thoughts`, and `photonic_bench`.
+      Fix: explicit `[tool.setuptools.packages.find] include =
+      ["photonic_bench*"]`; verified by local editable install and passing CI.
+    - Finding 2: passing CI emitted a Node 20 deprecation annotation for older
+      action majors. Fix: verified current releases and updated to
+      `actions/checkout@v7` and `actions/setup-python@v6`; verified by passing
+      run `28694481430`.
+    - Finding 3: repository presentation had no description or topics at phase
+      start. Fix: set and verified description plus ten relevant topics.
+    - Residual non-blocker: branch protection / required checks are not
+      configured; this was outside the requested basic CI/repo-hygiene scope.
 
 ## Task 7: Final Closeout
 
-- [ ] TODO: Close state files and final status.
+- [x] DONE: Close state files and final status.
   - Done when:
     - `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, `RUBRIC.md`, and
       `tasks/todo.md` reflect final verified state.
@@ -165,4 +193,9 @@ Status key:
       after the CI commit.
     - Final `git status --short --branch` is clean and synchronized.
   - Proof:
-    - Pending.
+    - Updated `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, `RUBRIC.md`, and
+      `tasks/todo.md` for final verified state.
+    - Final closeout state update is intentionally state-only; because CI runs
+      on every push to `master`, the post-closeout run is verified after this
+      commit and reported in the final response to avoid an infinite
+      self-referential ledger loop.
