@@ -75,6 +75,9 @@
     feature.`
   - The same HTTP 403 blocker repeated in Cycle 5 for branch protection update,
     rulesets readback, and branch protection readback.
+  - The same HTTP 403 blocker repeated again in Cycle 6 for branch protection
+    update, rulesets readback, and branch protection readback.
+  - Cycle 6 is the third consecutive goal turn with this blocker.
   - The user explicitly required the repository to remain private, so making it
     public is not an allowed workaround.
 

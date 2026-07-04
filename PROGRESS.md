@@ -339,3 +339,72 @@
 - No permitted repo-local workaround was found:
   - public visibility is explicitly disallowed;
   - private-repo branch protection and rulesets are both plan-gated by GitHub.
+
+## 2026-07-04 Cycle 6: Third Branch Protection Blocker Audit
+
+### State Re-Read
+
+- Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
+  `RUBRIC.md` at the start of the cycle.
+- Re-read applicable GitHub and commit workflow instructions.
+- Checked `git status --short --branch`:
+  - clean and synchronized before this state update.
+
+### Current Remote Evidence
+
+- Ran `gh repo view lamb356/photonic-bench --json
+  isPrivate,visibility,defaultBranchRef,nameWithOwner,url`:
+  - repository is still `PRIVATE`;
+  - default branch is still `master`.
+- Ran `gh run list --repo lamb356/photonic-bench --workflow CI --branch master
+  --limit 3`:
+  - latest CI run is `28695001128`;
+  - conclusion is success.
+- Ran `gh run view 28695001128 --repo lamb356/photonic-bench --json
+  conclusion,url,jobs`:
+  - job `Ruff, package, and pytest` passed;
+  - steps `Run Ruff`, `Build package`, and `Run pytest` passed.
+- Ran `gh api repos/lamb356/photonic-bench/actions/workflows/ci.yml`:
+  - workflow `CI` is active;
+  - workflow path is `.github/workflows/ci.yml`;
+  - GitHub reports badge URL
+    `https://github.com/lamb356/photonic-bench/workflows/CI/badge.svg`.
+- Inspected current files:
+  - `.github/workflows/ci.yml` still runs Ruff, package build, and pytest;
+  - `.github/dependabot.yml` still configures weekly GitHub Actions and `pip`
+    updates;
+  - `README.md` still contains the CI badge near the top.
+- Ran `gh pr list --repo lamb356/photonic-bench --state open --limit 20
+  --json number,title,author,headRefName,baseRefName,url`:
+  - no open PRs.
+
+### Third Branch Protection Attempt
+
+- Re-attempted branch protection with `gh api --method PUT
+  repos/lamb356/photonic-bench/branches/master/protection`.
+- Requested:
+  - strict required status checks;
+  - required context `Ruff, package, and pytest`;
+  - force pushes disabled;
+  - deletions disabled.
+- GitHub again returned HTTP 403:
+  - `Upgrade to GitHub Pro or make this repository public to enable this
+    feature.`
+- Re-checked repository rulesets:
+  - `gh api repos/lamb356/photonic-bench/rulesets`;
+  - same HTTP 403 plan-gate message.
+- Re-checked branch protection readback:
+  - `gh api repos/lamb356/photonic-bench/branches/master/protection`;
+  - same HTTP 403 plan-gate message.
+
+### Blocker Threshold
+
+- This is the third consecutive goal turn with the same branch-protection
+  blocker.
+- The goal cannot be completed without an external-state change:
+  - upgrade `lamb356`/the repository plan to a GitHub tier that supports
+    private-repo branch protection; or
+  - allow the repository to become public, which is explicitly disallowed by
+    the goal.
+- After this state update is committed, pushed, and CI-verified, the active
+  thread goal should be marked blocked under the strict blocked-audit rule.

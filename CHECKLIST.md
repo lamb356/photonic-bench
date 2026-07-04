@@ -173,6 +173,10 @@ Status key:
     - Repeated the branch protection, ruleset, and branch-protection readback
       calls in Cycle 5; all returned the same HTTP 403 plan-gate message while
       the repository remained `PRIVATE`.
+    - Repeated the branch protection, ruleset, and branch-protection readback
+      calls again in Cycle 6; all returned the same HTTP 403 plan-gate message
+      while the repository remained `PRIVATE`.
+    - Cycle 6 is the third consecutive goal turn with this same blocker.
 
 ## Task 6: Mandatory Hostile Senior Reviewer Critique
 
@@ -228,3 +232,6 @@ Status key:
       Dependabot validation, and branch-protection blocker.
     - Cycle 5 repeated the blocker audit; this is the second consecutive goal
       turn with the same blocker, below the strict blocked-status threshold.
+    - Cycle 6 repeated the same blocker, satisfying the strict blocked-status
+      threshold. The active thread goal should be marked blocked after this
+      state update is committed, pushed, and CI-verified.

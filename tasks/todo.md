@@ -110,12 +110,12 @@
 - [ ] Task 5: Enable and verify `master` branch protection requiring CI.
       Blocked by GitHub plan gate while the repository remains private:
       branch protection and rulesets return HTTP 403 requiring GitHub Pro or a
-      public repository. Rechecked in Cycle 5 with the same result.
+      public repository. Rechecked in Cycles 5 and 6 with the same result.
 - [x] Task 6: Run hostile senior reviewer critique and fix significant issues.
 - [ ] Task 7: Close final state files and inspect clean synced git status.
       Blocked because branch protection cannot be enabled under the current
       private-repo plan gate. Cycle 5 is the second consecutive blocked audit,
-      below the strict blocked-status threshold.
+      and Cycle 6 is the third consecutive blocked audit.
 
 ## Explicitly Not Active In This Goal
 
