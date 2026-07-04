@@ -10,20 +10,20 @@
 - Final local implementation commit:
   - `ee90e77 Polish visualizer comparisons and draft benchmark proposal`
 - Remote status:
-  - no `git remote` is configured;
-  - `master` has no upstream;
-  - push is blocked until a remote URL/upstream is configured.
-- Remote discovery:
-  - `.git/config` contains only `[core]` settings and no remote stanza;
-  - `gh repo view` reports `no git remotes found`;
-  - authenticated GitHub account `lamb356` is available, but a read-only repo
-    search did not find an unambiguous PhotonicBench/Photonic Acceleration
-    target.
+  - `origin` is configured as
+    `https://github.com/lamb356/photonic-bench.git`;
+  - repository URL: `https://github.com/lamb356/photonic-bench`;
+  - visibility: private;
+  - `master` tracks `origin/master`;
+  - local `HEAD` and remote `origin/master` matched at
+    `faa4c0f7cd710177fcfadcaf3f003d6e221a4aba` before this completion
+    ledger update.
 - Continuation re-audit:
   - worktree was clean at `ee90e77`;
   - no remote or upstream was configured;
   - state ledgers were updated afterward to record the remaining push blocker.
 - Recent commits:
+  - `faa4c0f Record final remote blocker audit`
   - `85db200 Record remote push blocker`
   - `ee90e77 Polish visualizer comparisons and draft benchmark proposal`
   - `416f1f8 Add visualizer comparison smoke and server mode`
@@ -73,8 +73,8 @@ Existing commands:
   - explicit mixed-schema caveats.
 - The checked-in visualizer example has been regenerated after JavaScript and
   CSS changes.
-- The visualizer polish layer is committed locally in `ee90e77`; only pushing
-  to a remote remains incomplete.
+- The visualizer polish layer is committed in `ee90e77` and pushed to
+  `origin/master`.
 
 ## Data Contracts
 
@@ -129,8 +129,8 @@ presented as a hidden fused-layer hardware model.
     requirements, verification commands, review checklist, and audit questions.
 - `thoughts/plans/mlcommons_photonic_benchmark_proposal_plan.md`
   - retained as the original planning note and now points to the docs above.
-- The proposal artifacts are committed locally in `ee90e77`; only pushing to a
-  remote remains incomplete.
+- The proposal artifacts are committed in `ee90e77` and pushed to
+  `origin/master`.
 
 ## Current Verification
 
@@ -156,5 +156,5 @@ presented as a hidden fused-layer hardware model.
   published-reference boundaries.
 - Do not push unless tests and ruff pass.
 - Do not treat the proposal as a completed MLCommons submission.
-- Do not mark the push tasks complete until a remote exists and `git push`
-  succeeds.
+- Push tasks are complete once this final completion ledger update is committed
+  and pushed.

@@ -49,21 +49,21 @@ Status key:
 
 ## Task 2: Push Current Commit
 
-- [ ] IN PROGRESS: Push the verified current-state commit.
+- [x] DONE: Push the verified current-state commit.
   - Done when:
     - The current-state commit is pushed to the configured remote branch.
     - The push target and resulting branch state are recorded in `PROGRESS.md`.
     - No push is attempted if tests or ruff fail.
-  - Current blocker:
-    - `git remote -v`, `git branch -vv`, and `git config --get-regexp` show no
-      configured remote or upstream for `master`, so there is currently no push
-      target.
-    - Continuation re-check after final local commits still shows no remote and
-      no upstream for `master`.
-    - Third consecutive audit confirmed `.git/config` contains no remote
-      stanza, `gh repo view` fails with `no git remotes found`, and the
-      authenticated GitHub account has no unambiguous PhotonicBench/Photonic
-      Acceleration repository to use as a push target.
+  - Proof:
+    - Re-ran `python -m pytest`: 73 passed.
+    - Re-ran `python -m ruff check`: passed.
+    - Created private GitHub repository
+      `https://github.com/lamb356/photonic-bench`.
+    - Added `origin` as
+      `https://github.com/lamb356/photonic-bench.git`.
+    - Pushed `master` with upstream tracking.
+    - Verified `git ls-remote origin refs/heads/master` matches local `HEAD`
+      at `faa4c0f7cd710177fcfadcaf3f003d6e221a4aba`.
 
 ## Task 3: Further Visualizer Comparison Polish
 
@@ -206,7 +206,7 @@ Status key:
 
 ## Task 7: Final Commit And Push
 
-- [ ] IN PROGRESS: Commit and push the final visualizer polish and proposal work.
+- [x] DONE: Commit and push the final visualizer polish and proposal work.
   - Done when:
     - Final diff/status are inspected.
     - Final verification is recorded.
@@ -214,12 +214,15 @@ Status key:
     - A clean descriptive final commit exists.
     - The final commit is pushed to the configured remote branch.
     - Final git status is inspected and recorded.
-  - Current proof:
+  - Proof:
     - Final local implementation commit exists:
       `ee90e77 Polish visualizer comparisons and draft benchmark proposal`.
-    - Final local worktree was inspected and clean after that commit.
-    - Continuation re-check confirmed `master` still has no configured remote
-      or upstream, so final push remains blocked by repository configuration.
-    - Additional state-only blocker commits exist after the implementation
-      commit to keep the ledgers honest; they also cannot be pushed until a
-      remote/upstream is configured.
+    - Remote blocker audit commits also exist and were pushed:
+      `85db200 Record remote push blocker` and
+      `faa4c0f Record final remote blocker audit`.
+    - `master` tracks `origin/master`.
+    - Local `HEAD` and remote `origin/master` matched at
+      `faa4c0f7cd710177fcfadcaf3f003d6e221a4aba` before this completion
+      ledger update.
+    - This completion ledger update is being committed and pushed as the final
+      state-file closure.
