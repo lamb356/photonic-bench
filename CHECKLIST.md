@@ -50,6 +50,9 @@ Status key:
     - Workflow runs `python -m pytest`.
     - Parsed the workflow file locally with PyYAML and asserted the expected
       trigger and command entries.
+    - First pushed run `28694399915` proved the clean runner also needed
+      explicit setuptools package discovery; fixed `pyproject.toml` with
+      `[tool.setuptools.packages.find] include = ["photonic_bench*"]`.
 
 ## Task 2: Local CI Verification
 
@@ -64,6 +67,10 @@ Status key:
       `pytest_freezegun`/`distutils` deprecation.
     - Re-ran workflow file content assertions after fixing the PowerShell
       here-string invocation used for the local assertion script.
+    - After the first Actions failure, ran `python -m pip install -e ".[dev]"`:
+      editable install succeeded.
+    - Re-ran `python -m ruff check`: passed.
+    - Re-ran `python -m pytest`: 73 passed, 146 warnings.
 
 ## Task 3: Repository Visibility
 

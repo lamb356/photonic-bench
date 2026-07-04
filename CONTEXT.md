@@ -21,6 +21,9 @@
   - Python requirement: `>=3.12`;
   - runtime dependency: `PyYAML>=6.0`;
   - dev dependencies: `playwright>=1.49`, `pytest>=8.0`, `ruff>=0.8`.
+- `pyproject.toml` explicitly limits setuptools package discovery to
+  `photonic_bench*` so editable installs do not accidentally treat `reports/`
+  or `thoughts/` as top-level packages.
 - Local verification commands:
   - `python -m ruff check`;
   - `python -m pytest`.

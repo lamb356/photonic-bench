@@ -130,3 +130,70 @@
 
 - Inspect diff/status, commit local workflow and state-file changes, push to
   `origin/master`, and verify the triggered GitHub Actions run passes.
+
+## 2026-07-04 Cycle 4: First CI Push And Packaging Fix
+
+### State Re-Read
+
+- Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
+  `RUBRIC.md` before the commit/push cycle.
+- Inspected `git status --short --branch`.
+- Inspected `git diff --stat` and the scoped diff for the workflow and state
+  files.
+
+### First CI Commit And Push
+
+- Staged explicit paths:
+  - `.github/workflows/ci.yml`;
+  - `GOAL.md`;
+  - `CHECKLIST.md`;
+  - `CONTEXT.md`;
+  - `PROGRESS.md`;
+  - `RUBRIC.md`;
+  - `tasks/todo.md`.
+- Created commit:
+  - `e8cb999 Add GitHub Actions CI`.
+- `.Codex/scripts/generate-reasoning.sh` was not present, so reasoning
+  generation was skipped.
+- Pushed `master` to `origin`.
+- Verified local and remote `master` both pointed to:
+  - `e8cb9992443f5fdc13b11765d2caff02b9c8afe9`.
+
+### First Actions Run
+
+- Found GitHub Actions run:
+  - run ID: `28694399915`;
+  - workflow: `CI`;
+  - event: `push`;
+  - commit: `e8cb9992443f5fdc13b11765d2caff02b9c8afe9`;
+  - URL:
+    `https://github.com/lamb356/photonic-bench/actions/runs/28694399915`.
+- Result:
+  - failed in `Install dependencies`.
+- Root cause from `gh run view --log-failed`:
+  - `python -m pip install -e ".[dev]"` failed because setuptools discovered
+    multiple flat-layout top-level packages: `reports`, `thoughts`, and
+    `photonic_bench`.
+
+### Fix
+
+- Updated `pyproject.toml`:
+  - added `[tool.setuptools.packages.find]`;
+  - set `include = ["photonic_bench*"]`.
+- This makes package discovery explicit and keeps report/planning directories
+  out of the Python distribution.
+
+### Post-Fix Local Verification
+
+- Ran `python -m pip install -e ".[dev]"`:
+  - editable install succeeded.
+- Ran `python -m ruff check`:
+  - passed.
+- Ran `python -m pytest`:
+  - 73 passed;
+  - 146 warnings from `pytest_freezegun` using deprecated `distutils` version
+    classes.
+
+### Next Step
+
+- Commit and push the packaging fix, then verify the next GitHub Actions run.

@@ -21,5 +21,8 @@ photonic-bench = "photonic_bench.cli:main"
 [tool.setuptools.package-data]
 "photonic_bench.visualizer_assets" = ["*.html", "*.css", "*.js"]
 
+[tool.setuptools.packages.find]
+include = ["photonic_bench*"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
