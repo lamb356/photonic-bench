@@ -210,6 +210,10 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
             page.get_by_role("heading", name="Comparison Recommendations").wait_for()
             page.get_by_role("heading", name="Comparison Brief").wait_for()
             page.get_by_role("heading", name="Bottleneck Stack").wait_for()
+            page.get_by_role("heading", name="Energy Stack").wait_for()
+            page.get_by_role(
+                "heading", name="Comparison Review Checklist"
+            ).wait_for()
             page.get_by_role("heading", name="Review Queue").wait_for()
             page.get_by_role("heading", name="Decision Scorecard").wait_for()
             page.get_by_role("heading", name="Pareto Trade-Offs").wait_for()
@@ -265,6 +269,25 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
                 in export_json["artifacts"][0]
             )
             assert "max_tier_movement_energy_share" in export_json["artifacts"][0]
+            assert (
+                "local_compute_and_conversion_energy_share"
+                in export_json["artifacts"][0]
+            )
+            assert "movement_to_compute_energy_ratio" in export_json["artifacts"][0]
+            assert (
+                "contention_only_loaded_bandwidth_bytes_per_ns"
+                in export_json["artifacts"][0]
+            )
+            assert (
+                "guardbanded_loaded_hierarchy_bandwidth_bytes_per_ns"
+                in export_json["artifacts"][0]
+            )
+            assert (
+                "dominant_system_energy_component"
+                in export_json["artifacts"][0]
+            )
+            assert "max_tier_system_energy_share" in export_json["artifacts"][0]
+            assert export_json["review_checklist"]
             assert "transfer_to_compute_time_ratio" in export_json["artifacts"][0]
             assert (
                 "contention_adjusted_transfer_to_compute_time_ratio"
@@ -285,6 +308,7 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
             assert "Score profile: Provenance" in markdown_text
             assert "Score weights:" in markdown_text
             assert "## Recommendations" in markdown_text
+            assert "## Review Checklist" in markdown_text
 
             page.locator('button[data-id="nature_pace_64x64.json"]').click()
             page.get_by_role("heading", name="Published Reference").wait_for()

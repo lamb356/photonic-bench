@@ -268,6 +268,14 @@ def test_transformer_layer_report_to_dict_aggregates_decomposed_json_cards() -> 
     assert system["movement_energy_per_hierarchy_byte_pj"] == pytest.approx(
         system["total_movement_energy_pj"] / system["total_hierarchy_bytes"]
     )
+    assert system["local_compute_and_conversion_energy_share"] == pytest.approx(
+        payload["local_model"]["energy"]["total_pj"]
+        / system["total_system_energy_pj"]
+    )
+    assert system["movement_to_compute_energy_ratio"] == pytest.approx(
+        system["total_movement_energy_pj"]
+        / payload["local_model"]["energy"]["total_pj"]
+    )
     assert (
         system["sram_traffic_share"]
         + system["intermediate_traffic_share"]
@@ -279,7 +287,12 @@ def test_transformer_layer_report_to_dict_aggregates_decomposed_json_cards() -> 
     assert sum(tier["movement_energy_share"] for tier in system["tiers"].values()) == (
         pytest.approx(1.0)
     )
+    assert system["tiers"]["off_chip"]["system_energy_share"] == pytest.approx(
+        system["tiers"]["off_chip"]["total_energy_pj"]
+        / system["total_system_energy_pj"]
+    )
     assert system["dominant_movement_energy_tier"] == "off_chip"
+    assert system["dominant_system_energy_component"] == "off_chip"
     assert system["contention_memory_bottleneck_tier"] == "off_chip"
     assert system["max_tier_contention_adjusted_transfer_pressure_ratio"] == (
         pytest.approx(
@@ -326,6 +339,16 @@ def test_transformer_layer_report_to_dict_aggregates_decomposed_json_cards() -> 
     ] == pytest.approx(
         system["total_hierarchy_bytes"]
         / system["contention_adjusted_serial_transfer_time_ns"]
+    )
+    assert system["contention_only_loaded_bandwidth_bytes_per_ns"] == pytest.approx(
+        system["total_hierarchy_bytes"]
+        / (
+            system["contention_adjusted_serial_transfer_time_ns"]
+            - system["calibration_guardband_time_ns"]
+        )
+    )
+    assert system["max_tier_system_energy_share"] == pytest.approx(
+        max(tier["system_energy_share"] for tier in system["tiers"].values())
     )
     assert system["bandwidth_pressure_ratio"] == pytest.approx(
         system["bandwidth_limited_serial_batch_latency_ns"]
@@ -407,6 +430,14 @@ def test_transformer_model_report_to_dict_weights_layer_counts() -> None:
     assert system["movement_energy_per_hierarchy_byte_pj"] == pytest.approx(
         system["total_movement_energy_pj"] / system["total_hierarchy_bytes"]
     )
+    assert system["local_compute_and_conversion_energy_share"] == pytest.approx(
+        payload["local_model"]["energy"]["total_pj"]
+        / system["total_system_energy_pj"]
+    )
+    assert system["movement_to_compute_energy_ratio"] == pytest.approx(
+        system["total_movement_energy_pj"]
+        / payload["local_model"]["energy"]["total_pj"]
+    )
     assert (
         system["sram_traffic_share"]
         + system["intermediate_traffic_share"]
@@ -418,7 +449,12 @@ def test_transformer_model_report_to_dict_weights_layer_counts() -> None:
     assert sum(tier["movement_energy_share"] for tier in system["tiers"].values()) == (
         pytest.approx(1.0)
     )
+    assert system["tiers"]["off_chip"]["system_energy_share"] == pytest.approx(
+        system["tiers"]["off_chip"]["total_energy_pj"]
+        / system["total_system_energy_pj"]
+    )
     assert system["dominant_movement_energy_tier"] == "off_chip"
+    assert system["dominant_system_energy_component"] == "off_chip"
     assert system["contention_memory_bottleneck_tier"] == "off_chip"
     assert system["max_tier_contention_adjusted_transfer_pressure_ratio"] == (
         pytest.approx(
@@ -451,6 +487,16 @@ def test_transformer_model_report_to_dict_weights_layer_counts() -> None:
     ] == pytest.approx(
         system["total_hierarchy_bytes"]
         / system["contention_adjusted_serial_transfer_time_ns"]
+    )
+    assert system["contention_only_loaded_bandwidth_bytes_per_ns"] == pytest.approx(
+        system["total_hierarchy_bytes"]
+        / (
+            system["contention_adjusted_serial_transfer_time_ns"]
+            - system["calibration_guardband_time_ns"]
+        )
+    )
+    assert system["max_tier_system_energy_share"] == pytest.approx(
+        max(tier["system_energy_share"] for tier in system["tiers"].values())
     )
     assert system["bandwidth_pressure_ratio"] == pytest.approx(
         system["bandwidth_limited_serial_batch_latency_ns"]

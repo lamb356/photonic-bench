@@ -141,6 +141,9 @@ def test_report_to_dict_exposes_json_schema_sections() -> None:
     assert system["tiers"]["off_chip"]["movement_energy_share"] == pytest.approx(
         560 / 572.32
     )
+    assert system["tiers"]["off_chip"]["system_energy_share"] == pytest.approx(
+        560 / 593.568
+    )
     assert system["tiers"]["off_chip"][
         "contention_adjusted_transfer_pressure_ratio"
     ] == pytest.approx((56 / 16) / 5)
@@ -148,7 +151,13 @@ def test_report_to_dict_exposes_json_schema_sections() -> None:
     assert system["total_movement_energy_pj"] == pytest.approx(572.32)
     assert system["total_system_energy_pj"] == pytest.approx(593.568)
     assert system["system_energy_per_op_pj"] == pytest.approx(593.568 / 128)
+    assert system["local_compute_and_conversion_energy_share"] == pytest.approx(
+        21.248 / 593.568
+    )
     assert system["movement_energy_share"] == pytest.approx(572.32 / 593.568)
+    assert system["movement_to_compute_energy_ratio"] == pytest.approx(
+        572.32 / 21.248
+    )
     assert system["total_hierarchy_bytes"] == pytest.approx(168)
     assert system["hierarchy_equivalent_ops_per_byte"] == pytest.approx(128 / 168)
     assert system["movement_energy_per_hierarchy_byte_pj"] == pytest.approx(
@@ -158,12 +167,14 @@ def test_report_to_dict_exposes_json_schema_sections() -> None:
     assert system["intermediate_traffic_share"] == pytest.approx(1 / 3)
     assert system["off_chip_traffic_share"] == pytest.approx(1 / 3)
     assert system["dominant_movement_energy_tier"] == "off_chip"
+    assert system["dominant_system_energy_component"] == "off_chip"
     assert system["nominal_memory_bottleneck_tier"] == "off_chip"
     assert system["contention_memory_bottleneck_tier"] == "off_chip"
     assert system["max_tier_contention_adjusted_transfer_pressure_ratio"] == (
         pytest.approx((56 / 16) / 5)
     )
     assert system["max_tier_movement_energy_share"] == pytest.approx(560 / 572.32)
+    assert system["max_tier_system_energy_share"] == pytest.approx(560 / 593.568)
     assert system["contention_bandwidth_saturation_tier"] == "off_chip"
     assert system["max_tier_contention_bandwidth_utilization"] == pytest.approx(
         (56 / 5) / 16
@@ -193,6 +204,7 @@ def test_report_to_dict_exposes_json_schema_sections() -> None:
     assert system["contention_adjusted_loaded_bandwidth_bytes_per_ns"] == pytest.approx(
         48
     )
+    assert system["contention_only_loaded_bandwidth_bytes_per_ns"] == pytest.approx(48)
     assert system["transfer_to_compute_time_ratio"] == pytest.approx((56 / 16) / 5)
     assert system["bandwidth_limited_batch_latency_ns"] == pytest.approx(5.0)
     assert system["bandwidth_pressure_ratio"] == pytest.approx(1.0)

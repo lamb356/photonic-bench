@@ -81,6 +81,8 @@ _SYSTEM_DERIVED_FIELDS = (
     "total_hierarchy_bytes",
     "hierarchy_equivalent_ops_per_byte",
     "movement_energy_per_hierarchy_byte_pj",
+    "local_compute_and_conversion_energy_share",
+    "movement_to_compute_energy_ratio",
     "sram_traffic_share",
     "intermediate_traffic_share",
     "off_chip_traffic_share",
@@ -89,18 +91,21 @@ _SYSTEM_DERIVED_FIELDS = (
     "contention_transfer_overhead_fraction",
     "total_transfer_overhead_fraction",
     "effective_loaded_bandwidth_bytes_per_ns",
+    "contention_only_loaded_bandwidth_bytes_per_ns",
     "contention_adjusted_loaded_bandwidth_bytes_per_ns",
     "transfer_to_compute_time_ratio",
     "bandwidth_pressure_ratio",
     "contention_adjusted_transfer_to_compute_time_ratio",
     "contention_pressure_ratio",
     "dominant_traffic_tier",
+    "dominant_system_energy_component",
     "dominant_movement_energy_tier",
     "nominal_memory_bottleneck_tier",
     "contention_memory_bottleneck_tier",
     "max_tier_nominal_transfer_pressure_ratio",
     "max_tier_contention_adjusted_transfer_pressure_ratio",
     "max_tier_movement_energy_share",
+    "max_tier_system_energy_share",
     "contention_bandwidth_saturation_tier",
     "max_tier_contention_bandwidth_utilization",
     "min_tier_contention_bandwidth_headroom_ratio",
@@ -410,7 +415,9 @@ def render_transformer_model_markdown(
 | Total system energy (pJ) | {_format_metric(system["total_system_energy_pj"])} |
 | System energy per MAC (pJ) | {_format_metric(system["system_energy_per_mac_pj"])} |
 | System energy per equivalent op (pJ) | {_format_metric(system["system_energy_per_op_pj"])} |
+| Compute/conversion energy share | {_format_metric(system["local_compute_and_conversion_energy_share"])} |
 | Movement energy share | {_format_metric(system["movement_energy_share"])} |
+| Movement-to-compute energy ratio | {_format_metric(system["movement_to_compute_energy_ratio"])} |
 | Serial batch latency (ns) | {_format_metric(timing["serial_batch_latency_ns"])} |
 | Overlap-adjusted latency (ns) | {_format_metric(timing["overlap_adjusted_batch_latency_ns"])} |
 | Bandwidth-limited serial latency (ns) | {_format_metric(system["bandwidth_limited_serial_batch_latency_ns"])} |
@@ -418,9 +425,12 @@ def render_transformer_model_markdown(
 | Bandwidth-limited equivalent ops/s | {_format_metric(system["bandwidth_limited_serial_effective_equivalent_ops_per_second"])} |
 | Contention-adjusted serial latency (ns) | {_format_metric(system["contention_adjusted_serial_batch_latency_ns"])} |
 | Contention-adjusted equivalent ops/s | {_format_metric(system["contention_adjusted_serial_effective_equivalent_ops_per_second"])} |
+| Contention-only loaded bandwidth (bytes/ns) | {_format_metric(system["contention_only_loaded_bandwidth_bytes_per_ns"])} |
 | Bandwidth saturation tier | {system["contention_bandwidth_saturation_tier"]} |
 | Max tier bandwidth utilization | {_format_metric(system["max_tier_contention_bandwidth_utilization"])} |
 | Min tier bandwidth headroom ratio | {_format_metric(system["min_tier_contention_bandwidth_headroom_ratio"])} |
+| Dominant system energy component | {system["dominant_system_energy_component"]} |
+| Max tier system energy share | {_format_metric(system["max_tier_system_energy_share"])} |
 
 ## Model Components
 
@@ -512,7 +522,9 @@ def transformer_layer_report_to_dict(
         tiers=aggregate_tiers,
         contention=system_config_to_dict(config.system)["contention"],
         total_equivalent_ops=total_equivalent_ops,
+        local_compute_and_conversion_energy_pj=total_energy_pj,
         total_movement_energy_pj=total_movement_energy_pj,
+        total_system_energy_pj=total_system_energy_pj,
         serial_transfer_time_ns=serial_transfer_time_ns,
         contention_only_transfer_time_ns=contention_only_transfer_time_ns,
         contention_adjusted_serial_transfer_time_ns=(
@@ -810,7 +822,9 @@ def transformer_model_report_to_dict(
         tiers=aggregate_tiers,
         contention=system_config_to_dict(config.system)["contention"],
         total_equivalent_ops=total_equivalent_ops,
+        local_compute_and_conversion_energy_pj=total_energy_pj,
         total_movement_energy_pj=total_movement_energy_pj,
+        total_system_energy_pj=total_system_energy_pj,
         serial_transfer_time_ns=serial_transfer_time_ns,
         contention_only_transfer_time_ns=(
             contention_adjusted_serial_transfer_time_ns - aggregate_guardband_time_ns
@@ -2030,7 +2044,9 @@ def _aggregate_system_derived_metrics(
     tiers: dict[str, dict[str, Any]],
     contention: dict[str, Any],
     total_equivalent_ops: int,
+    local_compute_and_conversion_energy_pj: float,
     total_movement_energy_pj: float,
+    total_system_energy_pj: float,
     serial_transfer_time_ns: float,
     contention_only_transfer_time_ns: float,
     contention_adjusted_serial_transfer_time_ns: float,
@@ -2046,6 +2062,7 @@ def _aggregate_system_derived_metrics(
         tiers,
         total_hierarchy_bytes=total_hierarchy_bytes,
         total_movement_energy_pj=total_movement_energy_pj,
+        total_system_energy_pj=total_system_energy_pj,
         serial_transfer_time_ns=serial_transfer_time_ns,
         contention_adjusted_serial_transfer_time_ns=(
             contention_adjusted_serial_transfer_time_ns
@@ -2055,6 +2072,10 @@ def _aggregate_system_derived_metrics(
     dominant_traffic_tier = max(
         tiers.values(),
         key=lambda tier: float(tier.get("traffic_share") or 0.0),
+    )
+    dominant_system_energy_tier = max(
+        tiers.values(),
+        key=lambda tier: float(tier.get("system_energy_share") or 0.0),
     )
     dominant_movement_energy_tier = max(
         tiers.values(),
@@ -2089,6 +2110,14 @@ def _aggregate_system_derived_metrics(
             total_movement_energy_pj,
             total_hierarchy_bytes,
         ),
+        "local_compute_and_conversion_energy_share": _safe_divide(
+            local_compute_and_conversion_energy_pj,
+            total_system_energy_pj,
+        ),
+        "movement_to_compute_energy_ratio": _safe_divide(
+            total_movement_energy_pj,
+            local_compute_and_conversion_energy_pj,
+        ),
         "sram_traffic_share": _safe_divide(
             float(tiers["sram"]["total_bytes"]),
             total_hierarchy_bytes,
@@ -2118,6 +2147,10 @@ def _aggregate_system_derived_metrics(
             total_hierarchy_bytes,
             serial_transfer_time_ns,
         ),
+        "contention_only_loaded_bandwidth_bytes_per_ns": _safe_divide(
+            total_hierarchy_bytes,
+            contention_only_transfer_time_ns,
+        ),
         "contention_adjusted_loaded_bandwidth_bytes_per_ns": _safe_divide(
             total_hierarchy_bytes,
             contention_adjusted_serial_transfer_time_ns,
@@ -2139,6 +2172,12 @@ def _aggregate_system_derived_metrics(
             serial_batch_latency_ns,
         ),
         "dominant_traffic_tier": str(dominant_traffic_tier.get("name") or "tier"),
+        "dominant_system_energy_component": (
+            "local_compute_and_conversion"
+            if local_compute_and_conversion_energy_pj
+            >= float(dominant_system_energy_tier.get("total_energy_pj") or 0.0)
+            else str(dominant_system_energy_tier.get("name") or "tier")
+        ),
         "dominant_movement_energy_tier": str(
             dominant_movement_energy_tier.get("name") or "tier"
         ),
@@ -2158,6 +2197,9 @@ def _aggregate_system_derived_metrics(
         ),
         "max_tier_movement_energy_share": float(
             dominant_movement_energy_tier.get("movement_energy_share") or 0.0
+        ),
+        "max_tier_system_energy_share": float(
+            dominant_system_energy_tier.get("system_energy_share") or 0.0
         ),
         "contention_bandwidth_saturation_tier": str(
             bandwidth_saturation_tier.get("name") or "tier"
@@ -2181,6 +2223,7 @@ def _annotate_aggregate_system_tiers(
     *,
     total_hierarchy_bytes: float,
     total_movement_energy_pj: float,
+    total_system_energy_pj: float,
     serial_transfer_time_ns: float,
     contention_adjusted_serial_transfer_time_ns: float,
     serial_batch_latency_ns: float,
@@ -2201,6 +2244,10 @@ def _annotate_aggregate_system_tiers(
         tier["movement_energy_share"] = _safe_divide(
             float(tier.get("total_energy_pj") or 0.0),
             total_movement_energy_pj,
+        )
+        tier["system_energy_share"] = _safe_divide(
+            float(tier.get("total_energy_pj") or 0.0),
+            total_system_energy_pj,
         )
         tier["nominal_transfer_share"] = _safe_divide(
             float(tier.get("transfer_time_ns") or 0.0),

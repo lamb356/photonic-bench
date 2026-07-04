@@ -1558,6 +1558,12 @@
         "system",
         "system_energy_per_op_pj"
       ),
+      local_compute_and_conversion_energy_share: optionalNumber(
+        localModel,
+        sourcePath,
+        "system",
+        "local_compute_and_conversion_energy_share"
+      ),
       movement_energy_pj: optionalNumber(
         localModel,
         sourcePath,
@@ -1569,6 +1575,12 @@
         sourcePath,
         "system",
         "movement_energy_share"
+      ),
+      movement_to_compute_energy_ratio: optionalNumber(
+        localModel,
+        sourcePath,
+        "system",
+        "movement_to_compute_energy_ratio"
       ),
       total_hierarchy_bytes: optionalNumber(
         localModel,
@@ -1599,6 +1611,12 @@
         sourcePath,
         "system",
         "dominant_traffic_tier"
+      ),
+      dominant_system_energy_component: optionalString(
+        localModel,
+        sourcePath,
+        "system",
+        "dominant_system_energy_component"
       ),
       dominant_movement_energy_tier: optionalString(
         localModel,
@@ -1636,6 +1654,12 @@
         "system",
         "max_tier_movement_energy_share"
       ),
+      max_tier_system_energy_share: optionalNumber(
+        localModel,
+        sourcePath,
+        "system",
+        "max_tier_system_energy_share"
+      ),
       system_profile: optionalString(localModel, sourcePath, "system", "profile"),
       system_profile_overrides: optionalStringArray(
         localModel,
@@ -1666,6 +1690,12 @@
         sourcePath,
         "system",
         "total_transfer_overhead_fraction"
+      ),
+      contention_only_loaded_bandwidth_bytes_per_ns: optionalNumber(
+        localModel,
+        sourcePath,
+        "system",
+        "contention_only_loaded_bandwidth_bytes_per_ns"
       ),
       contention_adjusted_loaded_bandwidth_bytes_per_ns: optionalNumber(
         localModel,
@@ -2174,6 +2204,7 @@
           escapeHtml(formatPj(tier.total_energy_pj)),
           escapeHtml(formatPercent(tier.traffic_share)),
           escapeHtml(formatPercent(tier.movement_energy_share)),
+          escapeHtml(formatPercent(tier.system_energy_share)),
           escapeHtml(formatNs(tier.transfer_time_ns)),
           escapeHtml(
             formatNs(
@@ -2213,7 +2244,15 @@
       ["Total movement energy", formatPj(system.total_movement_energy_pj)],
       ["Total system energy", formatPj(system.total_system_energy_pj)],
       ["System energy/op", formatPj(system.system_energy_per_op_pj)],
+      [
+        "Local compute/conversion share",
+        formatPercent(system.local_compute_and_conversion_energy_share),
+      ],
       ["Movement share", formatPercent(system.movement_energy_share)],
+      [
+        "Movement-to-compute energy",
+        formatNumber(system.movement_to_compute_energy_ratio),
+      ],
       ["Total hierarchy traffic", formatBytes(system.total_hierarchy_bytes)],
       [
         "Hierarchy equivalent ops/byte",
@@ -2227,6 +2266,10 @@
       [
         "Dominant traffic tier",
         systemTierLabel(system.dominant_traffic_tier || "n/a"),
+      ],
+      [
+        "Dominant system energy",
+        systemTierLabel(system.dominant_system_energy_component || "n/a"),
       ],
       [
         "Dominant movement-energy tier",
@@ -2251,6 +2294,10 @@
       [
         "Largest tier movement share",
         formatPercent(system.max_tier_movement_energy_share),
+      ],
+      [
+        "Largest tier system share",
+        formatPercent(system.max_tier_system_energy_share),
       ],
       [
         "Bandwidth saturation tier",
@@ -2290,11 +2337,15 @@
         formatPercent(system.total_transfer_overhead_fraction),
       ],
       [
-        "Loaded hierarchy bandwidth",
+        "Guardbanded loaded bandwidth",
         formatBytesPerNs(
           system.contention_adjusted_loaded_bandwidth_bytes_per_ns ??
             system.effective_loaded_bandwidth_bytes_per_ns
         ),
+      ],
+      [
+        "Contention-only loaded bandwidth",
+        formatBytesPerNs(system.contention_only_loaded_bandwidth_bytes_per_ns),
       ],
       [
         "Transfer/compute time ratio",
@@ -2341,6 +2392,7 @@
             { label: "Movement energy", num: true },
             { label: "Traffic share", num: true },
             { label: "Movement share", num: true },
+            { label: "System share", num: true },
             { label: "Transfer time", num: true },
             { label: "Guardbanded transfer", num: true },
             { label: "Tier pressure", num: true },
@@ -2908,6 +2960,15 @@
       ["Energy per op", (summary) => formatPj(summary.energy_per_op_pj)],
       ["System total energy", (summary) => formatPj(summary.system_total_energy_pj)],
       ["System energy per op", (summary) => formatPj(summary.system_energy_per_op_pj)],
+      [
+        "Compute energy share",
+        (summary) =>
+          formatPercent(summary.local_compute_and_conversion_energy_share),
+      ],
+      [
+        "Movement/compute energy",
+        (summary) => formatNumber(summary.movement_to_compute_energy_ratio),
+      ],
       ["System profile", (summary) => summary.system_profile || "n/a"],
       [
         "Profile tier overrides",
@@ -2919,9 +2980,14 @@
         (summary) => formatNs(summary.effective_transfer_time_ns),
       ],
       [
-        "Loaded hierarchy bandwidth",
+        "Guardbanded loaded bandwidth",
         (summary) =>
           formatBytesPerNs(summary.contention_adjusted_loaded_bandwidth_bytes_per_ns),
+      ],
+      [
+        "Contention-only loaded bandwidth",
+        (summary) =>
+          formatBytesPerNs(summary.contention_only_loaded_bandwidth_bytes_per_ns),
       ],
       [
         "Hierarchy equivalent ops/byte",
@@ -2934,6 +3000,11 @@
       [
         "Dominant traffic tier",
         (summary) => systemTierLabel(summary.dominant_traffic_tier || "n/a"),
+      ],
+      [
+        "Dominant system energy",
+        (summary) =>
+          systemTierLabel(summary.dominant_system_energy_component || "n/a"),
       ],
       [
         "Dominant movement tier",
@@ -2968,6 +3039,10 @@
       [
         "Largest tier movement share",
         (summary) => formatPercent(summary.max_tier_movement_energy_share),
+      ],
+      [
+        "Largest tier system share",
+        (summary) => formatPercent(summary.max_tier_system_energy_share),
       ],
       [
         "Off-chip traffic share",
@@ -3091,9 +3166,21 @@
         direction: "lower",
       },
       {
+        label: "Compute energy share",
+        get: (summary) => summary.local_compute_and_conversion_energy_share,
+        format: formatPercent,
+        direction: "context",
+      },
+      {
         label: "Movement share",
         get: (summary) => summary.movement_energy_share,
         format: formatPercent,
+        direction: "lower",
+      },
+      {
+        label: "Movement/compute energy",
+        get: (summary) => summary.movement_to_compute_energy_ratio,
+        format: formatNumber,
         direction: "lower",
       },
       {
@@ -3130,6 +3217,12 @@
       {
         label: "Largest tier movement share",
         get: (summary) => summary.max_tier_movement_energy_share,
+        format: formatPercent,
+        direction: "lower",
+      },
+      {
+        label: "Largest tier system share",
+        get: (summary) => summary.max_tier_system_energy_share,
         format: formatPercent,
         direction: "lower",
       },
@@ -3178,8 +3271,14 @@
         direction: "lower",
       },
       {
-        label: "Loaded hierarchy bandwidth",
+        label: "Guardbanded loaded bandwidth",
         get: (summary) => summary.contention_adjusted_loaded_bandwidth_bytes_per_ns,
+        format: formatBytesPerNs,
+        direction: "higher",
+      },
+      {
+        label: "Contention-only loaded bandwidth",
+        get: (summary) => summary.contention_only_loaded_bandwidth_bytes_per_ns,
         format: formatBytesPerNs,
         direction: "higher",
       },
@@ -3348,8 +3447,10 @@
           "Energy per op",
           "System energy per op",
           "Movement share",
+          "Movement/compute energy",
           "Hierarchy equivalent ops/byte",
           "Worst tier pressure",
+          "Contention-only loaded bandwidth",
           "Latency",
           "Bandwidth-limited throughput",
           "Contention-adjusted throughput",
@@ -3365,8 +3466,10 @@
           "Energy per op",
           "System energy per op",
           "Movement share",
+          "Movement/compute energy",
           "Movement pJ/hierarchy byte",
           "Largest tier movement share",
+          "Largest tier system share",
           "Interface traffic",
           "Hierarchy equivalent ops/byte",
           "Operational intensity",
@@ -3394,6 +3497,7 @@
           "Worst tier pressure",
           "Bandwidth utilization",
           "Bandwidth headroom",
+          "Contention-only loaded bandwidth",
           "Transfer/compute time ratio",
           "Contention-adjusted throughput",
           "Shared bandwidth clients",
@@ -3432,8 +3536,10 @@
           "Energy per op": 1.5,
           "System energy per op": 2,
           "Movement share": 1.5,
+          "Movement/compute energy": 1.5,
           "Movement pJ/hierarchy byte": 1.25,
           "Largest tier movement share": 1.15,
+          "Largest tier system share": 1.25,
           "Interface traffic": 1.25,
           "Hierarchy equivalent ops/byte": 1.5,
           "Operational intensity": 1.25,
@@ -3463,6 +3569,7 @@
           "Worst tier pressure": 1.5,
           "Bandwidth utilization": 1.5,
           "Bandwidth headroom": 1.25,
+          "Contention-only loaded bandwidth": 1.25,
           "Transfer/compute time ratio": 1.25,
           "Contention-adjusted throughput": 2,
           "Shared bandwidth clients": 1.25,
@@ -4379,8 +4486,14 @@
       direction: "lower",
     });
     const bestLoadedBandwidth = bestArtifactForSpec(withAdjusted, {
-      label: "Loaded hierarchy bandwidth",
+      label: "Guardbanded loaded bandwidth",
       get: (summary) => summary.contention_adjusted_loaded_bandwidth_bytes_per_ns,
+      format: formatBytesPerNs,
+      direction: "higher",
+    });
+    const bestContentionOnlyBandwidth = bestArtifactForSpec(withAdjusted, {
+      label: "Contention-only loaded bandwidth",
+      get: (summary) => summary.contention_only_loaded_bandwidth_bytes_per_ns,
       format: formatBytesPerNs,
       direction: "higher",
     });
@@ -4447,6 +4560,18 @@
               : ""
           )}
           ${metric(
+            "Best contention-only BW",
+            bestContentionOnlyBandwidth
+              ? bestContentionOnlyBandwidth.summary.benchmark_name
+              : "n/a",
+            bestContentionOnlyBandwidth
+              ? formatBytesPerNs(
+                  bestContentionOnlyBandwidth.summary
+                    .contention_only_loaded_bandwidth_bytes_per_ns
+                )
+              : ""
+          )}
+          ${metric(
             "Best loaded bandwidth",
             bestLoadedBandwidth ? bestLoadedBandwidth.summary.benchmark_name : "n/a",
             bestLoadedBandwidth
@@ -4457,7 +4582,7 @@
               : ""
           )}
         </div>
-        <div class="notes"><p>Contention metrics are local shared-link assumptions: nominal tier bandwidth is reduced by client count and arbitration efficiency, calibration/control guardband is applied to transfer timing, pressure ratios compare the adjusted local system latency against the compute-only batch latency, and bandwidth utilization/headroom compare compute-window bytes against contention-adjusted effective bandwidth.</p></div>
+        <div class="notes"><p>Contention metrics are local shared-link assumptions: nominal tier bandwidth is reduced by client count and arbitration efficiency, calibration/control guardband is then applied to transfer timing. Contention-only loaded bandwidth excludes guardband, guardbanded loaded bandwidth includes it, pressure ratios compare adjusted local system latency against compute-only batch latency, and bandwidth utilization/headroom compare compute-window bytes against contention-adjusted effective bandwidth.</p></div>
       </section>
     `;
   }
@@ -4563,6 +4688,84 @@
     `;
   }
 
+  function renderEnergyStack(artifacts) {
+    const ranked = artifacts
+      .filter((artifact) => {
+        const movementRatio = Number(artifact.summary.movement_to_compute_energy_ratio);
+        const tierShare = Number(artifact.summary.max_tier_system_energy_share);
+        return Number.isFinite(movementRatio) || Number.isFinite(tierShare);
+      })
+      .sort((left, right) => {
+        const leftRatio = Number(left.summary.movement_to_compute_energy_ratio);
+        const rightRatio = Number(right.summary.movement_to_compute_energy_ratio);
+        const ratioDelta =
+          (Number.isFinite(rightRatio) ? rightRatio : 0) -
+          (Number.isFinite(leftRatio) ? leftRatio : 0);
+        if (ratioDelta !== 0) {
+          return ratioDelta;
+        }
+        const leftShare = Number(left.summary.max_tier_system_energy_share);
+        const rightShare = Number(right.summary.max_tier_system_energy_share);
+        return (
+          (Number.isFinite(rightShare) ? rightShare : 0) -
+          (Number.isFinite(leftShare) ? leftShare : 0)
+        );
+      })
+      .slice(0, 8);
+    if (!ranked.length) {
+      return "";
+    }
+    const largestTierShare = bestArtifactForSpec(ranked, {
+      label: "Largest tier system share",
+      get: (summary) => summary.max_tier_system_energy_share,
+      format: formatPercent,
+      direction: "higher",
+    });
+    const rows = ranked.map((artifact) => {
+      const summary = artifact.summary;
+      return [
+        escapeHtml(summary.benchmark_name),
+        escapeHtml(systemTierLabel(summary.dominant_system_energy_component || "n/a")),
+        escapeHtml(formatPercent(summary.local_compute_and_conversion_energy_share)),
+        escapeHtml(formatPercent(summary.movement_energy_share)),
+        escapeHtml(formatNumber(summary.movement_to_compute_energy_ratio)),
+        escapeHtml(systemTierLabel(summary.dominant_movement_energy_tier || "n/a")),
+        escapeHtml(formatPercent(summary.max_tier_system_energy_share)),
+      ];
+    });
+    return `
+      <section class="panel">
+        <h3>Energy Stack</h3>
+        <div class="metric-grid">
+          ${metric("Common energy component", mostCommonTierLabel(artifacts, "dominant_system_energy_component"), "total local system energy")}
+          ${metric("Common movement tier", mostCommonTierLabel(artifacts, "dominant_movement_energy_tier"), "within movement energy")}
+          ${metric("Worst movement/compute", ranked[0].summary.benchmark_name, formatNumber(ranked[0].summary.movement_to_compute_energy_ratio))}
+          ${metric(
+            "Largest tier system share",
+            largestTierShare ? largestTierShare.summary.benchmark_name : "n/a",
+            largestTierShare
+              ? formatPercent(largestTierShare.summary.max_tier_system_energy_share)
+              : ""
+          )}
+        </div>
+        ${simpleTable(
+          [
+            { label: "Artifact" },
+            { label: "Dominant system energy" },
+            { label: "Compute share", num: true },
+            { label: "Movement share", num: true },
+            { label: "Movement/compute", num: true },
+            { label: "Movement tier" },
+            { label: "Tier system share", num: true },
+          ],
+          rows,
+          "comparison-table"
+        )}
+        <div class="notes"><p>Energy stack fields are local system-energy decomposition diagnostics. They allocate modeled movement energy by hierarchy tier and compare it with local photonic compute/conversion energy; they are not paper-reported energy breakdowns.</p></div>
+      </section>
+    `;
+  }
+
   function reviewQueueEntry(artifacts, label, spec, note) {
     const artifact = bestArtifactForSpec(artifacts, spec);
     if (!artifact) {
@@ -4579,6 +4782,181 @@
       escapeHtml(spec.format(spec.get(artifact.summary))),
       escapeHtml(note),
     ];
+  }
+
+  function countArtifacts(artifacts, predicate) {
+    return artifacts.filter((artifact) => predicate(artifact.summary)).length;
+  }
+
+  function coverageStatus(count, total) {
+    if (!total) return "n/a";
+    if (count === total) return "pass";
+    if (count > 0) return "review";
+    return "missing";
+  }
+
+  function reviewChecklistEntries(artifacts, pinnedArtifact) {
+    const total = artifacts.length;
+    const kinds = new Set(artifacts.map((artifact) => artifact.summary.kind));
+    const transformerCount = countArtifacts(
+      artifacts,
+      (summary) =>
+        summary.kind === "transformer_layer" ||
+        summary.kind === "transformer_model"
+    );
+    const publishedCount = countArtifacts(
+      artifacts,
+      (summary) => summary.has_published_reference
+    );
+    const gradedCount = countArtifacts(
+      artifacts,
+      (summary) => Boolean(summary.source_quality_grade)
+    );
+    const provenanceCount = countArtifacts(
+      artifacts,
+      (summary) =>
+        Boolean(summary.provenance_status) &&
+        summary.provenance_status !== "missing"
+    );
+    const systemMetricCount = countArtifacts(
+      artifacts,
+      (summary) =>
+        Number.isFinite(Number(summary.system_energy_per_op_pj)) &&
+        Number.isFinite(Number(summary.max_tier_contention_bandwidth_utilization))
+    );
+    const energySplitCount = countArtifacts(
+      artifacts,
+      (summary) =>
+        Number.isFinite(Number(summary.local_compute_and_conversion_energy_share)) &&
+        Number.isFinite(Number(summary.movement_to_compute_energy_ratio)) &&
+        Number.isFinite(Number(summary.max_tier_system_energy_share))
+    );
+    const bandwidthPhaseCount = countArtifacts(
+      artifacts,
+      (summary) =>
+        Number.isFinite(Number(summary.effective_transfer_time_ns)) &&
+        Number.isFinite(Number(summary.contention_only_loaded_bandwidth_bytes_per_ns)) &&
+        Number.isFinite(
+          Number(summary.contention_adjusted_loaded_bandwidth_bytes_per_ns)
+        )
+    );
+    const externalCount = countArtifacts(
+      artifacts,
+      (summary) => Boolean(summary.is_external)
+    );
+    const statusForCoverage = (count) => coverageStatus(count, total);
+    return [
+      {
+        key: "pinned_reference",
+        label: "Pinned baseline",
+        status: pinnedArtifact ? "pass" : "review",
+        value: pinnedArtifact ? pinnedArtifact.summary.benchmark_name : "none",
+        note: "Pinned baseline anchors same-schema deltas and ratios.",
+      },
+      {
+        key: "schema_compatibility",
+        label: "Schema compatibility",
+        status: kinds.size === 1 ? "pass" : "review",
+        value: kinds.size === 1 ? kindLabel(artifacts[0].summary.kind) : "mixed schema",
+        note: "Mixed schemas are allowed, but incompatible delta cells stay n/a.",
+      },
+      {
+        key: "published_reference_coverage",
+        label: "Published references",
+        status: statusForCoverage(publishedCount),
+        value: `${publishedCount}/${total}`,
+        note: "Published blocks remain separate from local_model estimates.",
+      },
+      {
+        key: "source_quality_coverage",
+        label: "Source quality grades",
+        status: statusForCoverage(gradedCount),
+        value: `${gradedCount}/${total}`,
+        note: "Ungraded sources should be reviewed before treating ranking as decisive.",
+      },
+      {
+        key: "provenance_coverage",
+        label: "Provenance coverage",
+        status: statusForCoverage(provenanceCount),
+        value: `${provenanceCount}/${total}`,
+        note: "DOIs, URLs, and source notes are reviewer navigation aids.",
+      },
+      {
+        key: "system_metric_coverage",
+        label: "System metric coverage",
+        status: statusForCoverage(systemMetricCount),
+        value: `${systemMetricCount}/${total}`,
+        note: "Checks for system energy and contention utilization fields.",
+      },
+      {
+        key: "energy_split_coverage",
+        label: "Energy split coverage",
+        status: statusForCoverage(energySplitCount),
+        value: `${energySplitCount}/${total}`,
+        note: "Checks compute/conversion share, movement-to-compute ratio, and max tier system share.",
+      },
+      {
+        key: "bandwidth_phase_coverage",
+        label: "Bandwidth phase split",
+        status: statusForCoverage(bandwidthPhaseCount),
+        value: `${bandwidthPhaseCount}/${total}`,
+        note: "Checks nominal, contention-only, and guardbanded loaded bandwidth fields.",
+      },
+      {
+        key: "transformer_boundaries",
+        label: "Transformer boundaries",
+        status: transformerCount ? "pass" : "n/a",
+        value: transformerCount ? `${transformerCount}/${total}` : "not selected",
+        note: "Transformer aggregate timing remains serial and noise remains diagnostic.",
+      },
+      {
+        key: "external_legacy_payloads",
+        label: "External or legacy payloads",
+        status: externalCount ? "review" : "pass",
+        value: `${externalCount}/${total}`,
+        note: "Imported payloads can omit newer dashboard metrics and should degrade to n/a.",
+      },
+    ];
+  }
+
+  function checklistStatusLabel(status) {
+    if (status === "pass") return "pass";
+    if (status === "review") return "review";
+    if (status === "missing") return "missing";
+    return "n/a";
+  }
+
+  function checklistStatusClass(status) {
+    if (status === "pass") return "good";
+    if (status === "review") return "mix";
+    if (status === "missing") return "warn";
+    return "";
+  }
+
+  function renderReviewChecklist(artifacts, pinnedArtifact) {
+    const entries = reviewChecklistEntries(artifacts, pinnedArtifact);
+    const rows = entries.map((entry) => [
+      escapeHtml(entry.label),
+      `<span class="badge ${escapeHtml(checklistStatusClass(entry.status))}">${escapeHtml(checklistStatusLabel(entry.status))}</span>`,
+      escapeHtml(entry.value),
+      escapeHtml(entry.note),
+    ]);
+    return `
+      <section class="panel">
+        <h3>Comparison Review Checklist</h3>
+        ${simpleTable(
+          [
+            { label: "Review item" },
+            { label: "Status" },
+            { label: "Coverage" },
+            { label: "Why it matters" },
+          ],
+          rows,
+          "comparison-table"
+        )}
+        <div class="notes"><p>This checklist is a local reviewer triage aid over the selected artifacts. It does not certify hardware claims, modify generated reports, or merge published_reference values into local_model estimates.</p></div>
+      </section>
+    `;
   }
 
   function renderReviewQueue(artifacts) {
@@ -4628,6 +5006,28 @@
           direction: "lower",
         },
         "smallest effective bandwidth margin before local saturation"
+      ),
+      reviewQueueEntry(
+        artifacts,
+        "Highest movement/compute energy",
+        {
+          label: "Movement/compute energy",
+          get: (summary) => summary.movement_to_compute_energy_ratio,
+          format: formatNumber,
+          direction: "higher",
+        },
+        "movement energy dominates local photonic compute/conversion energy"
+      ),
+      reviewQueueEntry(
+        artifacts,
+        "Largest tier system share",
+        {
+          label: "Largest tier system share",
+          get: (summary) => summary.max_tier_system_energy_share,
+          format: formatPercent,
+          direction: "higher",
+        },
+        "single hierarchy tier dominates total local system energy"
       ),
       reviewQueueEntry(
         artifacts,
@@ -4828,6 +5228,7 @@
         best_use: entry.bestUse,
         score_explanation: entry.scoreExplanation,
       })),
+      review_checklist: reviewChecklistEntries(artifacts, pinnedArtifact),
       modeling_boundaries: state.data.modeling_boundaries || [],
       boundary_notes: boundaryNotes,
       artifacts: artifacts.map((artifact) => ({
@@ -4841,17 +5242,27 @@
         local_energy_per_op_pj: artifact.summary.energy_per_op_pj,
         system_total_energy_pj: artifact.summary.system_total_energy_pj,
         system_energy_per_op_pj: artifact.summary.system_energy_per_op_pj,
+        local_compute_and_conversion_energy_share:
+          artifact.summary.local_compute_and_conversion_energy_share,
+        movement_to_compute_energy_ratio:
+          artifact.summary.movement_to_compute_energy_ratio,
         system_profile: artifact.summary.system_profile,
         system_profile_overrides: artifact.summary.system_profile_overrides || [],
         memory_timing_mode: artifact.summary.memory_timing_mode,
         effective_transfer_time_ns: artifact.summary.effective_transfer_time_ns,
+        guardbanded_loaded_hierarchy_bandwidth_bytes_per_ns:
+          artifact.summary.contention_adjusted_loaded_bandwidth_bytes_per_ns,
         loaded_hierarchy_bandwidth_bytes_per_ns:
           artifact.summary.contention_adjusted_loaded_bandwidth_bytes_per_ns,
+        contention_only_loaded_bandwidth_bytes_per_ns:
+          artifact.summary.contention_only_loaded_bandwidth_bytes_per_ns,
         hierarchy_equivalent_ops_per_byte:
           artifact.summary.hierarchy_equivalent_ops_per_byte,
         movement_energy_per_hierarchy_byte_pj:
           artifact.summary.movement_energy_per_hierarchy_byte_pj,
         dominant_traffic_tier: artifact.summary.dominant_traffic_tier,
+        dominant_system_energy_component:
+          artifact.summary.dominant_system_energy_component,
         dominant_movement_energy_tier:
           artifact.summary.dominant_movement_energy_tier,
         nominal_memory_bottleneck_tier:
@@ -4864,6 +5275,8 @@
           artifact.summary.max_tier_contention_adjusted_transfer_pressure_ratio,
         max_tier_movement_energy_share:
           artifact.summary.max_tier_movement_energy_share,
+        max_tier_system_energy_share:
+          artifact.summary.max_tier_system_energy_share,
         contention_bandwidth_saturation_tier:
           artifact.summary.contention_bandwidth_saturation_tier,
         max_tier_contention_bandwidth_utilization:
@@ -4959,14 +5372,18 @@
           summary.source_path,
           formatPj(summary.energy_per_op_pj),
           formatPj(summary.system_energy_per_op_pj),
+          formatPercent(summary.local_compute_and_conversion_energy_share),
+          formatNumber(summary.movement_to_compute_energy_ratio),
           summary.system_profile || "n/a",
           formatProfileOverrides(summary.system_profile_overrides),
           summary.memory_timing_mode || "n/a",
           formatNs(summary.effective_transfer_time_ns),
           formatBytesPerNs(summary.contention_adjusted_loaded_bandwidth_bytes_per_ns),
+          formatBytesPerNs(summary.contention_only_loaded_bandwidth_bytes_per_ns),
           formatOpsPerByte(summary.hierarchy_equivalent_ops_per_byte),
           formatPj(summary.movement_energy_per_hierarchy_byte_pj),
           systemTierLabel(summary.dominant_traffic_tier || "n/a"),
+          systemTierLabel(summary.dominant_system_energy_component || "n/a"),
           systemTierLabel(summary.dominant_movement_energy_tier || "n/a"),
           systemTierLabel(summary.contention_memory_bottleneck_tier || "n/a"),
           formatNumber(summary.max_tier_contention_adjusted_transfer_pressure_ratio),
@@ -4974,6 +5391,7 @@
           formatNumber(summary.max_tier_contention_bandwidth_utilization),
           formatNumber(summary.min_tier_contention_bandwidth_headroom_ratio),
           formatPercent(summary.max_tier_movement_energy_share),
+          formatPercent(summary.max_tier_system_energy_share),
           formatPercent(summary.off_chip_traffic_share),
           formatNumber(summary.contention_bandwidth_derate_factor),
           formatPercent(summary.total_transfer_overhead_fraction),
@@ -5011,6 +5429,12 @@
           `- ${entry.group}: ${entry.artifact.summary.benchmark_name} (${formatNumber(entry.score)} focus score; ${entry.bestUse})`
       )
       .join("\n");
+    const checklist = reviewChecklistEntries(artifacts, pinnedArtifact)
+      .map(
+        (entry) =>
+          `- ${entry.label}: ${checklistStatusLabel(entry.status)} (${entry.value}) - ${entry.note}`
+      )
+      .join("\n");
     const weightSummary = activeScoreWeightSummary(focus)
       .map((entry) => `${entry.metric}=${formatNumber(entry.weight)}`)
       .join(", ");
@@ -5028,13 +5452,17 @@ Score profile: ${activeScoreProfileSummary(focus).label}
 
 Score weights: ${weightSummary || "n/a"}
 
-| Benchmark | Kind | Source | Local pJ/op | System pJ/op | System profile | Profile overrides | Memory timing | Effective transfer | Loaded BW | Hierarchy eq ops/byte | Movement pJ/hierarchy byte | Dominant traffic tier | Dominant movement tier | Memory bottleneck tier | Worst tier pressure | Bandwidth saturation tier | Max bandwidth utilization | Min bandwidth headroom | Largest tier movement share | Off-chip share | Derate | Transfer overhead | Transfer/compute | Shared clients | Arbitration eff. | Calibration overhead | Latency | Throughput | BW-limited throughput | BW pressure | Contention latency | Contention transfer/compute | Contention pressure | Contention throughput | Interface traffic | Eq ops/byte | Movement share | Published reference | Source grade | Surrogate type | Provenance |
-| --- | --- | --- | ---: | ---: | --- | --- | --- | ---: | ---: | ---: | ---: | --- | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- |
+| Benchmark | Kind | Source | Local pJ/op | System pJ/op | Compute energy share | Movement/compute energy | System profile | Profile overrides | Memory timing | Effective transfer | Guardbanded loaded BW | Contention-only loaded BW | Hierarchy eq ops/byte | Movement pJ/hierarchy byte | Dominant traffic tier | Dominant system energy | Dominant movement tier | Memory bottleneck tier | Worst tier pressure | Bandwidth saturation tier | Max bandwidth utilization | Min bandwidth headroom | Largest tier movement share | Largest tier system share | Off-chip share | Derate | Transfer overhead | Transfer/compute | Shared clients | Arbitration eff. | Calibration overhead | Latency | Throughput | BW-limited throughput | BW pressure | Contention latency | Contention transfer/compute | Contention pressure | Contention throughput | Interface traffic | Eq ops/byte | Movement share | Published reference | Source grade | Surrogate type | Provenance |
+| --- | --- | --- | ---: | ---: | ---: | ---: | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- |
 ${rows}
 
 ## Recommendations
 
 ${recommendations || "- n/a"}
+
+## Review Checklist
+
+${checklist || "- n/a"}
 
 ## Boundary Notes
 
@@ -5053,10 +5481,14 @@ ${notes}
       "source",
       "local_pj_per_op",
       "system_pj_per_op",
-      "loaded_hierarchy_bandwidth_bytes_per_ns",
+      "compute_energy_share",
+      "movement_to_compute_energy_ratio",
+      "guardbanded_loaded_hierarchy_bandwidth_bytes_per_ns",
+      "contention_only_loaded_bandwidth_bytes_per_ns",
       "hierarchy_equivalent_ops_per_byte",
       "movement_energy_per_hierarchy_byte_pj",
       "dominant_traffic_tier",
+      "dominant_system_energy_component",
       "dominant_movement_energy_tier",
       "contention_memory_bottleneck_tier",
       "max_tier_contention_adjusted_transfer_pressure_ratio",
@@ -5064,6 +5496,7 @@ ${notes}
       "max_tier_contention_bandwidth_utilization",
       "min_tier_contention_bandwidth_headroom_ratio",
       "max_tier_movement_energy_share",
+      "max_tier_system_energy_share",
       "off_chip_traffic_share",
       "contention_bandwidth_derate_factor",
       "total_transfer_overhead_fraction",
@@ -5102,10 +5535,14 @@ ${notes}
         summary.source_path,
         summary.energy_per_op_pj,
         summary.system_energy_per_op_pj,
+        summary.local_compute_and_conversion_energy_share,
+        summary.movement_to_compute_energy_ratio,
         summary.contention_adjusted_loaded_bandwidth_bytes_per_ns,
+        summary.contention_only_loaded_bandwidth_bytes_per_ns,
         summary.hierarchy_equivalent_ops_per_byte,
         summary.movement_energy_per_hierarchy_byte_pj,
         summary.dominant_traffic_tier,
+        summary.dominant_system_energy_component,
         summary.dominant_movement_energy_tier,
         summary.contention_memory_bottleneck_tier,
         summary.max_tier_contention_adjusted_transfer_pressure_ratio,
@@ -5113,6 +5550,7 @@ ${notes}
         summary.max_tier_contention_bandwidth_utilization,
         summary.min_tier_contention_bandwidth_headroom_ratio,
         summary.max_tier_movement_energy_share,
+        summary.max_tier_system_energy_share,
         summary.off_chip_traffic_share,
         summary.contention_bandwidth_derate_factor,
         summary.total_transfer_overhead_fraction,
@@ -5274,6 +5712,8 @@ ${notes}
       ${renderComparisonWorkspace(artifacts, pinnedArtifact, focus)}
       ${renderSelectionDrawer(artifacts)}
       ${renderComparisonBrief(artifacts)}
+      ${renderEnergyStack(artifacts)}
+      ${renderReviewChecklist(artifacts, pinnedArtifact)}
       ${renderContentionInsight(artifacts)}
       ${renderBottleneckStack(artifacts)}
       ${renderReviewQueue(artifacts)}

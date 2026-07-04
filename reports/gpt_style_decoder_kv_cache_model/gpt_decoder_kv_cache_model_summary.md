@@ -21,7 +21,9 @@ GPT-2-small style decoder inference summary with 12 identical decoder layers, on
 | Total system energy (pJ) | 1.83998e+09 |
 | System energy per MAC (pJ) | 13.5946 |
 | System energy per equivalent op (pJ) | 6.79729 |
+| Compute/conversion energy share | 0.0333403 |
 | Movement energy share | 0.96666 |
+| Movement-to-compute energy ratio | 28.9938 |
 | Serial batch latency (ns) | 833 |
 | Overlap-adjusted latency (ns) | 416.5 |
 | Bandwidth-limited serial latency (ns) | 1.08772e+07 |
@@ -29,9 +31,12 @@ GPT-2-small style decoder inference summary with 12 identical decoder layers, on
 | Bandwidth-limited equivalent ops/s | 2.48864e+10 |
 | Contention-adjusted serial latency (ns) | 1.08772e+07 |
 | Contention-adjusted equivalent ops/s | 2.48864e+10 |
+| Contention-only loaded bandwidth (bytes/ns) | 48 |
 | Bandwidth saturation tier | off_chip |
 | Max tier bandwidth utilization | 13057.9 |
 | Min tier bandwidth headroom ratio | 7.65823e-05 |
+| Dominant system energy component | off_chip |
+| Max tier system energy share | 0.945851 |
 
 ## Model Components
 

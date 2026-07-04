@@ -109,7 +109,8 @@ hardware metrics unless a future measured-system schema says so explicitly.
 movement energy, nominal bandwidth, effective bandwidth under contention,
 nominal transfer time, contention-adjusted transfer time, compute-window
 required bandwidth, contention bandwidth utilization, bandwidth headroom in
-bytes/ns, and bandwidth headroom ratio.
+bytes/ns, bandwidth headroom ratio, and the tier's share of total local system
+energy.
 `local_model.system.total_movement_energy_pj` is added to
 `local_model.system.local_compute_and_conversion_energy_pj` to produce
 `local_model.system.total_system_energy_pj`. The legacy
@@ -121,16 +122,19 @@ by cumulative SRAM/intermediate/off-chip traffic, while
 movement energy by that same hierarchy traffic. These are local hierarchy
 diagnostics, not measured cache or NoC counters.
 Each `local_model.system.tiers.*` entry also reports `traffic_share`,
-`movement_energy_share`, `calibration_adjusted_transfer_time_ns`,
+`movement_energy_share`, `system_energy_share`,
+`calibration_adjusted_transfer_time_ns`,
 `nominal_transfer_share`, `contention_adjusted_transfer_share`,
 `nominal_transfer_pressure_ratio`, and
 `contention_adjusted_transfer_pressure_ratio`. The top-level system block
 summarizes those tier fields with `dominant_traffic_tier`,
-`dominant_movement_energy_tier`, `nominal_memory_bottleneck_tier`,
-`contention_memory_bottleneck_tier`,
+`dominant_system_energy_component`, `dominant_movement_energy_tier`,
+`nominal_memory_bottleneck_tier`, `contention_memory_bottleneck_tier`,
 `max_tier_nominal_transfer_pressure_ratio`,
 `max_tier_contention_adjusted_transfer_pressure_ratio`, and
 `max_tier_movement_energy_share`. It also reports
+`local_compute_and_conversion_energy_share`,
+`movement_to_compute_energy_ratio`, `max_tier_system_energy_share`,
 `contention_bandwidth_saturation_tier`,
 `max_tier_contention_bandwidth_utilization`, and
 `min_tier_contention_bandwidth_headroom_ratio` as local compute-window
@@ -151,6 +155,11 @@ Contention-adjusted timing uses the same overlapped/serialized timing mode after
 reducing each tier's effective bandwidth by the local contention assumptions.
 `local_model.system.calibration_adjusted_effective_transfer_time_ns` then
 applies the calibration/control overhead guardband.
+`local_model.system.contention_only_loaded_bandwidth_bytes_per_ns` divides
+hierarchy bytes by the contention-only transfer time before the guardband.
+`local_model.system.contention_adjusted_loaded_bandwidth_bytes_per_ns` keeps
+its existing guardbanded meaning and divides hierarchy bytes by the
+calibration-adjusted transfer time.
 `local_model.system.contention_adjusted_transfer_to_compute_time_ratio` divides
 that guardbanded transfer time by compute-only batch latency.
 `local_model.system.contention_adjusted_batch_latency_ns` is the maximum of the
@@ -237,6 +246,9 @@ bandwidth utilization and headroom compare each tier's summed bytes per serial
 batch-latency window against the minimum positive effective bandwidth inherited
 from the contributing cards. This is a serial accounting artifact, not a fused
 memory scheduler or complete memory hierarchy.
+Aggregate system-energy decomposition fields are recomputed from aggregate
+totals: compute/conversion share, movement-to-compute energy ratio, dominant
+system energy component, and max tier system-energy share.
 
 Timing fields are explicitly serial summaries. `serial_batch_latency_ns` sums
 the per-matmul `batch_latency_ns` values. The effective layer throughputs divide
@@ -432,11 +444,14 @@ transformer_model:
 | `local_model.system.tiers.*.contention_bandwidth_utilization` | required bandwidth / effective bandwidth |
 | `local_model.system.tiers.*.contention_bandwidth_headroom_bytes_per_ns` | bytes/ns |
 | `local_model.system.tiers.*.contention_bandwidth_headroom_ratio` | effective bandwidth / required bandwidth |
+| `local_model.system.tiers.*.system_energy_share` | tier movement energy / total system energy |
 | `local_model.system.total_movement_energy_pj` | pJ |
 | `local_model.system.total_system_energy_pj` | pJ |
 | `local_model.system.system_energy_per_mac_pj` | pJ/MAC |
 | `local_model.system.system_energy_per_op_pj` | pJ/equivalent op |
+| `local_model.system.local_compute_and_conversion_energy_share` | compute/conversion energy / total system energy |
 | `local_model.system.movement_energy_share` | unitless fraction |
+| `local_model.system.movement_to_compute_energy_ratio` | movement energy / compute-conversion energy |
 | `local_model.system.hierarchy_equivalent_ops_per_byte` | equivalent ops/hierarchy byte |
 | `local_model.system.movement_energy_per_hierarchy_byte_pj` | pJ/hierarchy byte |
 | `local_model.system.transfer_to_compute_time_ratio` | transfer time / compute batch latency |
@@ -445,6 +460,9 @@ transformer_model:
 | `local_model.system.contention_bandwidth_saturation_tier` | tier name |
 | `local_model.system.max_tier_contention_bandwidth_utilization` | required bandwidth / effective bandwidth |
 | `local_model.system.min_tier_contention_bandwidth_headroom_ratio` | effective bandwidth / required bandwidth |
+| `local_model.system.max_tier_system_energy_share` | largest tier movement energy / total system energy |
+| `local_model.system.contention_only_loaded_bandwidth_bytes_per_ns` | hierarchy bytes / contention-only transfer time |
+| `local_model.system.contention_adjusted_loaded_bandwidth_bytes_per_ns` | hierarchy bytes / guardbanded transfer time |
 | `local_model.system.contention_adjusted_transfer_to_compute_time_ratio` | adjusted transfer time / compute batch latency |
 | `local_model.system.contention_adjusted_batch_latency_ns` | ns |
 | `local_model.system.contention_adjusted_equivalent_ops_per_second` | equivalent ops/second |
@@ -591,13 +609,15 @@ artifact summaries, the pinned reference, active analysis focus, active score
 profile, score weights, filter state, rail grouping, the shareable
 `url_state`, visible artifact IDs, same-schema recommendation cards with
 `score_explanation` drilldowns, grouped best-metric analysis, provenance status,
-and modeling-boundary notes. Selected artifact summaries also carry the local
+the comparison review checklist, and modeling-boundary notes. Selected artifact
+summaries also carry the local
 hierarchy-intensity, movement-per-hierarchy-byte, transfer/compute, and
 contention-adjusted transfer/compute fields when those metrics are available.
-Newer exports also carry dominant traffic/movement tiers, memory bottleneck
-tier, worst tier pressure, largest tier movement share, bandwidth saturation
-tier, maximum bandwidth utilization, and minimum bandwidth headroom when
-present.
+Newer exports also carry dominant traffic/movement/system-energy tiers, memory
+bottleneck tier, worst tier pressure, largest tier movement and system-energy
+shares, bandwidth saturation tier, maximum bandwidth utilization, minimum
+bandwidth headroom, and contention-only versus guardbanded loaded bandwidth
+when present.
 
 | Field | Meaning |
 | --- | --- |
@@ -605,13 +625,21 @@ present.
 | `analysis_focus.score_profile` | Built-in profile identity such as `balanced`, `efficiency`, `throughput`, `contention`, or `provenance`, or `custom` when the weights no longer match a built-in profile. |
 | `filters` | Search/schema/boundary/source-quality/sort/grouping state. |
 | `url_state` | Shareable browser URL that restores the comparison context. |
+| `review_checklist[]` | Local reviewer triage checks for pinned baseline, schema compatibility, source/provenance coverage, system metric coverage, energy split coverage, bandwidth phase coverage, transformer boundaries, and external payloads. |
+| `artifacts[].local_compute_and_conversion_energy_share` | Local compute/conversion share of total system energy, or `null`. |
+| `artifacts[].movement_to_compute_energy_ratio` | Local movement energy divided by local compute/conversion energy, or `null`. |
+| `artifacts[].contention_only_loaded_bandwidth_bytes_per_ns` | Local hierarchy bytes divided by contention-only transfer time before calibration guardband, or `null`. |
+| `artifacts[].guardbanded_loaded_hierarchy_bandwidth_bytes_per_ns` | Local hierarchy bytes divided by guardbanded transfer time, or `null`. |
+| `artifacts[].loaded_hierarchy_bandwidth_bytes_per_ns` | Backward-compatible alias for `artifacts[].guardbanded_loaded_hierarchy_bandwidth_bytes_per_ns`. |
 | `artifacts[].hierarchy_equivalent_ops_per_byte` | Local hierarchy equivalent ops per modeled hierarchy byte, or `null` for legacy/external artifacts that omit it. |
 | `artifacts[].movement_energy_per_hierarchy_byte_pj` | Local movement energy per hierarchy byte, or `null`. |
 | `artifacts[].dominant_traffic_tier` | Tier with the largest modeled hierarchy-byte share, or `null`. |
+| `artifacts[].dominant_system_energy_component` | Local compute/conversion or hierarchy tier with the largest total-system energy contribution, or `null`. |
 | `artifacts[].dominant_movement_energy_tier` | Tier with the largest modeled movement-energy share, or `null`. |
 | `artifacts[].contention_memory_bottleneck_tier` | Memory tier with the largest guardbanded transfer time, or `null`. |
 | `artifacts[].max_tier_contention_adjusted_transfer_pressure_ratio` | Largest guardbanded tier transfer divided by compute batch latency, or `null`. |
 | `artifacts[].max_tier_movement_energy_share` | Largest single-tier movement-energy share, or `null`. |
+| `artifacts[].max_tier_system_energy_share` | Largest single-tier share of total local system energy, or `null`. |
 | `artifacts[].contention_bandwidth_saturation_tier` | Tier with the highest compute-window bandwidth utilization, or `null`. |
 | `artifacts[].max_tier_contention_bandwidth_utilization` | Largest required-bandwidth divided by effective-bandwidth ratio, or `null`. |
 | `artifacts[].min_tier_contention_bandwidth_headroom_ratio` | Smallest effective-bandwidth divided by required-bandwidth ratio among modeled traffic tiers, or `null`. |

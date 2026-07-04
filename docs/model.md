@@ -173,6 +173,8 @@ tier_contention_bandwidth_headroom_bytes_per_ns =
 tier_contention_bandwidth_headroom_ratio =
     tier_effective_bandwidth_bytes_per_ns /
     tier_compute_window_required_bandwidth_bytes_per_ns
+tier_system_energy_share =
+    tier_total_energy_pj / total_system_energy_pj
 ```
 
 The per-card system summary is:
@@ -184,7 +186,11 @@ total_system_energy_pj =
     local_compute_and_conversion_energy_pj + total_movement_energy_pj
 system_energy_per_mac_pj = total_system_energy_pj / macs
 system_energy_per_op_pj = total_system_energy_pj / equivalent_ops
+local_compute_and_conversion_energy_share =
+    local_compute_and_conversion_energy_pj / total_system_energy_pj
 movement_energy_share = total_movement_energy_pj / total_system_energy_pj
+movement_to_compute_energy_ratio =
+    total_movement_energy_pj / local_compute_and_conversion_energy_pj
 total_hierarchy_bytes =
     sram_total_bytes + intermediate_total_bytes + off_chip_total_bytes
 hierarchy_equivalent_ops_per_byte = equivalent_ops / total_hierarchy_bytes
@@ -195,6 +201,10 @@ intermediate_traffic_share = intermediate_total_bytes / total_hierarchy_bytes
 off_chip_traffic_share = off_chip_total_bytes / total_hierarchy_bytes
 dominant_traffic_tier =
     tier with largest tier_total_bytes / total_hierarchy_bytes
+dominant_system_energy_component =
+    local_compute_and_conversion when local_compute_and_conversion_energy_pj
+    is at least the largest tier_total_energy_pj, else the tier with largest
+    tier_total_energy_pj / total_system_energy_pj
 dominant_movement_energy_tier =
     tier with largest tier_total_energy_pj / total_movement_energy_pj
 nominal_memory_bottleneck_tier =
@@ -207,6 +217,8 @@ max_tier_contention_adjusted_transfer_pressure_ratio =
     max(tier_calibration_adjusted_transfer_time_ns / batch_latency_ns)
 max_tier_movement_energy_share =
     max(tier_total_energy_pj / total_movement_energy_pj)
+max_tier_system_energy_share =
+    max(tier_total_energy_pj / total_system_energy_pj)
 contention_bandwidth_saturation_tier =
     tier with largest tier_contention_bandwidth_utilization
 max_tier_contention_bandwidth_utilization =
@@ -237,6 +249,8 @@ total_transfer_overhead_fraction =
     max(calibration_adjusted_effective_transfer_time_ns / effective_transfer_time_ns - 1, 0)
 effective_loaded_bandwidth_bytes_per_ns =
     total_hierarchy_bytes / effective_transfer_time_ns
+contention_only_loaded_bandwidth_bytes_per_ns =
+    total_hierarchy_bytes / contention_adjusted_effective_transfer_time_ns
 contention_adjusted_loaded_bandwidth_bytes_per_ns =
     total_hierarchy_bytes / calibration_adjusted_effective_transfer_time_ns
 transfer_to_compute_time_ratio =
@@ -265,13 +279,17 @@ used by older cards and calibration flows.
 
 The hierarchy traffic, hierarchy-intensity, movement-per-byte, tier-share,
 tier-pressure, transfer/compute ratio, loaded-bandwidth, compute-window
-bandwidth utilization, and bandwidth-headroom fields are diagnostic summaries
-over the explicit tiers already declared in the config. A zero-traffic tier
-uses `0` for headroom ratio to keep JSON finite, and the top-level minimum
-headroom ratio only considers tiers with modeled traffic. These fields do not
-add a cache policy, memory scheduler, or packetized NoC model; they make
-locality, movement cost, bottleneck tier, contention derate, calibration
-guardband, and memory pressure visible for cross-card comparisons.
+bandwidth utilization, bandwidth-headroom, and system-energy decomposition
+fields are diagnostic summaries over the explicit tiers already declared in
+the config. A zero-traffic tier uses `0` for headroom ratio to keep JSON
+finite, and the top-level minimum headroom ratio only considers tiers with
+modeled traffic. The loaded-bandwidth fields intentionally separate nominal
+transfer bandwidth, contention-only bandwidth after shared-client arbitration,
+and guardbanded bandwidth after calibration/control overhead. These fields do
+not add a cache policy, memory scheduler, or packetized NoC model; they make
+locality, movement cost, system-energy dominance, bottleneck tier, contention
+derate, calibration guardband, and memory pressure visible for cross-card
+comparisons.
 
 ## Noise Estimate
 

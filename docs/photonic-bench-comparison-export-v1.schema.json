@@ -96,6 +96,12 @@
         "$ref": "#/$defs/recommendation"
       }
     },
+    "review_checklist": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/reviewChecklistEntry"
+      }
+    },
     "modeling_boundaries": {
       "type": "array",
       "items": {
@@ -222,6 +228,28 @@
         }
       }
     },
+    "reviewChecklistEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "label", "status", "value", "note"],
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "status": {
+          "enum": ["pass", "review", "missing", "n/a"]
+        },
+        "value": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
     "scoreExplanation": {
       "type": "object",
       "additionalProperties": false,
@@ -300,6 +328,18 @@
         "source_path": {
           "type": "string"
         },
+        "local_compute_and_conversion_energy_share": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "movement_to_compute_energy_ratio": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "contention_only_loaded_bandwidth_bytes_per_ns": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "guardbanded_loaded_hierarchy_bandwidth_bytes_per_ns": {
+          "$ref": "#/$defs/nullableNumber"
+        },
         "hierarchy_equivalent_ops_per_byte": {
           "$ref": "#/$defs/nullableNumber"
         },
@@ -307,6 +347,9 @@
           "$ref": "#/$defs/nullableNumber"
         },
         "dominant_traffic_tier": {
+          "type": ["string", "null"]
+        },
+        "dominant_system_energy_component": {
           "type": ["string", "null"]
         },
         "dominant_movement_energy_tier": {
@@ -325,6 +368,9 @@
           "$ref": "#/$defs/nullableNumber"
         },
         "max_tier_movement_energy_share": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "max_tier_system_energy_share": {
           "$ref": "#/$defs/nullableNumber"
         },
         "contention_bandwidth_saturation_tier": {

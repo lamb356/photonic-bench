@@ -21,7 +21,9 @@ Dense BERT-base style full encoder model summary with 12 identical encoder layer
 | Total system energy (pJ) | 1.62142e+09 |
 | System energy per MAC (pJ) | 0.122204 |
 | System energy per equivalent op (pJ) | 0.0611022 |
+| Compute/conversion energy share | 0.0512378 |
 | Movement energy share | 0.948762 |
+| Movement-to-compute energy ratio | 18.5168 |
 | Serial batch latency (ns) | 833 |
 | Overlap-adjusted latency (ns) | 624.75 |
 | Bandwidth-limited serial latency (ns) | 9.40766e+06 |
@@ -29,9 +31,12 @@ Dense BERT-base style full encoder model summary with 12 identical encoder layer
 | Bandwidth-limited equivalent ops/s | 2.8207e+12 |
 | Contention-adjusted serial latency (ns) | 9.40766e+06 |
 | Contention-adjusted equivalent ops/s | 2.8207e+12 |
+| Contention-only loaded bandwidth (bytes/ns) | 48 |
 | Bandwidth saturation tier | off_chip |
 | Max tier bandwidth utilization | 11293.7 |
 | Min tier bandwidth headroom ratio | 8.85448e-05 |
+| Dominant system energy component | off_chip |
+| Max tier system energy share | 0.928339 |
 
 ## Model Components
 

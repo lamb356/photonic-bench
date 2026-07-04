@@ -31,15 +31,20 @@ def test_render_comparison_markdown_summarizes_local_and_published_cards() -> No
     assert "Eq ops/byte" in markdown
     assert "System total pJ" in markdown
     assert "System pJ/op" in markdown
+    assert "Compute energy share" in markdown
     assert "System profile" in markdown
     assert "Memory timing" in markdown
     assert "Effective transfer ns" in markdown
+    assert "Contention-only loaded BW B/ns" in markdown
     assert "Memory bottleneck tier" in markdown
+    assert "Dominant system energy" in markdown
     assert "Worst tier pressure" in markdown
     assert "Bandwidth saturation tier" in markdown
     assert "Max bandwidth utilization" in markdown
     assert "Min bandwidth headroom" in markdown
+    assert "Max tier system share" in markdown
     assert "Movement pJ" in markdown
+    assert "Movement/compute energy" in markdown
     assert "Bandwidth-limited eq ops/s" in markdown
     assert "Source grade" in markdown
     assert "Surrogate type" in markdown
@@ -118,5 +123,6 @@ def test_cli_compare_writes_markdown_report(tmp_path: Path) -> None:
     assert "unit matmul" in markdown
     assert "Eq ops/byte" in markdown
     assert "System pJ/op" in markdown
+    assert "Contention-only loaded BW B/ns" in markdown
     assert "System profile" in markdown
     assert "11" in markdown
