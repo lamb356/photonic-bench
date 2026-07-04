@@ -1,106 +1,103 @@
 # PhotonicBench Goal
 
 Date started: 2026-07-04
-Date completed: 2026-07-04
 Implementation status: complete.
 
 ## Objective
 
-Complete a full autonomous improvement loop for PhotonicBench:
+Merge PR #4 into `master`, then complete a new autonomous improvement loop for
+PhotonicBench across four product areas:
 
-1. Commit and push the current work on branch
-   `codex/artifact-freshness-profiles`.
-2. Open a pull request for the branch.
-3. Further improve the web visualizer, especially comparison mode,
-   analytical features, and daily-use usability.
-4. Deepen the system model with more realistic memory hierarchy,
-   bandwidth, and data-movement accounting.
-5. Add more high-quality, source-backed published photonic accelerator cards.
-6. Improve CLI and overall usability where the changes reduce daily friction.
+1. Visualizer interaction polish and analytical features.
+2. Deeper system modeling for contention, shared bandwidth, and calibration.
+3. Additional high-quality, source-backed published photonic accelerator cards.
+4. CLI and workflow usability improvements.
 
 ## Priority Order
 
-1. Protect current work with a clean commit, push, and pull request.
-2. Improve visualizer comparison and analysis workflows.
-3. Deepen memory hierarchy and data-movement modeling.
-4. Add high-quality published photonic accelerator cards.
-5. Improve CLI validation, commands, and usage ergonomics.
-6. Regenerate artifacts, update docs, verify, critique, and close state.
+1. Merge PR #4 into `master` after confirming CI is green.
+2. Improve visualizer interaction, comparison analytics, exports, presets, and
+   modeling-boundary clarity.
+3. Deepen system modeling with contention/shared-bandwidth/calibration metrics
+   that are exposed in reports and the visualizer.
+4. Add at least 3 to 4 additional high-quality published photonic accelerator
+   cards with conservative source-quality metadata.
+5. Improve CLI validation and regular workflow ergonomics, especially around
+   complex and full transformer models.
+6. Update docs, regenerate checked artifacts, run verification, run the
+   Hostile Senior Reviewer critique, fix important issues, and close state.
 
 ## Required Outcomes
 
-### Commit, Push, And Pull Request
+### PR #4 Merge
 
-- Review the dirty worktree on `codex/artifact-freshness-profiles`.
-- Stage only goal-relevant files.
-- Create one or more clean commits with descriptive messages.
-- Push the branch to `origin`.
-- Open a pull request against `master` with a clear description and validation
-  notes.
+- Review PR #4 state and current CI result.
+- Merge PR #4 into `master`.
+- Ensure local `master` is clean and up to date after merge.
+- Delete the old feature branch locally or remotely only if it is safe and not
+  needed for traceability.
 
 ### Visualizer Improvements
 
-- Improve comparison-mode analytics for daily decision-making.
-- Preserve and improve pinned selections, deltas, ratios, grouped views, saved
-  presets, and export behavior where useful.
-- Add or improve Pareto/frontier and system/profile analysis if it adds clear
-  value.
-- Keep modeling-boundary labels visible and conservative.
-- Verify static generation, served mode where relevant, JavaScript syntax, and
-  browser smoke behavior after UI changes.
+- Improve daily-use interaction polish and dashboard feel.
+- Enhance comparison mode with clearer insights, better mixed-schema handling,
+  and more useful analytical summaries.
+- Improve saved presets, exports, or additional analysis views where they
+  reduce user friction.
+- Preserve clear separation among paper-reported metrics, local surrogate
+  estimates, and local model assumptions.
 
 ### Deeper System Modeling
 
-- Extend the current multi-tier model with a richer and auditable memory
-  hierarchy.
-- Account for bandwidth, data movement, and contention or overlap assumptions
-  explicitly rather than hiding them in aggregate constants.
-- Expose new metrics in JSON, Markdown reports, comparison output, and the
-  visualizer.
+- Add auditable contention, shared-bandwidth, or calibration behavior on top of
+  the existing SRAM/intermediate/off-chip system model.
+- Add meaningful metrics such as effective bandwidth under contention,
+  contention-adjusted transfer time, or calibration-adjusted performance.
+- Expose new metrics consistently in JSON, Markdown reports, comparison output,
+  and the visualizer.
 - Validate new config fields with actionable errors.
-- Document formulas, defaults, and local-model boundaries.
 
 ### More Published Cards
 
-- Add at least 3 to 4 additional high-quality, source-backed photonic
-  accelerator cards.
-- Prioritize recent or high-impact photonic GEMM, tensor processor, or closely
-  related accelerator results.
-- Include citations, assumptions, local surrogate labeling, source-quality
-  metadata, generated Markdown/JSON reports, comparison output, and visualizer
-  payloads.
-- Avoid presenting local estimates as measured source hardware behavior.
+- Add at least 3 to 4 new source-backed published photonic accelerator cards.
+- Prioritize recent high-performance photonic GEMM, tensor processor, or
+  closely related accelerator results.
+- Include citations, DOI or stable source identifiers where available,
+  assumptions, local surrogate labels, source-quality metadata, generated
+  Markdown/JSON reports, comparison output, and visualizer payloads.
+- Avoid presenting local model estimates as measured published results.
 
-### CLI And Usability
+### CLI And Workflow Usability
 
 - Improve error messages and validation feedback around common mistakes.
-- Make full transformer-model definition and generation easier where there is
-  a clear workflow win.
-- Add focused tests and docs for any new user-facing command or option.
+- Make complex model and full transformer workflows easier to define, inspect,
+  or regenerate.
+- Add focused tests and docs for any user-facing command, option, or error
+  behavior.
 
 ## Rules
 
 - Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
   `RUBRIC.md` at the start of every cycle.
+- Keep `tasks/todo.md` aligned with the active goal.
 - Before marking any checklist item DONE, verify the change and record proof.
-- Keep generated artifacts fresh after changing models, reports, schemas,
-  visualizer output, examples, or docs that are checked by artifact
-  verification.
+- Keep generated artifacts fresh after changing models, schemas, reports,
+  visualizer output, examples, docs, or artifact recipes.
 - Run the mandatory Hostile Senior Reviewer critique after substantial
   implementation and fix important findings.
-- Preserve the distinction between paper-reported metrics, local surrogate
-  estimates, and local modeling assumptions.
+- Preserve conservative source boundaries and local-surrogate labeling.
 
 ## Stop Condition
 
 Completed when all of the following are true:
 
-- The branch is committed, pushed, and has an open pull request.
-- Meaningful improvements have landed in the visualizer, system model,
-  published cards, and usability surfaces.
+- PR #4 is merged into `master` and local `master` is clean and current.
+- Meaningful improvements have landed in visualizer, system modeling, published
+  cards, and CLI/workflow usability surfaces.
 - Documentation and generated artifacts are updated.
-- All checklist items are marked DONE with proof.
-- Ruff, pytest, artifact freshness, JavaScript syntax, browser smoke, and any
-  focused new checks pass or any inability to run them is plainly recorded.
-- Hostile Senior Reviewer critique is complete and major findings are
-  addressed.
+- All checklist items are DONE with proof.
+- Ruff, pytest, artifact freshness, JavaScript syntax, browser smoke, JSON
+  parsing, and other focused new checks pass or any inability to run them is
+  recorded.
+- Hostile Senior Reviewer critique is complete and major findings are fixed or
+  explicitly justified.

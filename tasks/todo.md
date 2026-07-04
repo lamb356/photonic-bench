@@ -210,6 +210,26 @@
 - [x] Task 8: Run final verification, close state files, commit, push, and
       inspect final repository status.
 
+## Active Goal: Merge PR #4 And Continue Improvements
+
+- [x] Task 0: Roll state files forward and create prioritized checklist.
+- [x] Task 1: Verify and merge PR #4 into `master`, then ensure local
+      `master` is clean and up to date.
+- [x] Task 2: Improve visualizer interaction polish and analytical comparison
+      features.
+- [x] Task 3: Deepen system modeling with contention, shared bandwidth, and
+      calibration-oriented metrics.
+- [x] Task 4: Add at least 3 to 4 additional high-quality published photonic
+      accelerator cards with citations, source-quality metadata, and generated
+      artifacts.
+- [x] Task 5: Improve CLI validation and workflow usability, especially around
+      complex/full transformer model workflows.
+- [x] Task 6: Update documentation and regenerate checked artifacts.
+- [x] Task 7: Run mandatory Hostile Senior Reviewer critique and fix important
+      findings.
+- [x] Task 8: Run final verification, close state files, commit/push final
+      work, and inspect final repository status.
+
 ## Explicitly Not Active In This Goal
 
 - [ ] Hosted backend web service.

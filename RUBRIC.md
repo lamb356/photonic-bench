@@ -3,22 +3,21 @@
 Use this rubric for checklist completion decisions and the mandatory Hostile
 Senior Reviewer critique.
 
-## Publish Quality
+## Merge Quality
 
-- The current branch is committed before additional high-risk feature work.
-- Commits are logical, reviewable, and free of Codex attribution.
-- The branch is pushed to `origin`.
-- The pull request targets `master`, has a clear title and body, and states
-  validation performed.
-- PR scope is understandable even though generated artifacts are included.
+- PR #4 is inspected before merge.
+- CI is confirmed green before merge.
+- The merge target is `master`.
+- Local `master` is synced after merge.
+- The worktree is clean before new feature work begins.
 
 ## Visualizer Quality
 
 - Comparison mode helps a daily user decide between cards, profiles, and model
   assumptions quickly.
 - Deltas, ratios, pinned selections, grouping, saved presets, exports, Pareto
-  or frontier views, decision scorecards, and stale-artifact handling remain
-  coherent.
+  or frontier views, scorecards, stale-artifact handling, and mixed-schema
+  behavior remain coherent.
 - Source-reported metrics, local surrogate estimates, and local system-model
   assumptions remain visibly separated.
 - The UI stays dense, work-focused, responsive, and free of overlapping text or
@@ -27,14 +26,15 @@ Senior Reviewer critique.
 
 ## System Modeling Quality
 
-- Memory hierarchy changes are explicit and auditable, including SRAM,
-  intermediate/cache, and off-chip tiers where modeled.
-- Bandwidth, movement energy, timing, serialization/overlap, reuse, and
-  profile assumptions are named instead of hidden.
+- Contention, shared-bandwidth, calibration, overlap, and transfer timing
+  assumptions are explicit and auditable.
+- Memory hierarchy behavior remains clear across SRAM, intermediate/cache, and
+  off-chip tiers.
+- New metrics are useful for real comparison work, not merely extra fields.
 - Defaults are conservative and documented.
 - Invalid or inconsistent config fails with actionable errors.
-- JSON, Markdown reports, comparison output, and visualizer surfaces expose the
-  new metrics without blurring measured paper claims and local model estimates.
+- JSON, Markdown reports, comparison output, and visualizer surfaces expose new
+  metrics without blurring measured paper claims and local model estimates.
 
 ## Published-Card Quality
 
@@ -60,19 +60,20 @@ Senior Reviewer critique.
 - README examples stay runnable.
 - Model docs explain formulas and assumptions.
 - Schema docs and JSON schemas stay aligned with generated JSON.
-- Visualizer docs explain changed comparison, preset, export, and import
-  behavior.
+- Visualizer docs explain changed comparison, preset, export, import, and
+  boundary-label behavior.
 - Artifact freshness verification passes after regeneration.
 
 ## Verification Quality
 
 - Focused tests cover new system, visualizer, card, and CLI behavior.
 - Full `python -m ruff check` passes.
-- Full `python -m pytest` passes.
+- Full `python -m pytest -q` passes.
 - `python -m photonic_bench.cli verify-artifacts` passes.
 - `node --check photonic_bench\visualizer_assets\app.js` passes after JS
   changes.
 - Browser smoke passes after visualizer behavior changes.
+- JSON schemas and generated JSON parse.
 - `git diff --check` passes before final commit.
 
 ## Review Readiness
@@ -86,7 +87,16 @@ Senior Reviewer critique.
 
 ## Final Closeout Status
 
-- This rubric was re-read and kept current for the completed 2026-07-04
-  autonomous loop.
-- The loop met the publish, visualizer, system-modeling, published-card, CLI,
-  documentation, verification, and hostile-review gates recorded above.
+- Complete.
+- PR #4 was merged into `master` after green CI.
+- Follow-up improvements landed in visualizer analytics, contention-aware
+  system modeling, new published-card surrogates, and CLI workflow usability.
+- Documentation, schemas, checked generated artifacts, tests, and visualizer
+  payloads were refreshed.
+- Mandatory Hostile Senior Reviewer critique was completed and all recorded
+  findings were fixed.
+- Final local gates passed: Ruff, pytest, artifact freshness, JavaScript
+  syntax, browser smoke, JSON/schema validation, and `git diff --check`.
+- Implementation commit `9c96ac6` was pushed to
+  `origin/codex/pr4-followup-improvements`; closeout state is committed and
+  pushed afterward.
