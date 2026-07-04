@@ -1,9 +1,10 @@
 # PhotonicBench Goal
 
 Date started: 2026-07-04
-Implementation status: active. The first priority is to publish the already
-verified `codex/pr8-followup-improvements` work, then continue with one more
-meaningful visualizer and system-modeling improvement pass.
+Implementation status: complete. The already verified
+`codex/pr8-followup-improvements` work has been committed, pushed, and opened
+as PR #9, and the follow-up visualizer/system-modeling pass has been
+implemented, verified, committed, and recorded in durable notes.
 
 ## Objective
 

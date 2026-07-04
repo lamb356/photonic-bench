@@ -52,8 +52,7 @@
 
 ## Current Next Step
 
-Commit the verified bandwidth-utilization/headroom follow-up, push it to PR #9,
-write the durable GBrain note, and close final state.
+Push the final closeout state commit to PR #9 and verify the PR head.
 
 ## 2026-07-04 Cycle 1: Protected Publish
 
@@ -184,3 +183,21 @@ write the durable GBrain note, and close final state.
 - `node --check reports\visualizer\assets\app.js` passed.
 - `python -m photonic_bench.cli verify-artifacts` passed: 258 generated files
   fresh.
+
+## 2026-07-04 Cycle 5: Follow-Up Commit And Durable Note
+
+- Final pre-commit gates on the exact tree passed:
+  - `python -m ruff check`;
+  - `python -m pytest -q`: 130 tests;
+  - `python -m build`;
+  - `python -m photonic_bench.cli verify-artifacts`: 258 generated files fresh;
+  - `node --check photonic_bench\visualizer_assets\app.js`;
+  - `node --check reports\visualizer\assets\app.js`;
+  - `git diff --check` with only line-ending normalization warnings.
+- Created follow-up implementation commit:
+  - `d452cf8 Add hierarchy bandwidth headroom diagnostics`.
+- Wrote durable GBrain note:
+  - `photonicbench-pr9-bandwidth-headroom-followup-2026-07-04`.
+- This closeout state update marks all checklist items done. The final push and
+  PR #9 head verification happen immediately after this state commit and are
+  reported in the final response.

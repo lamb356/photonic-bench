@@ -187,8 +187,38 @@ Status key:
 
 ## Task 6: Final Closeout
 
-- [ ] TODO: Confirm all three objectives have meaningful implementation and
+- [x] DONE: Confirm all three objectives have meaningful implementation and
       proof.
-- [ ] TODO: Update state files and `tasks/todo.md` to final DONE state.
-- [ ] TODO: Record PR URL, commit hashes, verification, GBrain note, and
+  - Proof:
+    - Commit/push/PR objective completed early with PR #9:
+      `https://github.com/lamb356/photonic-bench/pull/9`.
+    - Visualizer objective completed with bandwidth utilization/headroom
+      analytics in dashboard, comparison, scoring, exports, and detail views.
+    - System-model objective completed with compute-window required bandwidth,
+      utilization, headroom, saturation tier, max utilization, and min headroom
+      metrics across reports, schemas, transformer aggregates, tests, docs, and
+      generated artifacts.
+- [x] DONE: Update state files and `tasks/todo.md` to final DONE state.
+  - Proof:
+    - Updated `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
+      `RUBRIC.md`, and `tasks/todo.md`.
+    - Final closeout state is included in the closeout commit created after
+      implementation commit `d452cf8`.
+- [x] DONE: Record PR URL, commit hashes, verification, GBrain note, and
       remaining risks.
+  - Proof:
+    - PR URL: `https://github.com/lamb356/photonic-bench/pull/9`.
+    - Protected publish commits:
+      - `6e80186 Add tier bottleneck diagnostics and visualizer stack`;
+      - `50fe226 Refresh bottleneck diagnostic artifacts`.
+    - Follow-up implementation commit:
+      - `d452cf8 Add hierarchy bandwidth headroom diagnostics`.
+    - Durable GBrain note:
+      `photonicbench-pr9-bandwidth-headroom-followup-2026-07-04`.
+    - Verification before follow-up commit:
+      Ruff, full pytest, package build, artifact freshness, source/generated JS
+      syntax, explicit browser smoke/accessibility/visual regression, and diff
+      hygiene passed.
+    - Remaining risk:
+      post-push GitHub Actions for the final PR #9 head may still be running at
+      final response time; local required gates are green before push.

@@ -532,8 +532,12 @@
       Fixed non-finite legacy/external payload handling for highest bandwidth
       utilization and expanded the Contention Insight boundary note; post-fix
       visualizer/browser tests and artifact freshness passed.
-- [ ] Task 6: Close final state files, update durable notes, verify final
+- [x] Task 6: Close final state files, update durable notes, verify final
       git/CI/artifact status, and report remaining risks.
+      Follow-up implementation commit `d452cf8` is created, durable GBrain note
+      `photonicbench-pr9-bandwidth-headroom-followup-2026-07-04` is written,
+      all local gates are green, and final push/PR head verification is
+      reported in the final response after this closeout state commit.
 
 ## Explicitly Not Active In This Goal
 

@@ -12,7 +12,9 @@
   - base: `master`;
   - head: `codex/pr8-followup-improvements`;
   - state: open, non-draft, mergeable;
-  - head commit after protected publish: `50fe226`.
+  - head commit after protected publish: `50fe226`;
+  - follow-up implementation commit before final closeout state:
+    `d452cf8`.
 - Existing branch state before this cycle:
   - Large verified dirty worktree on `codex/pr8-followup-improvements`.
   - Work was previously verified locally but deliberately left unpublished.
@@ -21,6 +23,10 @@
 - Protected publish commits:
   - `6e80186 Add tier bottleneck diagnostics and visualizer stack`;
   - `50fe226 Refresh bottleneck diagnostic artifacts`.
+- Follow-up implementation commit:
+  - `d452cf8 Add hierarchy bandwidth headroom diagnostics`.
+- Durable GBrain note:
+  `photonicbench-pr9-bandwidth-headroom-followup-2026-07-04`.
 
 ## Follow-Up Work Implemented After PR Publication
 
