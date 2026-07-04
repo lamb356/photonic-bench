@@ -317,12 +317,11 @@ def test_cli_system_profiles_lists_human_readable_profiles() -> None:
     )
 
     assert completed.returncode == 0, completed.stderr
-    assert "| Profile | Timing | SRAM pJ/B | Intermediate pJ/B | Off-chip pJ/B |" in (
-        completed.stdout
-    )
+    assert "| Profile | Timing | Shared clients | Arbitration |" in completed.stdout
     assert "default" in completed.stdout
     assert "pcie_attached" in completed.stdout
     assert "serialized" in completed.stdout
+    assert "0.05" in completed.stdout
 
 
 def test_cli_system_profiles_can_emit_json() -> None:
@@ -346,3 +345,51 @@ def test_cli_system_profiles_can_emit_json() -> None:
         "bandwidth_bytes_per_ns"
     ] == 256.0
     assert profiles["pcie_attached"]["memory_timing_mode"] == "serialized"
+    assert profiles["pcie_attached"]["system"]["contention"][
+        "shared_bandwidth_clients"
+    ] == 2.0
+
+
+def test_cli_inspect_config_summarizes_matmul_config() -> None:
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "photonic_bench.cli",
+            "inspect-config",
+            "examples/profile_sensitivity_64x64_pcie_attached.yaml",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    assert "PhotonicBench Config Inspection" in completed.stdout
+    assert "| Kind | matmul |" in completed.stdout
+    assert "| System profile | pcie_attached |" in completed.stdout
+    assert "| Shared bandwidth clients | 2.0 |" in completed.stdout
+
+
+def test_cli_inspect_config_can_emit_transformer_model_json() -> None:
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "photonic_bench.cli",
+            "inspect-config",
+            "examples/bert_base_12layer_model.yaml",
+            "--kind",
+            "transformer-model",
+            "--json",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    payload = json.loads(completed.stdout)
+    assert payload["kind"] == "transformer-model"
+    assert payload["benchmark"] == "BERT-base style 12-layer encoder model"
+    assert payload["system"]["contention"]["arbitration_efficiency"] == 1.0

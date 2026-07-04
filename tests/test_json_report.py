@@ -62,6 +62,11 @@ def test_report_to_dict_exposes_json_schema_sections() -> None:
     assert payload["model_inputs"]["system"]["profile"] == "default"
     assert payload["model_inputs"]["system"]["profile_overrides"] == []
     assert payload["model_inputs"]["system"]["memory_timing_mode"] == "overlapped"
+    assert payload["model_inputs"]["system"]["contention"] == {
+        "shared_bandwidth_clients": 1.0,
+        "arbitration_efficiency": 1.0,
+        "calibration_overhead_fraction": 0.0,
+    }
     assert payload["model_inputs"]["system"]["intermediate"] == {
         "read_energy_pj_per_byte": 0.2,
         "write_energy_pj_per_byte": 0.2,
@@ -98,7 +103,18 @@ def test_report_to_dict_exposes_json_schema_sections() -> None:
     assert system["profile"] == "default"
     assert system["profile_overrides"] == []
     assert system["memory_timing_mode"] == "overlapped"
+    assert system["contention"] == {
+        "shared_bandwidth_clients": 1.0,
+        "arbitration_efficiency": 1.0,
+        "calibration_overhead_fraction": 0.0,
+    }
     assert system["tiers"]["sram"]["read_bytes"] == pytest.approx(24)
+    assert system["tiers"]["sram"]["effective_bandwidth_bytes_per_ns"] == pytest.approx(
+        1024
+    )
+    assert system["tiers"]["sram"]["contention_adjusted_transfer_time_ns"] == (
+        pytest.approx(56 / 1024)
+    )
     assert system["tiers"]["sram"]["write_bytes"] == pytest.approx(32)
     assert system["tiers"]["sram"]["total_energy_pj"] == pytest.approx(1.12)
     assert system["tiers"]["intermediate"]["total_energy_pj"] == pytest.approx(11.2)
@@ -112,7 +128,23 @@ def test_report_to_dict_exposes_json_schema_sections() -> None:
         (56 / 1024) + (56 / 256) + (56 / 16)
     )
     assert system["effective_transfer_time_ns"] == pytest.approx(56 / 16)
+    assert system["contention_adjusted_max_transfer_time_ns"] == pytest.approx(56 / 16)
+    assert system["contention_adjusted_serial_transfer_time_ns"] == pytest.approx(
+        (56 / 1024) + (56 / 256) + (56 / 16)
+    )
+    assert system["contention_adjusted_effective_transfer_time_ns"] == pytest.approx(
+        56 / 16
+    )
+    assert system["calibration_adjusted_effective_transfer_time_ns"] == pytest.approx(
+        56 / 16
+    )
     assert system["bandwidth_limited_batch_latency_ns"] == pytest.approx(5.0)
+    assert system["bandwidth_limited_tier"] == "compute"
+    assert system["contention_adjusted_batch_latency_ns"] == pytest.approx(5.0)
+    assert system["contention_adjusted_equivalent_ops_per_second"] == pytest.approx(
+        128 / 5e-9
+    )
+    assert system["contention_limited_tier"] == "compute"
     assert "not a published measurement" in system["note"]
     assert payload["local_model"]["energy"]["vector_dac_pj"] == pytest.approx(1.6)
     assert payload["local_model"]["energy"]["weight_dac_pj"] == pytest.approx(3.2)

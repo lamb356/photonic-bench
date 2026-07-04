@@ -52,6 +52,11 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_a
       "profile": "default",
       "profile_overrides": [],
       "memory_timing_mode": "overlapped",
+      "contention": {
+        "shared_bandwidth_clients": 1.0,
+        "arbitration_efficiency": 1.0,
+        "calibration_overhead_fraction": 0.0
+      },
       "sram": {
         "read_energy_pj_per_byte": 0.02,
         "write_energy_pj_per_byte": 0.02,
@@ -105,6 +110,11 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_a
       "profile": "default",
       "profile_overrides": [],
       "memory_timing_mode": "overlapped",
+      "contention": {
+        "shared_bandwidth_clients": 1.0,
+        "arbitration_efficiency": 1.0,
+        "calibration_overhead_fraction": 0.0
+      },
       "tiers": {
         "sram": {
           "name": "sram",
@@ -115,7 +125,9 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_a
           "write_energy_pj": 251658.24,
           "total_energy_pj": 283115.52,
           "bandwidth_bytes_per_ns": 1024.0,
+          "effective_bandwidth_bytes_per_ns": 1024.0,
           "transfer_time_ns": 13824.0,
+          "contention_adjusted_transfer_time_ns": 13824.0,
           "read_fraction": 1.0,
           "write_fraction": 1.0
         },
@@ -128,7 +140,9 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_a
           "write_energy_pj": 2516582.4000000004,
           "total_energy_pj": 2831155.2,
           "bandwidth_bytes_per_ns": 256.0,
+          "effective_bandwidth_bytes_per_ns": 256.0,
           "transfer_time_ns": 55296.0,
+          "contention_adjusted_transfer_time_ns": 55296.0,
           "read_fraction": 1.0,
           "write_fraction": 1.0
         },
@@ -141,7 +155,9 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_a
           "write_energy_pj": 125829120.0,
           "total_energy_pj": 141557760.0,
           "bandwidth_bytes_per_ns": 16.0,
+          "effective_bandwidth_bytes_per_ns": 16.0,
           "transfer_time_ns": 884736.0,
+          "contention_adjusted_transfer_time_ns": 884736.0,
           "read_fraction": 1.0,
           "write_fraction": 1.0
         }
@@ -155,10 +171,17 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_a
       "max_transfer_time_ns": 884736.0,
       "serial_transfer_time_ns": 953856.0,
       "effective_transfer_time_ns": 884736.0,
+      "contention_adjusted_max_transfer_time_ns": 884736.0,
+      "contention_adjusted_serial_transfer_time_ns": 953856.0,
+      "contention_adjusted_effective_transfer_time_ns": 884736.0,
+      "calibration_adjusted_effective_transfer_time_ns": 884736.0,
       "bandwidth_limited_batch_latency_ns": 884736.0,
       "bandwidth_limited_equivalent_ops_per_second": 1820444444444.4443,
       "bandwidth_limited_tier": "off_chip",
-      "note": "System movement energy is a local estimate over explicit SRAM, intermediate, and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
+      "contention_adjusted_batch_latency_ns": 884736.0,
+      "contention_adjusted_equivalent_ops_per_second": 1820444444444.4443,
+      "contention_limited_tier": "off_chip",
+      "note": "System movement energy is a local estimate over explicit SRAM, intermediate, and off-chip tiers. Contention and calibration guardband fields are local shared-link assumptions. These values are added separately from photonic core compute/conversion energy and are not a published measurement."
     },
     "energy": {
       "optical_compute_pj": 402653.184,
@@ -216,7 +239,8 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_a
     "Weight DAC conversions are counted every 1 operation(s).",
     "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
     "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.",
-    "The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
+    "The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.",
+    "System contention fields model shared bandwidth clients, arbitration efficiency, and calibration/control guardband as local assumptions; they are not inferred from published hardware unless a card says so."
   ],
   "provenance": null
 }

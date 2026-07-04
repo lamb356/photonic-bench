@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+import jsonschema
 import pytest
 
 from photonic_bench.visualizer import write_visualizer
@@ -42,6 +43,26 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
         ),
         encoding="utf-8",
     )
+    imported_presets = tmp_path / "imported_presets.json"
+    imported_presets.write_text(
+        json.dumps(
+            {
+                "schema_version": "photonic-bench-comparison-presets-v1",
+                "presets": [
+                    {
+                        "name": "Imported smoke preset",
+                        "description": "Imported during browser smoke.",
+                        "artifact_ids": [
+                            "nature_pace_64x64.json",
+                            "matmul_64x64.json",
+                        ],
+                        "pinned_id": "nature_pace_64x64.json",
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
     write_visualizer(Path("reports"), output_path)
 
     page_errors: list[str] = []
@@ -51,6 +72,7 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
         browser = playwright.chromium.launch()
         try:
             page = browser.new_page(viewport={"width": 1440, "height": 950})
+            page.emulate_media(reduced_motion="reduce")
             page.on("pageerror", lambda error: page_errors.append(str(error)))
             page.on(
                 "console",
@@ -89,11 +111,92 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
             page.get_by_text("Cleared 1 external report(s).").wait_for()
             assert int(page.locator("#artifact-count").text_content()) == initial_count
 
+            page.locator("#quality-filter").select_option("A")
+            page.locator("#group-filter").select_option("source-quality")
+            page.get_by_text("source grade: A").first.wait_for()
+            page.locator(".artifact-group-heading").filter(
+                has_text="Source grade A"
+            ).wait_for()
+            page.get_by_role("button", name="Compare visible").click()
+            page.get_by_role("heading", name="Artifact Comparison").wait_for()
+            page.get_by_role("heading", name="Comparison Workspace").wait_for()
+            page.get_by_role("heading", name="Comparison Recommendations").wait_for()
+            page.get_by_text("Analysis focus").first.wait_for()
+            page.locator("#analysis-focus").select_option("contention")
+            page.get_by_text("Contention focus").first.wait_for()
+            page.locator("#analysis-focus").select_option("provenance")
+            page.get_by_text("Source confidence").first.wait_for()
+            page.get_by_text("Score weights").first.wait_for()
+            page.locator('input[data-score-weight="Source confidence"]').evaluate(
+                "(node) => { node.value = '2'; node.dispatchEvent(new Event('change', { bubbles: true })); }"
+            )
+            page.get_by_text("Source confidence x2").first.wait_for()
+            page.get_by_text("Explain score").first.click()
+            page.get_by_text("Contribution").first.wait_for()
+            page.get_by_role("heading", name="Selection Drawer").wait_for()
+            page.locator("#pareto-mode").select_option("contention-throughput")
+            page.wait_for_timeout(200)
+            shared_url = page.url
+            assert "view=compare" in shared_url
+            assert "quality=A" in shared_url
+            assert "focus=provenance" in shared_url
+            assert "pareto=contention-throughput" in shared_url
+            assert "weights=" in shared_url
+            page.goto(shared_url)
+            page.get_by_role("heading", name="Artifact Comparison").wait_for()
+            assert page.locator("#quality-filter").input_value() == "A"
+            assert page.locator("#analysis-focus").input_value() == "provenance"
+            assert page.locator("#pareto-mode").input_value() == (
+                "contention-throughput"
+            )
+            assert page.locator('input[data-score-weight="Source confidence"]').input_value() == "2"
+            page.get_by_role("button", name="Copy state link").click()
+            page.get_by_text("Shareable link").wait_for()
+            page.get_by_role("button", name="Reset filters").click()
+            page.get_by_text("All artifacts, sorted by name").first.wait_for()
+            page.locator("#top-visible-count").fill("3")
+            page.get_by_role("button", name="Compare top N visible").click()
+            assert page.locator("#compare-count").text_content() == "3"
+            page.get_by_role("button", name="Remove").first.click()
+            assert page.locator("#compare-count").text_content() == "2"
+            page.get_by_role("button", name="Compare top N visible").click()
+            page.get_by_role("button", name="Invert visible selection").click()
+            assert int(page.locator("#compare-count").text_content()) > 3
+            page.get_by_role("button", name="Compare top N visible").click()
+            page.locator("[data-clear-selection-group]").first.click()
+            assert int(page.locator("#compare-count").text_content()) <= 3
+            page.get_by_role("button", name="Compare visible").click()
+            page.locator("#analysis-focus").select_option("provenance")
+            page.locator("#preset-name").fill("Smoke local preset")
+            page.get_by_role("button", name="Save").click()
+            page.get_by_text("Saved Smoke local preset.").wait_for()
+            with page.expect_download() as preset_download:
+                page.get_by_role("button", name="Export local").click()
+            preset_text = Path(preset_download.value.path()).read_text(
+                encoding="utf-8"
+            )
+            assert "photonic-bench-comparison-presets-v1" in preset_text
+            page.locator("#import-preset-file").set_input_files(str(imported_presets))
+            page.get_by_text("Imported 1 browser-local preset(s).").wait_for()
+            page.locator("#preset-select").select_option(label="Imported smoke preset (local)")
+            page.locator("#load-preset").click()
+            page.get_by_text("Loaded Imported smoke preset.").wait_for()
+            with page.expect_download() as csv_download:
+                page.get_by_role("button", name="Download CSV").click()
+            assert csv_download.value.suggested_filename.endswith(".csv")
+            csv_text = Path(csv_download.value.path()).read_text(encoding="utf-8")
+            assert '"analysis_focus","score_weights","artifact_id","benchmark"' in csv_text
+            assert "comparison_boundary_notes" in csv_text
+            assert '"provenance"' in csv_text
+            page.get_by_role("button", name="Reset filters").click()
+            page.get_by_text("All artifacts, sorted by name").first.wait_for()
+
             page.locator("#preset-select").select_option(
                 label="Published reference surrogate cards (generated)"
             )
             page.locator("#load-preset").click()
             page.get_by_role("heading", name="Artifact Comparison").wait_for()
+            page.get_by_role("heading", name="Comparison Recommendations").wait_for()
             page.get_by_role("heading", name="Comparison Brief").wait_for()
             page.get_by_role("heading", name="Decision Scorecard").wait_for()
             page.get_by_role("heading", name="Pareto Trade-Offs").wait_for()
@@ -107,10 +210,37 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
             with page.expect_download() as json_download:
                 page.get_by_role("button", name="Download JSON").click()
             assert json_download.value.suggested_filename.endswith(".json")
+            export_json = json.loads(
+                Path(json_download.value.path()).read_text(encoding="utf-8")
+            )
+            export_schema = json.loads(
+                Path("docs/photonic-bench-comparison-export-v1.schema.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            jsonschema.validate(
+                export_json,
+                export_schema,
+                format_checker=jsonschema.FormatChecker(),
+            )
+            assert export_json["analysis_focus"]["key"] == "provenance"
+            assert export_json["analysis_focus"]["score_weights"]
+            assert export_json["filters"]["grouping"] == "schema"
+            assert export_json["recommendations"]
+            assert export_json["recommendations"][0]["score_explanation"][
+                "components"
+            ]
+            assert export_json["url_state"].startswith("file:")
 
             with page.expect_download() as markdown_download:
                 page.get_by_role("button", name="Download Markdown").click()
             assert markdown_download.value.suggested_filename.endswith(".md")
+            markdown_text = Path(markdown_download.value.path()).read_text(
+                encoding="utf-8"
+            )
+            assert "Analysis focus: Provenance" in markdown_text
+            assert "Score weights:" in markdown_text
+            assert "## Recommendations" in markdown_text
 
             page.locator('button[data-id="nature_pace_64x64.json"]').click()
             page.get_by_role("heading", name="Published Reference").wait_for()
@@ -130,6 +260,14 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
             page.get_by_role("heading", name="Comparison Insights").wait_for()
             page.get_by_role("heading", name="Schema Compatibility").wait_for()
             page.get_by_text("Mixed-schema comparison").first.wait_for()
+            assert (
+                page.get_by_role("button", name="Detail").get_attribute("aria-pressed")
+                == "false"
+            )
+            reduced_transition = page.locator(".artifact-row").first.evaluate(
+                "(node) => getComputedStyle(node).transitionDuration"
+            )
+            assert reduced_transition in {"0.001ms", "0s", "1e-06s"}
         finally:
             browser.close()
 

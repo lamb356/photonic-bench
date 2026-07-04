@@ -192,6 +192,22 @@ MATMUL_ARTIFACT_RECIPES: tuple[MatmulArtifactRecipe, ...] = (
         "kovaios_2025_wdm_1tops_tensor_core_surrogate.yaml",
         "kovaios_2025_wdm_1tops_tensor_core_surrogate",
     ),
+    MatmulArtifactRecipe(
+        "luan_2026_single_shot_mmm_surrogate.yaml",
+        "luan_2026_single_shot_mmm_surrogate",
+    ),
+    MatmulArtifactRecipe(
+        "bandyopadhyay_2024_single_chip_dnn_surrogate.yaml",
+        "bandyopadhyay_2024_single_chip_dnn_surrogate",
+    ),
+    MatmulArtifactRecipe(
+        "kari_2024_coherent_matrix_platform_surrogate.yaml",
+        "kari_2024_coherent_matrix_platform_surrogate",
+    ),
+    MatmulArtifactRecipe(
+        "dong_2023_continuous_time_tensor_core_surrogate.yaml",
+        "dong_2023_continuous_time_tensor_core_surrogate",
+    ),
 )
 
 TRANSFORMER_LAYER_ARTIFACT_RECIPES: tuple[TransformerLayerArtifactRecipe, ...] = (

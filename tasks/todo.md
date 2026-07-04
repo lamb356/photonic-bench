@@ -210,6 +210,76 @@
 - [x] Task 8: Run final verification, close state files, commit, push, and
       inspect final repository status.
 
+## Completed Goal: Merge PR #4 And Continue Improvements
+
+- [x] Task 0: Roll state files forward and create prioritized checklist.
+- [x] Task 1: Verify and merge PR #4 into `master`, then ensure local
+      `master` is clean and up to date.
+- [x] Task 2: Improve visualizer interaction polish and analytical comparison
+      features.
+- [x] Task 3: Deepen system modeling with contention, shared bandwidth, and
+      calibration-oriented metrics.
+- [x] Task 4: Add at least 3 to 4 additional high-quality published photonic
+      accelerator cards with citations, source-quality metadata, and generated
+      artifacts.
+- [x] Task 5: Improve CLI validation and workflow usability, especially around
+      complex/full transformer model workflows.
+- [x] Task 6: Update documentation and regenerate checked artifacts.
+- [x] Task 7: Run mandatory Hostile Senior Reviewer critique and fix important
+      findings.
+- [x] Task 8: Run final verification, close state files, commit/push final
+      work, and inspect final repository status.
+
+## Completed Goal: Visualizer Interaction, Usability, And Dashboard Experience
+
+- [x] Task 0: Roll state files forward and create prioritized checklist.
+- [x] Task 1: Map current visualizer dashboard, filter, grouping, preset,
+      export, boundary-label, and browser-smoke coverage.
+- [x] Task 2: Improve filtering, sorting, and grouping with source-quality
+      filtering, user-selectable grouping, compare-visible, and reset-filter
+      controls.
+- [x] Task 3: Improve comparison dashboard insights with an analysis-focus
+      selector and schema-aware recommendation panel.
+- [x] Task 4: Improve export options with CSV export and focus/filter/grouping
+      metadata in comparison exports.
+- [x] Task 5: Update documentation, regenerate checked visualizer artifacts,
+      and run focused visualizer verification.
+- [x] Task 6: Run mandatory Hostile Senior Reviewer critique focused on
+      interaction, dashboard clarity, boundary labels, and maintainability,
+      then fix important findings.
+- [x] Task 7: Run final quality gates, close state files, and inspect final
+      repository status.
+
+## Active Goal: Advanced Visualizer Shareability, Explainability, Testing, And Accessibility
+
+- [x] Task 0: Roll state files forward and create the initial checklist for
+      tasks 1-10.
+- [x] Task 1: Commit the current work on branch
+      `codex/pr4-followup-improvements` and open a pull request to `master`.
+- [x] Task 2: Add shareable URL state for filters, focus mode, selected
+      artifacts, pinned artifact, and Pareto mode.
+- [x] Task 3: Add visual regression screenshot testing for desktop and mobile
+      views.
+- [x] Task 4: Add an explain-score drilldown showing how each recommendation
+      score is calculated.
+- [x] Task 5: Add custom score weights for comparison focus modes.
+- [x] Task 6: Add selection drawer controls: remove one, clear group, invert
+      selection, and compare top N visible.
+- [x] Task 7: Improve sticky comparison header and first-column behavior for
+      wide comparison tables.
+- [x] Task 8: Add a formal JSON schema for
+      `photonic-bench-comparison-export-v1`.
+- [x] Task 9: Add import/export functionality for browser-local presets.
+- [x] Task 10: Perform an accessibility pass covering keyboard navigation,
+      ARIA labels, reduced motion, and contrast.
+- [x] Task 11: Run mandatory Hostile Senior Reviewer critique and fix important
+      findings.
+- [x] Task 12: Run final verification, close state files, commit/push final
+      work, and inspect final repository status.
+- [x] Task 13: Fix post-push GitHub Actions visual regression portability issue
+      with platform-specific checked baselines, exact matching when possible,
+      and perceptual screenshot fallback metrics.
+
 ## Explicitly Not Active In This Goal
 
 - [ ] Hosted backend web service.

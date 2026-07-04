@@ -14,6 +14,8 @@ from photonic_bench.config import (
     PipelineConfig,
     ProvenanceConfig,
     PublishedCalibrationConfig,
+    SystemConfig,
+    SystemContentionConfig,
     TimingConfig,
     WorkloadConfig,
     load_config,
@@ -94,7 +96,53 @@ def test_evaluate_matmul_energy_accounting() -> None:
         (56 / 1024) + (56 / 256) + (56 / 16)
     )
     assert result.system.effective_transfer_time_ns == pytest.approx(56 / 16)
+    assert result.system.shared_bandwidth_clients == pytest.approx(1.0)
+    assert result.system.bandwidth_arbitration_efficiency == pytest.approx(1.0)
+    assert result.system.calibration_overhead_fraction == pytest.approx(0.0)
+    assert result.system.sram.effective_bandwidth_bytes_per_ns == pytest.approx(1024)
+    assert result.system.off_chip.contention_adjusted_transfer_time_ns == pytest.approx(
+        56 / 16
+    )
+    assert result.system.contention_adjusted_effective_transfer_time_ns == pytest.approx(
+        56 / 16
+    )
+    assert result.system.calibration_adjusted_effective_transfer_time_ns == pytest.approx(
+        56 / 16
+    )
     assert result.system.bandwidth_limited_batch_latency_ns == pytest.approx(5.0)
+    assert result.system.bandwidth_limited_tier == "compute"
+    assert result.system.contention_adjusted_batch_latency_ns == pytest.approx(5.0)
+    assert result.system.contention_limited_tier == "compute"
+
+
+def test_evaluate_applies_shared_bandwidth_contention_and_calibration_guardband() -> None:
+    config = unit_config().with_updates(
+        system=SystemConfig(
+            contention=SystemContentionConfig(
+                shared_bandwidth_clients=2.0,
+                arbitration_efficiency=0.5,
+                calibration_overhead_fraction=0.25,
+            )
+        )
+    )
+
+    result = evaluate(config)
+
+    assert result.system.off_chip.effective_bandwidth_bytes_per_ns == pytest.approx(4.0)
+    assert result.system.off_chip.contention_adjusted_transfer_time_ns == pytest.approx(
+        56 / 4
+    )
+    assert result.system.contention_adjusted_effective_transfer_time_ns == pytest.approx(
+        56 / 4
+    )
+    assert result.system.calibration_adjusted_effective_transfer_time_ns == pytest.approx(
+        (56 / 4) * 1.25
+    )
+    assert result.system.contention_adjusted_batch_latency_ns == pytest.approx(17.5)
+    assert result.system.contention_limited_tier == "off_chip"
+    assert result.system.contention_adjusted_equivalent_ops_per_second == pytest.approx(
+        128 / (17.5e-9)
+    )
 
 
 def test_evaluate_noise_and_latency_estimates() -> None:

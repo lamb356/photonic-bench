@@ -1,0 +1,74 @@
+benchmark:
+  name: Luan 2026 single-shot MMM optical tensor processor surrogate
+  description: Source-backed card for the Nature Communications 2026 single-shot matrix-matrix photonic processor. The local workload is a 16x16 dense GEMM tile matching the reported 4096 MACs per optical shot; it is not a diffraction-field or camera/readout reproduction.
+workload:
+  type: matmul
+  m: 16
+  n: 16
+  k: 16
+device:
+  optical_mac_energy_fj: 0.02
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 8
+    energy_pj_per_conversion: 0.5
+  vector_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+  weight_dac:
+    bits: 8
+    energy_pj_per_conversion: 0.2
+execution:
+  batch_size: 1
+  vector_reuse_factor: 1
+  weight_reuse_factor: 1
+  weight_stationary: true
+  pipeline:
+    stages: 1
+    cycle_time_ns: 0.5
+timing:
+  optical_latency_ns: 0.5
+  adc_latency_ns: 0
+  dac_latency_ns: 0
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 0.5
+provenance:
+  source_title: Single-shot matrix-matrix photonic processor based on spatial-spectral hypermultiplexed parallel diffraction
+  source_url: https://www.nature.com/articles/s41467-026-68452-x
+  doi: 10.1038/s41467-026-68452-x
+  venue: Nature Communications 17, 484 (2026)
+  claim_status: paper-reported single-shot matrix-matrix optical processor metrics; matmul-surrogate local model
+published_calibration:
+  architecture: Spatial-wavelength-temporal hypermultiplexed optical tensor processor
+  additional_metrics:
+    demonstrated_tile: 16x16_by_16x16
+    reported_macs_per_shot: 4096
+    reported_sample_rate_gsa_per_s: 2
+    reported_optical_energy_per_mac_aj: 20
+    reported_classification_accuracy_percent: 96.4
+    derived_equivalent_tops_from_macs_per_shot_and_rate: 16.384
+    surrogate_mapping: m=16, k=16, n=16 preserves the reported 4096 MACs per shot; local converter and system tiers are PhotonicBench assumptions.
+source_quality:
+  reported_metrics:
+    - macs_per_shot
+    - sample_rate
+    - optical_energy_per_mac
+    - accuracy
+  local_surrogate_type: dense_single_shot_mmm_tile_surrogate
+  coverage:
+    throughput: derived
+    energy: reported
+    accuracy: reported
+    area: not_reported
+    precision: not_reported
+  confidence_grade: B
+  notes:
+    - The source directly reports the optical tensor processor tile, MACs per shot, sample rate, optical energy per MAC, and task accuracy.
+    - PhotonicBench does not model the diffraction optics, spatial/spectral routing, imaging, or detector-array readout.
+assumptions:
+  - The local optical MAC energy is set to the paper-reported optical 20 aJ/MAC value converted to 0.02 fJ/MAC.
+  - Converter energy, SRAM/intermediate/off-chip movement, and wall-plug assumptions are local PhotonicBench values and not source-reported system power.
+  - Weight-stationary mode approximates reusing the right operand inside the reported 16x16-by-16x16 optical tile.

@@ -363,3 +363,82 @@ def test_kovaios_2025_wdm_tensor_core_card_is_source_backed() -> None:
     assert "not the full hyperdimensional scaling analysis" in (
         metrics["surrogate_mapping"]
     )
+
+
+def test_luan_2026_single_shot_mmm_card_is_source_backed() -> None:
+    config = load_config(Path("examples/luan_2026_single_shot_mmm_surrogate.yaml"))
+    result = evaluate(config)
+    payload = report_to_dict(result)
+
+    assert config.provenance is not None
+    assert config.provenance.doi == "10.1038/s41467-026-68452-x"
+    assert config.published_calibration is not None
+    assert result.macs == 4096
+    assert result.equivalent_ops == 8192
+    metrics = payload["published_reference"]["reported"]["additional_metrics"]
+    assert metrics["reported_macs_per_shot"] == 4096
+    assert metrics["reported_sample_rate_gsa_per_s"] == pytest.approx(2)
+    assert metrics["reported_optical_energy_per_mac_aj"] == pytest.approx(20)
+    assert metrics["reported_classification_accuracy_percent"] == pytest.approx(96.4)
+    assert "preserves the reported 4096 MACs per shot" in (
+        metrics["surrogate_mapping"]
+    )
+
+
+def test_bandyopadhyay_2024_single_chip_dnn_card_is_source_backed() -> None:
+    config = load_config(
+        Path("examples/bandyopadhyay_2024_single_chip_dnn_surrogate.yaml")
+    )
+    result = evaluate(config)
+    payload = report_to_dict(result)
+
+    assert config.provenance is not None
+    assert config.provenance.doi == "10.1038/s41566-024-01567-z"
+    assert config.published_calibration is not None
+    assert result.macs == 216
+    assert result.equivalent_ops == 432
+    metrics = payload["published_reference"]["reported"]["additional_metrics"]
+    assert metrics["reported_neurons"] == 6
+    assert metrics["reported_layers"] == 3
+    assert metrics["reported_latency_ps"] == pytest.approx(410)
+    assert metrics["reported_accuracy_percent"] == pytest.approx(92.5)
+    assert "six-neuron integrated photonic DNN" in metrics["surrogate_mapping"]
+
+
+def test_kari_2024_coherent_matrix_platform_card_is_source_backed() -> None:
+    config = load_config(
+        Path("examples/kari_2024_coherent_matrix_platform_surrogate.yaml")
+    )
+    result = evaluate(config)
+    payload = report_to_dict(result)
+
+    assert config.provenance is not None
+    assert config.provenance.doi == "10.1364/OPTICA.507525"
+    assert config.published_calibration is not None
+    assert result.macs == 64
+    assert result.equivalent_ops == 128
+    metrics = payload["published_reference"]["reported"]["additional_metrics"]
+    assert metrics["operation_types"] == "real_mac,complex_mac,covariance"
+    assert metrics["scalable_target"] == "general_matrix_matrix_operations"
+    assert metrics["source_demonstrates_temporal_multiplexing"] is True
+    assert "coherent matrix-operation platform" in metrics["surrogate_mapping"]
+
+
+def test_dong_2023_continuous_time_tensor_core_card_is_source_backed() -> None:
+    config = load_config(
+        Path("examples/dong_2023_continuous_time_tensor_core_surrogate.yaml")
+    )
+    result = evaluate(config)
+    payload = report_to_dict(result)
+
+    assert config.provenance is not None
+    assert config.provenance.doi == "10.1038/s41566-023-01313-x"
+    assert config.published_calibration is not None
+    assert result.macs == 900
+    assert result.equivalent_ops == 1800
+    metrics = payload["published_reference"]["reported"]["additional_metrics"]
+    assert metrics["reported_parallelism"] == 100
+    assert metrics["rf_components"] == 50
+    assert metrics["wdm_channels"] == 2
+    assert metrics["reported_cnn_accuracy_percent"] == pytest.approx(93.5)
+    assert "not a continuous-time RF/WDM simulation" in metrics["surrogate_mapping"]

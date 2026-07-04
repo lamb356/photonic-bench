@@ -340,18 +340,24 @@
         "profile",
         "profile_overrides",
         "memory_timing_mode",
+        "contention",
         "local_compute_and_conversion_energy_pj",
         "total_movement_energy_pj",
         "total_system_energy_pj",
         "tiers",
         "serial_transfer_time_ns",
         "max_per_matmul_transfer_time_ns",
+        "contention_adjusted_serial_transfer_time_ns",
+        "max_per_matmul_contention_adjusted_transfer_time_ns",
         "bandwidth_limited_serial_batch_latency_ns",
+        "contention_adjusted_serial_batch_latency_ns",
         "system_energy_per_mac_pj",
         "system_energy_per_op_pj",
         "movement_energy_share",
         "bandwidth_limited_serial_effective_macs_per_second",
         "bandwidth_limited_serial_effective_equivalent_ops_per_second",
+        "contention_adjusted_serial_effective_macs_per_second",
+        "contention_adjusted_serial_effective_equivalent_ops_per_second",
         "note"
       ],
       "properties": {
@@ -361,6 +367,7 @@
           "items": {"type": "string"}
         },
         "memory_timing_mode": {"enum": ["overlapped", "serialized"]},
+        "contention": {"$ref": "#/$defs/systemContentionInputs"},
         "local_compute_and_conversion_energy_pj": {"type": "number", "minimum": 0},
         "total_movement_energy_pj": {"type": "number", "minimum": 0},
         "total_system_energy_pj": {"type": "number", "minimum": 0},
@@ -376,7 +383,19 @@
         },
         "serial_transfer_time_ns": {"type": "number", "minimum": 0},
         "max_per_matmul_transfer_time_ns": {"type": "number", "minimum": 0},
+        "contention_adjusted_serial_transfer_time_ns": {
+          "type": "number",
+          "minimum": 0
+        },
+        "max_per_matmul_contention_adjusted_transfer_time_ns": {
+          "type": "number",
+          "minimum": 0
+        },
         "bandwidth_limited_serial_batch_latency_ns": {
+          "type": "number",
+          "minimum": 0
+        },
+        "contention_adjusted_serial_batch_latency_ns": {
           "type": "number",
           "minimum": 0
         },
@@ -388,6 +407,14 @@
           "minimum": 0
         },
         "bandwidth_limited_serial_effective_equivalent_ops_per_second": {
+          "type": "number",
+          "minimum": 0
+        },
+        "contention_adjusted_serial_effective_macs_per_second": {
+          "type": "number",
+          "minimum": 0
+        },
+        "contention_adjusted_serial_effective_equivalent_ops_per_second": {
           "type": "number",
           "minimum": 0
         },
@@ -405,7 +432,8 @@
         "read_energy_pj",
         "write_energy_pj",
         "total_energy_pj",
-        "transfer_time_ns"
+        "transfer_time_ns",
+        "contention_adjusted_transfer_time_ns"
       ],
       "properties": {
         "name": {"type": "string"},
@@ -415,7 +443,29 @@
         "read_energy_pj": {"type": "number", "minimum": 0},
         "write_energy_pj": {"type": "number", "minimum": 0},
         "total_energy_pj": {"type": "number", "minimum": 0},
-        "transfer_time_ns": {"type": "number", "minimum": 0}
+        "transfer_time_ns": {"type": "number", "minimum": 0},
+        "contention_adjusted_transfer_time_ns": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "systemContentionInputs": {
+      "type": "object",
+      "required": [
+        "shared_bandwidth_clients",
+        "arbitration_efficiency",
+        "calibration_overhead_fraction"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "shared_bandwidth_clients": {"type": "number", "exclusiveMinimum": 0},
+        "arbitration_efficiency": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "calibration_overhead_fraction": {"type": "number", "minimum": 0}
       }
     }
   }

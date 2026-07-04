@@ -389,6 +389,10 @@ system:
     bandwidth_bytes_per_ns: 8
     read_fraction: 0.25
     write_fraction: 0.5
+  contention:
+    shared_bandwidth_clients: 3
+    arbitration_efficiency: 0.8
+    calibration_overhead_fraction: 0.1
 timing:
   optical_latency_ns: 3
   adc_latency_ns: 1
@@ -409,8 +413,12 @@ noise:
         "sram",
         "intermediate",
         "off_chip",
+        "contention",
     )
     assert config.system.memory_timing_mode == "serialized"
+    assert config.system.contention.shared_bandwidth_clients == 3
+    assert config.system.contention.arbitration_efficiency == 0.8
+    assert config.system.contention.calibration_overhead_fraction == 0.1
     assert config.system.sram.read_energy_pj_per_byte == 0.03
     assert config.system.sram.write_energy_pj_per_byte == 0.04
     assert config.system.sram.bandwidth_bytes_per_ns == 512
@@ -572,6 +580,147 @@ noise:
 
     assert "system.off_chip.read_fraction" in message
     assert "between 0 and 1" in message
+
+
+def test_load_config_rejects_invalid_contention_clients(tmp_path: Path) -> None:
+    config_path = tmp_path / "bad_contention_clients.yaml"
+    config_path.write_text(
+        """
+benchmark:
+  name: bad contention clients
+workload:
+  type: matmul
+  m: 4
+  n: 8
+  k: 2
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 6
+    energy_pj_per_conversion: 0.5
+  dac:
+    bits: 6
+    energy_pj_per_conversion: 0.2
+system:
+  contention:
+    shared_bandwidth_clients: 0
+timing:
+  optical_latency_ns: 3
+  adc_latency_ns: 1
+  dac_latency_ns: 1
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 3
+""".strip(),
+        encoding="utf-8",
+    )
+
+    try:
+        load_config(config_path)
+    except ValueError as exc:
+        message = str(exc)
+    else:
+        raise AssertionError("load_config should reject non-positive contention clients")
+
+    assert "system.contention.shared_bandwidth_clients" in message
+    assert "must be positive" in message
+
+
+def test_load_config_rejects_invalid_contention_efficiency(tmp_path: Path) -> None:
+    config_path = tmp_path / "bad_contention_efficiency.yaml"
+    config_path.write_text(
+        """
+benchmark:
+  name: bad contention efficiency
+workload:
+  type: matmul
+  m: 4
+  n: 8
+  k: 2
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 6
+    energy_pj_per_conversion: 0.5
+  dac:
+    bits: 6
+    energy_pj_per_conversion: 0.2
+system:
+  contention:
+    arbitration_efficiency: 1.2
+timing:
+  optical_latency_ns: 3
+  adc_latency_ns: 1
+  dac_latency_ns: 1
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 3
+""".strip(),
+        encoding="utf-8",
+    )
+
+    try:
+        load_config(config_path)
+    except ValueError as exc:
+        message = str(exc)
+    else:
+        raise AssertionError("load_config should reject invalid contention efficiency")
+
+    assert "system.contention.arbitration_efficiency" in message
+    assert "at most 1" in message
+
+
+def test_load_config_rejects_invalid_calibration_overhead(tmp_path: Path) -> None:
+    config_path = tmp_path / "bad_calibration_overhead.yaml"
+    config_path.write_text(
+        """
+benchmark:
+  name: bad calibration overhead
+workload:
+  type: matmul
+  m: 4
+  n: 8
+  k: 2
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 6
+    energy_pj_per_conversion: 0.5
+  dac:
+    bits: 6
+    energy_pj_per_conversion: 0.2
+system:
+  contention:
+    calibration_overhead_fraction: -0.1
+timing:
+  optical_latency_ns: 3
+  adc_latency_ns: 1
+  dac_latency_ns: 1
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 3
+""".strip(),
+        encoding="utf-8",
+    )
+
+    try:
+        load_config(config_path)
+    except ValueError as exc:
+        message = str(exc)
+    else:
+        raise AssertionError("load_config should reject negative calibration overhead")
+
+    assert "system.contention.calibration_overhead_fraction" in message
+    assert "must be non-negative" in message
 
 
 def test_load_config_rejects_invalid_memory_timing_mode(tmp_path: Path) -> None:

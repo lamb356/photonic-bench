@@ -3,7 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 import math
 
-from photonic_bench.config import BenchmarkConfig, MemoryTierConfig
+from photonic_bench.config import (
+    BenchmarkConfig,
+    MemoryTierConfig,
+    SystemContentionConfig,
+)
 
 
 SUPPORTED_CALIBRATION_TARGETS = (
@@ -86,7 +90,9 @@ class SystemTierResult:
     write_energy_pj: float
     total_energy_pj: float
     bandwidth_bytes_per_ns: float
+    effective_bandwidth_bytes_per_ns: float
     transfer_time_ns: float
+    contention_adjusted_transfer_time_ns: float
     read_fraction: float
     write_fraction: float
 
@@ -106,9 +112,19 @@ class SystemModelResult:
     max_transfer_time_ns: float
     serial_transfer_time_ns: float
     effective_transfer_time_ns: float
+    shared_bandwidth_clients: float
+    bandwidth_arbitration_efficiency: float
+    calibration_overhead_fraction: float
+    contention_adjusted_max_transfer_time_ns: float
+    contention_adjusted_serial_transfer_time_ns: float
+    contention_adjusted_effective_transfer_time_ns: float
+    calibration_adjusted_effective_transfer_time_ns: float
     bandwidth_limited_batch_latency_ns: float
     bandwidth_limited_equivalent_ops_per_second: float
     bandwidth_limited_tier: str
+    contention_adjusted_batch_latency_ns: float
+    contention_adjusted_equivalent_ops_per_second: float
+    contention_limited_tier: str
 
 
 @dataclass(frozen=True)
@@ -376,18 +392,21 @@ def _system_model(
     sram = _system_tier(
         "sram",
         config.system.sram,
+        contention=config.system.contention,
         operand_read_bytes=operand_read_bytes,
         output_write_bytes=output_write_bytes,
     )
     intermediate = _system_tier(
         "intermediate",
         config.system.intermediate,
+        contention=config.system.contention,
         operand_read_bytes=operand_read_bytes,
         output_write_bytes=output_write_bytes,
     )
     off_chip = _system_tier(
         "off_chip",
         config.system.off_chip,
+        contention=config.system.contention,
         operand_read_bytes=operand_read_bytes,
         output_write_bytes=output_write_bytes,
     )
@@ -401,16 +420,47 @@ def _system_model(
         if config.system.memory_timing_mode == "serialized"
         else max_transfer_time_ns
     )
+    contention_adjusted_max_transfer_time_ns = max(
+        tier.contention_adjusted_transfer_time_ns for tier in tiers
+    )
+    contention_adjusted_serial_transfer_time_ns = sum(
+        tier.contention_adjusted_transfer_time_ns for tier in tiers
+    )
+    contention_adjusted_effective_transfer_time_ns = (
+        contention_adjusted_serial_transfer_time_ns
+        if config.system.memory_timing_mode == "serialized"
+        else contention_adjusted_max_transfer_time_ns
+    )
+    calibration_adjusted_effective_transfer_time_ns = (
+        contention_adjusted_effective_transfer_time_ns
+        * (1.0 + config.system.contention.calibration_overhead_fraction)
+    )
     bandwidth_limited_batch_latency_ns = max(
         timing.batch_latency_ns,
         effective_transfer_time_ns,
     )
-    slowest_tier = max(tiers, key=lambda tier: tier.transfer_time_ns)
-    bandwidth_limited_tier = (
-        "serialized_tier_path"
-        if config.system.memory_timing_mode == "serialized"
-        else slowest_tier.name
+    contention_adjusted_batch_latency_ns = max(
+        timing.batch_latency_ns,
+        calibration_adjusted_effective_transfer_time_ns,
     )
+    slowest_tier = max(tiers, key=lambda tier: tier.transfer_time_ns)
+    contention_slowest_tier = max(
+        tiers,
+        key=lambda tier: tier.contention_adjusted_transfer_time_ns,
+    )
+    if timing.batch_latency_ns >= effective_transfer_time_ns:
+        bandwidth_limited_tier = "compute"
+    elif config.system.memory_timing_mode == "serialized":
+        bandwidth_limited_tier = "serialized_tier_path"
+    else:
+        bandwidth_limited_tier = slowest_tier.name
+
+    if timing.batch_latency_ns >= calibration_adjusted_effective_transfer_time_ns:
+        contention_limited_tier = "compute"
+    elif config.system.memory_timing_mode == "serialized":
+        contention_limited_tier = "serialized_tier_path"
+    else:
+        contention_limited_tier = contention_slowest_tier.name
     return SystemModelResult(
         sram=sram,
         intermediate=intermediate,
@@ -429,6 +479,25 @@ def _system_model(
         max_transfer_time_ns=max_transfer_time_ns,
         serial_transfer_time_ns=serial_transfer_time_ns,
         effective_transfer_time_ns=effective_transfer_time_ns,
+        shared_bandwidth_clients=config.system.contention.shared_bandwidth_clients,
+        bandwidth_arbitration_efficiency=(
+            config.system.contention.arbitration_efficiency
+        ),
+        calibration_overhead_fraction=(
+            config.system.contention.calibration_overhead_fraction
+        ),
+        contention_adjusted_max_transfer_time_ns=(
+            contention_adjusted_max_transfer_time_ns
+        ),
+        contention_adjusted_serial_transfer_time_ns=(
+            contention_adjusted_serial_transfer_time_ns
+        ),
+        contention_adjusted_effective_transfer_time_ns=(
+            contention_adjusted_effective_transfer_time_ns
+        ),
+        calibration_adjusted_effective_transfer_time_ns=(
+            calibration_adjusted_effective_transfer_time_ns
+        ),
         bandwidth_limited_batch_latency_ns=bandwidth_limited_batch_latency_ns,
         bandwidth_limited_equivalent_ops_per_second=(
             equivalent_ops / (bandwidth_limited_batch_latency_ns * 1e-9)
@@ -436,6 +505,13 @@ def _system_model(
             else 0.0
         ),
         bandwidth_limited_tier=bandwidth_limited_tier,
+        contention_adjusted_batch_latency_ns=contention_adjusted_batch_latency_ns,
+        contention_adjusted_equivalent_ops_per_second=(
+            equivalent_ops / (contention_adjusted_batch_latency_ns * 1e-9)
+            if contention_adjusted_batch_latency_ns
+            else 0.0
+        ),
+        contention_limited_tier=contention_limited_tier,
     )
 
 
@@ -443,6 +519,7 @@ def _system_tier(
     name: str,
     tier: MemoryTierConfig,
     *,
+    contention: SystemContentionConfig,
     operand_read_bytes: int,
     output_write_bytes: int,
 ) -> SystemTierResult:
@@ -452,6 +529,11 @@ def _system_tier(
     read_energy_pj = read_bytes * tier.read_energy_pj_per_byte
     write_energy_pj = write_bytes * tier.write_energy_pj_per_byte
     total_energy_pj = read_energy_pj + write_energy_pj
+    effective_bandwidth_bytes_per_ns = (
+        tier.bandwidth_bytes_per_ns
+        * contention.arbitration_efficiency
+        / contention.shared_bandwidth_clients
+    )
     return SystemTierResult(
         name=name,
         read_bytes=read_bytes,
@@ -461,7 +543,11 @@ def _system_tier(
         write_energy_pj=write_energy_pj,
         total_energy_pj=total_energy_pj,
         bandwidth_bytes_per_ns=tier.bandwidth_bytes_per_ns,
+        effective_bandwidth_bytes_per_ns=effective_bandwidth_bytes_per_ns,
         transfer_time_ns=total_bytes / tier.bandwidth_bytes_per_ns,
+        contention_adjusted_transfer_time_ns=(
+            total_bytes / effective_bandwidth_bytes_per_ns
+        ),
         read_fraction=tier.read_fraction,
         write_fraction=tier.write_fraction,
     )

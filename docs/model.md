@@ -107,18 +107,22 @@ system:
     bandwidth_bytes_per_ns: 16
     read_fraction: 1.0
     write_fraction: 1.0
+  contention:
+    shared_bandwidth_clients: 1.0
+    arbitration_efficiency: 1.0
+    calibration_overhead_fraction: 0.0
 ```
 
 The named profiles are convenience presets for sensitivity analysis. They are
 local assumptions, not measured hardware:
 
-| Profile | SRAM pJ/byte read/write | Intermediate pJ/byte read/write | Off-chip pJ/byte read/write | Timing mode |
-| --- | ---: | ---: | ---: | --- |
-| `default` | 0.02 / 0.02 | 0.2 / 0.2 | 10 / 10 | `overlapped` |
-| `on_chip_sram` | 0.02 / 0.02 | 0.2 / 0.2 with zero fractions | 10 / 10 with zero fractions | `overlapped` |
-| `hbm` | 0.02 / 0.02 | 0.2 / 0.2 | 3 / 3 | `overlapped` |
-| `ddr` | 0.02 / 0.02 | 0.2 / 0.2 | 10 / 10 | `overlapped` |
-| `pcie_attached` | 0.02 / 0.02 | 0.2 / 0.2 | 50 / 50 | `serialized` |
+| Profile | SRAM pJ/byte read/write | Intermediate pJ/byte read/write | Off-chip pJ/byte read/write | Timing mode | Shared clients | Arbitration | Calibration overhead |
+| --- | ---: | ---: | ---: | --- | ---: | ---: | ---: |
+| `default` | 0.02 / 0.02 | 0.2 / 0.2 | 10 / 10 | `overlapped` | 1.0 | 1.0 | 0.0 |
+| `on_chip_sram` | 0.02 / 0.02 | 0.2 / 0.2 with zero fractions | 10 / 10 with zero fractions | `overlapped` | 1.0 | 1.0 | 0.0 |
+| `hbm` | 0.02 / 0.02 | 0.2 / 0.2 | 3 / 3 | `overlapped` | 1.0 | 1.0 | 0.0 |
+| `ddr` | 0.02 / 0.02 | 0.2 / 0.2 | 10 / 10 | `overlapped` | 1.0 | 1.0 | 0.0 |
+| `pcie_attached` | 0.02 / 0.02 | 0.2 / 0.2 | 50 / 50 | `serialized` | 2.0 | 0.85 | 0.05 |
 
 Configs can select a profile and optionally override tier fields:
 
@@ -129,6 +133,10 @@ system:
   off_chip:
     bandwidth_bytes_per_ns: 256
     read_fraction: 0.5
+  contention:
+    shared_bandwidth_clients: 2
+    arbitration_efficiency: 0.85
+    calibration_overhead_fraction: 0.05
 ```
 
 When `system.profile` is omitted but explicit tier sections are present,
@@ -148,6 +156,10 @@ tier_read_energy_pj = tier_read_bytes * tier.read_energy_pj_per_byte
 tier_write_energy_pj = tier_write_bytes * tier.write_energy_pj_per_byte
 tier_total_energy_pj = tier_read_energy_pj + tier_write_energy_pj
 tier_transfer_time_ns = tier_total_bytes / tier.bandwidth_bytes_per_ns
+tier_effective_bandwidth_bytes_per_ns =
+    tier.bandwidth_bytes_per_ns * arbitration_efficiency / shared_bandwidth_clients
+tier_contention_adjusted_transfer_time_ns =
+    tier_total_bytes / tier_effective_bandwidth_bytes_per_ns
 ```
 
 The per-card system summary is:
@@ -167,10 +179,20 @@ serial_transfer_time_ns =
 effective_transfer_time_ns =
     max_transfer_time_ns when memory_timing_mode == "overlapped"
     serial_transfer_time_ns when memory_timing_mode == "serialized"
+contention_adjusted_effective_transfer_time_ns =
+    max(contention_adjusted_tier_transfer_time_ns) when overlapped
+    sum(contention_adjusted_tier_transfer_time_ns) when serialized
+calibration_adjusted_effective_transfer_time_ns =
+    contention_adjusted_effective_transfer_time_ns
+    * (1 + calibration_overhead_fraction)
 bandwidth_limited_batch_latency_ns =
     max(batch_latency_ns, effective_transfer_time_ns)
 bandwidth_limited_equivalent_ops_per_second =
     equivalent_ops / (bandwidth_limited_batch_latency_ns * 1e-9)
+contention_adjusted_batch_latency_ns =
+    max(batch_latency_ns, calibration_adjusted_effective_transfer_time_ns)
+contention_adjusted_equivalent_ops_per_second =
+    equivalent_ops / (contention_adjusted_batch_latency_ns * 1e-9)
 ```
 
 These fields live under `local_model.system` in JSON and under the
@@ -328,7 +350,9 @@ Aggregate system movement fields are serial summaries over decomposed cards.
 `local_model.system.total_system_energy_pj` are sums of the per-matmul system
 estimates. `bandwidth_limited_serial_batch_latency_ns` sums the decomposed
 bandwidth-limited batch latencies and should not be read as a fused layer memory
-scheduler.
+scheduler. `contention_adjusted_serial_batch_latency_ns` and
+`contention_adjusted_serial_effective_equivalent_ops_per_second` apply the same
+serial aggregation to decomposed local contention-adjusted timing.
 
 Aggregate timing fields are labeled serial summaries. In particular,
 `serial_batch_latency_ns` is the sum of per-matmul batch latencies, and
@@ -425,6 +449,8 @@ model_serial_batch_latency_ns =
     sum(layer_count_i * layer_serial_batch_latency_ns_i)
 model_bandwidth_limited_serial_batch_latency_ns =
     sum(layer_count_i * layer_bandwidth_limited_serial_batch_latency_ns_i)
+model_contention_adjusted_serial_batch_latency_ns =
+    sum(layer_count_i * layer_contention_adjusted_serial_batch_latency_ns_i)
 ```
 
 Per-MAC, per-op, movement-share, operational-intensity, and throughput fields

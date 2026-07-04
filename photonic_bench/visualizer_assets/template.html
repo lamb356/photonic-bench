@@ -45,6 +45,13 @@
           <input id="preset-name" type="text" placeholder="Preset name" aria-label="Preset name">
           <button id="save-preset" class="action-button primary" type="button">Save</button>
         </div>
+        <div class="preset-actions">
+          <button id="export-presets" class="action-button" type="button">Export local</button>
+          <label class="action-button import-preset-button" for="import-preset-file">
+            Import local
+            <input id="import-preset-file" type="file" accept="application/json,.json" aria-label="Import browser-local presets">
+          </label>
+        </div>
         <div id="preset-message" class="preset-message" aria-live="polite"></div>
       </div>
 
@@ -73,6 +80,14 @@
           <option value="provenance">Has provenance</option>
           <option value="transformer-boundaries">Serial/noise/exclusion boundaries</option>
         </select>
+        <select id="quality-filter" aria-label="Filter by source quality">
+          <option value="all">All source grades</option>
+          <option value="A">Source grade A</option>
+          <option value="B">Source grade B</option>
+          <option value="C">Source grade C</option>
+          <option value="D">Source grade D</option>
+          <option value="unrated">Unrated source quality</option>
+        </select>
         <select id="sort-filter" aria-label="Sort artifacts">
           <option value="name">Sort by name</option>
           <option value="energy">Sort by local energy</option>
@@ -80,6 +95,17 @@
           <option value="latency">Sort by latency</option>
           <option value="ops">Sort by equivalent ops</option>
         </select>
+        <select id="group-filter" aria-label="Group artifact list">
+          <option value="schema">Group by schema</option>
+          <option value="source-quality">Group by source grade</option>
+          <option value="system-profile">Group by system profile</option>
+          <option value="boundary">Group by boundary tag</option>
+          <option value="none">Ungrouped list</option>
+        </select>
+        <div class="filter-actions">
+          <button id="compare-visible" class="action-button primary" type="button">Compare visible</button>
+          <button id="clear-filters" class="action-button" type="button">Reset filters</button>
+        </div>
       </div>
 
       <div id="artifact-list" class="artifact-list" aria-live="polite"></div>

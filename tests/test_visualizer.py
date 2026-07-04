@@ -80,6 +80,10 @@ def test_discover_visualizer_data_loads_root_and_nested_reports() -> None:
         "chen_2026_fsr_gemm_surrogate.json",
         "ning_2025_cirptc_surrogate.json",
         "kovaios_2025_wdm_1tops_tensor_core_surrogate.json",
+        "luan_2026_single_shot_mmm_surrogate.json",
+        "bandyopadhyay_2024_single_chip_dnn_surrogate.json",
+        "kari_2024_coherent_matrix_platform_surrogate.json",
+        "dong_2023_continuous_time_tensor_core_surrogate.json",
     )
     assert data.comparison_presets[2].artifact_ids == (
         "profile_sensitivity_64x64_on_chip_sram.json",
@@ -175,7 +179,12 @@ def test_write_visualizer_emits_index_payloads_and_static_assets(
     assert "System movement energy" in " ".join(index["modeling_boundaries"])
     assert "System profile names" in " ".join(index["modeling_boundaries"])
     assert "Transformer model timing" in " ".join(index["modeling_boundaries"])
+    assert "Contention metrics" in " ".join(index["modeling_boundaries"])
     assert index["artifacts"][0]["summary"]["system_profile"] is not None
+    assert (
+        index["artifacts"][0]["summary"]["shared_bandwidth_clients"]
+        is not None
+    )
 
     layer = next(
         artifact
@@ -214,11 +223,24 @@ def test_static_app_contains_comparison_and_boundary_labels() -> None:
     assert "Ratio vs pinned" in app_js
     assert "Comparison Insights" in app_js
     assert "Comparison Brief" in app_js
+    assert "Comparison Workspace" in app_js
+    assert "Comparison Recommendations" in app_js
     assert "Decision Scorecard" in app_js
     assert "decision_scorecard" in app_js
     assert "Download JSON" in app_js
     assert "Download Markdown" in app_js
+    assert "Download CSV" in app_js
     assert "Copy Markdown" in app_js
+    assert "Copy state link" in app_js
+    assert "Explain score" in app_js
+    assert "Score weights" in app_js
+    assert "Selection Drawer" in app_js
+    assert "Compare top N visible" in app_js
+    assert "Invert visible selection" in app_js
+    assert "score_explanation" in app_js
+    assert "url_state" in app_js
+    assert "analysis_focus" in app_js
+    assert "Source confidence" in app_js
     assert "comparison_presets" in app_js
     assert "Operational intensity" in app_js
     assert "Interface Memory Traffic" in app_js
@@ -227,6 +249,10 @@ def test_static_app_contains_comparison_and_boundary_labels() -> None:
     assert "Profile tier overrides" in app_js
     assert "System energy per op" in app_js
     assert "Movement share" in app_js
+    assert "Contention Insight" in app_js
+    assert "Contention-adjusted latency" in app_js
+    assert "Contention-adjusted throughput" in app_js
+    assert "contention-throughput" in app_js
     assert "Pareto Trade-Offs" in app_js
     assert "Energy/op vs throughput" in app_js
     assert "Ops/byte vs latency" in app_js
@@ -259,8 +285,24 @@ def test_static_app_contains_comparison_and_boundary_labels() -> None:
     assert "unsupported schema_version" in app_js
     assert "external file" in app_js
     assert 'startsWith("<")' not in app_js
+    template = Path("photonic_bench/visualizer_assets/template.html").read_text(
+        encoding="utf-8"
+    )
+    assert "Filter by source quality" in template
+    assert "Group artifact list" in template
+    assert "Compare visible" in template
+    assert "Reset filters" in template
+    assert "Export local" in template
+    assert "Import local" in template
     assert ".comparison-table" in styles
     assert ".insight-grid" in styles
+    assert ".recommendation-grid" in styles
+    assert ".comparison-toolbar" in styles
+    assert ".weight-panel" in styles
+    assert ".selection-drawer" in styles
+    assert "prefers-reduced-motion" in styles
+    assert "focus-visible" in styles
+    assert ".filter-summary" in styles
     assert ".preset-panel" in styles
     assert ".external-panel" in styles
     assert ".export-preview" in styles

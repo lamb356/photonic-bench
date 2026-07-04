@@ -38,10 +38,14 @@ def test_json_schema_file_documents_report_v1_contract() -> None:
     assert "system" in schema["properties"]["local_model"]["required"]
     assert "systemResult" in schema["$defs"]
     assert "profile" in schema["$defs"]["systemInputs"]["required"]
+    assert "contention" in schema["$defs"]["systemInputs"]["required"]
+    assert "systemContentionInputs" in schema["$defs"]
     system = schema["$defs"]["systemResult"]
     assert "tiers" in system["required"]
     assert "profile" in system["required"]
+    assert "contention" in system["required"]
     assert "bandwidth_limited_batch_latency_ns" in system["required"]
+    assert "contention_adjusted_batch_latency_ns" in system["required"]
     assert "sourceQuality" in schema["$defs"]
 
 
@@ -87,6 +91,12 @@ def test_transformer_layer_json_schema_file_documents_aggregate_contract() -> No
     aggregate_system = schema["$defs"]["aggregateSystemResult"]
     assert "profile" in aggregate_system["required"]
     assert "bandwidth_limited_serial_batch_latency_ns" in aggregate_system["required"]
+    assert "contention" in aggregate_system["required"]
+    assert (
+        "contention_adjusted_serial_batch_latency_ns"
+        in aggregate_system["required"]
+    )
+    assert "systemContentionInputs" in schema["$defs"]
     assert "rows" in schema["properties"]["formula_audit"]["required"]
     assert schema["properties"]["workload"]["properties"]["matmul_count"]["const"] == 5
     assert (
@@ -130,11 +140,54 @@ def test_transformer_model_json_schema_file_documents_aggregate_contract() -> No
     assert "activationMemoryTraffic" in schema["$defs"]
     assert "modelComponents" in schema["$defs"]
     assert "profile" in schema["$defs"]["modelSystem"]["required"]
+    assert "contention" in schema["$defs"]["modelSystem"]["required"]
+    assert (
+        "contention_adjusted_serial_batch_latency_ns"
+        in schema["$defs"]["modelSystem"]["required"]
+    )
+    assert "systemContentionInputs" in schema["$defs"]
     assert "overlap_adjusted_batch_latency_ns" in schema["$defs"]["modelTiming"][
         "required"
     ]
     assert schema["properties"]["workload"]["properties"]["type"]["const"] == (
         "transformer_model"
+    )
+
+
+def test_comparison_export_json_schema_file_documents_browser_contract() -> None:
+    schema = json.loads(
+        Path("docs/photonic-bench-comparison-export-v1.schema.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    assert schema["title"] == "PhotonicBench visualizer comparison export v1"
+    assert (
+        schema["properties"]["schema_version"]["const"]
+        == "photonic-bench-comparison-export-v1"
+    )
+    assert set(schema["required"]) == {
+        "schema_version",
+        "generated_at",
+        "reports_dir",
+        "pinned_id",
+        "selected_artifact_ids",
+        "analysis_focus",
+        "filters",
+        "url_state",
+        "visible_artifact_ids",
+        "recommendations",
+        "modeling_boundaries",
+        "boundary_notes",
+        "artifacts",
+        "grouped_metrics",
+    }
+    assert "score_weights" in schema["properties"]["analysis_focus"]["required"]
+    assert "scoreExplanation" in schema["$defs"]
+    assert "scoreComponent" in schema["$defs"]
+    assert (
+        schema["$defs"]["recommendation"]["properties"]["score_explanation"]["$ref"]
+        == "#/$defs/scoreExplanation"
     )
 
 
@@ -154,9 +207,12 @@ def test_json_schema_docs_describe_units_nullability_and_examples() -> None:
     assert "`local_model.memory_traffic.*_bytes` | bytes" in docs
     assert "`model_inputs.system.*.read_energy_pj_per_byte` | pJ/byte" in docs
     assert "`model_inputs.system.profile` | profile name" in docs
+    assert "`model_inputs.system.contention.shared_bandwidth_clients` | count" in docs
     assert "`local_model.system.profile` | profile name" in docs
     assert "`local_model.system.total_system_energy_pj` | pJ" in docs
     assert "`local_model.system.bandwidth_limited_batch_latency_ns` | ns" in docs
+    assert "`local_model.system.contention_adjusted_batch_latency_ns` | ns" in docs
+    assert "Contention-adjusted timing" in docs
     assert "Per-Card System Model Fields" in docs
     assert "System movement fields under `local_model.system`" in docs
     assert "converter-interface traffic, not full cache" in docs
@@ -173,6 +229,9 @@ def test_json_schema_docs_describe_units_nullability_and_examples() -> None:
     assert "Load external JSON reports" in docs
     assert "Unsupported schemas" in docs
     assert "per-file diagnostics" in docs
+    assert "Machine-readable comparison export schema" in docs
+    assert "`url_state`" in docs
+    assert "`score_explanation`" in docs
     assert "python examples/load_report_json.py" in docs
     assert "python -m photonic_bench.cli compare" in docs
 

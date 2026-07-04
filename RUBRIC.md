@@ -1,84 +1,95 @@
-# PhotonicBench Autonomous Loop Rubric
+# PhotonicBench Advanced Visualizer Rubric
 
 Use this rubric for checklist completion decisions and the mandatory Hostile
 Senior Reviewer critique.
 
-## Publish Quality
+## URL State Quality
 
-- The current branch is committed before additional high-risk feature work.
-- Commits are logical, reviewable, and free of Codex attribution.
-- The branch is pushed to `origin`.
-- The pull request targets `master`, has a clear title and body, and states
-  validation performed.
-- PR scope is understandable even though generated artifacts are included.
+- Shared URLs restore filters, focus mode, selected artifacts, pinned artifact,
+  Pareto mode, and custom score weights where relevant.
+- URL parameters are stable, compact, human-inspectable enough for review, and
+  backward-safe when artifacts are missing or renamed.
+- Browser history remains useful and does not receive noisy updates for every
+  minor keystroke.
 
-## Visualizer Quality
+## Visual Regression Quality
 
-- Comparison mode helps a daily user decide between cards, profiles, and model
-  assumptions quickly.
-- Deltas, ratios, pinned selections, grouping, saved presets, exports, Pareto
-  or frontier views, decision scorecards, and stale-artifact handling remain
-  coherent.
-- Source-reported metrics, local surrogate estimates, and local system-model
-  assumptions remain visibly separated.
-- The UI stays dense, work-focused, responsive, and free of overlapping text or
-  fragile layout shifts.
-- Browser smoke and JavaScript syntax checks cover changed visualizer behavior.
+- Desktop and mobile screenshots cover representative artifact list,
+  comparison dashboard, wide table, score explanation, and preset surfaces.
+- Screenshots are deterministic enough for local and CI review.
+- Failure output points to actual UI regressions rather than timing flake.
+- Documentation explains how to run and update baselines.
 
-## System Modeling Quality
+## Explainability And Weighting Quality
 
-- Memory hierarchy changes are explicit and auditable, including SRAM,
-  intermediate/cache, and off-chip tiers where modeled.
-- Bandwidth, movement energy, timing, serialization/overlap, reuse, and
-  profile assumptions are named instead of hidden.
-- Defaults are conservative and documented.
-- Invalid or inconsistent config fails with actionable errors.
-- JSON, Markdown reports, comparison output, and visualizer surfaces expose the
-  new metrics without blurring measured paper claims and local model estimates.
+- Recommendation scores expose raw values, normalization direction, weights,
+  component contributions, and final score.
+- Custom weights update recommendation cards, scorecards, exports, URL state,
+  and score explanations consistently.
+- Defaults remain sensible for balanced, efficiency, throughput, contention,
+  and provenance analysis.
+- UI copy labels scores as local same-schema triage heuristics, not benchmark
+  claims.
 
-## Published-Card Quality
+## Selection And Wide-Table Quality
 
-- New cards are source-backed and cite the relevant paper, DOI, or stable
-  source.
-- Local surrogate labels and source-quality metadata are conservative.
-- Source-reported metric coverage is recorded.
-- Generated artifacts are reproducible and included.
-- The project does not overclaim that local estimates reproduce published
-  hardware measurements beyond documented calibration or surrogate assumptions.
+- Users can remove one selected artifact, clear a group, invert selection, and
+  compare top N visible without losing context.
+- Selection controls are dense, predictable, keyboard reachable, and compatible
+  with filters/grouping.
+- Wide comparison tables keep the header and first column available without
+  hiding important data or causing incoherent overlap.
 
-## CLI And Usability Quality
+## Export And Preset Quality
 
-- CLI improvements reduce real friction in common workflows.
-- Error messages identify the bad file, field, value, and likely fix where
-  feasible.
-- New options compose with existing commands and preserve backward
-  compatibility unless a breaking change is explicitly justified.
-- Tests and docs cover user-facing behavior.
+- `photonic-bench-comparison-export-v1` has a formal JSON schema.
+- Browser JSON exports validate against the schema.
+- Export payloads include enough state to reproduce the comparison context.
+- Browser-local preset import validates shape and gives clear errors.
+- Browser-local preset export is deterministic and does not corrupt generated
+  presets.
+
+## Accessibility Quality
+
+- Keyboard users can reach and operate rail controls, comparison controls,
+  selection controls, score drilldowns, and preset import/export.
+- Interactive controls have meaningful labels, roles, and focus states.
+- Reduced-motion preferences are honored.
+- Contrast remains usable in dense dashboard areas.
+
+## Modeling Boundary Quality
+
+- Published-reference metrics remain visibly separate from local estimates.
+- Local surrogate labels, source-quality grades, system-profile assumptions,
+  interface-traffic estimates, transformer aggregate timing/noise semantics,
+  and contention assumptions remain visible.
+- No UI copy suggests that local heuristics, local system movement estimates,
+  or scorecard rankings are measured hardware results.
 
 ## Documentation And Artifact Quality
 
-- README examples stay runnable.
-- Model docs explain formulas and assumptions.
-- Schema docs and JSON schemas stay aligned with generated JSON.
-- Visualizer docs explain changed comparison, preset, export, and import
-  behavior.
+- README visualizer documentation explains changed controls and exports.
+- JSON schema documentation covers the comparison export schema.
+- Generated `reports/visualizer/` assets reflect source asset changes.
 - Artifact freshness verification passes after regeneration.
 
 ## Verification Quality
 
-- Focused tests cover new system, visualizer, card, and CLI behavior.
-- Full `python -m ruff check` passes.
-- Full `python -m pytest` passes.
+- Focused visualizer tests cover changed static UI strings and source behavior.
+- Browser smoke covers representative interaction paths.
+- Visual regression tests cover desktop and mobile.
+- `node --check photonic_bench\visualizer_assets\app.js` passes.
+- Relevant focused pytest tests pass.
+- Full `python -m ruff check` and `python -m pytest -q` pass before final
+  closeout.
 - `python -m photonic_bench.cli verify-artifacts` passes.
-- `node --check photonic_bench\visualizer_assets\app.js` passes after JS
-  changes.
-- Browser smoke passes after visualizer behavior changes.
-- `git diff --check` passes before final commit.
+- `git diff --check` passes before completion.
 
 ## Review Readiness
 
 - All checklist DONE items include proof.
 - State files are current.
+- A pull request is open against `master`.
 - The mandatory Hostile Senior Reviewer critique is recorded in `PROGRESS.md`.
 - Important critique findings are fixed before completion or explicitly
   justified.
@@ -86,7 +97,19 @@ Senior Reviewer critique.
 
 ## Final Closeout Status
 
-- This rubric was re-read and kept current for the completed 2026-07-04
-  autonomous loop.
-- The loop met the publish, visualizer, system-modeling, published-card, CLI,
-  documentation, verification, and hostile-review gates recorded above.
+- Complete.
+- All ten required improvements landed with source, docs, generated artifacts,
+  and tests.
+- PR #5 is open and ready for review against `master`.
+- Mandatory Hostile Senior Reviewer critique completed with two non-critical
+  findings, both fixed.
+- Final gates passed: focused visualizer tests, browser smoke, visual
+  regression, JavaScript syntax, Ruff, full pytest, artifact freshness, and
+  `git diff --check`.
+- PR #5 GitHub Actions passed after the visual regression baselines were
+  refreshed from the GitHub runner.
+- Remaining risk: screenshot baselines are intentionally tied to Playwright
+  Chromium layout. The comparator prefers platform-specific checked baselines
+  when present and tolerates smaller cross-platform font rasterization
+  differences, but baselines should still be refreshed only after reviewed UI
+  changes.

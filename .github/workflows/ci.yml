@@ -39,7 +39,18 @@ jobs:
         run: python -m build
 
       - name: Run pytest
+        env:
+          VISUAL_REGRESSION_BASELINE_PLATFORM: github-linux
+          VISUAL_REGRESSION_OUTPUT_DIR: test-results/visual-regression
         run: python -m pytest
+
+      - name: Upload visual regression screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-regression-screenshots
+          path: test-results/visual-regression/*.png
+          if-no-files-found: ignore
 
       - name: Verify generated artifacts are fresh
         run: python -m photonic_bench.cli verify-artifacts
