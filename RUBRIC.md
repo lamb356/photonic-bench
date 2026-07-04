@@ -17,7 +17,8 @@ Senior Reviewer critique.
 - Comparison mode helps a daily user decide between cards, profiles, and model
   assumptions quickly.
 - Deltas, ratios, pinned selections, grouping, saved presets, exports, Pareto
-  or frontier views, and stale-artifact handling remain coherent.
+  or frontier views, decision scorecards, and stale-artifact handling remain
+  coherent.
 - Source-reported metrics, local surrogate estimates, and local system-model
   assumptions remain visibly separated.
 - The UI stays dense, work-focused, responsive, and free of overlapping text or
@@ -26,9 +27,10 @@ Senior Reviewer critique.
 
 ## System Modeling Quality
 
-- Memory hierarchy changes are explicit and auditable.
-- Bandwidth, movement energy, timing, contention, reuse, and overlap
-  assumptions are named instead of hidden.
+- Memory hierarchy changes are explicit and auditable, including SRAM,
+  intermediate/cache, and off-chip tiers where modeled.
+- Bandwidth, movement energy, timing, serialization/overlap, reuse, and
+  profile assumptions are named instead of hidden.
 - Defaults are conservative and documented.
 - Invalid or inconsistent config fails with actionable errors.
 - JSON, Markdown reports, comparison output, and visualizer surfaces expose the

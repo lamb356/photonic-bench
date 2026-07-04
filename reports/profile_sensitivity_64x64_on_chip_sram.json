@@ -50,12 +50,20 @@
     "system": {
       "profile": "on_chip_sram",
       "profile_overrides": [],
+      "memory_timing_mode": "overlapped",
       "sram": {
         "read_energy_pj_per_byte": 0.02,
         "write_energy_pj_per_byte": 0.02,
         "bandwidth_bytes_per_ns": 2048.0,
         "read_fraction": 1.0,
         "write_fraction": 1.0
+      },
+      "intermediate": {
+        "read_energy_pj_per_byte": 0.2,
+        "write_energy_pj_per_byte": 0.2,
+        "bandwidth_bytes_per_ns": 256.0,
+        "read_fraction": 0.0,
+        "write_fraction": 0.0
       },
       "off_chip": {
         "read_energy_pj_per_byte": 10.0,
@@ -95,6 +103,7 @@
     "system": {
       "profile": "on_chip_sram",
       "profile_overrides": [],
+      "memory_timing_mode": "overlapped",
       "tiers": {
         "sram": {
           "name": "sram",
@@ -108,6 +117,19 @@
           "transfer_time_ns": 6.0,
           "read_fraction": 1.0,
           "write_fraction": 1.0
+        },
+        "intermediate": {
+          "name": "intermediate",
+          "read_bytes": 0.0,
+          "write_bytes": 0.0,
+          "total_bytes": 0.0,
+          "read_energy_pj": 0.0,
+          "write_energy_pj": 0.0,
+          "total_energy_pj": 0.0,
+          "bandwidth_bytes_per_ns": 256.0,
+          "transfer_time_ns": 0.0,
+          "read_fraction": 0.0,
+          "write_fraction": 0.0
         },
         "off_chip": {
           "name": "off_chip",
@@ -130,10 +152,12 @@
       "system_energy_per_op_pj": 0.008578125,
       "movement_energy_share": 0.05464480874316939,
       "max_transfer_time_ns": 6.0,
+      "serial_transfer_time_ns": 6.0,
+      "effective_transfer_time_ns": 6.0,
       "bandwidth_limited_batch_latency_ns": 6.0,
       "bandwidth_limited_equivalent_ops_per_second": 87381333333333.33,
       "bandwidth_limited_tier": "sram",
-      "note": "System movement energy is a local estimate over explicit SRAM and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
+      "note": "System movement energy is a local estimate over explicit SRAM, intermediate, and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
     },
     "energy": {
       "optical_compute_pj": 131.072,
@@ -184,7 +208,7 @@
     "Weight DAC conversions are counted every 1 operation(s).",
     "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
     "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.",
-    "The multi-tier system model adds explicit SRAM and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
+    "The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
   ],
   "provenance": null
 }

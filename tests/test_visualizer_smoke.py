@@ -95,6 +95,7 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
             page.locator("#load-preset").click()
             page.get_by_role("heading", name="Artifact Comparison").wait_for()
             page.get_by_role("heading", name="Comparison Brief").wait_for()
+            page.get_by_role("heading", name="Decision Scorecard").wait_for()
             page.get_by_role("heading", name="Pareto Trade-Offs").wait_for()
             page.get_by_text("Frontier Points").first.wait_for()
             page.locator("#pareto-mode").select_option("intensity-latency")

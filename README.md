@@ -70,10 +70,15 @@ Defaults are supplied when the section is omitted:
 ```yaml
 system:
   profile: default
+  memory_timing_mode: overlapped
   sram:
     read_energy_pj_per_byte: 0.02
     write_energy_pj_per_byte: 0.02
     bandwidth_bytes_per_ns: 1024
+  intermediate:
+    read_energy_pj_per_byte: 0.2
+    write_energy_pj_per_byte: 0.2
+    bandwidth_bytes_per_ns: 256
   off_chip:
     read_energy_pj_per_byte: 10.0
     write_energy_pj_per_byte: 10.0
@@ -84,29 +89,32 @@ Named profiles are local modeling presets, not measured hardware claims:
 
 | Profile | Intent |
 | --- | --- |
-| `default` | Historical PhotonicBench baseline, equivalent to generic DDR-style off-chip defaults. |
-| `on_chip_sram` | Keeps modeled converter-interface traffic on SRAM by setting off-chip read/write fractions to zero. |
-| `hbm` | Uses a higher-bandwidth, lower-energy off-chip tier for HBM-style sensitivity checks. |
-| `ddr` | Uses the generic DDR-class off-chip tier matching the baseline defaults. |
-| `pcie_attached` | Uses a lower-bandwidth, higher-energy host/PCIe-attached tier. |
+| `default` | SRAM plus intermediate/cache plus generic DDR-style off-chip defaults. |
+| `on_chip_sram` | Keeps modeled converter-interface traffic on SRAM by setting intermediate and off-chip read/write fractions to zero. |
+| `hbm` | Uses an intermediate/cache tier plus a higher-bandwidth, lower-energy off-chip tier for HBM-style sensitivity checks. |
+| `ddr` | Uses the generic DDR-class off-chip tier with an intermediate/cache tier. |
+| `pcie_attached` | Uses a lower-bandwidth, higher-energy host/PCIe-attached tier and serialized memory timing. |
 
 Profile selection can be combined with tier overrides:
 
 ```yaml
 system:
   profile: hbm
+  memory_timing_mode: serialized
   off_chip:
     bandwidth_bytes_per_ns: 256
     read_fraction: 0.5
 ```
 
 Each tier can also set `read_fraction` and `write_fraction` between `0` and `1`.
-Reports expose `local_model.system` with SRAM/off-chip read bytes, write bytes,
-movement energy, transfer time, total movement energy, total system energy,
-system energy per MAC/op, movement-energy share, selected profile metadata, and
-bandwidth-limited throughput. These are local PhotonicBench estimates and remain separate from
-paper-reported values and from the older `local_model.energy.total_pj`
-compute/conversion estimate.
+Reports expose `local_model.system` with SRAM/intermediate/off-chip read bytes,
+write bytes, movement energy, transfer time, total movement energy, total system
+energy, system energy per MAC/op, movement-energy share, selected profile
+metadata, memory timing mode, and bandwidth-limited throughput. `overlapped`
+timing uses the slowest tier transfer; `serialized` timing sums the tier
+transfer times for a conservative contention-style bound. These are local
+PhotonicBench estimates and remain separate from paper-reported values and from
+the older `local_model.energy.total_pj` compute/conversion estimate.
 
 The checked examples include a profile sensitivity preset built from identical
 64x64 workloads under `on_chip_sram`, `hbm`, `ddr`, and `pcie_attached`.
@@ -327,7 +335,7 @@ The Xu 2021 example uses the Nature paper "11 TOPS photonic convolutional accele
 
 Because that source is a vector convolution accelerator, PhotonicBench labels the local workload as a dense matmul surrogate (`m=1`, `k=250000`, `n=10`). The card carries the paper numbers as published references, not as local model results.
 
-This repository also includes six additional source-backed published-card
+This repository also includes ten additional source-backed published-card
 surrogates:
 
 - Feldmann et al., "Parallel convolutional processing using an integrated
@@ -360,6 +368,26 @@ surrogates:
   Science & Applications 14, 27 (2025), DOI: `10.1038/s41377-024-01706-9`.
   The card records 34.04 TOPS/mm2 computing density and 96.41% MNIST accuracy
   while using a 16x16 dense local surrogate.
+- Zhang et al., "Direct tensor processing with coherent light", Nature
+  Photonics 20, 102-108 (2026), DOI: `10.1038/s41566-025-01799-7`. The card
+  records POMMM matrix-size, numerical-error, code, and dataset references
+  while using the reported 20x20 matrix-matrix demonstration as a dense local
+  surrogate.
+- Chen et al., "FSR-GeMM: A Scalable FSR-Parallel Photonic Accelerator for
+  Real-Valued GeMM Computing", DATE 2026, DOI:
+  `10.23919/DATE69613.2026.11539161`. The card records relative FSR-GeMM area,
+  energy, and speedup metrics while using a 64x64 dense GEMM surrogate.
+- Ning et al., "Hardware-efficient photonic tensor core: accelerating deep
+  neural networks with structured compression", Optica 12, 1079-1089 (2025),
+  DOI: `10.1364/OPTICA.559604`. The card records projected power efficiency,
+  computing density, parameter reduction, and co-design improvement metrics
+  while using a 16x16 dense local surrogate.
+- Kovaios et al., "On-chip 1 TOPS Hyperdimensional Photonic Tensor Core Using
+  a WDM Silicon Photonic Coherent Crossbar", Journal of Lightwave Technology
+  43, 8799-8805 (2025), DOI: `10.1109/JLT.2025.3589088`. The card records the
+  0.96 TOPS throughput claim, 4x2x1 primitive shape, average error, data-rate,
+  and Iris classification metrics while using the demonstrated primitive shape
+  as the local workload.
 
 ## Current Boundary
 

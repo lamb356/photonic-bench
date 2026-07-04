@@ -82,16 +82,23 @@ non-matmul tensor traffic.
 ## Multi-Tier System Movement Model
 
 PhotonicBench extends converter-interface traffic into an auditable local system
-movement estimate with explicit SRAM and off-chip tiers. The default tiers are
-deliberately simple and visible:
+movement estimate with explicit SRAM, intermediate/cache, and off-chip tiers.
+The default tiers are deliberately simple and visible:
 
 ```yaml
 system:
   profile: default
+  memory_timing_mode: overlapped
   sram:
     read_energy_pj_per_byte: 0.02
     write_energy_pj_per_byte: 0.02
     bandwidth_bytes_per_ns: 1024
+    read_fraction: 1.0
+    write_fraction: 1.0
+  intermediate:
+    read_energy_pj_per_byte: 0.2
+    write_energy_pj_per_byte: 0.2
+    bandwidth_bytes_per_ns: 256
     read_fraction: 1.0
     write_fraction: 1.0
   off_chip:
@@ -105,19 +112,20 @@ system:
 The named profiles are convenience presets for sensitivity analysis. They are
 local assumptions, not measured hardware:
 
-| Profile | SRAM pJ/byte read/write | SRAM bandwidth | Off-chip pJ/byte read/write | Off-chip bandwidth | Off-chip fractions |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| `default` | 0.02 / 0.02 | 1024 bytes/ns | 10 / 10 | 16 bytes/ns | 1.0 / 1.0 |
-| `on_chip_sram` | 0.02 / 0.02 | 2048 bytes/ns | 10 / 10 | 16 bytes/ns | 0.0 / 0.0 |
-| `hbm` | 0.02 / 0.02 | 1024 bytes/ns | 3 / 3 | 512 bytes/ns | 1.0 / 1.0 |
-| `ddr` | 0.02 / 0.02 | 1024 bytes/ns | 10 / 10 | 16 bytes/ns | 1.0 / 1.0 |
-| `pcie_attached` | 0.02 / 0.02 | 1024 bytes/ns | 50 / 50 | 8 bytes/ns | 1.0 / 1.0 |
+| Profile | SRAM pJ/byte read/write | Intermediate pJ/byte read/write | Off-chip pJ/byte read/write | Timing mode |
+| --- | ---: | ---: | ---: | --- |
+| `default` | 0.02 / 0.02 | 0.2 / 0.2 | 10 / 10 | `overlapped` |
+| `on_chip_sram` | 0.02 / 0.02 | 0.2 / 0.2 with zero fractions | 10 / 10 with zero fractions | `overlapped` |
+| `hbm` | 0.02 / 0.02 | 0.2 / 0.2 | 3 / 3 | `overlapped` |
+| `ddr` | 0.02 / 0.02 | 0.2 / 0.2 | 10 / 10 | `overlapped` |
+| `pcie_attached` | 0.02 / 0.02 | 0.2 / 0.2 | 50 / 50 | `serialized` |
 
 Configs can select a profile and optionally override tier fields:
 
 ```yaml
 system:
   profile: hbm
+  memory_timing_mode: serialized
   off_chip:
     bandwidth_bytes_per_ns: 256
     read_fraction: 0.5
@@ -125,8 +133,9 @@ system:
 
 When `system.profile` is omitted but explicit tier sections are present,
 PhotonicBench labels the report as `manual` and preserves the supplied tier
-values. Generated JSON records `profile` and `profile_overrides` under both
-`model_inputs.system` and `local_model.system`.
+values. Generated JSON records `profile`, `profile_overrides`, and
+`memory_timing_mode` under both `model_inputs.system` and
+`local_model.system`.
 
 For each tier:
 
@@ -145,15 +154,21 @@ The per-card system summary is:
 
 ```text
 total_movement_energy_pj =
-    sram_total_energy_pj + off_chip_total_energy_pj
+    sram_total_energy_pj + intermediate_total_energy_pj + off_chip_total_energy_pj
 total_system_energy_pj =
     local_compute_and_conversion_energy_pj + total_movement_energy_pj
 system_energy_per_mac_pj = total_system_energy_pj / macs
 system_energy_per_op_pj = total_system_energy_pj / equivalent_ops
 movement_energy_share = total_movement_energy_pj / total_system_energy_pj
-max_transfer_time_ns = max(sram_transfer_time_ns, off_chip_transfer_time_ns)
+max_transfer_time_ns =
+    max(sram_transfer_time_ns, intermediate_transfer_time_ns, off_chip_transfer_time_ns)
+serial_transfer_time_ns =
+    sram_transfer_time_ns + intermediate_transfer_time_ns + off_chip_transfer_time_ns
+effective_transfer_time_ns =
+    max_transfer_time_ns when memory_timing_mode == "overlapped"
+    serial_transfer_time_ns when memory_timing_mode == "serialized"
 bandwidth_limited_batch_latency_ns =
-    max(batch_latency_ns, max_transfer_time_ns)
+    max(batch_latency_ns, effective_transfer_time_ns)
 bandwidth_limited_equivalent_ops_per_second =
     equivalent_ops / (bandwidth_limited_batch_latency_ns * 1e-9)
 ```

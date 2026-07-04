@@ -51,10 +51,18 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_kv_cache_model/decoder_bl
     "system": {
       "profile": "default",
       "profile_overrides": [],
+      "memory_timing_mode": "overlapped",
       "sram": {
         "read_energy_pj_per_byte": 0.02,
         "write_energy_pj_per_byte": 0.02,
         "bandwidth_bytes_per_ns": 1024.0,
+        "read_fraction": 1.0,
+        "write_fraction": 1.0
+      },
+      "intermediate": {
+        "read_energy_pj_per_byte": 0.2,
+        "write_energy_pj_per_byte": 0.2,
+        "bandwidth_bytes_per_ns": 256.0,
         "read_fraction": 1.0,
         "write_fraction": 1.0
       },
@@ -96,6 +104,7 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_kv_cache_model/decoder_bl
     "system": {
       "profile": "default",
       "profile_overrides": [],
+      "memory_timing_mode": "overlapped",
       "tiers": {
         "sram": {
           "name": "sram",
@@ -107,6 +116,19 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_kv_cache_model/decoder_bl
           "total_energy_pj": 16005.36,
           "bandwidth_bytes_per_ns": 1024.0,
           "transfer_time_ns": 781.51171875,
+          "read_fraction": 1.0,
+          "write_fraction": 1.0
+        },
+        "intermediate": {
+          "name": "intermediate",
+          "read_bytes": 799500.0,
+          "write_bytes": 768.0,
+          "total_bytes": 800268.0,
+          "read_energy_pj": 159900.0,
+          "write_energy_pj": 153.60000000000002,
+          "total_energy_pj": 160053.6,
+          "bandwidth_bytes_per_ns": 256.0,
+          "transfer_time_ns": 3126.046875,
           "read_fraction": 1.0,
           "write_fraction": 1.0
         },
@@ -125,16 +147,18 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_kv_cache_model/decoder_bl
         }
       },
       "local_compute_and_conversion_energy_pj": 357682.08,
-      "total_movement_energy_pj": 8018685.36,
-      "total_system_energy_pj": 8376367.44,
-      "system_energy_per_mac_pj": 10.640710670731707,
-      "system_energy_per_op_pj": 5.3203553353658535,
-      "movement_energy_share": 0.9572986640614706,
+      "total_movement_energy_pj": 8178738.96,
+      "total_system_energy_pj": 8536421.04,
+      "system_energy_per_mac_pj": 10.844030792682926,
+      "system_energy_per_op_pj": 5.422015396341463,
+      "movement_energy_share": 0.9580992926281434,
       "max_transfer_time_ns": 50016.75,
+      "serial_transfer_time_ns": 53924.30859375,
+      "effective_transfer_time_ns": 50016.75,
       "bandwidth_limited_batch_latency_ns": 50016.75,
       "bandwidth_limited_equivalent_ops_per_second": 31477455052.557392,
       "bandwidth_limited_tier": "off_chip",
-      "note": "System movement energy is a local estimate over explicit SRAM and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
+      "note": "System movement energy is a local estimate over explicit SRAM, intermediate, and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
     },
     "energy": {
       "optical_compute_pj": 393.6,
@@ -194,7 +218,7 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_kv_cache_model/decoder_bl
     "Weight DAC conversions are counted every 1 operation(s).",
     "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
     "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.",
-    "The multi-tier system model adds explicit SRAM and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
+    "The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
   ],
   "provenance": null
 }

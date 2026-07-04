@@ -51,10 +51,18 @@ window.PhotonicBenchPayloadRegistry["hitop_2025_optical_tensor_processor_surroga
     "system": {
       "profile": "default",
       "profile_overrides": [],
+      "memory_timing_mode": "overlapped",
       "sram": {
         "read_energy_pj_per_byte": 0.02,
         "write_energy_pj_per_byte": 0.02,
         "bandwidth_bytes_per_ns": 1024.0,
+        "read_fraction": 1.0,
+        "write_fraction": 1.0
+      },
+      "intermediate": {
+        "read_energy_pj_per_byte": 0.2,
+        "write_energy_pj_per_byte": 0.2,
+        "bandwidth_bytes_per_ns": 256.0,
         "read_fraction": 1.0,
         "write_fraction": 1.0
       },
@@ -96,6 +104,7 @@ window.PhotonicBenchPayloadRegistry["hitop_2025_optical_tensor_processor_surroga
     "system": {
       "profile": "default",
       "profile_overrides": [],
+      "memory_timing_mode": "overlapped",
       "tiers": {
         "sram": {
           "name": "sram",
@@ -107,6 +116,19 @@ window.PhotonicBenchPayloadRegistry["hitop_2025_optical_tensor_processor_surroga
           "total_energy_pj": 245.76,
           "bandwidth_bytes_per_ns": 1024.0,
           "transfer_time_ns": 12.0,
+          "read_fraction": 1.0,
+          "write_fraction": 1.0
+        },
+        "intermediate": {
+          "name": "intermediate",
+          "read_bytes": 8192.0,
+          "write_bytes": 4096.0,
+          "total_bytes": 12288.0,
+          "read_energy_pj": 1638.4,
+          "write_energy_pj": 819.2,
+          "total_energy_pj": 2457.6000000000004,
+          "bandwidth_bytes_per_ns": 256.0,
+          "transfer_time_ns": 48.0,
           "read_fraction": 1.0,
           "write_fraction": 1.0
         },
@@ -125,16 +147,18 @@ window.PhotonicBenchPayloadRegistry["hitop_2025_optical_tensor_processor_surroga
         }
       },
       "local_compute_and_conversion_energy_pj": 4251.648,
-      "total_movement_energy_pj": 123125.76,
-      "total_system_energy_pj": 127377.408,
-      "system_energy_per_mac_pj": 0.48590625,
-      "system_energy_per_op_pj": 0.242953125,
-      "movement_energy_share": 0.9666216476943855,
+      "total_movement_energy_pj": 125583.36,
+      "total_system_energy_pj": 129835.008,
+      "system_energy_per_mac_pj": 0.49528125,
+      "system_energy_per_op_pj": 0.247640625,
+      "movement_energy_share": 0.9672534544766231,
       "max_transfer_time_ns": 768.0,
+      "serial_transfer_time_ns": 828.0,
+      "effective_transfer_time_ns": 768.0,
       "bandwidth_limited_batch_latency_ns": 768.0,
       "bandwidth_limited_equivalent_ops_per_second": 682666666666.6666,
       "bandwidth_limited_tier": "off_chip",
-      "note": "System movement energy is a local estimate over explicit SRAM and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
+      "note": "System movement energy is a local estimate over explicit SRAM, intermediate, and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
     },
     "energy": {
       "optical_compute_pj": 131.072,
@@ -237,7 +261,7 @@ window.PhotonicBenchPayloadRegistry["hitop_2025_optical_tensor_processor_surroga
     "Weight DAC conversions are counted once per batch because weight_stationary is true.",
     "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
     "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.",
-    "The multi-tier system model adds explicit SRAM and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
+    "The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
   ],
   "provenance": {
     "source_title": "Hypermultiplexed integrated photonics-based optical tensor processor",

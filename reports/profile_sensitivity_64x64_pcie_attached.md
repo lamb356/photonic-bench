@@ -53,28 +53,33 @@ simulation.
 ## Multi-Tier System Movement
 
 These rows add an explicit local system movement estimate on top of the
-photonic core/converter model. SRAM and off-chip traffic are cumulative tier
-movements, not published measurements and not a cache simulator.
+photonic core/converter model. SRAM, intermediate, and off-chip traffic are
+cumulative tier movements, not published measurements and not a cache
+simulator.
 
 | Tier | Read bytes | Write bytes | Movement energy | Transfer time | Bandwidth |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | SRAM | 8192 bytes | 4096 bytes | 245.760 pJ | 12.000 ns | 1024.000 bytes/ns |
+| Intermediate/cache | 8192 bytes | 4096 bytes | 2457.600 pJ | 96.000 ns | 128.000 bytes/ns |
 | Off-chip/DRAM | 8192 bytes | 4096 bytes | 614400.000 pJ | 1536.000 ns | 8.000 bytes/ns |
 
 | Metric | Value |
 | --- | ---: |
 | System profile | pcie_attached |
 | Profile tier overrides | none |
+| Memory timing mode | serialized |
 | Local compute/conversion energy | 4251.648 pJ |
-| Total movement energy | 614645.760 pJ |
-| Total system energy | 618897.408 pJ |
-| System energy per MAC | 2.361 pJ |
-| System energy per equivalent op | 1.180 pJ |
-| Movement energy share | 99.31% |
+| Total movement energy | 617103.360 pJ |
+| Total system energy | 621355.008 pJ |
+| System energy per MAC | 2.370 pJ |
+| System energy per equivalent op | 1.185 pJ |
+| Movement energy share | 99.32% |
 | Max transfer time | 1536.000 ns |
-| Bandwidth-limited tier | off_chip |
-| Bandwidth-limited batch latency | 1536.000 ns |
-| Bandwidth-limited equivalent ops/s | 341333333333.333 |
+| Serialized transfer time | 1644.000 ns |
+| Effective transfer time | 1644.000 ns |
+| Bandwidth-limited tier | serialized_tier_path |
+| Bandwidth-limited batch latency | 1644.000 ns |
+| Bandwidth-limited equivalent ops/s | 318909975669.100 |
 
 ## Energy
 
@@ -131,4 +136,4 @@ movements, not published measurements and not a cache simulator.
 - Weight DAC conversions are counted every 1 operation(s).
 - The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.
 - Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.
-- The multi-tier system model adds explicit SRAM and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.
+- The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.

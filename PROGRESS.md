@@ -70,3 +70,124 @@
 - Checked for the commit-skill reasoning script:
   - `.Codex\scripts\generate-reasoning.sh` was not present.
   - `.codex\scripts\generate-reasoning.sh` was not present.
+- Staged the in-scope work by explicit path list from `git ls-files`, not with
+  `git add -A`; 242 paths were staged.
+- Created commit `c6cf572`:
+  `Add artifact freshness profiles and transformer usability updates`.
+- Pushed the branch:
+  `git push -u origin codex/artifact-freshness-profiles`.
+- GitHub connector PR creation returned 403
+  (`Resource not accessible by integration`), so used authenticated
+  `gh pr create` fallback.
+- Opened draft PR #4:
+  `https://github.com/lamb356/photonic-bench/pull/4`.
+- `gh pr view 4 --repo lamb356/photonic-bench --json number,title,url,isDraft,baseRefName,headRefName,state`
+  confirmed PR #4 is open, draft, base `master`, head
+  `codex/artifact-freshness-profiles`.
+- Post-push `git status --short --branch` showed a clean branch tracking
+  `origin/codex/artifact-freshness-profiles`.
+
+## 2026-07-04 Cycle 2: Visualizer, System Model, CLI
+
+### Required State Re-Read
+
+- Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
+  `RUBRIC.md` after the context transition.
+- Re-read `tasks/todo.md`.
+- Searched deferred tools for GBrain again; GBrain tools were still not
+  exposed in this thread.
+
+### Work Log
+
+- Added `system.memory_timing_mode` with validated `overlapped` and
+  `serialized` modes.
+- Added an explicit `intermediate` memory tier to `SystemConfig`,
+  `SystemProfile`, profile serialization, profile overrides, the core system
+  model, transformer aggregate model, Markdown reports, JSON reports,
+  comparison output, visualizer summaries, and schemas.
+- Updated built-in profiles so:
+  - `default`, `ddr`, and `hbm` include SRAM, intermediate/cache, and off-chip
+    tiers;
+  - `on_chip_sram` keeps intermediate/off-chip fractions at zero;
+  - `pcie_attached` uses serialized timing and a slower/higher-energy host path.
+- Added visualizer comparison Decision Scorecards for same-schema selected
+  artifacts. Scores normalize energy, system energy, movement share, latency,
+  bandwidth-limited throughput, and operational intensity; the UI labels them
+  as triage aids rather than benchmark claims.
+- Added memory timing and effective transfer fields to visualizer comparison,
+  JSON export, and Markdown export.
+- Added `python -m photonic_bench.cli system-profiles` and `--json` output.
+
+### Focused Verification
+
+- `python -m ruff check` passed.
+- `node --check photonic_bench\visualizer_assets\app.js` passed.
+- Focused pytest groups for model/config/json/comparison/transformer/
+  visualizer/CLI/report/schema/smoke passed after one expected report-total
+  test update for the new intermediate tier.
+
+## 2026-07-04 Cycle 3: Published Cards And Artifact Refresh
+
+### Work Log
+
+- Researched and added four new source-backed cards:
+  - Zhang et al., "Direct tensor processing with coherent light", Nature
+    Photonics 20, 102-108 (2026), DOI `10.1038/s41566-025-01799-7`;
+  - Chen et al., "FSR-GeMM: A Scalable FSR-Parallel Photonic Accelerator for
+    Real-Valued GeMM Computing", DATE 2026, DOI
+    `10.23919/DATE69613.2026.11539161`;
+  - Ning et al., "Hardware-efficient photonic tensor core: accelerating deep
+    neural networks with structured compression", Optica 12, 1079-1089 (2025),
+    DOI `10.1364/OPTICA.559604`;
+  - Kovaios et al., "On-chip 1 TOPS Hyperdimensional Photonic Tensor Core
+    Using a WDM Silicon Photonic Coherent Crossbar", Journal of Lightwave
+    Technology 43, 8799-8805 (2025), DOI `10.1109/JLT.2025.3589088`.
+- Added YAML examples with conservative source-quality metadata, assumptions,
+  and surrogate mappings.
+- Added example tests for DOI, metric, workload, and surrogate-boundary fields.
+- Updated the artifact manifest and the generated published-reference
+  comparison preset.
+- Regenerated checked reports, comparison output, visualizer index/assets, and
+  payloads.
+
+### Verification
+
+- `python -m pytest tests\test_examples.py -q` passed with `14 passed`.
+- `python -m photonic_bench.cli verify-artifacts` passed with
+  `Artifacts are fresh: checked 210 generated files.`
+- Generated report spot checks confirmed the new cards expose DOI, source
+  quality, published metrics, local workload, and surrogate mappings.
+
+## 2026-07-04 Cycle 4: Full Verification And Hostile Review
+
+### Full Gates
+
+- `python -m ruff check` passed.
+- `python -m pytest -q` passed with `109 passed`.
+- `python -m photonic_bench.cli verify-artifacts` passed with
+  `Artifacts are fresh: checked 210 generated files.`
+- `node --check photonic_bench\visualizer_assets\app.js` passed.
+- `python -m json.tool` passed for all JSON schemas, visualizer index JSON, and
+  visualizer presets JSON.
+- `git diff --check` reported no whitespace errors; only Windows line-ending
+  warnings.
+
+### Hostile Senior Reviewer Critique
+
+- Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
+  `RUBRIC.md` at the start of the critique cycle.
+- Read the installed review skill and checklist from
+  `C:\Users\burba\.agents\skills\review\`.
+- Applied the review checklist and project rubric to the current diff.
+- Critical SQL/data/LLM-boundary risks: none found. The repo changes are
+  Python config/model/report code, static JS, YAML examples, docs, tests, and
+  generated artifacts.
+- Important finding: several visualizer/report/transformer boundary strings
+  still said "SRAM/off-chip" after the intermediate/cache tier was added.
+- Fix: updated those strings to "SRAM/intermediate/off-chip" or
+  "SRAM, intermediate/cache, and off-chip"; regenerated artifacts.
+- Proof after fix:
+  - `rg "SRAM/off-chip|SRAM and off-chip|local SRAM/off-chip" photonic_bench reports README.md docs`
+    returned no matches;
+  - `python -m photonic_bench.cli verify-artifacts` passed;
+  - `python -m ruff check` passed.

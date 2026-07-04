@@ -44,111 +44,199 @@ Status key:
     - `git diff --check` reported no whitespace errors; only Windows
       line-ending warnings.
 
-- [ ] TODO: Create clean logical commit or commits for the current branch.
+- [x] DONE: Create clean logical commit or commits for the current branch.
   - Proof:
-    - Pending.
+    - Created commit `c6cf572`:
+      `Add artifact freshness profiles and transformer usability updates`.
+    - Commit contains 242 staged paths covering the verified branch baseline.
+    - No Codex attribution or co-author trailer was added.
+    - The commit-skill reasoning script was not present under `.Codex` or
+      `.codex`, so no local reasoning artifact could be generated.
 
-- [ ] TODO: Push `codex/artifact-freshness-profiles` to `origin`.
+- [x] DONE: Push `codex/artifact-freshness-profiles` to `origin`.
   - Proof:
-    - Pending.
+    - `git push -u origin codex/artifact-freshness-profiles` succeeded.
+    - Local branch now tracks
+      `origin/codex/artifact-freshness-profiles`.
 
-- [ ] TODO: Open a pull request against `master`.
+- [x] DONE: Open a pull request against `master`.
   - Proof:
-    - Pending.
+    - GitHub connector PR creation returned 403, so authenticated
+      `gh pr create` fallback was used.
+    - Opened draft PR #4:
+      `https://github.com/lamb356/photonic-bench/pull/4`.
+    - `gh pr view 4` confirmed base `master`, head
+      `codex/artifact-freshness-profiles`, state `OPEN`, draft `true`.
 
 ## Task 2: Visualizer Improvements
 
-- [ ] TODO: Map current visualizer comparison, preset, export, Pareto, profile,
+- [x] DONE: Map current visualizer comparison, preset, export, Pareto, profile,
       and modeling-boundary surfaces.
   - Proof:
-    - Pending.
+    - Re-read `photonic_bench/visualizer.py`,
+      `photonic_bench/visualizer_assets/app.js`, generated visualizer data,
+      preset data, and current visualizer tests.
+    - Confirmed existing comparison mode already had pinned selections,
+      deltas, ratios, grouped analytics, saved presets, exports, Pareto views,
+      and modeling-boundary labels.
 
-- [ ] TODO: Improve comparison analytics, usability, saved presets, exports, or
+- [x] DONE: Improve comparison analytics, usability, saved presets, exports, or
       Pareto/profile views with daily-use value.
   - Proof:
-    - Pending.
+    - Added same-schema comparison decision scorecards that normalize selected
+      artifacts across energy, system energy, movement share, latency,
+      bandwidth-limited throughput, and operational intensity.
+    - Added memory timing mode and effective transfer time to visualizer
+      summaries, comparison matrix rows, JSON export, and Markdown export.
+    - Extended the generated "Published reference surrogate cards" preset to
+      include the four new source-backed cards.
+    - Preserved explicit boundary text that scorecards are triage aids, not
+      benchmark claims.
 
-- [ ] TODO: Update visualizer tests and browser smoke coverage.
+- [x] DONE: Update visualizer tests and browser smoke coverage.
   - Proof:
-    - Pending.
+    - Updated `tests/test_visualizer.py` for the expanded preset and scorecard
+      strings.
+    - Updated `tests/test_visualizer_smoke.py` to wait for the Decision
+      Scorecard in comparison mode.
+    - `python -m pytest -q` passed with `109 passed`.
 
 ## Task 3: Deeper System Modeling
 
-- [ ] TODO: Map current system memory hierarchy, bandwidth, data movement,
+- [x] DONE: Map current system memory hierarchy, bandwidth, data movement,
       profile, report, schema, and visualizer exposure.
   - Proof:
-    - Pending.
+    - Re-read `photonic_bench/config.py`, `model.py`, `json_report.py`,
+      `report.py`, `transformer.py`, `comparison.py`, `visualizer.py`, JSON
+      schemas, model docs, and system/profile tests.
 
-- [ ] TODO: Add richer auditable memory hierarchy and bandwidth/data-movement
+- [x] DONE: Add richer auditable memory hierarchy and bandwidth/data-movement
       modeling.
   - Proof:
-    - Pending.
+    - Added an explicit `intermediate` memory tier between SRAM and off-chip.
+    - Added `system.memory_timing_mode` with validated `overlapped` and
+      `serialized` modes.
+    - Updated built-in system profiles so `pcie_attached` uses serialized
+      transfer timing and all profiles carry intermediate-tier assumptions.
+    - Updated per-card and transformer system accounting to report serialized
+      transfer time and effective transfer time.
 
-- [ ] TODO: Surface new model metrics in reports, JSON, comparison output, and
+- [x] DONE: Surface new model metrics in reports, JSON, comparison output, and
       visualizer views.
   - Proof:
-    - Pending.
+    - Updated Markdown reports, JSON reports, transformer aggregate JSON,
+      comparison Markdown, visualizer summaries, visualizer detail views, and
+      JSON schemas for intermediate-tier and memory-timing fields.
+    - Updated README, `docs/model.md`, `docs/json_schema.md`, and generated
+      artifacts.
+    - Focused tests for model/config/report/schema/comparison/transformer/
+      visualizer behavior passed before full verification.
 
 ## Task 4: More Published Cards
 
-- [ ] TODO: Identify at least 3 to 4 high-quality source-backed photonic
+- [x] DONE: Identify at least 3 to 4 high-quality source-backed photonic
       accelerator candidates.
   - Proof:
-    - Pending.
+    - Researched recent published candidates using source pages and stable DOI
+      records.
+    - Selected four cards: Zhang 2026 POMMM, Chen 2026 FSR-GeMM, Ning 2025
+      CirPTC, and Kovaios 2025 WDM 1 TOPS tensor core.
 
-- [ ] TODO: Add YAML cards with conservative citations, assumptions,
+- [x] DONE: Add YAML cards with conservative citations, assumptions,
       source-quality metadata, and local surrogate labeling.
   - Proof:
-    - Pending.
+    - Added:
+      - `examples/zhang_2026_pommm_surrogate.yaml`;
+      - `examples/chen_2026_fsr_gemm_surrogate.yaml`;
+      - `examples/ning_2025_cirptc_surrogate.yaml`;
+      - `examples/kovaios_2025_wdm_1tops_tensor_core_surrogate.yaml`.
+    - Added source-quality grades, coverage metadata, paper DOI/venue fields,
+      source metrics, and explicit surrogate-mapping notes.
+    - Added `tests/test_examples.py` coverage for the new DOI and metric
+      fields.
 
-- [ ] TODO: Regenerate Markdown/JSON reports, comparison output, and visualizer
+- [x] DONE: Regenerate Markdown/JSON reports, comparison output, and visualizer
       payloads for the new cards.
   - Proof:
-    - Pending.
+    - Added the four card recipes to `MATMUL_ARTIFACT_RECIPES`.
+    - Regenerated checked reports, comparison output, visualizer index/assets,
+      and payloads.
+    - `python -m photonic_bench.cli verify-artifacts` passed with
+      `Artifacts are fresh: checked 210 generated files.`
 
 ## Task 5: CLI And Usability
 
-- [ ] TODO: Find high-friction CLI or validation paths from current tests/docs.
+- [x] DONE: Find high-friction CLI or validation paths from current tests/docs.
   - Proof:
-    - Pending.
+    - Reviewed CLI command surface and system-profile documentation.
+    - Identified that users could select profiles but had no quick command to
+      inspect their concrete tier assumptions.
 
-- [ ] TODO: Implement targeted usability improvements with tests and docs.
+- [x] DONE: Implement targeted usability improvements with tests and docs.
   - Proof:
-    - Pending.
+    - Added `python -m photonic_bench.cli system-profiles` for human-readable
+      profile tables.
+    - Added `python -m photonic_bench.cli system-profiles --json` for
+      machine-readable profile inspection.
+    - Added CLI tests for both output modes and README/model-doc coverage.
 
 ## Task 6: Documentation And Artifact Refresh
 
-- [ ] TODO: Update README, model docs, schema docs, visualizer docs, and/or
+- [x] DONE: Update README, model docs, schema docs, visualizer docs, and/or
       usage examples for all user-facing changes.
   - Proof:
-    - Pending.
+    - Updated README system-profile docs, published-card catalog, and
+      memory-timing examples.
+    - Updated `docs/model.md` formulas and profile descriptions.
+    - Updated `docs/json_schema.md` for system fields and transformer summary
+      fields.
+    - Updated JSON schemas for intermediate tiers and memory timing fields.
 
-- [ ] TODO: Regenerate checked generated artifacts.
+- [x] DONE: Regenerate checked generated artifacts.
   - Proof:
-    - Pending.
+    - Ran `regenerate_checked_artifacts()` after source/model/card changes.
+    - Regenerated reports and visualizer files include 210 checked artifacts.
 
-- [ ] TODO: Run artifact freshness verification.
+- [x] DONE: Run artifact freshness verification.
   - Proof:
-    - Pending.
+    - `python -m photonic_bench.cli verify-artifacts` passed with
+      `Artifacts are fresh: checked 210 generated files.`
 
 ## Task 7: Mandatory Hostile Senior Reviewer Critique
 
-- [ ] TODO: Re-read required state files and run the hostile critique focused
+- [x] DONE: Re-read required state files and run the hostile critique focused
       on modeling credibility, visualizer usefulness, source-card quality,
       CLI usability, and PR readiness.
   - Proof:
-    - Pending.
+    - Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
+      `RUBRIC.md` at the start of the critique cycle.
+    - Read the installed review skill and checklist from
+      `C:\Users\burba\.agents\skills\review\`.
+    - Reviewed the diff for SQL/data/LLM-boundary risks, stale modeling labels,
+      source-card overclaiming, visualizer export correctness, and test gaps.
 
-- [ ] TODO: Fix important critique findings or record explicit non-fix
+- [x] DONE: Fix important critique findings or record explicit non-fix
       rationale.
   - Proof:
-    - Pending.
+    - Found and fixed stale "SRAM/off-chip" modeling-boundary labels after the
+      intermediate-tier change.
+    - Regenerated artifacts after the fix.
+    - `rg` confirmed no remaining source/generated `SRAM/off-chip` wording.
+    - Ruff and artifact freshness passed after the fix.
 
 ## Task 8: Final Verification And Closeout
 
 - [ ] TODO: Run final quality gates.
   - Proof:
-    - Pending.
+    - Initial full gates passed after implementation:
+      - `python -m ruff check`;
+      - `python -m pytest -q` with `109 passed`;
+      - `python -m photonic_bench.cli verify-artifacts`;
+      - `node --check photonic_bench\visualizer_assets\app.js`;
+      - JSON schema parsing with `python -m json.tool`;
+      - `git diff --check` with no whitespace errors and only Windows
+        line-ending warnings.
+    - Final rerun after closeout state updates is pending.
 
 - [ ] TODO: Close `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
       `RUBRIC.md`, and `tasks/todo.md` with proof.

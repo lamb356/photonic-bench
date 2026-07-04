@@ -94,7 +94,9 @@ class SystemTierResult:
 @dataclass(frozen=True)
 class SystemModelResult:
     sram: SystemTierResult
+    intermediate: SystemTierResult
     off_chip: SystemTierResult
+    memory_timing_mode: str
     local_compute_and_conversion_energy_pj: float
     total_movement_energy_pj: float
     total_system_energy_pj: float
@@ -102,6 +104,8 @@ class SystemModelResult:
     system_energy_per_op_pj: float
     movement_energy_share: float
     max_transfer_time_ns: float
+    serial_transfer_time_ns: float
+    effective_transfer_time_ns: float
     bandwidth_limited_batch_latency_ns: float
     bandwidth_limited_equivalent_ops_per_second: float
     bandwidth_limited_tier: str
@@ -375,25 +379,43 @@ def _system_model(
         operand_read_bytes=operand_read_bytes,
         output_write_bytes=output_write_bytes,
     )
+    intermediate = _system_tier(
+        "intermediate",
+        config.system.intermediate,
+        operand_read_bytes=operand_read_bytes,
+        output_write_bytes=output_write_bytes,
+    )
     off_chip = _system_tier(
         "off_chip",
         config.system.off_chip,
         operand_read_bytes=operand_read_bytes,
         output_write_bytes=output_write_bytes,
     )
-    total_movement_energy_pj = sram.total_energy_pj + off_chip.total_energy_pj
+    tiers = (sram, intermediate, off_chip)
+    total_movement_energy_pj = sum(tier.total_energy_pj for tier in tiers)
     total_system_energy_pj = energy.total_pj + total_movement_energy_pj
-    max_transfer_time_ns = max(sram.transfer_time_ns, off_chip.transfer_time_ns)
+    max_transfer_time_ns = max(tier.transfer_time_ns for tier in tiers)
+    serial_transfer_time_ns = sum(tier.transfer_time_ns for tier in tiers)
+    effective_transfer_time_ns = (
+        serial_transfer_time_ns
+        if config.system.memory_timing_mode == "serialized"
+        else max_transfer_time_ns
+    )
     bandwidth_limited_batch_latency_ns = max(
         timing.batch_latency_ns,
-        max_transfer_time_ns,
+        effective_transfer_time_ns,
     )
+    slowest_tier = max(tiers, key=lambda tier: tier.transfer_time_ns)
     bandwidth_limited_tier = (
-        sram.name if sram.transfer_time_ns >= off_chip.transfer_time_ns else off_chip.name
+        "serialized_tier_path"
+        if config.system.memory_timing_mode == "serialized"
+        else slowest_tier.name
     )
     return SystemModelResult(
         sram=sram,
+        intermediate=intermediate,
         off_chip=off_chip,
+        memory_timing_mode=config.system.memory_timing_mode,
         local_compute_and_conversion_energy_pj=energy.total_pj,
         total_movement_energy_pj=total_movement_energy_pj,
         total_system_energy_pj=total_system_energy_pj,
@@ -405,6 +427,8 @@ def _system_model(
             else 0.0
         ),
         max_transfer_time_ns=max_transfer_time_ns,
+        serial_transfer_time_ns=serial_transfer_time_ns,
+        effective_transfer_time_ns=effective_transfer_time_ns,
         bandwidth_limited_batch_latency_ns=bandwidth_limited_batch_latency_ns,
         bandwidth_limited_equivalent_ops_per_second=(
             equivalent_ops / (bandwidth_limited_batch_latency_ns * 1e-9)

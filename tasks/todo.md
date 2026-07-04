@@ -195,17 +195,17 @@
 ## Active Goal: Autonomous PR, Visualizer, System Model, Cards, Usability
 
 - [x] Task 0: Roll state files forward and create prioritized checklist.
-- [ ] Task 1: Commit and push the current
+- [x] Task 1: Commit and push the current
       `codex/artifact-freshness-profiles` work and open a pull request.
-- [ ] Task 2: Improve web visualizer comparison analytics, presets/exports,
+- [x] Task 2: Improve web visualizer comparison analytics, presets/exports,
       modeling-boundary labels, and daily-use ergonomics.
-- [ ] Task 3: Deepen system memory hierarchy, bandwidth, and data-movement
+- [x] Task 3: Deepen system memory hierarchy, bandwidth, and data-movement
       modeling with auditable assumptions.
-- [ ] Task 4: Add at least 3 to 4 high-quality published photonic accelerator
+- [x] Task 4: Add at least 3 to 4 high-quality published photonic accelerator
       cards with citations, source-quality metadata, and generated artifacts.
-- [ ] Task 5: Improve CLI and validation usability where it adds clear value.
-- [ ] Task 6: Update documentation and regenerate checked artifacts.
-- [ ] Task 7: Run mandatory Hostile Senior Reviewer critique and fix important
+- [x] Task 5: Improve CLI and validation usability where it adds clear value.
+- [x] Task 6: Update documentation and regenerate checked artifacts.
+- [x] Task 7: Run mandatory Hostile Senior Reviewer critique and fix important
       findings.
 - [ ] Task 8: Run final verification, close state files, commit, push, and
       inspect final repository status.

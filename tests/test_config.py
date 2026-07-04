@@ -45,7 +45,9 @@ noise:
     assert config.device.weight_dac.energy_pj_per_conversion == 0.2
     assert config.execution.batch_size == 1
     assert config.system.sram.read_energy_pj_per_byte == 0.02
+    assert config.system.intermediate.read_energy_pj_per_byte == 0.2
     assert config.system.off_chip.bandwidth_bytes_per_ns == 16.0
+    assert config.system.memory_timing_mode == "overlapped"
     assert config.noise.phase_noise_rad_rms == 0.02
 
 
@@ -371,10 +373,16 @@ device:
     bits: 6
     energy_pj_per_conversion: 0.2
 system:
+  memory_timing_mode: serialized
   sram:
     read_energy_pj_per_byte: 0.03
     write_energy_pj_per_byte: 0.04
     bandwidth_bytes_per_ns: 512
+  intermediate:
+    read_energy_pj_per_byte: 0.25
+    write_energy_pj_per_byte: 0.35
+    bandwidth_bytes_per_ns: 128
+    read_fraction: 0.75
   off_chip:
     read_energy_pj_per_byte: 12
     write_energy_pj_per_byte: 16
@@ -396,11 +404,22 @@ noise:
     config = load_config(config_path)
 
     assert config.system.profile == "manual"
-    assert config.system.profile_overrides == ("sram", "off_chip")
+    assert config.system.profile_overrides == (
+        "memory_timing_mode",
+        "sram",
+        "intermediate",
+        "off_chip",
+    )
+    assert config.system.memory_timing_mode == "serialized"
     assert config.system.sram.read_energy_pj_per_byte == 0.03
     assert config.system.sram.write_energy_pj_per_byte == 0.04
     assert config.system.sram.bandwidth_bytes_per_ns == 512
     assert config.system.sram.read_fraction == 1.0
+    assert config.system.intermediate.read_energy_pj_per_byte == 0.25
+    assert config.system.intermediate.write_energy_pj_per_byte == 0.35
+    assert config.system.intermediate.bandwidth_bytes_per_ns == 128
+    assert config.system.intermediate.read_fraction == 0.75
+    assert config.system.intermediate.write_fraction == 1.0
     assert config.system.off_chip.read_energy_pj_per_byte == 12
     assert config.system.off_chip.write_energy_pj_per_byte == 16
     assert config.system.off_chip.bandwidth_bytes_per_ns == 8
@@ -453,6 +472,7 @@ noise:
     assert config.system.profile == "hbm"
     assert config.system.profile_overrides == ("off_chip",)
     assert config.system.sram.bandwidth_bytes_per_ns == 1024
+    assert config.system.intermediate.bandwidth_bytes_per_ns == 256
     assert config.system.off_chip.read_energy_pj_per_byte == 3.0
     assert config.system.off_chip.write_energy_pj_per_byte == 3.0
     assert config.system.off_chip.bandwidth_bytes_per_ns == 256
@@ -552,3 +572,50 @@ noise:
 
     assert "system.off_chip.read_fraction" in message
     assert "between 0 and 1" in message
+
+
+def test_load_config_rejects_invalid_memory_timing_mode(tmp_path: Path) -> None:
+    config_path = tmp_path / "bad_system_timing.yaml"
+    config_path.write_text(
+        """
+benchmark:
+  name: bad system timing matmul
+workload:
+  type: matmul
+  m: 4
+  n: 8
+  k: 2
+device:
+  optical_mac_energy_fj: 0.5
+  laser_wall_plug_efficiency: 0.25
+  photodetector_energy_fj_per_sample: 10
+  adc:
+    bits: 6
+    energy_pj_per_conversion: 0.5
+  dac:
+    bits: 6
+    energy_pj_per_conversion: 0.2
+system:
+  memory_timing_mode: speculative
+timing:
+  optical_latency_ns: 3
+  adc_latency_ns: 1
+  dac_latency_ns: 1
+noise:
+  phase_noise_rad_rms: 0.02
+  drift_rad_per_second: 0.1
+  integration_time_ns: 3
+""".strip(),
+        encoding="utf-8",
+    )
+
+    try:
+        load_config(config_path)
+    except ValueError as exc:
+        message = str(exc)
+    else:
+        raise AssertionError("load_config should reject invalid memory timing mode")
+
+    assert "system.memory_timing_mode" in message
+    assert "overlapped" in message
+    assert "serialized" in message

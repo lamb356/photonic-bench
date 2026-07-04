@@ -31,7 +31,7 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
     "source": "Generated from decomposed per-matmul JSON cards emitted by the transformer-layer command.",
     "energy": "Additive local_model.energy components are summed; energy_per_mac_pj, energy_per_op_pj, and peripheral_share are recomputed from summed layer quantities.",
     "memory_traffic": "Interface memory traffic is summed from decomposed cards and operational intensity is recomputed from aggregate MAC/equivalent-op counts. It is not a full memory hierarchy simulation.",
-    "system": "System movement energy/timing is summed from decomposed card estimates over explicit SRAM and off-chip tiers. Bandwidth-limited serial timing is a sum of decomposed bandwidth-limited batch latencies, not a fused scheduler claim.",
+    "system": "System movement energy/timing is summed from decomposed card estimates over explicit SRAM, intermediate/cache, and off-chip tiers. Bandwidth-limited serial timing is a sum of decomposed bandwidth-limited batch latencies, not a fused scheduler claim.",
     "timing": "serial_* timing fields assume the decomposed matmuls execute one after another. No parallel hardware scheduler or fused layer pipeline is modeled.",
     "noise": "Noise is not an additive layer total. Per-matmul noise remains in matmuls[].local_model.noise; aggregate noise fields are labeled diagnostic extrema."
   },
@@ -54,9 +54,10 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
     "system": {
       "profile": "default",
       "profile_overrides": [],
+      "memory_timing_mode": "overlapped",
       "local_compute_and_conversion_energy_pj": 5377032.192,
-      "total_movement_energy_pj": 86680535.04,
-      "total_system_energy_pj": 92057567.23200001,
+      "total_movement_energy_pj": 88410685.44,
+      "total_system_energy_pj": 93787717.632,
       "tiers": {
         "sram": {
           "name": "sram",
@@ -67,6 +68,16 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
           "write_energy_pj": 21626.879999999997,
           "total_energy_pj": 173015.04,
           "transfer_time_ns": 8448.0
+        },
+        "intermediate": {
+          "name": "intermediate",
+          "read_bytes": 7569408.0,
+          "write_bytes": 1081344.0,
+          "total_bytes": 8650752.0,
+          "read_energy_pj": 1513881.6,
+          "write_energy_pj": 216268.80000000002,
+          "total_energy_pj": 1730150.4000000001,
+          "transfer_time_ns": 33792.0
         },
         "off_chip": {
           "name": "off_chip",
@@ -82,12 +93,12 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
       "serial_transfer_time_ns": 540672.0,
       "max_per_matmul_transfer_time_ns": 178176.0,
       "bandwidth_limited_serial_batch_latency_ns": 540672.0,
-      "system_energy_per_mac_pj": 0.10758938419117647,
-      "system_energy_per_op_pj": 0.05379469209558824,
-      "movement_energy_share": 0.94159054650609,
+      "system_energy_per_mac_pj": 0.10961144301470588,
+      "system_energy_per_op_pj": 0.05480572150735294,
+      "movement_energy_share": 0.9426680558205056,
       "bandwidth_limited_serial_effective_macs_per_second": 1582545454545.4543,
       "bandwidth_limited_serial_effective_equivalent_ops_per_second": 3165090909090.9087,
-      "note": "Summed from decomposed per-matmul system movement estimates. This is a serial aggregate over explicit SRAM/off-chip tiers, not a fused memory scheduler."
+      "note": "Summed from decomposed per-matmul system movement estimates. This is a serial aggregate over explicit SRAM, intermediate, and off-chip tiers, not a fused memory scheduler."
     },
     "energy": {
       "optical_compute_pj": 427819.008,
@@ -233,10 +244,18 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
         "system": {
           "profile": "default",
           "profile_overrides": [],
+          "memory_timing_mode": "overlapped",
           "sram": {
             "read_energy_pj_per_byte": 0.02,
             "write_energy_pj_per_byte": 0.02,
             "bandwidth_bytes_per_ns": 1024.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "intermediate": {
+            "read_energy_pj_per_byte": 0.2,
+            "write_energy_pj_per_byte": 0.2,
+            "bandwidth_bytes_per_ns": 256.0,
             "read_fraction": 1.0,
             "write_fraction": 1.0
           },
@@ -278,6 +297,7 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
         "system": {
           "profile": "default",
           "profile_overrides": [],
+          "memory_timing_mode": "overlapped",
           "tiers": {
             "sram": {
               "name": "sram",
@@ -289,6 +309,19 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
               "total_energy_pj": 43253.76,
               "bandwidth_bytes_per_ns": 1024.0,
               "transfer_time_ns": 2112.0,
+              "read_fraction": 1.0,
+              "write_fraction": 1.0
+            },
+            "intermediate": {
+              "name": "intermediate",
+              "read_bytes": 1867776.0,
+              "write_bytes": 294912.0,
+              "total_bytes": 2162688.0,
+              "read_energy_pj": 373555.2,
+              "write_energy_pj": 58982.4,
+              "total_energy_pj": 432537.60000000003,
+              "bandwidth_bytes_per_ns": 256.0,
+              "transfer_time_ns": 8448.0,
               "read_fraction": 1.0,
               "write_fraction": 1.0
             },
@@ -307,16 +340,18 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
             }
           },
           "local_compute_and_conversion_energy_pj": 1411448.832,
-          "total_movement_energy_pj": 21670133.76,
-          "total_system_energy_pj": 23081582.592,
-          "system_energy_per_mac_pj": 0.10190885416666667,
-          "system_energy_per_op_pj": 0.05095442708333334,
-          "movement_energy_share": 0.93884956430634,
+          "total_movement_energy_pj": 22102671.36,
+          "total_system_energy_pj": 23514120.191999998,
+          "system_energy_per_mac_pj": 0.10381857638888888,
+          "system_energy_per_op_pj": 0.05190928819444444,
+          "movement_energy_share": 0.9399744145017935,
           "max_transfer_time_ns": 135168.0,
+          "serial_transfer_time_ns": 145728.0,
+          "effective_transfer_time_ns": 135168.0,
           "bandwidth_limited_batch_latency_ns": 135168.0,
           "bandwidth_limited_equivalent_ops_per_second": 3351272727272.727,
           "bandwidth_limited_tier": "off_chip",
-          "note": "System movement energy is a local estimate over explicit SRAM and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
+          "note": "System movement energy is a local estimate over explicit SRAM, intermediate, and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
         },
         "energy": {
           "optical_compute_pj": 113246.208,
@@ -374,7 +409,7 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
         "Weight DAC conversions are counted once per batch because weight_stationary is true.",
         "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
         "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.",
-        "The multi-tier system model adds explicit SRAM and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
+        "The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
       ],
       "provenance": null
     },
@@ -433,10 +468,18 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
         "system": {
           "profile": "default",
           "profile_overrides": [],
+          "memory_timing_mode": "overlapped",
           "sram": {
             "read_energy_pj_per_byte": 0.02,
             "write_energy_pj_per_byte": 0.02,
             "bandwidth_bytes_per_ns": 1024.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "intermediate": {
+            "read_energy_pj_per_byte": 0.2,
+            "write_energy_pj_per_byte": 0.2,
+            "bandwidth_bytes_per_ns": 256.0,
             "read_fraction": 1.0,
             "write_fraction": 1.0
           },
@@ -478,6 +521,7 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
         "system": {
           "profile": "default",
           "profile_overrides": [],
+          "memory_timing_mode": "overlapped",
           "tiers": {
             "sram": {
               "name": "sram",
@@ -489,6 +533,19 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
               "total_energy_pj": 7864.32,
               "bandwidth_bytes_per_ns": 1024.0,
               "transfer_time_ns": 384.0,
+              "read_fraction": 1.0,
+              "write_fraction": 1.0
+            },
+            "intermediate": {
+              "name": "intermediate",
+              "read_bytes": 196608.0,
+              "write_bytes": 196608.0,
+              "total_bytes": 393216.0,
+              "read_energy_pj": 39321.600000000006,
+              "write_energy_pj": 39321.600000000006,
+              "total_energy_pj": 78643.20000000001,
+              "bandwidth_bytes_per_ns": 256.0,
+              "transfer_time_ns": 1536.0,
               "read_fraction": 1.0,
               "write_fraction": 1.0
             },
@@ -507,16 +564,18 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
             }
           },
           "local_compute_and_conversion_energy_pj": 181469.184,
-          "total_movement_energy_pj": 3940024.32,
-          "total_system_energy_pj": 4121493.5039999997,
-          "system_energy_per_mac_pj": 0.32754687499999996,
-          "system_energy_per_op_pj": 0.16377343749999998,
-          "movement_energy_share": 0.9559700424557555,
+          "total_movement_energy_pj": 4018667.52,
+          "total_system_energy_pj": 4200136.704,
+          "system_energy_per_mac_pj": 0.333796875,
+          "system_energy_per_op_pj": 0.1668984375,
+          "movement_energy_share": 0.9567944577072509,
           "max_transfer_time_ns": 24576.0,
+          "serial_transfer_time_ns": 26496.0,
+          "effective_transfer_time_ns": 24576.0,
           "bandwidth_limited_batch_latency_ns": 24576.0,
           "bandwidth_limited_equivalent_ops_per_second": 1023999999999.9999,
           "bandwidth_limited_tier": "off_chip",
-          "note": "System movement energy is a local estimate over explicit SRAM and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
+          "note": "System movement energy is a local estimate over explicit SRAM, intermediate, and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
         },
         "energy": {
           "optical_compute_pj": 6291.456,
@@ -574,7 +633,7 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
         "Weight DAC conversions are counted every 1 operation(s).",
         "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
         "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.",
-        "The multi-tier system model adds explicit SRAM and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
+        "The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
       ],
       "provenance": null
     },
@@ -633,10 +692,18 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
         "system": {
           "profile": "default",
           "profile_overrides": [],
+          "memory_timing_mode": "overlapped",
           "sram": {
             "read_energy_pj_per_byte": 0.02,
             "write_energy_pj_per_byte": 0.02,
             "bandwidth_bytes_per_ns": 1024.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "intermediate": {
+            "read_energy_pj_per_byte": 0.2,
+            "write_energy_pj_per_byte": 0.2,
+            "bandwidth_bytes_per_ns": 256.0,
             "read_fraction": 1.0,
             "write_fraction": 1.0
           },
@@ -678,6 +745,7 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
         "system": {
           "profile": "default",
           "profile_overrides": [],
+          "memory_timing_mode": "overlapped",
           "tiers": {
             "sram": {
               "name": "sram",
@@ -689,6 +757,19 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
               "total_energy_pj": 7864.32,
               "bandwidth_bytes_per_ns": 1024.0,
               "transfer_time_ns": 384.0,
+              "read_fraction": 1.0,
+              "write_fraction": 1.0
+            },
+            "intermediate": {
+              "name": "intermediate",
+              "read_bytes": 294912.0,
+              "write_bytes": 98304.0,
+              "total_bytes": 393216.0,
+              "read_energy_pj": 58982.4,
+              "write_energy_pj": 19660.800000000003,
+              "total_energy_pj": 78643.20000000001,
+              "bandwidth_bytes_per_ns": 256.0,
+              "transfer_time_ns": 1536.0,
               "read_fraction": 1.0,
               "write_fraction": 1.0
             },
@@ -707,16 +788,18 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
             }
           },
           "local_compute_and_conversion_energy_pj": 143130.624,
-          "total_movement_energy_pj": 3940024.32,
-          "total_system_energy_pj": 4083154.9439999997,
-          "system_energy_per_mac_pj": 0.32449999999999996,
-          "system_energy_per_op_pj": 0.16224999999999998,
-          "movement_energy_share": 0.9649460708782743,
+          "total_movement_energy_pj": 4018667.52,
+          "total_system_energy_pj": 4161798.144,
+          "system_energy_per_mac_pj": 0.33075,
+          "system_energy_per_op_pj": 0.165375,
+          "movement_energy_share": 0.9656084656084657,
           "max_transfer_time_ns": 24576.0,
+          "serial_transfer_time_ns": 26496.0,
+          "effective_transfer_time_ns": 24576.0,
           "bandwidth_limited_batch_latency_ns": 24576.0,
           "bandwidth_limited_equivalent_ops_per_second": 1023999999999.9999,
           "bandwidth_limited_tier": "off_chip",
-          "note": "System movement energy is a local estimate over explicit SRAM and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
+          "note": "System movement energy is a local estimate over explicit SRAM, intermediate, and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
         },
         "energy": {
           "optical_compute_pj": 6291.456,
@@ -774,7 +857,7 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
         "Weight DAC conversions are counted every 1 operation(s).",
         "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
         "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.",
-        "The multi-tier system model adds explicit SRAM and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
+        "The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
       ],
       "provenance": null
     },
@@ -833,10 +916,18 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
         "system": {
           "profile": "default",
           "profile_overrides": [],
+          "memory_timing_mode": "overlapped",
           "sram": {
             "read_energy_pj_per_byte": 0.02,
             "write_energy_pj_per_byte": 0.02,
             "bandwidth_bytes_per_ns": 1024.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "intermediate": {
+            "read_energy_pj_per_byte": 0.2,
+            "write_energy_pj_per_byte": 0.2,
+            "bandwidth_bytes_per_ns": 256.0,
             "read_fraction": 1.0,
             "write_fraction": 1.0
           },
@@ -878,6 +969,7 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
         "system": {
           "profile": "default",
           "profile_overrides": [],
+          "memory_timing_mode": "overlapped",
           "tiers": {
             "sram": {
               "name": "sram",
@@ -889,6 +981,19 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
               "total_energy_pj": 57016.32,
               "bandwidth_bytes_per_ns": 1024.0,
               "transfer_time_ns": 2784.0,
+              "read_fraction": 1.0,
+              "write_fraction": 1.0
+            },
+            "intermediate": {
+              "name": "intermediate",
+              "read_bytes": 2457600.0,
+              "write_bytes": 393216.0,
+              "total_bytes": 2850816.0,
+              "read_energy_pj": 491520.0,
+              "write_energy_pj": 78643.20000000001,
+              "total_energy_pj": 570163.2,
+              "bandwidth_bytes_per_ns": 256.0,
+              "transfer_time_ns": 11136.0,
               "read_fraction": 1.0,
               "write_fraction": 1.0
             },
@@ -907,16 +1012,18 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
             }
           },
           "local_compute_and_conversion_energy_pj": 1877999.616,
-          "total_movement_energy_pj": 28565176.32,
-          "total_system_energy_pj": 30443175.936,
-          "system_energy_per_mac_pj": 0.10080859375000001,
-          "system_energy_per_op_pj": 0.050404296875000004,
-          "movement_energy_share": 0.9383113108846437,
+          "total_movement_energy_pj": 29135339.52,
+          "total_system_energy_pj": 31013339.136,
+          "system_energy_per_mac_pj": 0.10269661458333333,
+          "system_energy_per_op_pj": 0.051348307291666666,
+          "movement_energy_share": 0.9394454235397041,
           "max_transfer_time_ns": 178176.0,
+          "serial_transfer_time_ns": 192096.0,
+          "effective_transfer_time_ns": 178176.0,
           "bandwidth_limited_batch_latency_ns": 178176.0,
           "bandwidth_limited_equivalent_ops_per_second": 3389793103448.2754,
           "bandwidth_limited_tier": "off_chip",
-          "note": "System movement energy is a local estimate over explicit SRAM and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
+          "note": "System movement energy is a local estimate over explicit SRAM, intermediate, and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
         },
         "energy": {
           "optical_compute_pj": 150994.944,
@@ -974,7 +1081,7 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
         "Weight DAC conversions are counted once per batch because weight_stationary is true.",
         "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
         "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.",
-        "The multi-tier system model adds explicit SRAM and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
+        "The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
       ],
       "provenance": null
     },
@@ -1033,10 +1140,18 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
         "system": {
           "profile": "default",
           "profile_overrides": [],
+          "memory_timing_mode": "overlapped",
           "sram": {
             "read_energy_pj_per_byte": 0.02,
             "write_energy_pj_per_byte": 0.02,
             "bandwidth_bytes_per_ns": 1024.0,
+            "read_fraction": 1.0,
+            "write_fraction": 1.0
+          },
+          "intermediate": {
+            "read_energy_pj_per_byte": 0.2,
+            "write_energy_pj_per_byte": 0.2,
+            "bandwidth_bytes_per_ns": 256.0,
             "read_fraction": 1.0,
             "write_fraction": 1.0
           },
@@ -1078,6 +1193,7 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
         "system": {
           "profile": "default",
           "profile_overrides": [],
+          "memory_timing_mode": "overlapped",
           "tiers": {
             "sram": {
               "name": "sram",
@@ -1089,6 +1205,19 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
               "total_energy_pj": 57016.32,
               "bandwidth_bytes_per_ns": 1024.0,
               "transfer_time_ns": 2784.0,
+              "read_fraction": 1.0,
+              "write_fraction": 1.0
+            },
+            "intermediate": {
+              "name": "intermediate",
+              "read_bytes": 2752512.0,
+              "write_bytes": 98304.0,
+              "total_bytes": 2850816.0,
+              "read_energy_pj": 550502.4,
+              "write_energy_pj": 19660.800000000003,
+              "total_energy_pj": 570163.2000000001,
+              "bandwidth_bytes_per_ns": 256.0,
+              "transfer_time_ns": 11136.0,
               "read_fraction": 1.0,
               "write_fraction": 1.0
             },
@@ -1107,16 +1236,18 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
             }
           },
           "local_compute_and_conversion_energy_pj": 1762983.9359999998,
-          "total_movement_energy_pj": 28565176.32,
-          "total_system_energy_pj": 30328160.256,
-          "system_energy_per_mac_pj": 0.10042773437500001,
-          "system_energy_per_op_pj": 0.050213867187500004,
-          "movement_energy_share": 0.9418697368676948,
+          "total_movement_energy_pj": 29135339.52,
+          "total_system_energy_pj": 30898323.456,
+          "system_energy_per_mac_pj": 0.10231575520833333,
+          "system_energy_per_op_pj": 0.051157877604166666,
+          "movement_energy_share": 0.9429424079105607,
           "max_transfer_time_ns": 178176.0,
+          "serial_transfer_time_ns": 192096.0,
+          "effective_transfer_time_ns": 178176.0,
           "bandwidth_limited_batch_latency_ns": 178176.0,
           "bandwidth_limited_equivalent_ops_per_second": 3389793103448.2754,
           "bandwidth_limited_tier": "off_chip",
-          "note": "System movement energy is a local estimate over explicit SRAM and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
+          "note": "System movement energy is a local estimate over explicit SRAM, intermediate, and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
         },
         "energy": {
           "optical_compute_pj": 150994.944,
@@ -1174,7 +1305,7 @@ window.PhotonicBenchPayloadRegistry["bert_base_12layer_model/encoder_block/bert_
         "Weight DAC conversions are counted once per batch because weight_stationary is true.",
         "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
         "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.",
-        "The multi-tier system model adds explicit SRAM and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
+        "The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
       ],
       "provenance": null
     }

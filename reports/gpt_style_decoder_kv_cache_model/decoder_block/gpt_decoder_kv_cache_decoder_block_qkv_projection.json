@@ -50,10 +50,18 @@
     "system": {
       "profile": "default",
       "profile_overrides": [],
+      "memory_timing_mode": "overlapped",
       "sram": {
         "read_energy_pj_per_byte": 0.02,
         "write_energy_pj_per_byte": 0.02,
         "bandwidth_bytes_per_ns": 1024.0,
+        "read_fraction": 1.0,
+        "write_fraction": 1.0
+      },
+      "intermediate": {
+        "read_energy_pj_per_byte": 0.2,
+        "write_energy_pj_per_byte": 0.2,
+        "bandwidth_bytes_per_ns": 256.0,
         "read_fraction": 1.0,
         "write_fraction": 1.0
       },
@@ -95,6 +103,7 @@
     "system": {
       "profile": "default",
       "profile_overrides": [],
+      "memory_timing_mode": "overlapped",
       "tiers": {
         "sram": {
           "name": "sram",
@@ -106,6 +115,19 @@
           "total_energy_pj": 35450.880000000005,
           "bandwidth_bytes_per_ns": 1024.0,
           "transfer_time_ns": 1731.0,
+          "read_fraction": 1.0,
+          "write_fraction": 1.0
+        },
+        "intermediate": {
+          "name": "intermediate",
+          "read_bytes": 1770240.0,
+          "write_bytes": 2304.0,
+          "total_bytes": 1772544.0,
+          "read_energy_pj": 354048.0,
+          "write_energy_pj": 460.8,
+          "total_energy_pj": 354508.8,
+          "bandwidth_bytes_per_ns": 256.0,
+          "transfer_time_ns": 6924.0,
           "read_fraction": 1.0,
           "write_fraction": 1.0
         },
@@ -124,16 +146,18 @@
         }
       },
       "local_compute_and_conversion_energy_pj": 801068.5440000001,
-      "total_movement_energy_pj": 17760890.88,
-      "total_system_energy_pj": 18561959.424,
-      "system_energy_per_mac_pj": 10.490111979166667,
-      "system_energy_per_op_pj": 5.245055989583333,
-      "movement_energy_share": 0.9568435354424789,
+      "total_movement_energy_pj": 18115399.68,
+      "total_system_energy_pj": 18916468.224,
+      "system_energy_per_mac_pj": 10.690459201388888,
+      "system_energy_per_op_pj": 5.345229600694444,
+      "movement_energy_share": 0.9576523199513715,
       "max_transfer_time_ns": 110784.0,
+      "serial_transfer_time_ns": 119439.0,
+      "effective_transfer_time_ns": 110784.0,
       "bandwidth_limited_batch_latency_ns": 110784.0,
       "bandwidth_limited_equivalent_ops_per_second": 31944540727.902946,
       "bandwidth_limited_tier": "off_chip",
-      "note": "System movement energy is a local estimate over explicit SRAM and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
+      "note": "System movement energy is a local estimate over explicit SRAM, intermediate, and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
     },
     "energy": {
       "optical_compute_pj": 884.736,
@@ -193,7 +217,7 @@
     "Weight DAC conversions are counted once per batch because weight_stationary is true.",
     "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
     "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.",
-    "The multi-tier system model adds explicit SRAM and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
+    "The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
   ],
   "provenance": null
 }

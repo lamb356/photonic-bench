@@ -76,6 +76,10 @@ def test_discover_visualizer_data_loads_root_and_nested_reports() -> None:
         "hitop_2025_optical_tensor_processor_surrogate.json",
         "lin_2024_tfln_120gops_tensor_core_surrogate.json",
         "meng_2025_mrr_otpu_tensor_core_surrogate.json",
+        "zhang_2026_pommm_surrogate.json",
+        "chen_2026_fsr_gemm_surrogate.json",
+        "ning_2025_cirptc_surrogate.json",
+        "kovaios_2025_wdm_1tops_tensor_core_surrogate.json",
     )
     assert data.comparison_presets[2].artifact_ids == (
         "profile_sensitivity_64x64_on_chip_sram.json",
@@ -210,6 +214,8 @@ def test_static_app_contains_comparison_and_boundary_labels() -> None:
     assert "Ratio vs pinned" in app_js
     assert "Comparison Insights" in app_js
     assert "Comparison Brief" in app_js
+    assert "Decision Scorecard" in app_js
+    assert "decision_scorecard" in app_js
     assert "Download JSON" in app_js
     assert "Download Markdown" in app_js
     assert "Copy Markdown" in app_js

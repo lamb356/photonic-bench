@@ -1051,6 +1051,18 @@
         "system",
         "profile_overrides"
       ),
+      memory_timing_mode: optionalString(
+        localModel,
+        sourcePath,
+        "system",
+        "memory_timing_mode"
+      ),
+      effective_transfer_time_ns: optionalNumber(
+        localModel,
+        sourcePath,
+        "system",
+        "effective_transfer_time_ns"
+      ),
       bandwidth_limited_latency_ns: values.bandwidth_limited_latency_ns,
       bandwidth_limited_throughput_equivalent_ops_per_second:
         values.bandwidth_limited_throughput_equivalent_ops_per_second,
@@ -1389,7 +1401,7 @@
           ${metric("Interface traffic", formatBytes(summary.memory_traffic_bytes), "converter boundary")}
           ${metric("Operational intensity", formatOpsPerByte(summary.operational_intensity_ops_per_byte), "local model")}
           ${metric("System energy/op", formatPj(summary.system_energy_per_op_pj), "core + movement")}
-          ${metric("Movement share", formatPercent(summary.movement_energy_share), "SRAM/off-chip")}
+          ${metric("Movement share", formatPercent(summary.movement_energy_share), "SRAM/intermediate/off-chip")}
         </div>
       </section>
     `;
@@ -1444,12 +1456,16 @@
       `;
     }
     const tiers = system.tiers || {};
-    const tierRows = ["sram", "off_chip"]
-      .filter((name) => tiers[name])
+    const preferredTierNames = ["sram", "intermediate", "off_chip"];
+    const tierNames = [
+      ...preferredTierNames.filter((name) => tiers[name]),
+      ...Object.keys(tiers).filter((name) => !preferredTierNames.includes(name)),
+    ];
+    const tierRows = tierNames
       .map((name) => {
         const tier = tiers[name];
         return [
-          escapeHtml(name === "off_chip" ? "off-chip/DRAM" : name.toUpperCase()),
+          escapeHtml(systemTierLabel(name)),
           escapeHtml(formatBytes(tier.read_bytes)),
           escapeHtml(formatBytes(tier.write_bytes)),
           escapeHtml(formatPj(tier.total_energy_pj)),
@@ -1460,12 +1476,15 @@
     const summaryRows = [
       ["System profile", system.profile || "n/a"],
       ["Profile tier overrides", formatProfileOverrides(system.profile_overrides)],
+      ["Memory timing mode", system.memory_timing_mode || "n/a"],
       ["Local compute/conversion energy", formatPj(system.local_compute_and_conversion_energy_pj)],
       ["Total movement energy", formatPj(system.total_movement_energy_pj)],
       ["Total system energy", formatPj(system.total_system_energy_pj)],
       ["System energy/op", formatPj(system.system_energy_per_op_pj)],
       ["Movement share", formatPercent(system.movement_energy_share)],
       ["Max transfer time", formatNs(system.max_transfer_time_ns || system.serial_transfer_time_ns)],
+      ["Serialized transfer time", formatNs(system.serial_transfer_time_ns)],
+      ["Effective transfer time", formatNs(system.effective_transfer_time_ns || system.serial_transfer_time_ns)],
       [timingLabel, formatNs(system.bandwidth_limited_batch_latency_ns || system.bandwidth_limited_serial_batch_latency_ns)],
       [
         "Bandwidth-limited throughput",
@@ -1478,7 +1497,7 @@
     return `
       <section class="panel">
         <h3>Multi-Tier System Model</h3>
-        <div class="notes"><p>${escapeHtml(system.note || "System movement energy is a local SRAM/off-chip tier estimate added separately from photonic core energy.")}</p></div>
+        <div class="notes"><p>${escapeHtml(system.note || "System movement energy is a local SRAM/intermediate/off-chip tier estimate added separately from photonic core energy.")}</p></div>
         ${simpleTable(
           [
             { label: "Tier" },
@@ -1497,6 +1516,13 @@
         )}
       </section>
     `;
+  }
+
+  function systemTierLabel(name) {
+    if (name === "sram") return "SRAM";
+    if (name === "intermediate") return "Intermediate/cache";
+    if (name === "off_chip") return "Off-chip/DRAM";
+    return name.replaceAll("_", " ");
   }
 
   function renderSourceQuality(sourceQuality) {
@@ -1544,7 +1570,7 @@
           <div class="concept"><strong>Serial timing</strong><span>Transformer aggregate timing is a serial sum, not a fused scheduler claim.</span></div>
           <div class="concept"><strong>Non-additive noise</strong><span>Aggregate noise is diagnostic extrema, not a summed layer error.</span></div>
           <div class="concept"><strong>Interface traffic</strong><span>Memory bytes use converter widths and reuse counts, not hierarchy simulation.</span></div>
-          <div class="concept"><strong>System tiers</strong><span>SRAM/off-chip movement energy is a local tier estimate added outside paper references.</span></div>
+          <div class="concept"><strong>System tiers</strong><span>SRAM/intermediate/off-chip movement energy is a local tier estimate added outside paper references.</span></div>
         </div>
       </section>
     `;
@@ -2045,6 +2071,11 @@
         "Profile tier overrides",
         (summary) => formatProfileOverrides(summary.system_profile_overrides),
       ],
+      ["Memory timing mode", (summary) => summary.memory_timing_mode || "n/a"],
+      [
+        "Effective transfer time",
+        (summary) => formatNs(summary.effective_transfer_time_ns),
+      ],
       ["Movement energy", (summary) => formatPj(summary.movement_energy_pj)],
       ["Movement share", (summary) => formatPercent(summary.movement_energy_share)],
       ["Latency label", (summary) => summary.latency_label],
@@ -2411,6 +2442,110 @@
     `;
   }
 
+  function renderDecisionScorecard(artifacts) {
+    const scoreSpecs = comparisonMetricSpecs().filter((spec) =>
+      [
+        "Energy per op",
+        "System energy per op",
+        "Movement share",
+        "Latency",
+        "Bandwidth-limited throughput",
+        "Operational intensity",
+      ].includes(spec.label)
+    );
+    const sections = groupArtifactsByKind(artifacts)
+      .map(([label, group]) => {
+        const scored = group
+          .map((artifact) => ({
+            artifact,
+            score: decisionScore(artifact, group, scoreSpecs),
+          }))
+          .sort((left, right) => right.score - left.score);
+        const rows = scored.map((entry, index) => [
+          escapeHtml(formatNumber(index + 1)),
+          escapeHtml(entry.artifact.summary.benchmark_name),
+          escapeHtml(formatNumber(entry.score)),
+          escapeHtml(bestUseLabel(entry.artifact.summary, group)),
+          escapeHtml(entry.artifact.summary.memory_timing_mode || "n/a"),
+          escapeHtml(formatPj(entry.artifact.summary.system_energy_per_op_pj)),
+          escapeHtml(
+            formatThroughput(
+              entry.artifact.summary
+                .bandwidth_limited_throughput_equivalent_ops_per_second
+            )
+          ),
+        ]);
+        return `
+          <section class="panel">
+            <h3>${escapeHtml(label)} Decision Scorecard</h3>
+            <div class="notes"><p>Scores normalize selected same-schema artifacts across energy, movement, latency, bandwidth-limited throughput, and operational intensity. The score is a triage aid, not a benchmark claim.</p></div>
+            ${simpleTable(
+              [
+                { label: "Rank", num: true },
+                { label: "Artifact" },
+                { label: "Score", num: true },
+                { label: "Best use" },
+                { label: "Memory timing" },
+                { label: "System pJ/op", num: true },
+                { label: "BW-limited throughput", num: true },
+              ],
+              rows,
+              "comparison-table"
+            )}
+          </section>
+        `;
+      })
+      .join("");
+    return sections;
+  }
+
+  function decisionScore(artifact, group, specs) {
+    const scores = specs
+      .map((spec) => normalizedMetricScore(spec, spec.get(artifact.summary), group))
+      .filter((score) => Number.isFinite(score));
+    if (!scores.length) return 0;
+    return scores.reduce((total, score) => total + score, 0) / scores.length;
+  }
+
+  function normalizedMetricScore(spec, value, group) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return Number.NaN;
+    const values = group
+      .map((artifact) => Number(spec.get(artifact.summary)))
+      .filter((candidate) => Number.isFinite(candidate));
+    if (!values.length) return Number.NaN;
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    if (min === max) return 100;
+    if (spec.direction === "lower") {
+      return 100 * (1 - (number - min) / (max - min));
+    }
+    if (spec.direction === "higher") {
+      return 100 * ((number - min) / (max - min));
+    }
+    return Number.NaN;
+  }
+
+  function bestUseLabel(summary, group) {
+    const labels = [];
+    if (isBestByLabel(summary, group, "System energy per op")) {
+      labels.push("lowest system energy");
+    }
+    if (isBestByLabel(summary, group, "Bandwidth-limited throughput")) {
+      labels.push("highest BW throughput");
+    }
+    if (isBestByLabel(summary, group, "Operational intensity")) {
+      labels.push("highest ops/byte");
+    }
+    return labels.length ? labels.join(", ") : "balanced trade-off";
+  }
+
+  function isBestByLabel(summary, group, label) {
+    const spec = comparisonMetricSpecs().find((candidate) => candidate.label === label);
+    const best = spec ? bestArtifactForSpec(group, spec) : null;
+    return Boolean(best && best.summary.id === summary.id);
+  }
+
   function renderSchemaCompatibility(artifacts, pinnedArtifact) {
     const rows = groupArtifactsByKind(artifacts).map(([label, group]) => {
       const compatiblePinned =
@@ -2649,6 +2784,8 @@
         system_energy_per_op_pj: artifact.summary.system_energy_per_op_pj,
         system_profile: artifact.summary.system_profile,
         system_profile_overrides: artifact.summary.system_profile_overrides || [],
+        memory_timing_mode: artifact.summary.memory_timing_mode,
+        effective_transfer_time_ns: artifact.summary.effective_transfer_time_ns,
         movement_energy_pj: artifact.summary.movement_energy_pj,
         movement_energy_share: artifact.summary.movement_energy_share,
         latency_label: artifact.summary.latency_label,
@@ -2671,6 +2808,26 @@
       grouped_metrics: groupArtifactsByKind(artifacts).map(([label, group]) => ({
         group: label,
         artifacts: group.map((artifact) => artifact.summary.id),
+        decision_scorecard: group
+          .map((artifact) => ({
+            artifact_id: artifact.summary.id,
+            score: decisionScore(
+              artifact,
+              group,
+              comparisonMetricSpecs().filter((spec) =>
+                [
+                  "Energy per op",
+                  "System energy per op",
+                  "Movement share",
+                  "Latency",
+                  "Bandwidth-limited throughput",
+                  "Operational intensity",
+                ].includes(spec.label)
+              )
+            ),
+            best_use: bestUseLabel(artifact.summary, group),
+          }))
+          .sort((left, right) => right.score - left.score),
         best: comparisonMetricSpecs()
           .filter((spec) => ["lower", "higher"].includes(spec.direction))
           .map((spec) => {
@@ -2698,6 +2855,8 @@
           formatPj(summary.system_energy_per_op_pj),
           summary.system_profile || "n/a",
           formatProfileOverrides(summary.system_profile_overrides),
+          summary.memory_timing_mode || "n/a",
+          formatNs(summary.effective_transfer_time_ns),
           formatNs(summary.latency_ns),
           formatThroughput(summary.throughput_equivalent_ops_per_second),
           formatThroughput(
@@ -2721,8 +2880,8 @@ Pinned reference: ${
       pinnedArtifact ? pinnedArtifact.summary.benchmark_name : "none"
     }
 
-| Benchmark | Kind | Source | Local pJ/op | System pJ/op | System profile | Profile overrides | Latency | Throughput | BW-limited throughput | Interface traffic | Eq ops/byte | Movement share | Published reference | Source grade | Surrogate type | Provenance |
-| --- | --- | --- | ---: | ---: | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- |
+| Benchmark | Kind | Source | Local pJ/op | System pJ/op | System profile | Profile overrides | Memory timing | Effective transfer | Latency | Throughput | BW-limited throughput | Interface traffic | Eq ops/byte | Movement share | Published reference | Source grade | Surrogate type | Provenance |
+| --- | --- | --- | ---: | ---: | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- |
 ${rows}
 
 ## Boundary Notes
@@ -2789,7 +2948,7 @@ ${notes}
         ? "Published references are present for at least one artifact and remain separate from local model estimates."
         : "Selected artifacts are local model summaries with no published_reference block.",
       "Interface traffic is derived from converter bit widths and reuse counts; it is not a full memory hierarchy simulation.",
-      "System movement energy is a local SRAM/off-chip tier estimate added separately from photonic core compute/conversion energy.",
+      "System movement energy is a local SRAM/intermediate/off-chip tier estimate added separately from photonic core compute/conversion energy.",
     ];
     const exportObject = comparisonExport(artifacts, pinnedArtifact, boundaryNotes);
     const exportMarkdown = comparisonMarkdown(
@@ -2825,6 +2984,7 @@ ${notes}
         </div>
       </section>
       ${renderComparisonBrief(artifacts)}
+      ${renderDecisionScorecard(artifacts)}
       ${renderParetoChart(artifacts)}
       <section class="panel">
         <h3>Comparison Matrix</h3>

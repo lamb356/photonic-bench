@@ -17,11 +17,11 @@ Dense BERT-base style full encoder model summary with 12 identical encoder layer
 | Metric | Value |
 | --- | ---: |
 | Compute/conversion energy (pJ) | 8.30779e+07 |
-| Movement energy (pJ) | 1.50824e+09 |
-| Total system energy (pJ) | 1.59131e+09 |
-| System energy per MAC (pJ) | 0.119935 |
-| System energy per equivalent op (pJ) | 0.0599677 |
-| Movement energy share | 0.947793 |
+| Movement energy (pJ) | 1.53834e+09 |
+| Total system energy (pJ) | 1.62142e+09 |
+| System energy per MAC (pJ) | 0.122204 |
+| System energy per equivalent op (pJ) | 0.0611022 |
+| Movement energy share | 0.948762 |
 | Serial batch latency (ns) | 833 |
 | Overlap-adjusted latency (ns) | 624.75 |
 | Bandwidth-limited serial latency (ns) | 9.40766e+06 |
@@ -54,7 +54,7 @@ Dense BERT-base style full encoder model summary with 12 identical encoder layer
 
 | Layer spec | Count | Summary JSON | Per-layer MACs | Weighted MACs | System pJ/op | BW-limited layer latency (ns) |
 | --- | ---: | --- | ---: | ---: | ---: | ---: |
-| encoder_block | 12 | encoder_block/bert_base_12layer_encoder_block_layer_summary.json | 855638016 | 10267656192 | 0.0537947 | 540672 |
+| encoder_block | 12 | encoder_block/bert_base_12layer_encoder_block_layer_summary.json | 855638016 | 10267656192 | 0.0548057 | 540672 |
 
 ## Aggregate Semantics
 
@@ -63,7 +63,7 @@ Dense BERT-base style full encoder model summary with 12 identical encoder layer
 - `energy`: Additive layer energy fields are multiplied by layer count and summed; per-MAC and per-op fields are recomputed from model totals.
 - `memory_traffic`: Layer interface traffic is multiplied by layer count and summed. Output projection interface traffic is added when enabled. Activation tensor and KV-cache traffic are reported separately.
 - `activation_memory_traffic`: Embedding reads, activation tensor materialization, and KV-cache read/write bytes are local model-level assumptions outside the converter-interface traffic table.
-- `system`: Layer system movement estimates are multiplied by layer count and summed over explicit SRAM/off-chip tiers. Output projection and tensor-memory movement are added when configured. Bandwidth-limited timing is serial accounting, not a measured full-model scheduler.
+- `system`: Layer system movement estimates are multiplied by layer count and summed over explicit SRAM, intermediate/cache, and off-chip tiers. Output projection and tensor-memory movement are added when configured. Bandwidth-limited timing is serial accounting, not a measured full-model scheduler.
 - `timing`: serial_* timing fields assume weighted layer summaries execute one after another. Overlap-adjusted timing fields are optional local assumptions and do not replace the serial fields.
 - `noise`: Noise remains non-additive. Model-level noise fields are maxima over representative layer summaries.
 

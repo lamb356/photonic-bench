@@ -138,8 +138,10 @@ def _local_model(result: BenchmarkResult) -> dict[str, Any]:
         "system": {
             "profile": result.config.system.profile,
             "profile_overrides": list(result.config.system.profile_overrides),
+            "memory_timing_mode": result.system.memory_timing_mode,
             "tiers": {
                 "sram": _system_tier_result(result.system.sram),
+                "intermediate": _system_tier_result(result.system.intermediate),
                 "off_chip": _system_tier_result(result.system.off_chip),
             },
             "local_compute_and_conversion_energy_pj": (
@@ -151,6 +153,8 @@ def _local_model(result: BenchmarkResult) -> dict[str, Any]:
             "system_energy_per_op_pj": result.system.system_energy_per_op_pj,
             "movement_energy_share": result.system.movement_energy_share,
             "max_transfer_time_ns": result.system.max_transfer_time_ns,
+            "serial_transfer_time_ns": result.system.serial_transfer_time_ns,
+            "effective_transfer_time_ns": result.system.effective_transfer_time_ns,
             "bandwidth_limited_batch_latency_ns": (
                 result.system.bandwidth_limited_batch_latency_ns
             ),
@@ -159,9 +163,10 @@ def _local_model(result: BenchmarkResult) -> dict[str, Any]:
             ),
             "bandwidth_limited_tier": result.system.bandwidth_limited_tier,
             "note": (
-                "System movement energy is a local estimate over explicit SRAM "
-                "and off-chip tiers. It is added separately from photonic core "
-                "compute/conversion energy and is not a published measurement."
+                "System movement energy is a local estimate over explicit SRAM, "
+                "intermediate, and off-chip tiers. It is added separately from "
+                "photonic core compute/conversion energy and is not a published "
+                "measurement."
             ),
         },
         "energy": {

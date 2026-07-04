@@ -59,6 +59,8 @@ class ArtifactSummary:
     bandwidth_limited_throughput_equivalent_ops_per_second: float | None
     system_profile: str | None
     system_profile_overrides: tuple[str, ...]
+    memory_timing_mode: str | None
+    effective_transfer_time_ns: float | None
     provenance_status: str
     has_published_reference: bool
     source_quality_grade: str | None
@@ -124,8 +126,9 @@ class VisualizerData:
                 "Transformer aggregate noise is diagnostic and non-additive.",
                 "Transformer-layer exclusions are not modeled matmul costs.",
                 "Interface memory traffic is derived from converter bit widths and reuse counts, not a full memory hierarchy simulation.",
-                "System movement energy is a local SRAM/off-chip tier estimate added separately from core photonic compute/conversion energy.",
+                "System movement energy is a local SRAM/intermediate/off-chip tier estimate added separately from core photonic compute/conversion energy.",
                 "System profile names are local sensitivity presets, not measured hardware configurations.",
+                "System memory timing can be overlapped or serialized depending on the explicit local timing mode.",
             ],
         }
 
@@ -526,6 +529,19 @@ def _load_matmul_artifact(
             field="local_model.system.profile",
         ),
         system_profile_overrides=_system_profile_overrides(payload, source_path),
+        memory_timing_mode=_optional_str(
+            _dict_or_empty(_get_optional(payload, "local_model", "system")),
+            "memory_timing_mode",
+            source=source_path,
+            field="local_model.system.memory_timing_mode",
+        ),
+        effective_transfer_time_ns=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "effective_transfer_time_ns",
+            source=source_path,
+        ),
         provenance_status=_provenance_status(payload),
         has_published_reference=has_published_reference,
         source_quality_grade=_optional_str(
@@ -678,6 +694,19 @@ def _load_transformer_layer_artifact(
             field="local_model.system.profile",
         ),
         system_profile_overrides=_system_profile_overrides(payload, source_path),
+        memory_timing_mode=_optional_str(
+            _dict_or_empty(_get_optional(payload, "local_model", "system")),
+            "memory_timing_mode",
+            source=source_path,
+            field="local_model.system.memory_timing_mode",
+        ),
+        effective_transfer_time_ns=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "serial_transfer_time_ns",
+            source=source_path,
+        ),
         provenance_status=provenance_status,
         has_published_reference=has_published_reference,
         source_quality_grade=None,
@@ -830,6 +859,19 @@ def _load_transformer_model_artifact(
             field="local_model.system.profile",
         ),
         system_profile_overrides=_system_profile_overrides(payload, source_path),
+        memory_timing_mode=_optional_str(
+            _dict_or_empty(_get_optional(payload, "local_model", "system")),
+            "memory_timing_mode",
+            source=source_path,
+            field="local_model.system.memory_timing_mode",
+        ),
+        effective_transfer_time_ns=_optional_number(
+            payload,
+            "local_model",
+            "system",
+            "serial_transfer_time_ns",
+            source=source_path,
+        ),
         provenance_status=provenance_status,
         has_published_reference=has_published_reference,
         source_quality_grade=None,

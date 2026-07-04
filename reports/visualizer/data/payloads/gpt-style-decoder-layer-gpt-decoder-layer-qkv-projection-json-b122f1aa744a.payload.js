@@ -51,10 +51,18 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_q
     "system": {
       "profile": "default",
       "profile_overrides": [],
+      "memory_timing_mode": "overlapped",
       "sram": {
         "read_energy_pj_per_byte": 0.02,
         "write_energy_pj_per_byte": 0.02,
         "bandwidth_bytes_per_ns": 1024.0,
+        "read_fraction": 1.0,
+        "write_fraction": 1.0
+      },
+      "intermediate": {
+        "read_energy_pj_per_byte": 0.2,
+        "write_energy_pj_per_byte": 0.2,
+        "bandwidth_bytes_per_ns": 256.0,
         "read_fraction": 1.0,
         "write_fraction": 1.0
       },
@@ -96,6 +104,7 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_q
     "system": {
       "profile": "default",
       "profile_overrides": [],
+      "memory_timing_mode": "overlapped",
       "tiers": {
         "sram": {
           "name": "sram",
@@ -107,6 +116,19 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_q
           "total_energy_pj": 98304.0,
           "bandwidth_bytes_per_ns": 1024.0,
           "transfer_time_ns": 4800.0,
+          "read_fraction": 1.0,
+          "write_fraction": 1.0
+        },
+        "intermediate": {
+          "name": "intermediate",
+          "read_bytes": 2555904.0,
+          "write_bytes": 2359296.0,
+          "total_bytes": 4915200.0,
+          "read_energy_pj": 511180.80000000005,
+          "write_energy_pj": 471859.2,
+          "total_energy_pj": 983040.0,
+          "bandwidth_bytes_per_ns": 256.0,
+          "transfer_time_ns": 19200.0,
           "read_fraction": 1.0,
           "write_fraction": 1.0
         },
@@ -125,16 +147,18 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_q
         }
       },
       "local_compute_and_conversion_energy_pj": 5717753.856000001,
-      "total_movement_energy_pj": 49250304.0,
-      "total_system_energy_pj": 54968057.856,
-      "system_energy_per_mac_pj": 0.030336588541666668,
-      "system_energy_per_op_pj": 0.015168294270833334,
-      "movement_energy_share": 0.8959804279245445,
+      "total_movement_energy_pj": 50233344.0,
+      "total_system_energy_pj": 55951097.856,
+      "system_energy_per_mac_pj": 0.030879123263888888,
+      "system_energy_per_op_pj": 0.015439561631944444,
+      "movement_energy_share": 0.8978080131561378,
       "max_transfer_time_ns": 307200.0,
+      "serial_transfer_time_ns": 331200.0,
+      "effective_transfer_time_ns": 307200.0,
       "bandwidth_limited_batch_latency_ns": 307200.0,
       "bandwidth_limited_equivalent_ops_per_second": 11796479999999.998,
       "bandwidth_limited_tier": "off_chip",
-      "note": "System movement energy is a local estimate over explicit SRAM and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
+      "note": "System movement energy is a local estimate over explicit SRAM, intermediate, and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
     },
     "energy": {
       "optical_compute_pj": 905969.664,
@@ -192,7 +216,7 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_layer/gpt_decoder_layer_q
     "Weight DAC conversions are counted once per batch because weight_stationary is true.",
     "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
     "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.",
-    "The multi-tier system model adds explicit SRAM and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
+    "The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
   ],
   "provenance": null
 }

@@ -58,15 +58,23 @@ conservative `A` through `D` confidence grade, and grading notes.
 ## Per-Card System Model Fields
 
 Per-card reports include `model_inputs.system` with the selected profile,
-profile override list, and explicit `sram` and `off_chip` tier assumptions:
+profile override list, memory timing mode, and explicit `sram`,
+`intermediate`, and `off_chip` tier assumptions:
 
 ```yaml
 system:
   profile: default
+  memory_timing_mode: overlapped
   sram:
     read_energy_pj_per_byte: 0.02
     write_energy_pj_per_byte: 0.02
     bandwidth_bytes_per_ns: 1024
+    read_fraction: 1.0
+    write_fraction: 1.0
+  intermediate:
+    read_energy_pj_per_byte: 0.2
+    write_energy_pj_per_byte: 0.2
+    bandwidth_bytes_per_ns: 256
     read_fraction: 1.0
     write_fraction: 1.0
   off_chip:
@@ -80,11 +88,13 @@ system:
 Supported profile names are `default`, `on_chip_sram`, `hbm`, `ddr`, and
 `pcie_attached`. Profile names are local modeling presets, not measured hardware
 claims. A config can select a profile and override selected tier fields; those
-overridden tier names appear in `model_inputs.system.profile_overrides` and
+overridden tier names or timing-mode names appear in
+`model_inputs.system.profile_overrides` and
 `local_model.system.profile_overrides`.
 
-`local_model.system.tiers.sram` and `local_model.system.tiers.off_chip` report
-the tier read bytes, write bytes, movement energy, bandwidth, and transfer time.
+`local_model.system.tiers.sram`, `local_model.system.tiers.intermediate`, and
+`local_model.system.tiers.off_chip` report the tier read bytes, write bytes,
+movement energy, bandwidth, and transfer time.
 `local_model.system.total_movement_energy_pj` is added to
 `local_model.system.local_compute_and_conversion_energy_pj` to produce
 `local_model.system.total_system_energy_pj`. The legacy
@@ -92,8 +102,10 @@ the tier read bytes, write bytes, movement energy, bandwidth, and transfer time.
 estimate and is not overwritten by movement energy.
 
 Bandwidth-limited fields are local estimates. For per-card reports,
+`local_model.system.effective_transfer_time_ns` is either the slowest tier
+transfer time (`overlapped`) or the sum of tier transfer times (`serialized`).
 `local_model.system.bandwidth_limited_batch_latency_ns` is the maximum of the
-existing batch latency and the modeled tier transfer times, and
+existing batch latency and that effective transfer time, and
 `local_model.system.bandwidth_limited_equivalent_ops_per_second` divides the
 card's equivalent ops by that bandwidth-limited latency.
 

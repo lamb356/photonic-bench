@@ -70,6 +70,7 @@ _SYSTEM_TIER_SUM_FIELDS = (
     "total_energy_pj",
     "transfer_time_ns",
 )
+_SYSTEM_TIER_NAMES = ("sram", "intermediate", "off_chip")
 
 
 @dataclass(frozen=True)
@@ -493,18 +494,19 @@ def transformer_layer_report_to_dict(
             "system": {
                 "profile": config.system.profile,
                 "profile_overrides": list(config.system.profile_overrides),
+                "memory_timing_mode": config.system.memory_timing_mode,
                 **{field: _sum_local_system(audits, field) for field in _SYSTEM_SUM_FIELDS},
                 "tiers": {
-                    "sram": _aggregate_system_tier(audits, "sram"),
-                    "off_chip": _aggregate_system_tier(audits, "off_chip"),
+                    tier: _aggregate_system_tier(audits, tier)
+                    for tier in _SYSTEM_TIER_NAMES
                 },
                 "serial_transfer_time_ns": _sum_local_system(
                     audits,
-                    "max_transfer_time_ns",
+                    "effective_transfer_time_ns",
                 ),
                 "max_per_matmul_transfer_time_ns": _max_local_system(
                     audits,
-                    "max_transfer_time_ns",
+                    "effective_transfer_time_ns",
                 ),
                 "bandwidth_limited_serial_batch_latency_ns": (
                     bandwidth_limited_serial_batch_latency_ns
@@ -530,8 +532,8 @@ def transformer_layer_report_to_dict(
                 ),
                 "note": (
                     "Summed from decomposed per-matmul system movement estimates. "
-                    "This is a serial aggregate over explicit SRAM/off-chip tiers, "
-                    "not a fused memory scheduler."
+                    "This is a serial aggregate over explicit SRAM, intermediate, "
+                    "and off-chip tiers, not a fused memory scheduler."
                 ),
             },
             "energy": {
@@ -746,6 +748,7 @@ def transformer_model_report_to_dict(
             "system": {
                 "profile": config.system.profile,
                 "profile_overrides": list(config.system.profile_overrides),
+                "memory_timing_mode": config.system.memory_timing_mode,
                 **{
                     field: (
                         _weighted_layer_number(
@@ -759,14 +762,11 @@ def transformer_model_report_to_dict(
                     for field in _SYSTEM_SUM_FIELDS
                 },
                 "tiers": {
-                    "sram": _add_system_tiers(
-                        _weighted_model_system_tier(audited_layers, "sram"),
-                        extra["system"]["tiers"]["sram"],
-                    ),
-                    "off_chip": _add_system_tiers(
-                        _weighted_model_system_tier(audited_layers, "off_chip"),
-                        extra["system"]["tiers"]["off_chip"],
-                    ),
+                    tier: _add_system_tiers(
+                        _weighted_model_system_tier(audited_layers, tier),
+                        extra["system"]["tiers"][tier],
+                    )
+                    for tier in _SYSTEM_TIER_NAMES
                 },
                 "serial_transfer_time_ns": (
                     _weighted_layer_number(
@@ -808,8 +808,8 @@ def transformer_model_report_to_dict(
                 "note": (
                     "Weighted sum of transformer-layer system movement estimates "
                     "plus explicit output-projection and tensor-memory movement "
-                    "assumptions. This is serial accounting, not a measured "
-                    "full-model scheduler."
+                    "assumptions over SRAM, intermediate, and off-chip tiers. "
+                    "This is serial accounting, not a measured full-model scheduler."
                 ),
             },
             "energy": {
@@ -1445,11 +1445,11 @@ def _model_extra_accounting(
 
     output_system_tiers = _output_system_tiers(output_system)
     extra_system_tiers = {
-        "sram": _add_system_tiers(output_system_tiers["sram"], tensor_system["tiers"]["sram"]),
-        "off_chip": _add_system_tiers(
-            output_system_tiers["off_chip"],
-            tensor_system["tiers"]["off_chip"],
-        ),
+        tier: _add_system_tiers(
+            output_system_tiers[tier],
+            tensor_system["tiers"][tier],
+        )
+        for tier in _SYSTEM_TIER_NAMES
     }
     output_system_movement = float(output_system.get("total_movement_energy_pj") or 0.0)
     output_system_total = float(output_system.get("total_system_energy_pj") or 0.0)
@@ -1457,11 +1457,15 @@ def _model_extra_accounting(
         output_system.get("local_compute_and_conversion_energy_pj") or 0.0
     )
     tensor_movement_energy = tensor_system["total_movement_energy_pj"]
-    tensor_transfer_time_ns = tensor_system["serial_transfer_time_ns"]
+    tensor_transfer_time_ns = tensor_system["effective_transfer_time_ns"]
     output_bandwidth_latency = float(
         output_system.get("bandwidth_limited_batch_latency_ns") or 0.0
     )
-    output_transfer_time = float(output_system.get("max_transfer_time_ns") or 0.0)
+    output_transfer_time = float(
+        output_system.get("effective_transfer_time_ns")
+        or output_system.get("max_transfer_time_ns")
+        or 0.0
+    )
 
     return {
         "workload": {
@@ -1753,13 +1757,31 @@ def _tensor_memory_system(
     read_bytes = int(tensor_memory["total_tensor_read_bytes"])
     write_bytes = int(tensor_memory["total_tensor_write_bytes"])
     sram = _tier_movement("sram", config.system.sram, read_bytes, write_bytes)
+    intermediate = _tier_movement(
+        "intermediate",
+        config.system.intermediate,
+        read_bytes,
+        write_bytes,
+    )
     off_chip = _tier_movement("off_chip", config.system.off_chip, read_bytes, write_bytes)
-    total_movement = sram["total_energy_pj"] + off_chip["total_energy_pj"]
-    transfer_time = max(sram["transfer_time_ns"], off_chip["transfer_time_ns"])
+    tiers = {
+        "sram": sram,
+        "intermediate": intermediate,
+        "off_chip": off_chip,
+    }
+    total_movement = sum(tier["total_energy_pj"] for tier in tiers.values())
+    max_transfer_time = max(tier["transfer_time_ns"] for tier in tiers.values())
+    serial_transfer_time = sum(tier["transfer_time_ns"] for tier in tiers.values())
+    effective_transfer_time = (
+        serial_transfer_time
+        if config.system.memory_timing_mode == "serialized"
+        else max_transfer_time
+    )
     return {
-        "tiers": {"sram": sram, "off_chip": off_chip},
+        "tiers": tiers,
         "total_movement_energy_pj": total_movement,
-        "serial_transfer_time_ns": transfer_time,
+        "serial_transfer_time_ns": serial_transfer_time,
+        "effective_transfer_time_ns": effective_transfer_time,
     }
 
 
@@ -1790,11 +1812,8 @@ def _tier_movement(
 def _output_system_tiers(output_system: dict[str, Any]) -> dict[str, dict[str, Any]]:
     tiers = _dict_or_empty(output_system.get("tiers"))
     return {
-        "sram": _system_tier_or_zero(_dict_or_empty(tiers.get("sram")), "sram"),
-        "off_chip": _system_tier_or_zero(
-            _dict_or_empty(tiers.get("off_chip")),
-            "off_chip",
-        ),
+        tier: _system_tier_or_zero(_dict_or_empty(tiers.get(tier)), tier)
+        for tier in _SYSTEM_TIER_NAMES
     }
 
 
@@ -2076,8 +2095,8 @@ def _model_aggregate_semantics() -> dict[str, str]:
         ),
         "system": (
             "Layer system movement estimates are multiplied by layer count and "
-            "summed over explicit SRAM/off-chip tiers. Output projection and "
-            "tensor-memory movement are added when configured. "
+            "summed over explicit SRAM, intermediate/cache, and off-chip tiers. "
+            "Output projection and tensor-memory movement are added when configured. "
             "Bandwidth-limited timing is serial accounting, not a measured "
             "full-model scheduler."
         ),
@@ -2162,8 +2181,8 @@ def _aggregate_semantics() -> dict[str, str]:
         ),
         "system": (
             "System movement energy/timing is summed from decomposed card "
-            "estimates over explicit SRAM and off-chip tiers. Bandwidth-limited "
-            "serial timing is a sum of decomposed bandwidth-limited batch "
+            "estimates over explicit SRAM, intermediate/cache, and off-chip tiers. "
+            "Bandwidth-limited serial timing is a sum of decomposed bandwidth-limited batch "
             "latencies, not a fused scheduler claim."
         ),
         "timing": (

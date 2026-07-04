@@ -53,18 +53,21 @@ simulation.
 ## Multi-Tier System Movement
 
 These rows add an explicit local system movement estimate on top of the
-photonic core/converter model. SRAM and off-chip traffic are cumulative tier
-movements, not published measurements and not a cache simulator.
+photonic core/converter model. SRAM, intermediate, and off-chip traffic are
+cumulative tier movements, not published measurements and not a cache
+simulator.
 
 | Tier | Read bytes | Write bytes | Movement energy | Transfer time | Bandwidth |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | SRAM | 8192 bytes | 4096 bytes | 245.760 pJ | 6.000 ns | 2048.000 bytes/ns |
+| Intermediate/cache | 0 bytes | 0 bytes | 0.000 pJ | 0.000 ns | 256.000 bytes/ns |
 | Off-chip/DRAM | 0 bytes | 0 bytes | 0.000 pJ | 0.000 ns | 16.000 bytes/ns |
 
 | Metric | Value |
 | --- | ---: |
 | System profile | on_chip_sram |
 | Profile tier overrides | none |
+| Memory timing mode | overlapped |
 | Local compute/conversion energy | 4251.648 pJ |
 | Total movement energy | 245.760 pJ |
 | Total system energy | 4497.408 pJ |
@@ -72,6 +75,8 @@ movements, not published measurements and not a cache simulator.
 | System energy per equivalent op | 0.009 pJ |
 | Movement energy share | 5.46% |
 | Max transfer time | 6.000 ns |
+| Serialized transfer time | 6.000 ns |
+| Effective transfer time | 6.000 ns |
 | Bandwidth-limited tier | sram |
 | Bandwidth-limited batch latency | 6.000 ns |
 | Bandwidth-limited equivalent ops/s | 87381333333333.328 |
@@ -131,4 +136,4 @@ movements, not published measurements and not a cache simulator.
 - Weight DAC conversions are counted every 1 operation(s).
 - The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.
 - Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.
-- The multi-tier system model adds explicit SRAM and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.
+- The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements.

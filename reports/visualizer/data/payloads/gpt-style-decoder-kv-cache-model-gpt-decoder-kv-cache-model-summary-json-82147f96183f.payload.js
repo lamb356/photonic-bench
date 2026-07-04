@@ -20,7 +20,7 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_kv_cache_model/gpt_decode
     "energy": "Additive layer energy fields are multiplied by layer count and summed; per-MAC and per-op fields are recomputed from model totals.",
     "memory_traffic": "Layer interface traffic is multiplied by layer count and summed. Output projection interface traffic is added when enabled. Activation tensor and KV-cache traffic are reported separately.",
     "activation_memory_traffic": "Embedding reads, activation tensor materialization, and KV-cache read/write bytes are local model-level assumptions outside the converter-interface traffic table.",
-    "system": "Layer system movement estimates are multiplied by layer count and summed over explicit SRAM/off-chip tiers. Output projection and tensor-memory movement are added when configured. Bandwidth-limited timing is serial accounting, not a measured full-model scheduler.",
+    "system": "Layer system movement estimates are multiplied by layer count and summed over explicit SRAM, intermediate/cache, and off-chip tiers. Output projection and tensor-memory movement are added when configured. Bandwidth-limited timing is serial accounting, not a measured full-model scheduler.",
     "timing": "serial_* timing fields assume weighted layer summaries execute one after another. Overlap-adjusted timing fields are optional local assumptions and do not replace the serial fields.",
     "noise": "Noise remains non-additive. Model-level noise fields are maxima over representative layer summaries."
   },
@@ -58,9 +58,10 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_kv_cache_model/gpt_decode
     "system": {
       "profile": "default",
       "profile_overrides": [],
+      "memory_timing_mode": "overlapped",
       "local_compute_and_conversion_energy_pj": 61345572.79799999,
-      "total_movement_energy_pj": 1743831591.7799997,
-      "total_system_energy_pj": 1805177164.5779998,
+      "total_movement_energy_pj": 1778638609.58,
+      "total_system_energy_pj": 1839984182.3779998,
       "tiers": {
         "sram": {
           "name": "sram",
@@ -71,6 +72,16 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_kv_cache_model/gpt_decode
           "write_energy_pj": 14100.5,
           "total_energy_pj": 3480701.7800000003,
           "transfer_time_ns": 169956.1416015625
+        },
+        "intermediate": {
+          "name": "intermediate",
+          "read_bytes": 173330064.0,
+          "write_bytes": 705025.0,
+          "total_bytes": 174035089.0,
+          "read_energy_pj": 34666012.8,
+          "write_energy_pj": 141005.0,
+          "total_energy_pj": 34807017.8,
+          "transfer_time_ns": 679824.56640625
         },
         "off_chip": {
           "name": "off_chip",
@@ -86,12 +97,12 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_kv_cache_model/gpt_decode
       "serial_transfer_time_ns": 10877193.0625,
       "max_per_layer_transfer_time_ns": 506209.5,
       "bandwidth_limited_serial_batch_latency_ns": 10877193.0625,
-      "system_energy_per_mac_pj": 13.337406159521414,
-      "system_energy_per_op_pj": 6.668703079760707,
-      "movement_energy_share": 0.9660168685923185,
+      "system_energy_per_mac_pj": 13.59457500849077,
+      "system_energy_per_op_pj": 6.797287504245385,
+      "movement_energy_share": 0.9666597281729256,
       "bandwidth_limited_serial_effective_macs_per_second": 12443186695.528969,
       "bandwidth_limited_serial_effective_equivalent_ops_per_second": 24886373391.057938,
-      "note": "Weighted sum of transformer-layer system movement estimates plus explicit output-projection and tensor-memory movement assumptions. This is serial accounting, not a measured full-model scheduler."
+      "note": "Weighted sum of transformer-layer system movement estimates plus explicit output-projection and tensor-memory movement assumptions over SRAM, intermediate, and off-chip tiers. This is serial accounting, not a measured full-model scheduler."
     },
     "energy": {
       "optical_compute_pj": 67673.472,
@@ -175,6 +186,7 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_kv_cache_model/gpt_decode
         "system": {
           "profile": "default",
           "profile_overrides": [],
+          "memory_timing_mode": "overlapped",
           "tiers": {
             "sram": {
               "name": "sram",
@@ -186,6 +198,19 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_kv_cache_model/gpt_decode
               "total_energy_pj": 772968.02,
               "bandwidth_bytes_per_ns": 1024.0,
               "transfer_time_ns": 37742.5791015625,
+              "read_fraction": 1.0,
+              "write_fraction": 1.0
+            },
+            "intermediate": {
+              "name": "intermediate",
+              "read_bytes": 38598144.0,
+              "write_bytes": 50257.0,
+              "total_bytes": 38648401.0,
+              "read_energy_pj": 7719628.800000001,
+              "write_energy_pj": 10051.400000000001,
+              "total_energy_pj": 7729680.200000001,
+              "bandwidth_bytes_per_ns": 256.0,
+              "transfer_time_ns": 150970.31640625,
               "read_fraction": 1.0,
               "write_fraction": 1.0
             },
@@ -204,16 +229,18 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_kv_cache_model/gpt_decode
             }
           },
           "local_compute_and_conversion_energy_pj": 17471737.182,
-          "total_movement_energy_pj": 387256978.02,
-          "total_system_energy_pj": 404728715.20199996,
-          "system_energy_per_mac_pj": 10.485912700438496,
-          "system_energy_per_op_pj": 5.242956350219248,
-          "movement_energy_share": 0.9568309919070609,
+          "total_movement_energy_pj": 394986658.22,
+          "total_system_energy_pj": 412458395.402,
+          "system_energy_per_mac_pj": 10.686177096650301,
+          "system_energy_per_op_pj": 5.3430885483251505,
+          "movement_energy_share": 0.9576400010843003,
           "max_transfer_time_ns": 2415525.0625,
+          "serial_transfer_time_ns": 2604237.9580078125,
+          "effective_transfer_time_ns": 2415525.0625,
           "bandwidth_limited_batch_latency_ns": 2415525.0625,
           "bandwidth_limited_equivalent_ops_per_second": 31957752456.563465,
           "bandwidth_limited_tier": "off_chip",
-          "note": "System movement energy is a local estimate over explicit SRAM and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
+          "note": "System movement energy is a local estimate over explicit SRAM, intermediate, and off-chip tiers. It is added separately from photonic core compute/conversion energy and is not a published measurement."
         },
         "energy": {
           "optical_compute_pj": 19298.688,
@@ -266,7 +293,7 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_kv_cache_model/gpt_decode
         "Weight DAC conversions are counted once per batch because weight_stationary is true.",
         "The pipeline model reports single-operation latency, total batch latency including fill/drain, and steady-state throughput from the configured cycle time.",
         "Interface memory traffic is estimated from vector/weight DAC load counts, ADC output sample counts, and converter bit widths; it is not a full memory hierarchy simulation.",
-        "The multi-tier system model adds explicit SRAM and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
+        "The multi-tier system model adds explicit SRAM, intermediate/cache, and off-chip movement energy/timing estimates to the local photonic core/converter energy; tier values are local assumptions, not published measurements."
       ],
       "note": "Output projection is included in transformer-model totals as a local matmul estimate, not as a source-paper measurement."
     },
@@ -354,9 +381,10 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_kv_cache_model/gpt_decode
         "system": {
           "profile": "default",
           "profile_overrides": [],
+          "memory_timing_mode": "overlapped",
           "local_compute_and_conversion_energy_pj": 3656152.968,
-          "total_movement_energy_pj": 81155507.03999999,
-          "total_system_energy_pj": 84811660.008,
+          "total_movement_energy_pj": 82775377.44,
+          "total_system_energy_pj": 86431530.40799999,
           "tiers": {
             "sram": {
               "name": "sram",
@@ -367,6 +395,16 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_kv_cache_model/gpt_decode
               "write_energy_pj": 384.24,
               "total_energy_pj": 161987.04,
               "transfer_time_ns": 7909.5234375
+            },
+            "intermediate": {
+              "name": "intermediate",
+              "read_bytes": 8080140.0,
+              "write_bytes": 19212.0,
+              "total_bytes": 8099352.0,
+              "read_energy_pj": 1616028.0,
+              "write_energy_pj": 3842.4,
+              "total_energy_pj": 1619870.4000000001,
+              "transfer_time_ns": 31638.09375
             },
             "off_chip": {
               "name": "off_chip",
@@ -382,12 +420,12 @@ window.PhotonicBenchPayloadRegistry["gpt_style_decoder_kv_cache_model/gpt_decode
           "serial_transfer_time_ns": 506209.5,
           "max_per_matmul_transfer_time_ns": 147696.0,
           "bandwidth_limited_serial_batch_latency_ns": 506209.5,
-          "system_energy_per_mac_pj": 10.519322629905696,
-          "system_energy_per_op_pj": 5.259661314952848,
-          "movement_energy_share": 0.9568909160880104,
+          "system_energy_per_mac_pj": 10.720237685154315,
+          "system_energy_per_op_pj": 5.360118842577157,
+          "movement_energy_share": 0.9576988519034532,
           "bandwidth_limited_serial_effective_macs_per_second": 15927128985.133625,
           "bandwidth_limited_serial_effective_equivalent_ops_per_second": 31854257970.26725,
-          "note": "Summed from decomposed per-matmul system movement estimates. This is a serial aggregate over explicit SRAM/off-chip tiers, not a fused memory scheduler."
+          "note": "Summed from decomposed per-matmul system movement estimates. This is a serial aggregate over explicit SRAM, intermediate, and off-chip tiers, not a fused memory scheduler."
         },
         "energy": {
           "optical_compute_pj": 4031.232,

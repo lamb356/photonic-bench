@@ -347,7 +347,14 @@
     },
     "systemInputs": {
       "type": "object",
-      "required": ["profile", "profile_overrides", "sram", "off_chip"],
+      "required": [
+        "profile",
+        "profile_overrides",
+        "memory_timing_mode",
+        "sram",
+        "intermediate",
+        "off_chip"
+      ],
       "additionalProperties": false,
       "properties": {
         "profile": {"type": "string"},
@@ -355,7 +362,9 @@
           "type": "array",
           "items": {"type": "string"}
         },
+        "memory_timing_mode": {"enum": ["overlapped", "serialized"]},
         "sram": {"$ref": "#/$defs/systemTierInputs"},
+        "intermediate": {"$ref": "#/$defs/systemTierInputs"},
         "off_chip": {"$ref": "#/$defs/systemTierInputs"}
       }
     },
@@ -423,6 +432,7 @@
       "required": [
         "profile",
         "profile_overrides",
+        "memory_timing_mode",
         "tiers",
         "local_compute_and_conversion_energy_pj",
         "total_movement_energy_pj",
@@ -431,6 +441,8 @@
         "system_energy_per_op_pj",
         "movement_energy_share",
         "max_transfer_time_ns",
+        "serial_transfer_time_ns",
+        "effective_transfer_time_ns",
         "bandwidth_limited_batch_latency_ns",
         "bandwidth_limited_equivalent_ops_per_second",
         "bandwidth_limited_tier",
@@ -443,12 +455,14 @@
           "type": "array",
           "items": {"type": "string"}
         },
+        "memory_timing_mode": {"enum": ["overlapped", "serialized"]},
         "tiers": {
           "type": "object",
-          "required": ["sram", "off_chip"],
+          "required": ["sram", "intermediate", "off_chip"],
           "additionalProperties": false,
           "properties": {
             "sram": {"$ref": "#/$defs/systemTierResult"},
+            "intermediate": {"$ref": "#/$defs/systemTierResult"},
             "off_chip": {"$ref": "#/$defs/systemTierResult"}
           }
         },
@@ -459,6 +473,8 @@
         "system_energy_per_op_pj": {"type": "number", "minimum": 0},
         "movement_energy_share": {"type": "number", "minimum": 0, "maximum": 1},
         "max_transfer_time_ns": {"type": "number", "minimum": 0},
+        "serial_transfer_time_ns": {"type": "number", "minimum": 0},
+        "effective_transfer_time_ns": {"type": "number", "minimum": 0},
         "bandwidth_limited_batch_latency_ns": {"type": "number", "minimum": 0},
         "bandwidth_limited_equivalent_ops_per_second": {
           "type": "number",

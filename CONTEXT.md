@@ -12,12 +12,11 @@
   - `master` tracks `origin/master`.
 - Recent baseline:
   - `master` includes merged work through the system-model Pareto goal.
-  - The current branch contains uncommitted work from the artifact freshness,
-    named system-profile, transformer realism, external-loading, and
-    card-quality goals.
-  - Those changes are in scope for the first protective commit and PR because
-    the user explicitly requested committing and pushing the current work on
-    `codex/artifact-freshness-profiles`.
+  - The current branch has protective baseline commit `c6cf572`
+    (`Add artifact freshness profiles and transformer usability updates`)
+    pushed to `origin/codex/artifact-freshness-profiles`.
+  - Draft PR #4 is open at
+    `https://github.com/lamb356/photonic-bench/pull/4`, targeting `master`.
 - Repository automation:
   - CI workflow exists under `.github/workflows/ci.yml`;
   - local expected gates include Ruff, pytest, package/build checks where
@@ -29,6 +28,8 @@
 - CLI commands:
   - `run`: evaluate a YAML matmul benchmark config and write Markdown/JSON;
   - `compare`: generate Markdown comparison tables from JSON cards;
+  - `system-profiles`: list built-in system memory profile assumptions as a
+    Markdown table or JSON;
   - `transformer-layer`: generate decomposed transformer-layer cards and an
     aggregate layer summary;
   - `transformer-model`: generate representative transformer-layer artifacts
@@ -63,20 +64,27 @@
 - Component model includes optical compute, laser, detector, ADC, DAC, timing,
   noise, conversion counts, reuse/stationarity behavior, and
   converter-interface traffic.
-- System movement currently includes explicit SRAM and off-chip/DRAM tiers,
-  movement energy, transfer time, bandwidth-limited latency/throughput, total
-  movement energy, total system energy, system pJ/MAC, system
-  pJ/equivalent-op, movement-energy share, and named sensitivity profiles.
+- System movement currently includes explicit SRAM, intermediate/cache, and
+  off-chip/DRAM tiers, movement energy, transfer time, serialized/effective
+  transfer timing, bandwidth-limited latency/throughput, total movement energy,
+  total system energy, system pJ/MAC, system pJ/equivalent-op,
+  movement-energy share, and named sensitivity profiles.
 - Transformer support includes decomposed layer cards, full-model summaries,
   embeddings, output projection, activation memory traffic, decoder KV-cache
   mode, and explicit overlap assumptions.
 - Published source-backed cards carry `source_quality` metadata with source
-  metric coverage, local surrogate type, and confidence grade.
+  metric coverage, local surrogate type, and confidence grade. The current
+  catalog includes the new Zhang 2026 POMMM, Chen 2026 FSR-GeMM, Ning 2025
+  CirPTC, and Kovaios 2025 WDM 1 TOPS tensor-core surrogate cards.
 
 ## Active Goal Notes
 
-- This loop starts by committing and pushing the existing dirty branch, then
-  opens a PR before new feature work.
+- This loop started by committing and pushing the existing dirty branch, then
+  opening PR #4 before new feature work.
+- Current uncommitted follow-up work has implemented the intermediate/cache
+  tier, memory timing mode, visualizer decision scorecards, `system-profiles`
+  CLI command, four new cards, regenerated artifacts, and a hostile-review
+  boundary-label fix.
 - The new implementation should build on the existing visualizer, system model,
   and source-card quality foundation rather than replacing it wholesale.
 - GBrain tools are expected by user instructions, but were not exposed in this

@@ -176,6 +176,22 @@ MATMUL_ARTIFACT_RECIPES: tuple[MatmulArtifactRecipe, ...] = (
         "meng_2025_mrr_otpu_tensor_core_surrogate.yaml",
         "meng_2025_mrr_otpu_tensor_core_surrogate",
     ),
+    MatmulArtifactRecipe(
+        "zhang_2026_pommm_surrogate.yaml",
+        "zhang_2026_pommm_surrogate",
+    ),
+    MatmulArtifactRecipe(
+        "chen_2026_fsr_gemm_surrogate.yaml",
+        "chen_2026_fsr_gemm_surrogate",
+    ),
+    MatmulArtifactRecipe(
+        "ning_2025_cirptc_surrogate.yaml",
+        "ning_2025_cirptc_surrogate",
+    ),
+    MatmulArtifactRecipe(
+        "kovaios_2025_wdm_1tops_tensor_core_surrogate.yaml",
+        "kovaios_2025_wdm_1tops_tensor_core_surrogate",
+    ),
 )
 
 TRANSFORMER_LAYER_ARTIFACT_RECIPES: tuple[TransformerLayerArtifactRecipe, ...] = (

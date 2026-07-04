@@ -150,11 +150,19 @@ class MemoryTierConfig:
 class SystemConfig:
     profile: str = "default"
     profile_overrides: tuple[str, ...] = ()
+    memory_timing_mode: str = "overlapped"
     sram: MemoryTierConfig = field(
         default_factory=lambda: MemoryTierConfig(
             read_energy_pj_per_byte=0.02,
             write_energy_pj_per_byte=0.02,
             bandwidth_bytes_per_ns=1024.0,
+        )
+    )
+    intermediate: MemoryTierConfig = field(
+        default_factory=lambda: MemoryTierConfig(
+            read_energy_pj_per_byte=0.2,
+            write_energy_pj_per_byte=0.2,
+            bandwidth_bytes_per_ns=256.0,
         )
     )
     off_chip: MemoryTierConfig = field(
@@ -171,7 +179,9 @@ class SystemProfile:
     name: str
     description: str
     sram: MemoryTierConfig
+    intermediate: MemoryTierConfig
     off_chip: MemoryTierConfig
+    memory_timing_mode: str = "overlapped"
 
     def to_system_config(
         self,
@@ -181,7 +191,9 @@ class SystemProfile:
         return SystemConfig(
             profile=self.name,
             profile_overrides=profile_overrides,
+            memory_timing_mode=self.memory_timing_mode,
             sram=self.sram,
+            intermediate=self.intermediate,
             off_chip=self.off_chip,
         )
 
@@ -197,6 +209,11 @@ SYSTEM_PROFILES: dict[str, SystemProfile] = {
             read_energy_pj_per_byte=0.02,
             write_energy_pj_per_byte=0.02,
             bandwidth_bytes_per_ns=1024.0,
+        ),
+        intermediate=MemoryTierConfig(
+            read_energy_pj_per_byte=0.2,
+            write_energy_pj_per_byte=0.2,
+            bandwidth_bytes_per_ns=256.0,
         ),
         off_chip=MemoryTierConfig(
             read_energy_pj_per_byte=10.0,
@@ -214,6 +231,13 @@ SYSTEM_PROFILES: dict[str, SystemProfile] = {
             read_energy_pj_per_byte=0.02,
             write_energy_pj_per_byte=0.02,
             bandwidth_bytes_per_ns=2048.0,
+        ),
+        intermediate=MemoryTierConfig(
+            read_energy_pj_per_byte=0.2,
+            write_energy_pj_per_byte=0.2,
+            bandwidth_bytes_per_ns=256.0,
+            read_fraction=0.0,
+            write_fraction=0.0,
         ),
         off_chip=MemoryTierConfig(
             read_energy_pj_per_byte=10.0,
@@ -234,6 +258,11 @@ SYSTEM_PROFILES: dict[str, SystemProfile] = {
             write_energy_pj_per_byte=0.02,
             bandwidth_bytes_per_ns=1024.0,
         ),
+        intermediate=MemoryTierConfig(
+            read_energy_pj_per_byte=0.2,
+            write_energy_pj_per_byte=0.2,
+            bandwidth_bytes_per_ns=256.0,
+        ),
         off_chip=MemoryTierConfig(
             read_energy_pj_per_byte=3.0,
             write_energy_pj_per_byte=3.0,
@@ -250,6 +279,11 @@ SYSTEM_PROFILES: dict[str, SystemProfile] = {
             read_energy_pj_per_byte=0.02,
             write_energy_pj_per_byte=0.02,
             bandwidth_bytes_per_ns=1024.0,
+        ),
+        intermediate=MemoryTierConfig(
+            read_energy_pj_per_byte=0.2,
+            write_energy_pj_per_byte=0.2,
+            bandwidth_bytes_per_ns=256.0,
         ),
         off_chip=MemoryTierConfig(
             read_energy_pj_per_byte=10.0,
@@ -268,11 +302,17 @@ SYSTEM_PROFILES: dict[str, SystemProfile] = {
             write_energy_pj_per_byte=0.02,
             bandwidth_bytes_per_ns=1024.0,
         ),
+        intermediate=MemoryTierConfig(
+            read_energy_pj_per_byte=0.2,
+            write_energy_pj_per_byte=0.2,
+            bandwidth_bytes_per_ns=128.0,
+        ),
         off_chip=MemoryTierConfig(
             read_energy_pj_per_byte=50.0,
             write_energy_pj_per_byte=50.0,
             bandwidth_bytes_per_ns=8.0,
         ),
+        memory_timing_mode="serialized",
     ),
 }
 
@@ -281,7 +321,9 @@ def system_config_to_dict(system: SystemConfig) -> dict[str, Any]:
     return {
         "profile": system.profile,
         "profile_overrides": list(system.profile_overrides),
+        "memory_timing_mode": system.memory_timing_mode,
         "sram": memory_tier_config_to_dict(system.sram),
+        "intermediate": memory_tier_config_to_dict(system.intermediate),
         "off_chip": memory_tier_config_to_dict(system.off_chip),
     }
 
@@ -1105,18 +1147,36 @@ def _optional_system(raw: dict[str, Any]) -> SystemConfig:
     profile_name = _optional_system_profile_name(system)
     base = _system_profile_config(profile_name)
     sram = _optional_nested_mapping(system, "system", "sram")
+    intermediate = _optional_nested_mapping(system, "system", "intermediate")
     off_chip = _optional_nested_mapping(system, "system", "off_chip")
+    memory_timing_mode = _optional_memory_timing_mode(
+        system,
+        default=base.memory_timing_mode,
+    )
     profile_overrides = tuple(
-        name for name, value in (("sram", sram), ("off_chip", off_chip)) if value
+        name
+        for name, value in (
+            ("memory_timing_mode", system.get("memory_timing_mode")),
+            ("sram", sram),
+            ("intermediate", intermediate),
+            ("off_chip", off_chip),
+        )
+        if value
     )
     effective_profile = profile_name or ("manual" if profile_overrides else "default")
     return SystemConfig(
         profile=effective_profile,
         profile_overrides=profile_overrides,
+        memory_timing_mode=memory_timing_mode,
         sram=_memory_tier_config(
             sram,
             "system.sram",
             default=base.sram,
+        ),
+        intermediate=_memory_tier_config(
+            intermediate,
+            "system.intermediate",
+            default=base.intermediate,
         ),
         off_chip=_memory_tier_config(
             off_chip,
@@ -1145,6 +1205,24 @@ def _system_profile_config(profile_name: str | None) -> SystemConfig:
     if profile_name is None:
         return SystemConfig()
     return SYSTEM_PROFILES[profile_name].to_system_config()
+
+
+def _optional_memory_timing_mode(
+    system: dict[str, Any],
+    *,
+    default: str,
+) -> str:
+    if "memory_timing_mode" not in system:
+        return default
+    value = system["memory_timing_mode"]
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError("system.memory_timing_mode must be a non-empty string")
+    mode = value.strip()
+    if mode not in {"overlapped", "serialized"}:
+        raise ValueError(
+            "system.memory_timing_mode must be one of: overlapped, serialized"
+        )
+    return mode
 
 
 def _memory_tier_config(
