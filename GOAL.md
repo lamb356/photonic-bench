@@ -64,6 +64,10 @@ Completed when all of the following are true:
 ## Closeout
 
 Completed on 2026-07-04. All ten required improvements were implemented, the
-draft pull request is open against `master`, the mandatory critique pass was
-completed, important findings were fixed, checked visualizer artifacts were
-regenerated, and final verification passed.
+pull request is open and ready for review against `master`, the mandatory
+critique pass was completed, important findings were fixed, checked visualizer
+artifacts were regenerated, and final verification passed. A post-push CI
+follow-up found that exact screenshot pixel thresholds were too brittle across
+Windows and GitHub Actions Ubuntu renderers; the visual regression comparator
+now keeps exact matching for identical renderers and uses a perceptual fallback
+for cross-platform font rasterization differences.

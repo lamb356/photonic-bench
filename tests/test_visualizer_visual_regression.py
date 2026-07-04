@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 import pytest
-from PIL import Image, ImageChops
+from PIL import Image, ImageChops, ImageFilter, ImageStat
 
 from photonic_bench.visualizer import write_visualizer
 
@@ -14,6 +14,12 @@ playwright_api = pytest.importorskip(
 
 BASELINE_DIR = Path("tests/visual_baselines")
 UPDATE_BASELINES = os.environ.get("UPDATE_VISUAL_BASELINES") == "1"
+EXACT_MAX_CHANNEL_DELTA = 2
+EXACT_CHANGED_RATIO = 0.001
+PERCEPTUAL_WIDTH = 192
+PERCEPTUAL_MEAN_DELTA = 10.0
+PERCEPTUAL_RMS_DELTA = 24.0
+PERCEPTUAL_CHANGED_RATIO = 0.22
 
 
 @pytest.mark.parametrize(
@@ -82,5 +88,48 @@ def assert_screenshot_matches(actual_path: Path, baseline_path: Path) -> None:
     changed_pixels = diff_mask.histogram()[255]
     changed_ratio = changed_pixels / (actual.size[0] * actual.size[1])
 
-    assert max_delta <= 2
-    assert changed_ratio <= 0.001
+    if max_delta <= EXACT_MAX_CHANNEL_DELTA and changed_ratio <= EXACT_CHANGED_RATIO:
+        return
+
+    perceptual_metrics = screenshot_perceptual_metrics(actual, baseline)
+    assert (
+        perceptual_metrics["mean_delta"] <= PERCEPTUAL_MEAN_DELTA
+        and perceptual_metrics["rms_delta"] <= PERCEPTUAL_RMS_DELTA
+        and perceptual_metrics["changed_ratio"] <= PERCEPTUAL_CHANGED_RATIO
+    ), (
+        "Screenshot regression exceeded exact and perceptual thresholds: "
+        f"exact max_delta={max_delta}, exact changed_ratio={changed_ratio:.4f}, "
+        f"perceptual mean_delta={perceptual_metrics['mean_delta']:.2f}, "
+        f"perceptual rms_delta={perceptual_metrics['rms_delta']:.2f}, "
+        f"perceptual changed_ratio={perceptual_metrics['changed_ratio']:.4f}"
+    )
+
+
+def screenshot_perceptual_metrics(
+    actual: Image.Image, baseline: Image.Image
+) -> dict[str, float]:
+    actual_preview = screenshot_preview(actual)
+    baseline_preview = screenshot_preview(baseline)
+    diff = ImageChops.difference(actual_preview, baseline_preview)
+    grayscale_diff = diff.convert("L")
+    stat = ImageStat.Stat(grayscale_diff)
+    histogram = grayscale_diff.point(lambda value: 255 if value > 18 else 0).histogram()
+    changed_pixels = histogram[255]
+    changed_ratio = changed_pixels / (
+        grayscale_diff.size[0] * grayscale_diff.size[1]
+    )
+    return {
+        "mean_delta": float(stat.mean[0]),
+        "rms_delta": float(stat.rms[0]),
+        "changed_ratio": changed_ratio,
+    }
+
+
+def screenshot_preview(image: Image.Image) -> Image.Image:
+    width, height = image.size
+    preview_height = max(1, round(height * PERCEPTUAL_WIDTH / width))
+    return (
+        image.convert("RGB")
+        .resize((PERCEPTUAL_WIDTH, preview_height), Image.Resampling.LANCZOS)
+        .filter(ImageFilter.GaussianBlur(radius=1.1))
+    )

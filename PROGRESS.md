@@ -246,3 +246,63 @@ Pre-Landing Review: 2 issues (0 critical, 2 informational)
   final closeout.
 - Remaining work is repository publication housekeeping: commit, push, and
   inspect PR #5 branch status.
+
+## 2026-07-04 Cycle 5: Post-Push CI Follow-Up
+
+### Required State Re-Read
+
+- Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
+  `RUBRIC.md`.
+- Re-read `tasks/todo.md`.
+
+### Live PR And CI State
+
+- `git status --short --branch` showed the local branch synced with
+  `origin/codex/pr4-followup-improvements` before the CI fix.
+- `gh pr view 5 --json number,title,url,state,isDraft,headRefName,baseRefName,mergeable`
+  reported PR #5 open, ready for review, mergeable, and targeting `master`.
+- `gh pr checks 5 --watch=false` reported failed check
+  `Ruff, package, and pytest`.
+
+### CI Failure Root Cause
+
+- Inspected the failed job with:
+  `gh run view 28702327116 --job 85122281383 --log-failed`.
+- The job reached pytest and failed only the two visual regression screenshot
+  cases:
+  - `desktop-comparison`: exact pixel max delta `255`;
+  - `mobile-comparison`: exact pixel max delta `244`.
+- Root cause: the first checked baselines were generated on Windows, while CI
+  renders Chromium screenshots on Ubuntu. Strict `max_delta <= 2` pixel
+  comparison was too brittle for cross-platform font and antialiasing
+  differences.
+
+### Fix
+
+- Updated `tests/test_visualizer_visual_regression.py`:
+  - keep exact pixel matching for identical renderers;
+  - add downsampled, blurred perceptual mean/RMS/changed-ratio thresholds as
+    the fallback path;
+  - keep failure output numeric so future UI regressions are diagnosable.
+- Updated `README.md` to document the exact-match plus perceptual-fallback
+  behavior.
+- Updated state files to record the CI follow-up.
+
+### Verification
+
+- `python -m pytest tests\test_visualizer_visual_regression.py -q` passed:
+  `2 passed`.
+- `python -m ruff check tests\test_visualizer_visual_regression.py` passed:
+  `All checks passed!`.
+- Full follow-up gate passed:
+  - `python -m pytest -q`: `122 passed`;
+  - `python -m ruff check`: `All checks passed!`;
+  - `python -m photonic_bench.cli verify-artifacts`:
+    `Artifacts are fresh: checked 226 generated files.`;
+  - `node --check photonic_bench\visualizer_assets\app.js`: passed;
+  - `git diff --check`: passed with Git line-ending normalization warnings
+    only.
+
+### Next Steps
+
+- Commit, push, and verify the replacement GitHub Actions check on PR #5.

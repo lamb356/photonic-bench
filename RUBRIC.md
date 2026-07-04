@@ -100,11 +100,13 @@ Senior Reviewer critique.
 - Complete.
 - All ten required improvements landed with source, docs, generated artifacts,
   and tests.
-- Draft PR #5 is open against `master`.
+- PR #5 is open and ready for review against `master`.
 - Mandatory Hostile Senior Reviewer critique completed with two non-critical
   findings, both fixed.
 - Final gates passed: focused visualizer tests, browser smoke, visual
   regression, JavaScript syntax, Ruff, full pytest, artifact freshness, and
   `git diff --check`.
 - Remaining risk: screenshot baselines are intentionally tied to Playwright
-  Chromium rendering and should be refreshed only after reviewed UI changes.
+  Chromium layout. The comparator tolerates cross-platform font rasterization
+  differences, but baselines should still be refreshed only after reviewed UI
+  changes.

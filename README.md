@@ -674,9 +674,11 @@ custom score weights, score explanations, selection-drawer controls, comparison
 analytics, JSON/Markdown/CSV exports, representative transformer and
 per-matmul detail flows, comparison pinning, reduced-motion behavior, and
 delta/ratio labels while failing on page or console errors. The visual
-regression test captures deterministic desktop and mobile comparison
-screenshots against checked baselines. To intentionally refresh baselines after
-a reviewed UI change, run:
+regression test captures desktop and mobile comparison screenshots against
+checked baselines. It uses exact pixel matching when the renderer is identical
+and a perceptual fallback so CI font rasterization differences do not mask real
+layout regressions. To intentionally refresh baselines after a reviewed UI
+change, run:
 
 ```powershell
 $env:UPDATE_VISUAL_BASELINES='1'

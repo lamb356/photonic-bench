@@ -69,7 +69,7 @@
 ## Final Closeout State
 
 - Implementation status: complete.
-- Draft PR #5 is open against `master`:
+- PR #5 is open and ready for review against `master`:
   `https://github.com/lamb356/photonic-bench/pull/5`.
 - Completed visualizer improvements:
   - shareable URL state;
@@ -83,6 +83,10 @@
   - accessibility pass.
 - Mandatory Hostile Senior Reviewer critique completed with two non-critical
   findings, both fixed.
-- Final gates passed: focused visualizer tests, browser smoke, visual
+- Final local gates passed: focused visualizer tests, browser smoke, visual
   regression, JavaScript syntax, Ruff, full pytest, artifact freshness, and
   `git diff --check`.
+- Post-push CI follow-up: GitHub Actions reported the initial visual
+  regression baselines as too strict across Windows and Ubuntu renderers. The
+  comparator now uses exact matching when possible and perceptual screenshot
+  metrics as a cross-platform fallback.
