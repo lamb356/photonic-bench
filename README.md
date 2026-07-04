@@ -679,7 +679,9 @@ checked baselines. It uses exact pixel matching when the renderer is identical
 and a perceptual fallback so CI font rasterization differences do not mask real
 layout regressions. When a renderer-specific baseline exists, for example under
 `tests/visual_baselines/linux/`, that baseline is preferred for the matching
-platform. To intentionally refresh baselines after a reviewed UI change, run:
+platform. CI writes actual screenshots to `test-results/visual-regression/`
+and uploads them as a failure artifact when the comparison fails. To
+intentionally refresh baselines after a reviewed UI change, run:
 
 ```powershell
 $env:UPDATE_VISUAL_BASELINES='1'

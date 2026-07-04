@@ -35,7 +35,7 @@ def test_visualizer_comparison_screenshot_regression(
 ) -> None:
     output_path = tmp_path / "visualizer" / "index.html"
     write_visualizer(Path("reports"), output_path)
-    actual_path = tmp_path / f"{name}.png"
+    actual_path = actual_screenshot_path(tmp_path, name)
     baseline_path = baseline_path_for(name)
 
     with playwright_api.sync_playwright() as playwright:
@@ -73,6 +73,13 @@ def test_visualizer_comparison_screenshot_regression(
         "UPDATE_VISUAL_BASELINES=1 to create it."
     )
     assert_screenshot_matches(actual_path, baseline_path)
+
+
+def actual_screenshot_path(tmp_path: Path, name: str) -> Path:
+    output_dir_text = os.environ.get("VISUAL_REGRESSION_OUTPUT_DIR")
+    output_dir = Path(output_dir_text) if output_dir_text else tmp_path
+    output_dir.mkdir(parents=True, exist_ok=True)
+    return output_dir / f"{name}.png"
 
 
 def baseline_path_for(name: str) -> Path:
