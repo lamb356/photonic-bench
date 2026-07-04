@@ -568,18 +568,26 @@ comparison context without filling browser history with every keystroke.
 The comparison dashboard has an `Analysis focus` selector. `Balanced`,
 `Efficiency`, `Throughput`, `Contention`, and `Provenance` focus modes change
 the recommendation cards, insights, and decision scorecards without changing
-the underlying reports. The `Score weights` controls let you tune the active
-focus mode, reset weights back to defaults, and preserve tuned weights in local
-storage and shareable URLs. Recommendation cards include an `Explain score`
-drilldown showing raw metric values, normalized scores, weights, weighted
-contributions, and the final score. Scores are same-schema local UI heuristics
-for triage; they are not benchmark claims. Compatible rows show the value,
-absolute delta, percent delta, and ratio against the pinned reference. Mixed
-per-matmul, transformer-layer, and transformer-model comparison is allowed, but
-labeled as mixed-schema comparison; incompatible cross-schema deltas stay `n/a`
-so serial timing, non-additive aggregate noise, exclusions, local estimates,
-system movement estimates, interface traffic estimates, contention assumptions,
-and published references are not flattened into one false hardware model.
+the underlying reports. The `Score Profile Gallery` provides one-click named
+weighting stances for `Balanced`, `Efficiency`, `Throughput`, `Contention`, and
+`Provenance` analysis. Each profile shows its intent, metric weights, and a
+current-set preview of likely same-schema winners before you apply it. Applying
+a profile updates the active focus and score weights while preserving the
+selected artifacts, pinned reference, filters, grouping, and comparison state.
+The `Score weights` controls still let you tune the active focus mode, reset
+weights back to defaults, and preserve tuned weights in local storage and
+shareable URLs. Browser exports include both the active profile identity and
+the exact weights so profile-based comparisons are reproducible. Recommendation
+cards include an `Explain score` drilldown showing raw metric values,
+normalized scores, weights, weighted contributions, and the final score. Scores
+are same-schema local UI heuristics for triage; they are not benchmark claims.
+Compatible rows show the value, absolute delta, percent delta, and ratio
+against the pinned reference. Mixed per-matmul, transformer-layer, and
+transformer-model comparison is allowed, but labeled as mixed-schema
+comparison; incompatible cross-schema deltas stay `n/a` so serial timing,
+non-additive aggregate noise, exclusions, local estimates, system movement
+estimates, interface traffic estimates, contention assumptions, and published
+references are not flattened into one false hardware model.
 
 The selection drawer provides dense comparison management for larger artifact
 sets. It can remove one selected artifact, clear a schema group, invert the
@@ -622,10 +630,10 @@ guardband assumptions, not paper-reported hardware claims.
 
 Comparison results are exportable from the browser. `Download JSON` writes a
 `photonic-bench-comparison-export-v1` object with selected artifact summaries,
-analysis focus, score weights, active filter/grouping state, shareable
-`url_state`, visible artifact IDs, schema-grouped recommendations with score
-explanations, grouped best-metric analysis, provenance status, and
-modeling-boundary notes. Its formal schema is checked in at
+analysis focus, active score profile, score weights, active filter/grouping
+state, shareable `url_state`, visible artifact IDs, schema-grouped
+recommendations with score explanations, grouped best-metric analysis,
+provenance status, and modeling-boundary notes. Its formal schema is checked in at
 `docs/photonic-bench-comparison-export-v1.schema.json`. `Download Markdown` and
 `Copy Markdown` produce a human-readable table suitable for reviews or notes.
 `Download CSV` writes a spreadsheet-friendly selected-artifact table with

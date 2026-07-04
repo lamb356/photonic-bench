@@ -1,54 +1,63 @@
-# PhotonicBench Advanced Visualizer Context
+# PhotonicBench Merge And Preset Gallery Context
 
 ## Current Repository State
 
 - Workspace: `C:\Users\burba\OneDrive\Documents\Photonic Acceleration`
 - Package: `photonic_bench`
-- Current branch at Cycle 0 start: `codex/pr4-followup-improvements`
+- Starting branch for this cycle: `codex/pr4-followup-improvements`
 - Base branch: `master`
 - Remote:
   - `origin` is `https://github.com/lamb356/photonic-bench.git`
   - `master` tracks `origin/master`
-- Recent baseline commits:
-  - `c59f85d` `Close PR4 follow-up improvement state`
-  - `9c96ac6` `Deepen contention modeling and visualizer analysis`
-  - `216950c` `Merge pull request #4 from lamb356/codex/artifact-freshness-profiles`
-- The working tree starts with uncommitted changes from the previous completed
-  visualizer-usability loop. Task 1 must verify, commit, push, and open a PR for
-  that current work before the branch is considered review-ready.
+- PR #5:
+  - URL: `https://github.com/lamb356/photonic-bench/pull/5`
+  - Title: `[codex] Add advanced visualizer shareability and tests`
+  - Head: `codex/pr4-followup-improvements`
+  - Base: `master`
+  - Current head at setup: `61daa63719c73a8e6e1fee8d4e42c2ea00ab9167`
+  - Status at setup: open, non-draft, mergeable, CI-green.
+  - Merged into `master` at `2026-07-04T12:31:51Z`.
+  - Merge commit: `14cf2afd75eb873852675585de89f6b04eb752a2`.
+  - Post-merge `master` CI run `28706296529` passed.
+  - Remote branch `origin/codex/pr4-followup-improvements` was pruned after
+    merge.
 
-## Current Visualizer Surface
+## Visualizer Baseline After PR #5
 
 - `photonic_bench/visualizer.py` discovers schema-aware JSON artifacts, writes
   a lightweight index, emits lazy payloads, and renders the static HTML shell.
 - `photonic_bench/visualizer_assets/template.html` defines the rail, filters,
-  preset controls, external JSON loader, mode tabs, and detail mount.
+  generated/browser-local preset controls, external JSON loader, mode tabs,
+  and detail mount.
 - `photonic_bench/visualizer_assets/app.js` implements:
   - detail and comparison modes;
   - generated and browser-local comparison presets;
-  - external JSON loading diagnostics;
-  - rail search, schema, boundary, source-quality, grouping, and sorting;
-  - compare-visible and reset-filter actions;
+  - shareable URL state for filters, selected comparison set, pinned artifact,
+    focus mode, Pareto mode, and custom score weights;
+  - score explanations and custom score weights;
+  - selection drawer controls;
   - side-by-side comparison matrix;
   - comparison workspace panel, recommendations, scorecards, Pareto chart,
     contention insight, schema compatibility, grouped same-schema analytics,
     and JSON/Markdown/CSV exports.
 - `photonic_bench/visualizer_assets/styles.css` implements the dense workbench
-  styling.
+  styling and existing responsive behavior.
 - Checked static output lives under `reports/visualizer/`.
-- Preset sidecar: `reports/visualizer_presets.json`.
+- Generated comparison preset sidecar: `reports/visualizer_presets.json`.
 
 ## Active Improvement Direction
 
-- Make the visualizer state shareable through stable URLs.
-- Add screenshot-based regression coverage so UI changes become reviewable and
-  harder to regress.
-- Make recommendation scores transparent and tunable.
-- Improve large comparison management with selection drawer controls and sticky
-  table affordances.
-- Formalize the comparison export schema.
-- Allow browser-local preset import/export without breaking generated presets.
-- Improve accessibility without reducing the dense workbench feel.
+- Merge PR #5 into `master` first and verify the required branch-protection CI.
+- Add a first-class preset gallery for named score-weight profiles:
+  Balanced, Efficiency, Throughput, Contention, and Provenance.
+- Make the gallery useful for daily analysis, not only decorative:
+  - visible profile intent;
+  - readable weight summary;
+  - one-click apply;
+  - obvious active/custom state;
+  - exported/reproducible context when relevant.
+- Preserve the existing dense analytical workbench style and conservative
+  boundary language.
 
 ## Required State Discipline
 
@@ -65,31 +74,3 @@
 - Hosted backend web service.
 - Formal MLCommons submission.
 - Release publishing automation.
-
-## Final Closeout State
-
-- Implementation status: complete.
-- PR #5 is open and ready for review against `master`:
-  `https://github.com/lamb356/photonic-bench/pull/5`.
-- Completed visualizer improvements:
-  - shareable URL state;
-  - desktop/mobile visual regression tests and baselines;
-  - explain-score drilldowns;
-  - custom score weights;
-  - selection drawer controls;
-  - sticky comparison headers and first columns;
-  - formal comparison export JSON schema;
-  - browser-local preset import/export;
-  - accessibility pass.
-- Mandatory Hostile Senior Reviewer critique completed with two non-critical
-  findings, both fixed.
-- Final local gates passed: focused visualizer tests, browser smoke, visual
-  regression, JavaScript syntax, Ruff, full pytest, artifact freshness, and
-  `git diff --check`.
-- Post-push CI follow-up: GitHub Actions reported the initial visual
-  regression baselines as too strict across Windows and Ubuntu renderers. The
-  comparator now prefers renderer-specific checked baselines, uses exact
-  matching when possible, and keeps perceptual screenshot metrics as a
-  cross-platform fallback.
-- PR #5 GitHub Actions passed after checking in GitHub-rendered visual
-  baselines.

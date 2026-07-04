@@ -183,6 +183,8 @@ def test_comparison_export_json_schema_file_documents_browser_contract() -> None
         "grouped_metrics",
     }
     assert "score_weights" in schema["properties"]["analysis_focus"]["required"]
+    assert "score_profile" in schema["properties"]["analysis_focus"]["required"]
+    assert "scoreProfile" in schema["$defs"]
     assert "scoreExplanation" in schema["$defs"]
     assert "scoreComponent" in schema["$defs"]
     assert (

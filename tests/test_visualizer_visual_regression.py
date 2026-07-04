@@ -54,6 +54,8 @@ def test_visualizer_comparison_screenshot_regression(
             page.locator("#load-preset").click()
             page.get_by_role("heading", name="Artifact Comparison").wait_for()
             page.locator("#analysis-focus").select_option("provenance")
+            page.get_by_role("button", name="Apply Provenance score profile").click()
+            page.get_by_text("Provenance profile active").first.wait_for()
             page.get_by_text("Explain score").first.click()
             page.screenshot(
                 path=actual_path,

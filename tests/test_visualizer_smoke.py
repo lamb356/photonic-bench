@@ -122,6 +122,14 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
             page.get_by_role("heading", name="Comparison Workspace").wait_for()
             page.get_by_role("heading", name="Comparison Recommendations").wait_for()
             page.get_by_text("Analysis focus").first.wait_for()
+            selected_count = page.locator("#compare-count").text_content()
+            page.get_by_text("Score Profile Gallery").first.wait_for()
+            page.get_by_role("button", name="Apply Efficiency score profile").click()
+            page.get_by_text("Applied Efficiency score profile.").wait_for()
+            page.get_by_text("Efficiency profile active").first.wait_for()
+            assert page.locator("#analysis-focus").input_value() == "efficiency"
+            assert page.locator("#compare-count").text_content() == selected_count
+            page.get_by_text("System energy per op x2").first.wait_for()
             page.locator("#analysis-focus").select_option("contention")
             page.get_by_text("Contention focus").first.wait_for()
             page.locator("#analysis-focus").select_option("provenance")
@@ -185,7 +193,10 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
                 page.get_by_role("button", name="Download CSV").click()
             assert csv_download.value.suggested_filename.endswith(".csv")
             csv_text = Path(csv_download.value.path()).read_text(encoding="utf-8")
-            assert '"analysis_focus","score_weights","artifact_id","benchmark"' in csv_text
+            assert (
+                '"analysis_focus","score_profile","score_weights","artifact_id","benchmark"'
+                in csv_text
+            )
             assert "comparison_boundary_notes" in csv_text
             assert '"provenance"' in csv_text
             page.get_by_role("button", name="Reset filters").click()
@@ -200,6 +211,8 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
             page.get_by_role("heading", name="Comparison Brief").wait_for()
             page.get_by_role("heading", name="Decision Scorecard").wait_for()
             page.get_by_role("heading", name="Pareto Trade-Offs").wait_for()
+            page.get_by_role("button", name="Apply Provenance score profile").click()
+            page.get_by_text("Provenance profile active").first.wait_for()
             page.get_by_text("Frontier Points").first.wait_for()
             page.locator("#pareto-mode").select_option("intensity-latency")
             page.get_by_text("Eq ops/byte is higher better").first.wait_for()
@@ -224,6 +237,8 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
                 format_checker=jsonschema.FormatChecker(),
             )
             assert export_json["analysis_focus"]["key"] == "provenance"
+            assert export_json["analysis_focus"]["score_profile"]["key"] == "provenance"
+            assert export_json["analysis_focus"]["score_profile"]["is_builtin"] is True
             assert export_json["analysis_focus"]["score_weights"]
             assert export_json["filters"]["grouping"] == "schema"
             assert export_json["recommendations"]
@@ -239,6 +254,7 @@ def test_generated_visualizer_browser_smoke(tmp_path: Path) -> None:
                 encoding="utf-8"
             )
             assert "Analysis focus: Provenance" in markdown_text
+            assert "Score profile: Provenance" in markdown_text
             assert "Score weights:" in markdown_text
             assert "## Recommendations" in markdown_text
 

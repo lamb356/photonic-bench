@@ -1,153 +1,158 @@
-# PhotonicBench Advanced Visualizer Progress
+# PhotonicBench Merge And Preset Gallery Progress
 
-## 2026-07-04 Cycle 0: State Rollforward And Initial Checklist
+## 2026-07-04 Cycle 0: State Rollforward And PR Verification
 
 ### Required State Re-Read
 
 - Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
-  `RUBRIC.md` at the start of Cycle 0.
+  `RUBRIC.md` at the start of this cycle.
 - Re-read `tasks/todo.md`.
 
-### Tooling, Memory, GBrain, And Skill Context
+### GBrain, Memory, And Skill Context
 
-- Attempted to create the active Codex goal record, but this thread already had
-  the same unfinished goal active.
-- Confirmed the active goal with `get_goal`.
-- Searched local memory `MEMORY.md` for PhotonicBench/visualizer context; it
-  returned no hits.
 - Searched deferred tools for GBrain and exposed the GBrain MCP tools.
 - Called `mcp__gbrain__get_brain_identity`:
   - version `0.42.56.0`;
   - engine `pglite`;
-  - page count `12`;
-  - chunk count `12`.
-- Queried GBrain for PhotonicBench visualizer/comparison context; it returned
-  no prior hits.
-- Wrote GBrain page
-  `photonicbench-visualizer-advanced-usability-loop-2026-07-04` with the goal,
-  rules, and stop condition.
-- Read frontend-design skill instructions from
+  - page count `15`;
+  - chunk count `15`.
+- Queried GBrain for PhotonicBench PR #5 / preset-gallery context; it returned
+  no direct prior hits.
+- Wrote durable GBrain page
+  `carson-codex-operating-instructions-2026-07-04` with the durable operating
+  preferences supplied in this thread.
+- Searched local memory `MEMORY.md` for PhotonicBench visualizer context.
+- Read GitHub workflow guidance from
+  `C:\Users\burba\.codex\plugins\cache\openai-curated-remote\github\0.1.5\skills\github\SKILL.md`.
+- Read frontend-design guidance from
   `C:\Users\burba\.agents\skills\frontend-design\SKILL.md`.
 
-### Initial Repository Status
+### Initial Repository And PR State
 
-- Current branch:
-  `codex/pr4-followup-improvements`.
-- `git status --short --branch` showed modified files from the previous
-  visualizer-usability loop.
-- Recent baseline commits:
-  - `c59f85d` `Close PR4 follow-up improvement state`;
-  - `9c96ac6` `Deepen contention modeling and visualizer analysis`;
-  - `216950c` `Merge pull request #4 from lamb356/codex/artifact-freshness-profiles`.
+- `git status --short --branch` showed a clean working tree on
+  `codex/pr4-followup-improvements`, tracking
+  `origin/codex/pr4-followup-improvements`.
+- `git fetch origin --prune` completed and pruned stale remote branches.
+- `gh pr view 5 --json ...` reported:
+  - PR #5 is open and non-draft;
+  - head `codex/pr4-followup-improvements`;
+  - base `master`;
+  - `mergeable: MERGEABLE`;
+  - latest head commit
+    `61daa63719c73a8e6e1fee8d4e42c2ea00ab9167`.
+- `gh pr checks 5 --watch=false` reported:
+  - `Ruff, package, and pytest` passed in `1m0s`;
+  - GitHub Actions run `28705631600`, job `85130697641`.
 
 ### State File Rollforward
 
-- Replaced the previous completed-loop state in `GOAL.md`, `CHECKLIST.md`,
-  `CONTEXT.md`, `PROGRESS.md`, and `RUBRIC.md` with an active control set for
-  the 10 new tasks.
-- Added a granular checklist that breaks every required task into
-  implementation, verification, and documentation steps.
-- Updated `tasks/todo.md` with the active goal section and preserved older
-  completed goals as history.
+- Replaced the previous completed PR #5 loop state in `GOAL.md`,
+  `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and `RUBRIC.md` with an active
+  control set for the merge-plus-preset-gallery objective.
+- Updated `tasks/todo.md` to preserve the PR #5 feature loop as completed
+  history and add a new active goal for merging PR #5 and improving the
+  visualizer.
 
 ### Immediate Next Steps
 
-- Inspect the current uncommitted diff from the previous loop.
-- Run required checks before task 1 commit/push/PR.
-- Map the visualizer state and test surfaces needed for tasks 2-10.
+- Merge PR #5 into `master`.
+- Verify local `master` is current and `master` CI is green.
+- Create a post-merge feature branch for preset-gallery work if needed.
+- Map the visualizer scoring/preset implementation before editing.
 
-## 2026-07-04 Cycle 1: Commit, Push, And Draft PR
+## 2026-07-04 Cycle 1: PR #5 Merge And Master CI Verification
 
-### Required State Re-Read
+### Merge Result
 
-- Cycle 1 continued immediately after the Cycle 0 state rollforward and used
-  the freshly updated state files as the control set.
+- Stashed the new-loop state rollforward before merge so the verified PR #5
+  head was not mutated.
+- Ran `gh pr merge 5 --merge --delete-branch`.
+- PR #5 is now merged:
+  - merge commit `14cf2afd75eb873852675585de89f6b04eb752a2`;
+  - merged at `2026-07-04T12:31:51Z`;
+  - base `master`;
+  - head `codex/pr4-followup-improvements`.
+- Local checkout is now on `master`, tracking `origin/master`.
 
-### Diff Scope
+### Branch Hygiene
 
-- Reviewed the current diff with `git diff --stat` and changed file names.
-- The staged scope was limited to:
-  - visualizer source assets;
-  - generated visualizer output;
-  - README and JSON schema docs;
-  - visualizer unit and smoke tests;
-  - goal/checklist/context/progress/rubric/todo state files.
+- The follow-up remote deletion command reported
+  `remote ref does not exist`, which indicates the branch deletion had already
+  landed.
+- `git fetch origin --prune` pruned
+  `origin/codex/pr4-followup-improvements`.
 
-### Publish Gates Before Push
+### Post-Merge Master CI
 
-- `python -m ruff check` passed:
-  `All checks passed!`
-- `python -m pytest -q` passed:
-  `119 passed`.
-- `python -m photonic_bench.cli verify-artifacts` passed:
-  `Artifacts are fresh: checked 226 generated files.`
-- `node --check photonic_bench\visualizer_assets\app.js` passed.
-- `gh --version` passed with GitHub CLI `2.87.2`.
-- `gh auth status` passed for GitHub account `lamb356`.
+- Watched GitHub Actions run `28706296529` with
+  `gh run watch 28706296529 --exit-status`.
+- Run `28706296529` completed successfully on `master` head
+  `14cf2afd75eb873852675585de89f6b04eb752a2`.
+- Job `85132406230`, `Ruff, package, and pytest`, passed in `1m5s`.
 
-### Commit, Push, And PR
+### State Restoration
 
-- Created commit `79259f7`:
-  `Improve visualizer comparison ergonomics`.
-- Checked for the optional commit-reasoning helper from the commit skill:
-  `.Codex\scripts\generate-reasoning.sh` is not present in this repo.
-- Pushed the branch:
-  `git push -u origin codex/pr4-followup-improvements`.
-- Opened draft PR #5 to `master`:
-  `https://github.com/lamb356/photonic-bench/pull/5`.
+- Applied the stashed active-loop state files back onto `master`.
+- Current dirty files are the intended active-loop state files:
+  `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, `RUBRIC.md`, and
+  `tasks/todo.md`.
 
 ### Next Steps
 
-- Continue implementing tasks 2-10 on the same branch and push follow-up
-  commits to PR #5.
+- Map the current visualizer preset, score-weight, export, and smoke-test
+  surfaces.
+- Implement the named score-weight preset gallery.
 
-## 2026-07-04 Cycle 2: Advanced Visualizer Implementation
+## 2026-07-04 Cycle 2: Score Profile Gallery Implementation
 
-### Required State Re-Read
+### Mapping
 
-- Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
-  `RUBRIC.md`, and `tasks/todo.md` before implementation.
+- Inspected the current visualizer preset controls in
+  `photonic_bench/visualizer_assets/template.html`.
+- Inspected the current browser-local/generated preset, URL-state, score
+  weight, focus, recommendation, export, and comparison-rendering paths in
+  `photonic_bench/visualizer_assets/app.js`.
+- Inspected existing static/schema/smoke coverage in:
+  - `tests/test_visualizer.py`;
+  - `tests/test_schema_docs.py`;
+  - `tests/test_visualizer_smoke.py`.
 
-### Implemented Tasks 2-10
+### Implementation
 
-- Added shareable URL state for filters, selected artifact, selected
-  comparison IDs, pinned reference, focus mode, Pareto mode, and custom score
-  weights. URL updates use debounced `history.replaceState`.
-- Added custom score weights with browser-local persistence and URL
-  serialization.
-- Replaced unweighted recommendation scoring with `decisionScoreExplanation`,
-  feeding recommendation cards, scorecards, JSON export, Markdown export, CSV
-  export, and the UI drilldown.
-- Added `Explain score` drilldowns showing raw values, normalized values,
-  weights, contributions, and final weighted score.
-- Added the comparison `Selection Drawer` with remove one, clear schema group,
-  invert visible selection, and compare top N visible actions.
-- Improved wide-table behavior with sticky headers and sticky first columns in
-  scroll containers.
-- Added formal schema
-  `docs/photonic-bench-comparison-export-v1.schema.json`.
-- Added browser-local preset export/import for
-  `photonic-bench-comparison-presets-v1` payloads with validation.
-- Added accessibility improvements:
-  - compare checkbox and pin-button ARIA labels;
-  - mode-tab `aria-pressed`;
-  - native `details`/`summary` score drilldowns;
-  - stronger focus-visible outlines;
-  - reduced-motion CSS.
-- Added Playwright visual regression tests for desktop and mobile comparison
-  views with checked PNG baselines:
-  - `tests/visual_baselines/desktop-comparison.png`;
-  - `tests/visual_baselines/mobile-comparison.png`.
-- Added `Pillow` and `jsonschema` as development dependencies.
+- Added a first-class score-profile gallery in comparison mode.
+- Added built-in profiles:
+  - Balanced;
+  - Efficiency;
+  - Throughput;
+  - Contention;
+  - Provenance.
+- Each profile has an analytical description, metric-weight summary, active
+  state, and an Apply button.
+- Added current-set preview text to each profile card by reusing
+  same-schema recommendation scoring with an explicit profile weight map.
+- Refactored recommendation scoring so `comparisonRecommendations()` and
+  `decisionScoreExplanation()` can accept an explicit weight map while the
+  active comparison path still uses the same global weight state.
+- Applying a profile updates the active analysis focus and score weights while
+  preserving selected artifacts, pinned reference, filters, grouping, Pareto
+  mode, and comparison state.
+- Added built-in/custom profile detection via `matchedScoreProfileKey()` and
+  `activeScoreProfileSummary()`.
+- Shareable URL state now preserves matching built-in profiles with
+  `profile=...` and exact custom weights with `weights=...`. URL-applied
+  profiles initialize state without writing browser local storage.
+- JSON exports now include `analysis_focus.score_profile`; Markdown exports
+  include `Score profile: ...`; CSV exports include a `score_profile` column.
+- Updated dense workbench styling for `.score-profile-gallery` and
+  `.score-profile-card`, including mobile-safe heading collapse.
 
 ### Documentation And Generated Artifacts
 
-- Updated `README.md` for shareable URLs, score explanations, custom weights,
-  selection drawer, sticky comparison tables, comparison export schema,
-  browser-local preset import/export, accessibility behavior, and visual
-  regression workflow.
-- Updated `docs/json_schema.md` with comparison export schema fields.
-- Regenerated checked visualizer artifacts with:
+- Updated `README.md` for gallery behavior, previews, state preservation, and
+  profile-aware exports.
+- Updated `docs/json_schema.md`.
+- Updated `docs/photonic-bench-comparison-export-v1.schema.json`.
+- Regenerated checked visualizer artifacts with
   `python -c "from photonic_bench.artifacts import regenerate_checked_artifacts; regenerate_checked_artifacts()"`.
 
 ### Focused Verification
@@ -156,22 +161,19 @@
 - `python -m pytest tests\test_visualizer.py tests\test_schema_docs.py -q`
   passed: `15 passed`.
 - `python -m pytest tests\test_visualizer_smoke.py -q` passed: `1 passed`.
-  The smoke validates the downloaded comparison export against
-  `docs/photonic-bench-comparison-export-v1.schema.json` with
-  `jsonschema.validate`.
 - `python -m pytest tests\test_visualizer_visual_regression.py -q` passed:
   `2 passed`.
+- Combined focused run passed:
+  `python -m pytest tests\test_visualizer.py tests\test_schema_docs.py tests\test_visualizer_smoke.py tests\test_visualizer_visual_regression.py -q`:
+  `18 passed`.
 - `python -m photonic_bench.cli verify-artifacts` passed:
   `Artifacts are fresh: checked 226 generated files.`
 
-### Notes From Implementation
+### Next Steps
 
-- Exact PNG byte comparison was too brittle immediately after baseline
-  generation, so visual regression compares decoded RGBA pixels with tight
-  tolerance.
-- Local `file:` visualizer pages may not allow clipboard writes, so `Copy state
-  link` now gives deterministic `Shareable link` feedback before optional
-  clipboard success.
+- Run the mandatory Hostile Senior Reviewer critique focused on usability,
+  clarity, daily analytical value, accessibility, and maintainability.
+- Run full Ruff/full pytest and final closeout gates after critique fixes.
 
 ## 2026-07-04 Cycle 3: Mandatory Hostile Senior Reviewer Critique
 
@@ -183,210 +185,48 @@
   `C:\Users\burba\.agents\skills\review\SKILL.md`.
 - Read review checklist:
   `C:\Users\burba\.agents\skills\review\checklist.md`.
-- The review skill assumes `main`; this repository uses `master`, so the PR
-  diff was inspected against `origin/master` and the current implementation
-  diff was reviewed directly.
+- The review skill assumes `main`; this repository uses `master`, so the
+  current uncommitted diff was reviewed against `origin/master`.
 
-### Critique Findings
+### Critique Finding
 
-Pre-Landing Review: 2 issues (0 critical, 2 informational)
+Pre-Landing Review: 1 issue (0 critical, 1 informational)
 
 **Issues** (non-blocking):
 
-- `photonic_bench/visualizer_assets/app.js`: the selection drawer's top-N
-  input reset to the default on each render, which made repeated selection
-  management feel inconsistent after actions that rerender the comparison.
-  Fix: preserve the chosen top-N count in visualizer state.
+- `tests/test_visualizer_visual_regression.py`: screenshot regression covered
+  comparison scoring but did not explicitly apply one of the new built-in score
+  profiles, so a future break in profile application could still keep the
+  visual regression path green.
+  Fix: apply the Provenance score profile in the screenshot path and wait for
+  the active profile state before capture.
 
-- `photonic_bench/visualizer_assets/app.js`: repeated `Clear group` buttons
-  had the same accessible name, making screen-reader and strict browser-test
-  targeting less specific.
-  Fix: add group-specific ARIA labels while keeping visible text compact.
+### Critique Fix
 
-### Critique Fix Verification
-
-- Fixed both findings.
-- Regenerated checked visualizer artifacts.
-- `node --check photonic_bench\visualizer_assets\app.js` passed.
-- `python -m pytest tests\test_visualizer_smoke.py -q` passed:
-  `1 passed`.
+- Updated `tests/test_visualizer_visual_regression.py` to click
+  `Apply Provenance score profile` and wait for `Provenance profile active`.
 - `python -m pytest tests\test_visualizer_visual_regression.py -q` passed:
   `2 passed`.
-- `python -m photonic_bench.cli verify-artifacts` passed:
-  `Artifacts are fresh: checked 226 generated files.`
+- Captured a desktop screenshot through the visual regression path and
+  inspected it; the visible comparison scorecard now reflects the applied
+  Provenance profile weights.
 
-## 2026-07-04 Cycle 4: Final Verification And Closeout
+## 2026-07-04 Cycle 4: Full Verification
 
-### Required State Re-Read
+### Verification Results
 
-- Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
-  `RUBRIC.md`, and `tasks/todo.md` before final verification.
-
-### Final Gate Results
-
-- Regenerated checked artifacts with:
-  `python -c "from photonic_bench.artifacts import regenerate_checked_artifacts; regenerate_checked_artifacts()"`.
-- `python -m pytest tests\test_visualizer.py tests\test_schema_docs.py tests\test_visualizer_smoke.py tests\test_visualizer_visual_regression.py -q`
-  passed: `18 passed`.
-- `node --check photonic_bench\visualizer_assets\app.js` passed.
 - `python -m ruff check` passed:
   `All checks passed!`
-- `python -m photonic_bench.cli verify-artifacts` passed:
-  `Artifacts are fresh: checked 226 generated files.`
-- `git diff --check` passed. Git printed line-ending normalization warnings
-  only.
 - `python -m pytest -q` passed:
   `122 passed`.
-
-### Closeout
-
-- Marked `GOAL.md` implementation status complete.
-- Marked all `CHECKLIST.md` items DONE with proof.
-- Updated `CONTEXT.md`, `PROGRESS.md`, `RUBRIC.md`, and `tasks/todo.md` for
-  final closeout.
-- Remaining work is repository publication housekeeping: commit, push, and
-  inspect PR #5 branch status.
-
-## 2026-07-04 Cycle 5: Post-Push CI Follow-Up
-
-### Required State Re-Read
-
-- Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
-  `RUBRIC.md`.
-- Re-read `tasks/todo.md`.
-
-### Live PR And CI State
-
-- `git status --short --branch` showed the local branch synced with
-  `origin/codex/pr4-followup-improvements` before the CI fix.
-- `gh pr view 5 --json number,title,url,state,isDraft,headRefName,baseRefName,mergeable`
-  reported PR #5 open, ready for review, mergeable, and targeting `master`.
-- `gh pr checks 5 --watch=false` reported failed check
-  `Ruff, package, and pytest`.
-
-### CI Failure Root Cause
-
-- Inspected the failed job with:
-  `gh run view 28702327116 --job 85122281383 --log-failed`.
-- The job reached pytest and failed only the two visual regression screenshot
-  cases:
-  - `desktop-comparison`: exact pixel max delta `255`;
-  - `mobile-comparison`: exact pixel max delta `244`.
-- Root cause: the first checked baselines were generated on Windows, while CI
-  renders Chromium screenshots on Ubuntu. Strict `max_delta <= 2` pixel
-  comparison was too brittle for cross-platform font and antialiasing
-  differences.
-
-### Fix
-
-- Updated `tests/test_visualizer_visual_regression.py`:
-  - keep exact pixel matching for identical renderers;
-  - add downsampled, blurred perceptual mean/RMS/changed-ratio thresholds as
-    the fallback path;
-  - keep failure output numeric so future UI regressions are diagnosable.
-- Updated `README.md` to document the exact-match plus perceptual-fallback
-  behavior.
-- Updated state files to record the CI follow-up.
-
-### Verification
-
-- `python -m pytest tests\test_visualizer_visual_regression.py -q` passed:
-  `2 passed`.
-- `python -m ruff check tests\test_visualizer_visual_regression.py` passed:
-  `All checks passed!`.
-- Full follow-up gate passed:
-  - `python -m pytest -q`: `122 passed`;
-  - `python -m ruff check`: `All checks passed!`;
-  - `python -m photonic_bench.cli verify-artifacts`:
-    `Artifacts are fresh: checked 226 generated files.`;
-  - `node --check photonic_bench\visualizer_assets\app.js`: passed;
-  - `git diff --check`: passed with Git line-ending normalization warnings
-    only.
+- `node --check photonic_bench\visualizer_assets\app.js` passed.
+- `python -m photonic_bench.cli verify-artifacts` passed:
+  `Artifacts are fresh: checked 226 generated files.`
+- `python -m build` passed and produced local source/wheel artifacts.
+- `git diff --check` passed with Git line-ending normalization warnings only.
 
 ### Next Steps
 
-- Superseded by Cycle 6 after the first replacement check showed mobile
-  Ubuntu still needed a GitHub-rendered baseline.
-
-## 2026-07-04 Cycle 6: GitHub Linux Visual Baselines For CI
-
-### Replacement CI Result
-
-- Pushed commit `0f53ad2`:
-  `Stabilize visual regression checks in CI`.
-- GitHub Actions run `28705170169`, job `85129549827`, still failed one case:
-  - `desktop-comparison`: passed;
-  - `mobile-comparison`: failed with exact changed ratio `0.4310`,
-    perceptual mean delta `17.58`, RMS delta `29.64`, and perceptual changed
-    ratio `0.3271`.
-- Conclusion: a global threshold broad enough for mobile Ubuntu would be too
-  permissive. The better fix is to carry renderer-specific checked baselines
-  for CI.
-
-### Fix
-
-- Updated `tests/test_visualizer_visual_regression.py` so
-  `baseline_path_for()` prefers `tests/visual_baselines/<platform-key>/` when
-  a matching baseline key exists.
-- Preserved the original generic baselines as the fallback path for local
-  platforms without specific baselines.
-- Generated initial Linux baselines from WSL, then replaced them with
-  GitHub-rendered screenshots downloaded from the CI failure artifact.
-  The checked CI baselines are:
-  - `tests/visual_baselines/github-linux/desktop-comparison.png`;
-  - `tests/visual_baselines/github-linux/mobile-comparison.png`.
-- Added `VISUAL_REGRESSION_OUTPUT_DIR` support in the test and configured CI
-  to upload `test-results/visual-regression/*.png` on failure.
-- Downloaded the `visual-regression-screenshots` artifact from GitHub Actions
-  run `28705465516` and used those PNGs as the `github-linux` baselines.
-- GitHub Linux baseline SHA-256 hashes:
-  - desktop:
-    `21d8cd041f9073d979366d0bf1ef99a920a0bb6901720bea72f5724204913960`;
-  - mobile:
-    `16702d23155f6cb6773b520743b18e0d3fa1ce4614a69b55c93c87a8ac6762f5`.
-- Removed the accidental local `.venv` and `uv.lock` created by the WSL
-  package runner. Windows Git status confirmed they were gone.
-- Updated `README.md`, `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`,
-  `PROGRESS.md`, `RUBRIC.md`, and `tasks/todo.md` to describe
-  renderer-specific visual baselines.
-
-### Verification
-
-- WSL Linux baseline generation and visual regression run passed:
-  `2 passed`.
-- WSL Linux visual regression without baseline updates passed:
-  `2 passed`.
-- Windows visual regression run passed:
-  `python -m pytest tests\test_visualizer_visual_regression.py -q`:
-  `2 passed`.
-- Targeted Ruff passed:
-  `python -m ruff check tests\test_visualizer_visual_regression.py`:
-  `All checks passed!`.
-- Full local gate passed:
-  - `python -m pytest -q`: `122 passed`;
-  - `python -m ruff check`: `All checks passed!`;
-  - `python -m build`: passed;
-  - `python -m photonic_bench.cli verify-artifacts`:
-    `Artifacts are fresh: checked 226 generated files.`;
-  - `node --check photonic_bench\visualizer_assets\app.js`: passed;
-  - `git diff --check`: passed with Git line-ending normalization warnings
-    only.
-- Re-ran the full local gate after replacing the WSL baselines with
-  GitHub-rendered baselines from run `28705465516`; all commands above still
-  passed.
-
-### Next Steps
-
-- Pushed the GitHub-rendered baseline fix and verified the replacement GitHub
-  Actions check on PR #5.
-
-### GitHub Actions Verification
-
-- Pushed commit `58f749d`:
-  `Use GitHub-rendered visual regression baselines`.
-- PR #5 head `58f749d189008c97417fb5e0cf4da1d6ada2850a` was open, ready for
-  review, and mergeable.
-- `gh pr checks 5 --watch` passed:
-  `Ruff, package, and pytest` passed in `1m0s`.
-- GitHub Actions run:
-  `https://github.com/lamb356/photonic-bench/actions/runs/28705573288/job/85130549762`.
+- Close final state files.
+- Commit and push the preset-gallery work.
+- Verify the post-push repository state and GitHub Actions result.

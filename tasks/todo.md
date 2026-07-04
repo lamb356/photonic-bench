@@ -250,7 +250,7 @@
 - [x] Task 7: Run final quality gates, close state files, and inspect final
       repository status.
 
-## Active Goal: Advanced Visualizer Shareability, Explainability, Testing, And Accessibility
+## Completed Goal: Advanced Visualizer Shareability, Explainability, Testing, And Accessibility
 
 - [x] Task 0: Roll state files forward and create the initial checklist for
       tasks 1-10.
@@ -279,6 +279,32 @@
 - [x] Task 13: Fix post-push GitHub Actions visual regression portability issue
       with platform-specific checked baselines, exact matching when possible,
       and perceptual screenshot fallback metrics.
+
+## Active Goal: Merge PR #5 And Preset Gallery Visualizer Improvements
+
+- [x] Task 0: Roll state files forward and create the active checklist.
+      Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
+      `RUBRIC.md`, and `tasks/todo.md`; exposed GBrain; searched GBrain and
+      memory; read GitHub and frontend-design guidance; confirmed a clean
+      starting branch.
+- [x] Task 1: Verify and merge PR #5 into `master`, optionally delete the
+      feature branch, then verify local `master` and post-merge GitHub Actions.
+      Pre-merge verification is complete: PR #5 is open, non-draft,
+      mergeable, and `Ruff, package, and pytest` passed on run `28705631600`.
+      PR #5 merged into `master` at merge commit `14cf2afd`; post-merge
+      `master` CI run `28706296529` passed; the remote PR branch was pruned.
+- [x] Task 2: Map the current visualizer preset, score-weight, URL-state,
+      export, and smoke-test surfaces.
+- [x] Task 3: Add a visualizer preset gallery with named score-weight profiles:
+      Balanced, Efficiency, Throughput, Contention, and Provenance.
+- [x] Task 4: Add at least one adjacent daily-use analytical or usability
+      improvement around the gallery while preserving modeling-boundary labels.
+- [x] Task 5: Update documentation, regenerate checked visualizer artifacts,
+      and run focused plus full verification.
+- [x] Task 6: Run mandatory Hostile Senior Reviewer critique focused on
+      usability and clarity, then fix important findings.
+- [ ] Task 7: Close state files only after all stop conditions are proven,
+      commit/push final work, and inspect final repository status.
 
 ## Explicitly Not Active In This Goal
 
