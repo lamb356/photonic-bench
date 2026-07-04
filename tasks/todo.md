@@ -280,7 +280,7 @@
       with platform-specific checked baselines, exact matching when possible,
       and perceptual screenshot fallback metrics.
 
-## Active Goal: Merge PR #5 And Preset Gallery Visualizer Improvements
+## Completed Goal: Merge PR #5 And Preset Gallery Visualizer Improvements
 
 - [x] Task 0: Roll state files forward and create the active checklist.
       Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
@@ -303,7 +303,7 @@
       and run focused plus full verification.
 - [x] Task 6: Run mandatory Hostile Senior Reviewer critique focused on
       usability and clarity, then fix important findings.
-- [ ] Task 7: Close state files only after all stop conditions are proven,
+- [x] Task 7: Close state files only after all stop conditions are proven,
       commit/push final work, and inspect final repository status.
 
 ## Explicitly Not Active In This Goal

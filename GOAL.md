@@ -1,7 +1,7 @@
 # PhotonicBench Goal
 
 Date started: 2026-07-04
-Implementation status: active.
+Implementation status: complete.
 
 ## Objective
 
@@ -58,3 +58,15 @@ Completed when all of the following are true:
   gates pass or any inability to run them is recorded.
 - The mandatory Hostile Senior Reviewer critique is complete and major issues
   are addressed.
+
+## Closeout
+
+Completed on 2026-07-04. PR #5 was merged into `master`, post-merge `master`
+CI passed, and the follow-up score-profile gallery work was implemented on a
+protected-branch PR path. The visualizer now has a named score-profile gallery
+for Balanced, Efficiency, Throughput, Contention, and Provenance analysis,
+current-set same-schema previews, profile-aware URL/export behavior, updated
+docs/schema/tests, regenerated visualizer assets, and a completed hostile
+review pass. Local verification passed across focused visualizer tests, browser
+smoke, visual regression, JavaScript syntax, artifact freshness, Ruff, full
+pytest, package build, and whitespace checks.

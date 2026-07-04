@@ -230,3 +230,29 @@ Pre-Landing Review: 1 issue (0 critical, 1 informational)
 - Close final state files.
 - Commit and push the preset-gallery work.
 - Verify the post-push repository state and GitHub Actions result.
+
+## 2026-07-04 Cycle 5: Protected-Branch Publication And Closeout
+
+### Publication Path
+
+- Created commit `5096ce5`:
+  `Add visualizer score profile gallery`.
+- Direct `git push origin master` was rejected by branch protection:
+  required status check `Ruff, package, and pytest` is expected.
+- Created branch `codex/score-profile-gallery` from the implementation commit.
+- Pushed `codex/score-profile-gallery` to origin.
+- Opened PR #6:
+  `https://github.com/lamb356/photonic-bench/pull/6`.
+- PR #6 was open, non-draft, mergeable, and targeted at `master`.
+- `gh pr checks 6 --watch` passed:
+  `Ruff, package, and pytest` passed in `54s`.
+- CI run: `28706649939`.
+
+### Closeout State
+
+- Marked `GOAL.md` implementation status complete.
+- Marked all `CHECKLIST.md` items DONE with proof.
+- Updated `CONTEXT.md`, `PROGRESS.md`, `RUBRIC.md`, and `tasks/todo.md` for
+  final closeout.
+- Final merge of PR #6 and post-merge `master` CI verification happen through
+  the protected branch path after this closeout state update.

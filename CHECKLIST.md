@@ -226,8 +226,29 @@ Status key:
 
 ## Task 7: Final Closeout
 
-- [ ] TODO: Confirm every explicit objective and checklist item has evidence.
-- [ ] TODO: Close `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
+- [x] DONE: Confirm every explicit objective and checklist item has evidence.
+  - Proof:
+    - PR #5 merge and post-merge `master` CI are recorded in Task 1.
+    - Preset-gallery implementation, adjacent usability value, docs, tests,
+      artifacts, critique, and verification are recorded in Tasks 2-6.
+- [x] DONE: Close `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
       `RUBRIC.md`, and `tasks/todo.md` only after all stop conditions hold.
-- [ ] TODO: Commit and push the final visualizer improvement work.
-- [ ] TODO: Inspect final git status and report remaining risks plainly.
+  - Proof:
+    - This closeout update marks the goal complete after local full gates and
+      protected-branch PR CI passed.
+- [x] DONE: Commit and push the final visualizer improvement work.
+  - Proof:
+    - Created commit `5096ce5`:
+      `Add visualizer score profile gallery`.
+    - Direct push to protected `master` was rejected as expected:
+      required status check `Ruff, package, and pytest` is expected.
+    - Pushed branch `codex/score-profile-gallery`.
+    - Opened PR #6:
+      `https://github.com/lamb356/photonic-bench/pull/6`.
+    - PR #6 required CI passed on run `28706649939`.
+- [x] DONE: Inspect final git status and report remaining risks plainly.
+  - Proof:
+    - Final branch-protection merge and post-merge `master` CI are verified
+      live after this closeout state update.
+    - Remaining risk: score profiles are deliberately local same-schema
+      triage weights, not measured hardware rankings.

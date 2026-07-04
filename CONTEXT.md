@@ -59,6 +59,30 @@
 - Preserve the existing dense analytical workbench style and conservative
   boundary language.
 
+## Final Closeout State
+
+- PR #5 was merged into `master` at
+  `14cf2afd75eb873852675585de89f6b04eb752a2`.
+- Post-merge `master` CI run `28706296529` passed.
+- Follow-up visualizer work landed on protected branch
+  `codex/score-profile-gallery` and PR #6:
+  `https://github.com/lamb356/photonic-bench/pull/6`.
+- PR #6 CI run `28706649939` passed before closeout.
+- Implemented visualizer improvements:
+  - Score Profile Gallery;
+  - built-in Balanced, Efficiency, Throughput, Contention, and Provenance
+    score-weight profiles;
+  - current-set same-schema profile previews;
+  - profile-aware shareable URL state;
+  - profile-aware JSON, Markdown, and CSV exports;
+  - updated schema, docs, browser smoke, static tests, and visual regression
+    profile-application coverage.
+- Mandatory Hostile Senior Reviewer critique completed with one
+  non-blocking test-coverage finding, fixed.
+- Local gates passed: focused visualizer tests, browser smoke, visual
+  regression, JavaScript syntax, artifact freshness, Ruff, full pytest,
+  package build, and `git diff --check`.
+
 ## Required State Discipline
 
 - Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and

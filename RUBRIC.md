@@ -93,3 +93,25 @@ Senior Reviewer critique.
 - Important critique findings are fixed before completion or explicitly
   justified.
 - Remaining risks are named plainly.
+
+## Final Closeout Status
+
+- Complete.
+- PR #5 merged into `master`; post-merge `master` CI passed.
+- Score Profile Gallery implemented with Balanced, Efficiency, Throughput,
+  Contention, and Provenance profiles.
+- Gallery cards show profile intent, weight summaries, active/custom state,
+  and current-set same-schema previews.
+- Applying a profile updates the same scorer used by recommendations,
+  scorecards, score explanations, exports, and URL state without disturbing
+  selected artifacts or pinned reference.
+- JSON/Markdown/CSV exports include score-profile context.
+- Documentation, formal schema, tests, and checked generated visualizer assets
+  are updated.
+- Mandatory hostile review completed; the one non-blocking test-coverage
+  finding was fixed.
+- Local full gates passed: focused visualizer tests, browser smoke, visual
+  regression, JavaScript syntax, artifact freshness, Ruff, full pytest,
+  package build, and `git diff --check`.
+- Remaining risk: named score profiles are local same-schema triage stances,
+  not measured hardware rankings.
