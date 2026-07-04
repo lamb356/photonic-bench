@@ -1,7 +1,7 @@
 # PhotonicBench Goal
 
 Date started: 2026-07-04
-Implementation status: completed pending protected-branch merge.
+Implementation status: completed.
 
 ## Objective
 
