@@ -18,7 +18,7 @@
   - The branch also has implementation commit `99dbe4f`
     (`Deepen system modeling and visualizer comparison`) pushed to the same
     remote branch.
-  - Draft PR #4 is open at
+  - Ready-for-review PR #4 is open at
     `https://github.com/lamb356/photonic-bench/pull/4`, targeting `master`.
 - Repository automation:
   - CI workflow exists under `.github/workflows/ci.yml`;

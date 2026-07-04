@@ -267,5 +267,6 @@ Status key:
     - Final closeout state commit is recorded after this state update and
       pushed to the same PR branch.
     - PR #4 remains open at
-      `https://github.com/lamb356/photonic-bench/pull/4` and its body was
-      refreshed with the final summary and validation.
+      `https://github.com/lamb356/photonic-bench/pull/4`, was marked ready
+      for review, and its body was refreshed with the final summary and
+      validation.
