@@ -11,6 +11,13 @@
   - `master` tracks `origin/master`.
 - Current phase-start `HEAD`:
   - `fd4d433 Record CI hygiene completion`
+- Latest pushed automation-hardening commit:
+  - `0829c96924f7dcf6ba0d177c696c2c242304125d`
+- Latest verified CI run for this phase:
+  - `28694842190`
+  - URL: `https://github.com/lamb356/photonic-bench/actions/runs/28694842190`
+  - result: passed
+  - required status check context candidate: `Ruff, package, and pytest`
 - Repository visibility:
   - `PRIVATE`, verified with `gh repo view`.
 - Existing CI workflow:
@@ -62,6 +69,12 @@
   - strict status checks: enabled
   - force pushes: disabled
   - deletions: disabled
+- Branch protection blocker:
+  - GitHub returned HTTP 403 for branch protection and repository rulesets:
+    `Upgrade to GitHub Pro or make this repository public to enable this
+    feature.`
+  - The user explicitly required the repository to remain private, so making it
+    public is not an allowed workaround.
 
 ## Constraints
 

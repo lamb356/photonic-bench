@@ -5,6 +5,7 @@ Status key:
 - TODO: not started.
 - IN PROGRESS: actively being worked.
 - DONE: completed with proof recorded here.
+- BLOCKED: attempted and prevented by an external constraint.
 
 ## Cycle Control
 
@@ -106,7 +107,7 @@ Status key:
 
 ## Task 4: Commit, Push, And GitHub Actions Verification
 
-- [ ] TODO: Commit, push, and verify the workflow passes remotely.
+- [x] DONE: Commit, push, and verify the workflow passes remotely.
   - Done when:
     - Final diff/status are inspected.
     - Files are staged explicitly.
@@ -116,11 +117,32 @@ Status key:
     - The passing run includes Ruff, pytest, and package build steps.
     - Local `HEAD` and `origin/master` match.
   - Proof:
-    - Pending.
+    - Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
+      `RUBRIC.md` before the commit/push cycle.
+    - Inspected `git status --short --branch` and `git diff --stat`.
+    - Staged explicit paths:
+      `.github/workflows/ci.yml`, `.github/dependabot.yml`, `README.md`,
+      `pyproject.toml`, `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`,
+      `PROGRESS.md`, `RUBRIC.md`, and `tasks/todo.md`.
+    - Created commit `0829c96 Add repository automation hardening` with no
+      Codex attribution.
+    - `.Codex/scripts/generate-reasoning.sh` was not present, so commit
+      reasoning generation was skipped.
+    - Pushed `master` to `origin`.
+    - Verified local `HEAD`, `origin/master`, and remote `refs/heads/master`
+      all point to `0829c96924f7dcf6ba0d177c696c2c242304125d`.
+    - Found pushed run `28694842190` for workflow `CI`.
+    - `gh run watch 28694842190 --exit-status` completed successfully.
+    - Verified run `28694842190` job `Ruff, package, and pytest` passed all
+      steps, including `Run Ruff`, `Build package`, and `Run pytest`.
+    - Verified GitHub check run context for branch protection:
+      `Ruff, package, and pytest`.
+    - Verified GitHub Dependabot update/validation jobs triggered and
+      completed successfully after `.github/dependabot.yml` landed.
 
 ## Task 5: Branch Protection
 
-- [ ] TODO: Enable and verify `master` branch protection.
+- [ ] BLOCKED: Enable and verify `master` branch protection.
   - Done when:
     - `gh` is used to configure branch protection on `master`.
     - Required status checks are enabled.
@@ -131,22 +153,65 @@ Status key:
     - `gh` verifies the resulting protection rule.
     - Repository visibility remains private.
   - Proof:
-    - Pending.
+    - Attempted to configure protection with `gh api --method PUT
+      repos/lamb356/photonic-bench/branches/master/protection`.
+    - Requested strict required status checks with context
+      `Ruff, package, and pytest`, force pushes disabled, and deletions
+      disabled.
+    - GitHub returned HTTP 403:
+      `Upgrade to GitHub Pro or make this repository public to enable this
+      feature.`
+    - Checked repository rulesets as a possible alternative with
+      `gh api repos/lamb356/photonic-bench/rulesets`; GitHub returned the same
+      HTTP 403 plan-gate message.
+    - Checked branch protection readback with
+      `gh api repos/lamb356/photonic-bench/branches/master/protection`; GitHub
+      returned the same HTTP 403 plan-gate message.
+    - Verified repository visibility remains `PRIVATE`.
+    - This task cannot be completed while both constraints hold:
+      keep the repository private and do not upgrade the GitHub account plan.
 
 ## Task 6: Mandatory Hostile Senior Reviewer Critique
 
-- [ ] TODO: Critique maintainability and safety, then fix major issues.
+- [x] DONE: Critique maintainability and safety, then fix major issues.
   - Done when:
     - The five required state files are re-read before the critique pass.
     - Findings are recorded in `PROGRESS.md`.
     - Major issues are fixed or explicitly justified.
     - Post-fix local and remote verification still pass.
   - Proof:
-    - Pending.
+    - Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
+      `RUBRIC.md` before the critique pass.
+    - Inspected `.github/workflows/ci.yml`, `.github/dependabot.yml`,
+      `README.md`, repository privacy, pushed CI run `28694842190`, check runs,
+      and open PR state.
+    - Finding 1: branch protection is the decisive repository-safety control,
+      but GitHub plan gates it for this private repository.
+      - Severity: blocking.
+      - Disposition: no local repo fix exists while keeping the repository
+        private; documented exact HTTP 403 failures for branch protection and
+        rulesets.
+    - Finding 2: Dependabot custom labels would be ignored because the repo
+      only has default issue labels.
+      - Severity: medium.
+      - Fix: removed custom `labels:` overrides so Dependabot can apply and
+        create its documented default dependency labels.
+      - Verification: local YAML assertions passed; GitHub Dependabot
+        validation check `.github/dependabot.yml` completed successfully.
+    - Finding 3: private-repo badge SVG fetches return 404 in token-backed
+      non-browser requests.
+      - Severity: low.
+      - Disposition: kept the GitHub workflow API-reported badge URL and
+        recorded the private-repo access limitation.
+    - Finding 4: the packaging check is correctly in the same CI job intended
+      for required checks.
+      - Severity: informational.
+      - Verification: pushed run `28694842190` passed `Run Ruff`,
+        `Build package`, and `Run pytest` in job `Ruff, package, and pytest`.
 
 ## Task 7: Final Closeout
 
-- [ ] TODO: Close state files and final status.
+- [ ] BLOCKED: Close state files and final status.
   - Done when:
     - All checklist items are DONE with proof.
     - `CONTEXT.md`, `PROGRESS.md`, `RUBRIC.md`, and `tasks/todo.md` reflect the
@@ -154,4 +219,7 @@ Status key:
     - Any closeout state-file changes are committed and pushed if needed.
     - Final `git status --short --branch` is clean and synchronized.
   - Proof:
-    - Pending.
+    - Final closeout cannot be honestly marked DONE because Task 5 remains
+      blocked by GitHub's private-repo branch-protection plan gate.
+    - State files record the completed local automation work, passed pushed CI,
+      Dependabot validation, and branch-protection blocker.

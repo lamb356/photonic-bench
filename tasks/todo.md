@@ -106,10 +106,15 @@
 - [x] Task 2: Add and verify a README CI status badge.
 - [x] Task 3: Add and verify Dependabot configuration for GitHub Actions and
       Python dependencies.
-- [ ] Task 4: Commit, push, and verify the updated GitHub Actions run passes.
+- [x] Task 4: Commit, push, and verify the updated GitHub Actions run passes.
 - [ ] Task 5: Enable and verify `master` branch protection requiring CI.
-- [ ] Task 6: Run hostile senior reviewer critique and fix significant issues.
+      Blocked by GitHub plan gate while the repository remains private:
+      branch protection and rulesets return HTTP 403 requiring GitHub Pro or a
+      public repository.
+- [x] Task 6: Run hostile senior reviewer critique and fix significant issues.
 - [ ] Task 7: Close final state files and inspect clean synced git status.
+      Blocked because branch protection cannot be enabled under the current
+      private-repo plan gate.
 
 ## Explicitly Not Active In This Goal
 
