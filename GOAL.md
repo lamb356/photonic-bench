@@ -69,5 +69,6 @@ critique pass was completed, important findings were fixed, checked visualizer
 artifacts were regenerated, and final verification passed. A post-push CI
 follow-up found that exact screenshot pixel thresholds were too brittle across
 Windows and GitHub Actions Ubuntu renderers; the visual regression comparator
-now keeps exact matching for identical renderers and uses a perceptual fallback
-for cross-platform font rasterization differences.
+now prefers renderer-specific checked baselines when present, keeps exact
+matching for identical renderers, and uses a perceptual fallback for
+cross-platform font rasterization differences.

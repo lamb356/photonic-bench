@@ -88,5 +88,6 @@
   `git diff --check`.
 - Post-push CI follow-up: GitHub Actions reported the initial visual
   regression baselines as too strict across Windows and Ubuntu renderers. The
-  comparator now uses exact matching when possible and perceptual screenshot
-  metrics as a cross-platform fallback.
+  comparator now prefers renderer-specific checked baselines, uses exact
+  matching when possible, and keeps perceptual screenshot metrics as a
+  cross-platform fallback.

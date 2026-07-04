@@ -677,8 +677,9 @@ delta/ratio labels while failing on page or console errors. The visual
 regression test captures desktop and mobile comparison screenshots against
 checked baselines. It uses exact pixel matching when the renderer is identical
 and a perceptual fallback so CI font rasterization differences do not mask real
-layout regressions. To intentionally refresh baselines after a reviewed UI
-change, run:
+layout regressions. When a renderer-specific baseline exists, for example under
+`tests/visual_baselines/linux/`, that baseline is preferred for the matching
+platform. To intentionally refresh baselines after a reviewed UI change, run:
 
 ```powershell
 $env:UPDATE_VISUAL_BASELINES='1'

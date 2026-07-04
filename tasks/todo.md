@@ -277,8 +277,8 @@
 - [x] Task 12: Run final verification, close state files, commit/push final
       work, and inspect final repository status.
 - [x] Task 13: Fix post-push GitHub Actions visual regression portability issue
-      by replacing strict cross-platform pixel deltas with exact matching plus
-      perceptual screenshot thresholds.
+      with platform-specific checked baselines, exact matching when possible,
+      and perceptual screenshot fallback metrics.
 
 ## Explicitly Not Active In This Goal
 

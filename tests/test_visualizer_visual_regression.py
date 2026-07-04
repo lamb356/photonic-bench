@@ -1,4 +1,5 @@
 import os
+import platform
 from pathlib import Path
 
 import pytest
@@ -12,7 +13,7 @@ playwright_api = pytest.importorskip(
 )
 
 
-BASELINE_DIR = Path("tests/visual_baselines")
+BASELINE_ROOT = Path("tests/visual_baselines")
 UPDATE_BASELINES = os.environ.get("UPDATE_VISUAL_BASELINES") == "1"
 EXACT_MAX_CHANNEL_DELTA = 2
 EXACT_CHANGED_RATIO = 0.001
@@ -35,7 +36,7 @@ def test_visualizer_comparison_screenshot_regression(
     output_path = tmp_path / "visualizer" / "index.html"
     write_visualizer(Path("reports"), output_path)
     actual_path = tmp_path / f"{name}.png"
-    baseline_path = BASELINE_DIR / f"{name}.png"
+    baseline_path = baseline_path_for(name)
 
     with playwright_api.sync_playwright() as playwright:
         browser = playwright.chromium.launch()
@@ -64,7 +65,7 @@ def test_visualizer_comparison_screenshot_regression(
             browser.close()
 
     if UPDATE_BASELINES:
-        BASELINE_DIR.mkdir(parents=True, exist_ok=True)
+        baseline_path.parent.mkdir(parents=True, exist_ok=True)
         baseline_path.write_bytes(actual_path.read_bytes())
 
     assert baseline_path.exists(), (
@@ -72,6 +73,13 @@ def test_visualizer_comparison_screenshot_regression(
         "UPDATE_VISUAL_BASELINES=1 to create it."
     )
     assert_screenshot_matches(actual_path, baseline_path)
+
+
+def baseline_path_for(name: str) -> Path:
+    platform_path = BASELINE_ROOT / platform.system().lower() / f"{name}.png"
+    if UPDATE_BASELINES or platform_path.exists():
+        return platform_path
+    return BASELINE_ROOT / f"{name}.png"
 
 
 def assert_screenshot_matches(actual_path: Path, baseline_path: Path) -> None:

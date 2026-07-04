@@ -96,8 +96,9 @@ Status key:
 - [x] DONE: Store or generate baselines in a repository-appropriate way.
   - Proof:
     - The test keeps exact pixel matching for identical renderers, then falls
-      back to perceptual screenshot metrics so GitHub Actions Ubuntu font
-      rasterization differences do not fail otherwise stable layouts.
+      back to renderer-specific baselines and perceptual screenshot metrics so
+      GitHub Actions Ubuntu font rasterization differences do not fail
+      otherwise stable layouts.
     - It supports `UPDATE_VISUAL_BASELINES=1` for intentional refreshes.
 - [x] DONE: Document how to run and update the visual regression tests.
   - Proof:
@@ -342,13 +343,21 @@ Status key:
     - Updated `tests/test_visualizer_visual_regression.py` to preserve exact
       matching when possible and add perceptual mean/RMS/changed-ratio
       thresholds for cross-platform rendering differences.
+    - After the first follow-up still failed the mobile Ubuntu screenshot,
+      updated the test to prefer platform-specific baselines and generated
+      checked Linux baselines under `tests/visual_baselines/linux/`.
     - Updated `README.md` to document exact matching plus perceptual fallback.
     - `python -m pytest tests\test_visualizer_visual_regression.py -q`
       passed: `2 passed`.
+    - WSL Linux baseline generation with `UPDATE_VISUAL_BASELINES=1` passed:
+      `2 passed`.
+    - WSL Linux visual regression without baseline updates passed:
+      `2 passed`.
     - `python -m ruff check tests\test_visualizer_visual_regression.py`
       passed: `All checks passed!`.
     - `python -m pytest -q` passed: `122 passed`.
     - `python -m ruff check` passed: `All checks passed!`.
+    - `python -m build` passed and produced source/wheel artifacts locally.
     - `python -m photonic_bench.cli verify-artifacts` passed:
       `Artifacts are fresh: checked 226 generated files.`
     - `node --check photonic_bench\visualizer_assets\app.js` passed.
