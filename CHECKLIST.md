@@ -345,7 +345,16 @@ Status key:
       thresholds for cross-platform rendering differences.
     - After the first follow-up still failed the mobile Ubuntu screenshot,
       updated the test to prefer platform-specific baselines and generated
-      checked Linux baselines under `tests/visual_baselines/linux/`.
+      checked GitHub Linux baselines under
+      `tests/visual_baselines/github-linux/`.
+    - Added CI failure-artifact upload for actual visual regression
+      screenshots and used run `28705465516` to refresh the GitHub Linux
+      baselines.
+    - GitHub Linux baseline SHA-256 hashes:
+      `21d8cd041f9073d979366d0bf1ef99a920a0bb6901720bea72f5724204913960`
+      for desktop and
+      `16702d23155f6cb6773b520743b18e0d3fa1ce4614a69b55c93c87a8ac6762f5`
+      for mobile.
     - Updated `README.md` to document exact matching plus perceptual fallback.
     - `python -m pytest tests\test_visualizer_visual_regression.py -q`
       passed: `2 passed`.
@@ -363,3 +372,5 @@ Status key:
     - `node --check photonic_bench\visualizer_assets\app.js` passed.
     - `git diff --check` passed with Git line-ending normalization warnings
       only.
+    - Re-ran the full local gate after replacing the GitHub Linux baselines
+      from CI artifacts; all commands above still passed.

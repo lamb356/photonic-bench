@@ -83,7 +83,10 @@ def actual_screenshot_path(tmp_path: Path, name: str) -> Path:
 
 
 def baseline_path_for(name: str) -> Path:
-    platform_path = BASELINE_ROOT / platform.system().lower() / f"{name}.png"
+    platform_key = os.environ.get(
+        "VISUAL_REGRESSION_BASELINE_PLATFORM", platform.system().lower()
+    )
+    platform_path = BASELINE_ROOT / platform_key / f"{name}.png"
     if UPDATE_BASELINES or platform_path.exists():
         return platform_path
     return BASELINE_ROOT / f"{name}.png"

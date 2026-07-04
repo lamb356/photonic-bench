@@ -307,7 +307,7 @@ Pre-Landing Review: 2 issues (0 critical, 2 informational)
 
 - Commit, push, and verify the replacement GitHub Actions check on PR #5.
 
-## 2026-07-04 Cycle 6: Linux Visual Baselines For CI
+## 2026-07-04 Cycle 6: GitHub Linux Visual Baselines For CI
 
 ### Replacement CI Result
 
@@ -325,13 +325,24 @@ Pre-Landing Review: 2 issues (0 critical, 2 informational)
 ### Fix
 
 - Updated `tests/test_visualizer_visual_regression.py` so
-  `baseline_path_for()` prefers `tests/visual_baselines/<platform>/` when
-  a matching platform baseline exists.
+  `baseline_path_for()` prefers `tests/visual_baselines/<platform-key>/` when
+  a matching baseline key exists.
 - Preserved the original generic baselines as the fallback path for local
   platforms without specific baselines.
-- Generated Linux baselines from WSL:
-  - `tests/visual_baselines/linux/desktop-comparison.png`;
-  - `tests/visual_baselines/linux/mobile-comparison.png`.
+- Generated initial Linux baselines from WSL, then replaced them with
+  GitHub-rendered screenshots downloaded from the CI failure artifact.
+  The checked CI baselines are:
+  - `tests/visual_baselines/github-linux/desktop-comparison.png`;
+  - `tests/visual_baselines/github-linux/mobile-comparison.png`.
+- Added `VISUAL_REGRESSION_OUTPUT_DIR` support in the test and configured CI
+  to upload `test-results/visual-regression/*.png` on failure.
+- Downloaded the `visual-regression-screenshots` artifact from GitHub Actions
+  run `28705465516` and used those PNGs as the `github-linux` baselines.
+- GitHub Linux baseline SHA-256 hashes:
+  - desktop:
+    `21d8cd041f9073d979366d0bf1ef99a920a0bb6901720bea72f5724204913960`;
+  - mobile:
+    `16702d23155f6cb6773b520743b18e0d3fa1ce4614a69b55c93c87a8ac6762f5`.
 - Removed the accidental local `.venv` and `uv.lock` created by the WSL
   package runner. Windows Git status confirmed they were gone.
 - Updated `README.md`, `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`,
@@ -359,6 +370,9 @@ Pre-Landing Review: 2 issues (0 critical, 2 informational)
   - `node --check photonic_bench\visualizer_assets\app.js`: passed;
   - `git diff --check`: passed with Git line-ending normalization warnings
     only.
+- Re-ran the full local gate after replacing the WSL baselines with
+  GitHub-rendered baselines from run `28705465516`; all commands above still
+  passed.
 
 ### Next Steps
 
