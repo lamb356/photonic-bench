@@ -16,8 +16,10 @@
   - `32eea26 Add system model Pareto transformer and card updates`
 - Pull request:
   - PR #2, `https://github.com/lamb356/photonic-bench/pull/2`
-  - Required check `Ruff, package, and pytest` passed before final closeout
-    state-only update.
+  - Required check `Ruff, package, and pytest` passed on the final closeout
+    commit.
+  - Merged into `master` as `d8563dc Merge pull request #2 from
+    lamb356/codex/system-model-pareto`.
 - Goal-start worktree:
   - clean `master...origin/master` before creating the goal branch.
 - Repository automation:
