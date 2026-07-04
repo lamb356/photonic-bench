@@ -17,319 +17,108 @@
   - `master` tracks `origin/master`;
   - worktree was clean at phase start.
 - Ran `git log --oneline -n 8`:
-  - latest commit was `6358d91 Record GitHub push completion`.
+  - latest commit was `fd4d433 Record CI hygiene completion`.
 - Ran `git remote -v`:
   - `origin` points to `https://github.com/lamb356/photonic-bench.git`.
-- Ran `git branch -vv`:
-  - `master 6358d91 [origin/master] Record GitHub push completion`.
+- Inspected `.github/workflows/ci.yml`:
+  - workflow name: `CI`;
+  - job name: `Ruff and pytest`;
+  - runs Ruff and pytest;
+  - no packaging build check yet.
 - Inspected `pyproject.toml`:
   - Python `>=3.12`;
-  - dev dependencies include Playwright, pytest, and ruff.
-- Checked `.github`:
-  - no `.github/workflows/` directory exists yet.
+  - dev dependencies include Playwright, pytest, and ruff;
+  - setuptools package discovery is limited to `photonic_bench*`.
+- Inspected `.github`:
+  - workflow directory exists;
+  - no Dependabot config exists yet.
+- Inspected `README.md`:
+  - no CI badge exists yet.
+- Ran `gh repo view lamb356/photonic-bench --json ...`:
+  - repository visibility is `PRIVATE`;
+  - default branch is `master`;
+  - description and topics remain set from the prior phase.
 
 ### State File Update
 
-- Rolled the phase state files forward to CI and GitHub repository hygiene.
+- Rolled the phase state files forward to branch protection, CI badge,
+  Dependabot, and CI packaging checks.
 - Created checklist tasks for:
-  1. GitHub Actions workflow;
-  2. local CI verification;
-  3. repository visibility decision and verification;
-  4. GitHub description and topics;
-  5. commit, push, and Actions verification;
+  1. CI packaging check;
+  2. README CI badge;
+  3. Dependabot configuration;
+  4. commit, push, and Actions verification;
+  5. branch protection;
   6. mandatory Hostile Senior Reviewer critique;
   7. final closeout.
 - Visibility decision:
-  - keep the repo private for this phase unless the user explicitly asks to make
-    it public.
+  - keep `lamb356/photonic-bench` private throughout this phase.
 
 ### Next Step
 
-- Add `.github/workflows/ci.yml`.
-- Run `python -m ruff check` and `python -m pytest` locally.
-- Use `gh` to verify/apply repository visibility, description, and topics.
+- Add the packaging build step, README badge, and Dependabot config.
+- Run local Ruff, pytest, build, and config verification before committing.
 
-## 2026-07-04 Cycle 2: Workflow And Local Verification
-
-### Implementation
-
-- Added `.github/workflows/ci.yml`.
-- Workflow properties:
-  - name: `CI`;
-  - trigger: push to `master`;
-  - trigger: pull requests;
-  - permissions: `contents: read`;
-  - runner: `ubuntu-latest`;
-  - Python: `3.12`;
-  - dependency install: `python -m pip install -e ".[dev]"`;
-  - Playwright browser install:
-    `python -m playwright install --with-deps chromium`;
-  - lint command: `python -m ruff check`;
-  - test command: `python -m pytest`.
-
-### Local Verification
-
-- Ran `python -m ruff check`:
-  - passed.
-- Ran `python -m pytest`:
-  - 73 passed;
-  - 146 warnings from `pytest_freezegun` using deprecated `distutils` version
-    classes.
-- Ran a local workflow-file assertion script:
-  - PyYAML parsed `.github/workflows/ci.yml`;
-  - asserted the expected push/PR triggers and required commands.
-- Note:
-  - the first workflow assertion attempt used Bash heredoc syntax in
-    PowerShell and failed before Python ran; it was rerun successfully with a
-    PowerShell here-string.
-
-### Next Step
-
-- Use `gh` to verify or apply repository visibility, description, and topics.
-
-## 2026-07-04 Cycle 3: GitHub Metadata
-
-### Visibility
-
-- Ran `gh repo view lamb356/photonic-bench --json
-  nameWithOwner,url,visibility,description,repositoryTopics,defaultBranchRef`.
-- Result:
-  - repository: `lamb356/photonic-bench`;
-  - URL: `https://github.com/lamb356/photonic-bench`;
-  - default branch: `master`;
-  - visibility: `PRIVATE`.
-- Decision:
-  - keep the repository private for this phase.
-- Action:
-  - no visibility edit was needed because actual visibility already matched the
-    decision.
-
-### Description And Topics
-
-- Ran `gh repo edit lamb356/photonic-bench --description ...` with topics:
-  - `photonic-computing`;
-  - `photonic-accelerator`;
-  - `benchmarking`;
-  - `machine-learning`;
-  - `ai-accelerators`;
-  - `optical-computing`;
-  - `python`;
-  - `reproducibility`;
-  - `mlperf`;
-  - `mlcommons`.
-- Re-ran `gh repo view ...`.
-- Verified description:
-  - `Transparent benchmark cards, JSON artifacts, and visual tools for photonic
-    AI accelerator energy/noise claims.`
-- Verified topics:
-  - `ai-accelerators`, `benchmarking`, `machine-learning`, `mlcommons`,
-    `mlperf`, `optical-computing`, `photonic-accelerator`,
-    `photonic-computing`, `python`, `reproducibility`.
-
-### Next Step
-
-- Inspect diff/status, commit local workflow and state-file changes, push to
-  `origin/master`, and verify the triggered GitHub Actions run passes.
-
-## 2026-07-04 Cycle 4: First CI Push And Packaging Fix
+## 2026-07-04 Cycle 2: Local Automation Implementation
 
 ### State Re-Read
 
 - Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
-  `RUBRIC.md` before the commit/push cycle.
-- Inspected `git status --short --branch`.
-- Inspected `git diff --stat` and the scoped diff for the workflow and state
-  files.
+  `RUBRIC.md` at the start of the cycle.
+- Checked `git status --short --branch`; only state-file rollover changes were
+  present before implementation.
 
-### First CI Commit And Push
-
-- Staged explicit paths:
-  - `.github/workflows/ci.yml`;
-  - `GOAL.md`;
-  - `CHECKLIST.md`;
-  - `CONTEXT.md`;
-  - `PROGRESS.md`;
-  - `RUBRIC.md`;
-  - `tasks/todo.md`.
-- Created commit:
-  - `e8cb999 Add GitHub Actions CI`.
-- `.Codex/scripts/generate-reasoning.sh` was not present, so reasoning
-  generation was skipped.
-- Pushed `master` to `origin`.
-- Verified local and remote `master` both pointed to:
-  - `e8cb9992443f5fdc13b11765d2caff02b9c8afe9`.
-
-### First Actions Run
-
-- Found GitHub Actions run:
-  - run ID: `28694399915`;
-  - workflow: `CI`;
-  - event: `push`;
-  - commit: `e8cb9992443f5fdc13b11765d2caff02b9c8afe9`;
-  - URL:
-    `https://github.com/lamb356/photonic-bench/actions/runs/28694399915`.
-- Result:
-  - failed in `Install dependencies`.
-- Root cause from `gh run view --log-failed`:
-  - `python -m pip install -e ".[dev]"` failed because setuptools discovered
-    multiple flat-layout top-level packages: `reports`, `thoughts`, and
-    `photonic_bench`.
-
-### Fix
+### Implementation
 
 - Updated `pyproject.toml`:
-  - added `[tool.setuptools.packages.find]`;
-  - set `include = ["photonic_bench*"]`.
-- This makes package discovery explicit and keeps report/planning directories
-  out of the Python distribution.
+  - added `build>=1.2` to the `dev` optional dependencies.
+- Updated `.github/workflows/ci.yml`:
+  - renamed the CI job to `Ruff, package, and pytest`;
+  - added a `Build package` step running `python -m build`.
+- Updated `README.md`:
+  - added a CI badge directly under the title;
+  - used GitHub's workflow API-reported badge URL for the active `CI` workflow.
+- Added `.github/dependabot.yml`:
+  - `version: 2`;
+  - weekly `github-actions` updates from `/`;
+  - weekly `pip` updates from `/`;
+  - open PR limit of `5` for each ecosystem.
 
-### Post-Fix Local Verification
+### Local Verification
 
 - Ran `python -m pip install -e ".[dev]"`:
-  - editable install succeeded.
+  - succeeded;
+  - installed `build-1.5.0`.
 - Ran `python -m ruff check`:
   - passed.
 - Ran `python -m pytest`:
   - 73 passed;
   - 146 warnings from `pytest_freezegun` using deprecated `distutils` version
     classes.
+- Ran `python -m build` after the final README edit:
+  - built `photonic_bench-0.1.0.tar.gz`;
+  - built `photonic_bench-0.1.0-py3-none-any.whl`.
+- Ran local assertions over `.github/workflows/ci.yml`, `pyproject.toml`,
+  `README.md`, and `.github/dependabot.yml`:
+  - workflow triggers, action versions, Ruff, build, and pytest commands
+    matched expectations;
+  - README contained the exact CI badge Markdown;
+  - Dependabot YAML parsed and contained the expected ecosystems, schedules,
+    and PR limits.
+- Ran `gh api repos/lamb356/photonic-bench/actions/workflows/ci.yml`:
+  - workflow `CI` is active;
+  - GitHub reports badge URL
+    `https://github.com/lamb356/photonic-bench/workflows/CI/badge.svg`.
+- Tried direct token-backed badge SVG fetch:
+  - returned 404 because the repository is private;
+  - recorded as a private-repo badge access limitation and kept the
+    API-reported badge URL.
+- Ran `gh label list --repo lamb356/photonic-bench --limit 100`:
+  - only default issue labels exist;
+  - removed custom Dependabot `labels:` overrides so Dependabot can apply its
+    documented default dependency labels.
 
 ### Next Step
 
-- Commit and push the packaging fix, then verify the next GitHub Actions run.
-
-## 2026-07-04 Cycle 5: Passing CI And Action Version Hardening
-
-### Packaging Fix Commit And Push
-
-- Staged explicit paths:
-  - `pyproject.toml`;
-  - `CHECKLIST.md`;
-  - `CONTEXT.md`;
-  - `PROGRESS.md`.
-- Created commit:
-  - `f660fe4 Fix editable install package discovery`.
-- `.Codex/scripts/generate-reasoning.sh` was not present, so reasoning
-  generation was skipped.
-- Pushed `master` to `origin`.
-- Verified local and remote `master` both pointed to:
-  - `f660fe49be896e59f22b9455bad2e2ce0b5aa708`.
-
-### Passing Actions Run
-
-- Found GitHub Actions run:
-  - run ID: `28694440859`;
-  - workflow: `CI`;
-  - event: `push`;
-  - commit: `f660fe49be896e59f22b9455bad2e2ce0b5aa708`;
-  - URL:
-    `https://github.com/lamb356/photonic-bench/actions/runs/28694440859`.
-- Result:
-  - passed in 43 seconds.
-- Verified job steps:
-  - install dependencies passed;
-  - install Playwright browser passed;
-  - Ruff passed;
-  - pytest passed.
-
-### Annotation Follow-Up
-
-- The passing run emitted a GitHub Actions annotation that
-  `actions/checkout@v4` and `actions/setup-python@v5` target deprecated
-  Node.js 20 and are being forced to Node.js 24.
-- Queried current action releases:
-  - `gh api repos/actions/checkout/releases/latest` returned `v7.0.0`,
-    published `2026-06-18T13:53:05Z`;
-  - `gh api repos/actions/setup-python/releases/latest` returned `v6.3.0`,
-    published `2026-06-24T02:48:35Z`.
-- Updated `.github/workflows/ci.yml`:
-  - `actions/checkout@v7`;
-  - `actions/setup-python@v6`.
-
-### Next Step
-
-- Commit and push the action-version hardening, then verify the next GitHub
-  Actions run.
-
-## 2026-07-04 Cycle 6: Final CI Verification And Critique
-
-### Action-Version Commit And Push
-
-- Re-ran local verification before pushing:
-  - `python -m ruff check`: passed;
-  - `python -m pytest`: 73 passed, 146 warnings;
-  - workflow assertion checked `actions/checkout@v7`,
-    `actions/setup-python@v6`, Playwright install, Ruff, and pytest commands.
-- Staged explicit paths:
-  - `.github/workflows/ci.yml`;
-  - `CHECKLIST.md`;
-  - `PROGRESS.md`.
-- Created commit:
-  - `43c4a4d Update CI action versions`.
-- `.Codex/scripts/generate-reasoning.sh` was not present, so reasoning
-  generation was skipped.
-- Pushed `master` to `origin`.
-- Verified local and remote `master` both pointed to:
-  - `43c4a4d7ff01d82fd0a177cf34412c223ae6f72c`.
-
-### Final Verified Actions Run Before Closeout
-
-- Found GitHub Actions run:
-  - run ID: `28694481430`;
-  - workflow: `CI`;
-  - event: `push`;
-  - commit: `43c4a4d7ff01d82fd0a177cf34412c223ae6f72c`;
-  - URL:
-    `https://github.com/lamb356/photonic-bench/actions/runs/28694481430`.
-- Result:
-  - passed in 50 seconds.
-- Verified job steps from `gh run view`:
-  - checkout succeeded;
-  - Python setup succeeded;
-  - dependency install succeeded;
-  - Playwright browser install succeeded;
-  - Ruff succeeded;
-  - pytest succeeded.
-
-### Mandatory Hostile Senior Reviewer Critique
-
-- Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
-  `RUBRIC.md` before the critique pass.
-- Inspected:
-  - `.github/workflows/ci.yml`;
-  - `pyproject.toml`;
-  - GitHub repository metadata from `gh repo view`;
-  - run `28694481430` from `gh run view`;
-  - `git status --short --branch`;
-  - recent git log.
-
-Findings and disposition:
-
-1. Clean-runner dependency installation was not reliable at first because
-   setuptools flat-layout discovery found `reports`, `thoughts`, and
-   `photonic_bench`.
-   - Severity: high.
-   - Fixed by adding explicit package discovery for `photonic_bench*`.
-   - Verified by local editable install and passing CI.
-2. The first passing CI version used older action majors that emitted a Node 20
-   deprecation annotation.
-   - Severity: medium.
-   - Fixed by checking current upstream action releases and updating to
-     `actions/checkout@v7` and `actions/setup-python@v6`.
-   - Verified by passing CI run `28694481430`.
-3. Repository presentation was incomplete at phase start: no GitHub description
-   and no topics.
-   - Severity: medium.
-   - Fixed with `gh repo edit` and verified with `gh repo view`.
-4. Branch protection / required checks are not configured.
-   - Severity: low for this request.
-   - Disposition: explicitly out of this basic CI/repo-hygiene scope; worth
-     considering later if the repo becomes public or accepts PRs from others.
-
-### Closeout
-
-- Updated state files and `tasks/todo.md` to mark completed items.
-- Because CI now runs on every push to `master`, this final state-only closeout
-  commit will trigger one additional CI run. That run is verified after push and
-  reported in the final response rather than causing an infinite state-file
-  self-reference.
+- Inspect final diff/status, commit explicitly, push to `origin/master`, and
+  verify the updated GitHub Actions run passes with the package build step.

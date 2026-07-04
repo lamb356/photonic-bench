@@ -1,5 +1,7 @@
 # PhotonicBench
 
+[![CI](https://github.com/lamb356/photonic-bench/workflows/CI/badge.svg?branch=master)](https://github.com/lamb356/photonic-bench/actions/workflows/ci.yml)
+
 PhotonicBench generates transparent benchmark cards for photonic AI energy and noise claims.
 
 The current CLI reads YAML configs for photonic matmul benchmark cards and transformer-layer shape helpers, computes auditable local model budgets, and writes Markdown plus optional JSON reports that expose assumptions, provenance, calibration fits, and comparison tables.

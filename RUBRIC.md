@@ -1,45 +1,51 @@
-# PhotonicBench CI And Repo Hygiene Rubric
+# PhotonicBench Branch Protection And Automation Rubric
 
 Use this rubric for checklist completion decisions and the mandatory Hostile
 Senior Reviewer critique.
 
-## CI Trigger Quality
+## Repository Privacy
 
-- The workflow file lives under `.github/workflows/`.
-- Pushes to `master` trigger CI.
-- Pull requests trigger CI.
-- Workflow permissions are minimal for a read-only test workflow.
-- The workflow name and job names are clear.
+- The repository remains private.
+- Visibility is verified before and after remote changes.
+- No command changes visibility unless explicitly requested by the user.
 
-## Python Environment Quality
+## CI Badge Quality
 
-- CI uses Python 3.12, matching the package's practical supported floor for
-  current development.
-- Dependencies are installed through the package metadata, not a hidden
-  hand-maintained dependency list.
-- Dev dependencies are installed so `pytest`, `ruff`, and Playwright are
-  available.
-- Playwright Chromium and Linux system dependencies are installed before tests.
-- Commands run as modules:
-  - `python -m ruff check`;
-  - `python -m pytest`.
+- The badge appears near the top of `README.md`.
+- The badge uses the badge URL reported by GitHub's workflow API for the
+  active `CI` workflow.
+- The badge is scoped to `master`.
+- The badge links to the workflow page.
+- If direct SVG fetches are blocked because the repository is private, that
+  limitation is recorded and workflow existence is verified through `gh`.
 
-## Verification Quality
+## Dependabot Quality
 
-- Local `python -m ruff check` passes before push.
-- Local `python -m pytest` passes before push.
-- Pushed GitHub Actions run is located and verified passing.
-- Failures are investigated from logs rather than waved through.
-- Local `HEAD` and `origin/master` match after push.
+- `.github/dependabot.yml` uses `version: 2`.
+- GitHub Actions updates are configured from `/`.
+- Python dependency updates use the `pip` ecosystem from `/`.
+- Schedules are predictable and not noisy.
+- Open PR limits prevent Dependabot from overwhelming a small private repo.
+- The YAML parses locally and the expected ecosystems are asserted.
 
-## Repository Presentation Quality
+## Packaging Check Quality
 
-- Visibility is explicitly decided and verified.
-- A private-to-public change is not made without explicit user approval.
-- Description is concise, specific, and accurate.
-- Topics are lowercase, relevant, and discoverable for photonics, benchmarking,
-  AI accelerators, Python, and reproducibility.
-- `gh repo view` verifies the resulting metadata.
+- CI installs `build` or equivalent build tooling explicitly.
+- CI runs `python -m build`.
+- The build step is part of the required CI job.
+- Local `python -m build` passes before push.
+- Existing Ruff and pytest checks still pass.
+- Build artifacts are not committed.
+
+## Branch Protection Quality
+
+- Branch protection is configured with `gh`.
+- `master` requires the exact passing CI status check context.
+- Required status checks are strict so branches must be up to date before
+  merging.
+- Force pushes are disabled.
+- Branch deletions are disabled.
+- The resulting protection rule is verified with `gh api`.
 
 ## Git Hygiene
 
@@ -48,7 +54,8 @@ Senior Reviewer critique.
 - Commit message is descriptive, imperative, and has no Codex attribution or
   co-author footer.
 - Push target is explicit.
-- State files record proof for completed checklist items.
+- Pushed GitHub Actions run is located and verified passing.
+- Local `HEAD` and `origin/master` match after push.
 
 ## Review Readiness
 

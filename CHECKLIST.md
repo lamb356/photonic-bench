@@ -1,4 +1,4 @@
-# PhotonicBench CI And Repo Hygiene Checklist
+# PhotonicBench Branch Protection And Automation Checklist
 
 Status key:
 
@@ -11,191 +11,147 @@ Status key:
 - [x] DONE: Roll state files forward and create the prioritized checklist.
   - Done when:
     - `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
-      `RUBRIC.md` describe the CI and GitHub repository hygiene goal.
-    - `tasks/todo.md` marks the previous goal as complete and this new goal as
+      `RUBRIC.md` describe the branch-protection, CI badge, Dependabot, and
+      packaging-check goal.
+    - `tasks/todo.md` marks the prior CI hygiene goal complete and this goal
       active.
-    - The checklist covers workflow creation, local verification, GitHub
-      metadata, push, Actions verification, critique, and closeout.
+    - The checklist covers implementation, verification, push, branch
+      protection, critique, and closeout.
   - Proof:
     - Re-read all five required state files at the start of the cycle.
     - Re-read `tasks/todo.md`.
-    - Inspected `pyproject.toml`, `.github` state, tracked file list, recent
-      git log, remote, and branch tracking.
-    - Confirmed no existing `.github/workflows/` directory is present.
-    - Confirmed `master` tracks `origin/master` at
-      `https://github.com/lamb356/photonic-bench.git`.
+    - Inspected `.github/workflows/ci.yml`, `README.md`, `pyproject.toml`,
+      `.github` contents, git status, recent log, remotes, and GitHub
+      repository metadata.
+    - Confirmed repository `lamb356/photonic-bench` is private.
+    - Confirmed existing CI workflow is `.github/workflows/ci.yml`.
+    - Confirmed no `.github/dependabot.yml` exists yet.
+    - Confirmed the existing workflow has Ruff and pytest but no packaging
+      build step.
 
-## Task 1: GitHub Actions Workflow
+## Task 1: CI Packaging Check
 
-- [x] DONE: Add a reliable Python CI workflow.
+- [x] DONE: Add and verify a packaging build check in CI.
   - Done when:
-    - `.github/workflows/ci.yml` exists.
-    - It triggers on push to `master`.
-    - It triggers on pull requests.
-    - It uses a supported Python 3.12 setup.
-    - It installs project dev dependencies.
-    - It installs Playwright Chromium dependencies needed by the existing smoke
-      tests.
-    - It runs `python -m ruff check`.
-    - It runs `python -m pytest`.
+    - `.github/workflows/ci.yml` installs package build tooling.
+    - The workflow runs `python -m build`.
+    - The build step fails the workflow if packaging is broken.
+    - Local `python -m build` succeeds.
+    - Local `python -m ruff check` and `python -m pytest` still pass.
   - Proof:
-    - Added `.github/workflows/ci.yml`.
-    - Workflow triggers on push to `master` and on pull requests.
-    - Workflow uses `actions/checkout@v7` and `actions/setup-python@v6` with
-      Python `3.12` and pip caching.
-    - Workflow installs `python -m pip install -e ".[dev]"`.
-    - Workflow installs Playwright Chromium with Linux dependencies via
-      `python -m playwright install --with-deps chromium`.
-    - Workflow runs `python -m ruff check`.
-    - Workflow runs `python -m pytest`.
-    - Parsed the workflow file locally with PyYAML and asserted the expected
-      trigger and command entries.
-    - First pushed run `28694399915` proved the clean runner also needed
-      explicit setuptools package discovery; fixed `pyproject.toml` with
-      `[tool.setuptools.packages.find] include = ["photonic_bench*"]`.
-    - Second pushed run `28694440859` passed but annotated that older action
-      majors targeted deprecated Node 20; checked current releases with
-      `gh api` and updated to `actions/checkout@v7` and
-      `actions/setup-python@v6`.
-
-## Task 2: Local CI Verification
-
-- [x] DONE: Verify the workflow command path locally.
-  - Done when:
-    - `python -m ruff check` passes.
-    - `python -m pytest` passes.
-    - Any workflow-relevant dependency assumptions are checked.
-  - Proof:
+    - Added `build>=1.2` to the `dev` optional dependencies in
+      `pyproject.toml`.
+    - Updated `.github/workflows/ci.yml` job name to
+      `Ruff, package, and pytest`.
+    - Added a `Build package` step that runs `python -m build`.
+    - Ran `python -m pip install -e ".[dev]"`: succeeded and installed
+      `build-1.5.0`.
+    - Ran `python -m build` after the final README badge edit:
+      successfully built `photonic_bench-0.1.0.tar.gz` and
+      `photonic_bench-0.1.0-py3-none-any.whl`.
     - Ran `python -m ruff check`: passed.
     - Ran `python -m pytest`: 73 passed, 146 warnings from
       `pytest_freezegun`/`distutils` deprecation.
-    - Re-ran workflow file content assertions after fixing the PowerShell
-      here-string invocation used for the local assertion script.
-    - After the first Actions failure, ran `python -m pip install -e ".[dev]"`:
-      editable install succeeded.
-    - Re-ran `python -m ruff check`: passed.
-    - Re-ran `python -m pytest`: 73 passed, 146 warnings.
+    - Ran local workflow assertions confirming `python -m build`, Ruff, pytest,
+      and the expected action versions are present.
 
-## Task 3: Repository Visibility
+## Task 2: README CI Badge
 
-- [x] DONE: Decide and verify repository visibility.
+- [x] DONE: Add and verify a CI status badge.
   - Done when:
-    - The visibility decision is recorded.
-    - `gh` verifies the repository visibility.
-    - If the actual visibility differs from the decision, `gh repo edit`
-      applies the change and the result is re-verified.
-  - Decision:
-    - Keep `lamb356/photonic-bench` private for this phase. The repository was
-      created private in the previous goal, and changing to public would expose
-      draft benchmark/proposal artifacts without an explicit public-release
-      instruction.
+    - `README.md` has a clear badge near the top.
+    - The badge uses the badge URL reported by GitHub's workflow API for the
+      active `CI` workflow and is scoped to `master`.
+    - The badge links to `.github/workflows/ci.yml` through the workflow page.
+    - Direct private-repo badge fetch behavior is verified or the private-repo
+      access limitation is recorded with alternate proof.
   - Proof:
-    - Ran `gh repo view lamb356/photonic-bench --json
-      nameWithOwner,url,visibility,description,repositoryTopics,defaultBranchRef`.
-    - GitHub reported `visibility` as `PRIVATE`.
-    - No visibility change was needed because the decision is to keep the
-      repository private for this phase.
+    - Added a CI badge directly under the `# PhotonicBench` heading in
+      `README.md`.
+    - Badge image URL:
+      `https://github.com/lamb356/photonic-bench/workflows/CI/badge.svg?branch=master`.
+    - Badge link:
+      `https://github.com/lamb356/photonic-bench/actions/workflows/ci.yml`.
+    - Ran `gh api repos/lamb356/photonic-bench/actions/workflows/ci.yml`; the
+      active workflow exists and GitHub reports badge URL
+      `https://github.com/lamb356/photonic-bench/workflows/CI/badge.svg`.
+    - Local README assertion verified the exact badge Markdown.
+    - Direct SVG fetch returned 404 even with a token-backed request because
+      the repository is private; this is recorded as a GitHub private-repo badge
+      access limitation, not a syntax failure.
 
-## Task 4: GitHub Description And Topics
+## Task 3: Dependabot Configuration
 
-- [x] DONE: Add professional repository metadata.
+- [x] DONE: Add and verify Dependabot configuration.
   - Done when:
-    - A clear repository description is set on GitHub.
-    - Relevant topics are set on GitHub.
-    - `gh repo view` verifies both.
-  - Planned description:
-    - `Transparent benchmark cards, JSON artifacts, and visual tools for
-      photonic AI accelerator energy/noise claims.`
-  - Planned topics:
-    - `photonic-computing`
-    - `photonic-accelerator`
-    - `benchmarking`
-    - `machine-learning`
-    - `ai-accelerators`
-    - `optical-computing`
-    - `python`
-    - `reproducibility`
-    - `mlperf`
-    - `mlcommons`
+    - `.github/dependabot.yml` exists.
+    - It uses Dependabot config `version: 2`.
+    - It configures weekly GitHub Actions updates.
+    - It configures weekly Python `pip` updates from `/`.
+    - The YAML parses locally and contains the expected ecosystems.
   - Proof:
-    - Ran `gh repo edit lamb356/photonic-bench --description ...` with ten
-      `--add-topic` values.
-    - Verified with `gh repo view lamb356/photonic-bench --json
-      nameWithOwner,url,visibility,description,repositoryTopics,defaultBranchRef`.
-    - GitHub reported description:
-      `Transparent benchmark cards, JSON artifacts, and visual tools for
-      photonic AI accelerator energy/noise claims.`
-    - GitHub reported topics:
-      `ai-accelerators`, `benchmarking`, `machine-learning`, `mlcommons`,
-      `mlperf`, `optical-computing`, `photonic-accelerator`,
-      `photonic-computing`, `python`, `reproducibility`.
+    - Added `.github/dependabot.yml`.
+    - Config uses `version: 2`.
+    - Configures `github-actions` updates from `/` weekly on Monday at 09:00
+      America/Chicago.
+    - Configures `pip` updates from `/` weekly on Monday at 09:30
+      America/Chicago.
+    - Sets `open-pull-requests-limit: 5` for both ecosystems.
+    - Checked existing repo labels with `gh label list`; only default issue
+      labels exist.
+    - Removed custom Dependabot `labels:` overrides so GitHub can apply and
+      create its default dependency labels.
+    - Ran local YAML assertions confirming `version: 2`, `github-actions`,
+      `pip`, weekly schedules, PR limits, and no custom labels.
 
-## Task 5: Commit, Push, And Actions Verification
+## Task 4: Commit, Push, And GitHub Actions Verification
 
-- [x] DONE: Commit, push, and verify GitHub Actions passes.
+- [ ] TODO: Commit, push, and verify the workflow passes remotely.
   - Done when:
     - Final diff/status are inspected.
     - Files are staged explicitly.
     - A clean descriptive commit exists with no Codex attribution.
     - The commit is pushed to `origin/master`.
     - The triggered GitHub Actions run is found and passes.
+    - The passing run includes Ruff, pytest, and package build steps.
     - Local `HEAD` and `origin/master` match.
   - Proof:
-    - Created and pushed `e8cb999 Add GitHub Actions CI`.
-    - Run `28694399915` triggered on push to `master` and failed in
-      dependency installation; logs were inspected and root cause was fixed.
-    - Created and pushed `f660fe4 Fix editable install package discovery`.
-    - Run `28694440859` triggered on push to `master` and passed in 43
-      seconds.
-    - Created and pushed `43c4a4d Update CI action versions`.
-    - Run `28694481430` triggered on push to `master` and passed in 50
-      seconds.
-    - Verified run `28694481430` job steps all succeeded: checkout, Python
-      setup, dependency install, Playwright browser install, Ruff, and pytest.
-    - Verified local `HEAD` and `origin/master` matched at
-      `43c4a4d7ff01d82fd0a177cf34412c223ae6f72c` before this closeout state
-      update.
+    - Pending.
+
+## Task 5: Branch Protection
+
+- [ ] TODO: Enable and verify `master` branch protection.
+  - Done when:
+    - `gh` is used to configure branch protection on `master`.
+    - Required status checks are enabled.
+    - The required check matches the passing CI job context from the pushed
+      packaging-check workflow.
+    - Branch protection requires the branch to be up to date before merging.
+    - Force pushes and deletions are disabled.
+    - `gh` verifies the resulting protection rule.
+    - Repository visibility remains private.
+  - Proof:
+    - Pending.
 
 ## Task 6: Mandatory Hostile Senior Reviewer Critique
 
-- [x] DONE: Critique CI reliability and repository presentation, then fix major
-  issues.
+- [ ] TODO: Critique maintainability and safety, then fix major issues.
   - Done when:
     - The five required state files are re-read before the critique pass.
     - Findings are recorded in `PROGRESS.md`.
-    - Major CI or presentation issues are fixed or explicitly justified.
-    - Post-fix local verification and relevant GitHub verification pass.
+    - Major issues are fixed or explicitly justified.
+    - Post-fix local and remote verification still pass.
   - Proof:
-    - Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
-      `RUBRIC.md` before the critique pass.
-    - Inspected `.github/workflows/ci.yml`, `pyproject.toml`, current GitHub
-      metadata, successful run `28694481430`, and current git status/log.
-    - Finding 1: clean GitHub runner could not install the package because
-      setuptools auto-discovered `reports`, `thoughts`, and `photonic_bench`.
-      Fix: explicit `[tool.setuptools.packages.find] include =
-      ["photonic_bench*"]`; verified by local editable install and passing CI.
-    - Finding 2: passing CI emitted a Node 20 deprecation annotation for older
-      action majors. Fix: verified current releases and updated to
-      `actions/checkout@v7` and `actions/setup-python@v6`; verified by passing
-      run `28694481430`.
-    - Finding 3: repository presentation had no description or topics at phase
-      start. Fix: set and verified description plus ten relevant topics.
-    - Residual non-blocker: branch protection / required checks are not
-      configured; this was outside the requested basic CI/repo-hygiene scope.
+    - Pending.
 
 ## Task 7: Final Closeout
 
-- [x] DONE: Close state files and final status.
+- [ ] TODO: Close state files and final status.
   - Done when:
-    - `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, `RUBRIC.md`, and
-      `tasks/todo.md` reflect final verified state.
-    - Any closeout state-file changes are committed and pushed if they occur
-      after the CI commit.
+    - All checklist items are DONE with proof.
+    - `CONTEXT.md`, `PROGRESS.md`, `RUBRIC.md`, and `tasks/todo.md` reflect the
+      final verified state.
+    - Any closeout state-file changes are committed and pushed if needed.
     - Final `git status --short --branch` is clean and synchronized.
   - Proof:
-    - Updated `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, `RUBRIC.md`, and
-      `tasks/todo.md` for final verified state.
-    - Final closeout state update is intentionally state-only; because CI runs
-      on every push to `master`, the post-closeout run is verified after this
-      commit and reported in the final response to avoid an infinite
-      self-referential ledger loop.
+    - Pending.

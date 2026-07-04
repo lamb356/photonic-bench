@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   test:
-    name: Ruff and pytest
+    name: Ruff, package, and pytest
     runs-on: ubuntu-latest
 
     steps:
@@ -34,6 +34,9 @@ jobs:
 
       - name: Run Ruff
         run: python -m ruff check
+
+      - name: Build package
+        run: python -m build
 
       - name: Run pytest
         run: python -m pytest

@@ -4,49 +4,59 @@ Date started: 2026-07-04
 
 ## Objective
 
-Set up basic GitHub Actions CI and complete essential GitHub repository hygiene
-for `lamb356/photonic-bench` so the project is clean and professional on
-GitHub.
+Improve repository quality and automation for the private
+`lamb356/photonic-bench` repository by adding:
+
+1. branch protection on `master` that requires the CI workflow to pass before
+   merging;
+2. a working CI status badge in `README.md`;
+3. Dependabot configuration for GitHub Actions and Python dependencies;
+4. a packaging check in CI using `python -m build` or equivalent.
 
 ## Required Outcomes
 
-1. Add a workflow under `.github/workflows/` that runs on:
-   - pushes to `master`;
-   - pull requests.
-2. The workflow must install project dependencies and run:
+1. Keep the repository private throughout the phase.
+2. Add a clear CI status badge near the top of `README.md` that points at the
+   main CI workflow.
+3. Add `.github/dependabot.yml` with sensible update schedules for:
+   - GitHub Actions;
+   - Python dependencies managed from the repository root.
+4. Update `.github/workflows/ci.yml` so CI installs build tooling and fails if
+   the package cannot be built.
+5. Verify locally before push:
    - `python -m ruff check`;
-   - `python -m pytest`.
-3. Verify the workflow command path locally before pushing.
-4. Push the workflow to `origin/master` and verify the GitHub Actions run
-   passes.
-5. Decide repository visibility and apply/verify it:
-   - current decision: keep the repository private for this phase because the
-     previous pushed state created a private repo and no explicit public-release
-     approval was given.
-6. Add a clear GitHub repository description.
-7. Add relevant GitHub topics for a photonic AI benchmarking tool.
-8. Run a mandatory Hostile Senior Reviewer critique focused on CI reliability
-   and GitHub presentation, then fix significant issues.
-9. Update state files and `tasks/todo.md` with proof for each completed item.
+   - `python -m pytest`;
+   - `python -m build`.
+6. Commit and push the local changes to `origin/master`.
+7. Verify the pushed GitHub Actions run passes after the packaging check is in
+   the workflow.
+8. Configure branch protection on `master` with `gh` so the CI status check is
+   required before merging.
+9. Verify branch protection, repository privacy, badge URL, and Dependabot
+   configuration.
+10. Run a mandatory Hostile Senior Reviewer critique focused on long-term
+    repository maintainability and safety, then fix important findings.
+11. Update `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
+    `RUBRIC.md`, and `tasks/todo.md` with proof for completed items.
 
 ## Scope
 
 In scope:
 
-- GitHub Actions workflow for the current Python package.
-- Local verification of the same lint/test commands CI runs.
-- GitHub repository visibility verification.
-- GitHub description and topics through `gh` where possible.
-- Commit and push of local workflow/state/doc changes required for CI.
-- GitHub Actions run verification after push.
+- GitHub branch protection on `master`.
+- CI workflow hardening for source/wheel build validation.
+- README status badge for the existing CI workflow.
+- Dependabot version-update configuration.
+- Local verification, commit, push, GitHub Actions verification, and state-file
+  closeout.
 
 Out of scope:
 
+- Changing repository visibility to public.
 - Hosted application deployment.
-- New benchmark features.
 - Formal MLCommons submission.
-- File upload workflow.
-- Branch protection or required checks unless explicitly requested later.
+- Benchmark feature development.
+- New release publishing workflows.
 
 ## Stop Condition
 
@@ -55,14 +65,13 @@ Stop only when all of the following are true:
 - `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and `RUBRIC.md` have
   been re-read at the start of each cycle.
 - All checklist items are marked DONE with proof.
-- A GitHub Actions workflow exists under `.github/workflows/`.
-- The workflow runs on push to `master` and on pull requests.
-- Local `python -m ruff check` passes.
-- Local `python -m pytest` passes.
-- The workflow has been pushed and the corresponding GitHub Actions run passes.
-- Repository visibility has been explicitly decided and verified.
-- A clear repository description is set on GitHub.
-- Relevant repository topics are set on GitHub.
+- The repository is verified private.
+- `README.md` contains a working CI badge for `.github/workflows/ci.yml`.
+- `.github/dependabot.yml` configures GitHub Actions and Python dependency
+  updates.
+- CI runs `python -m build` or an equivalent packaging build check and the
+  pushed run passes.
+- Branch protection is enabled on `master` and requires the CI status check.
 - The mandatory Hostile Senior Reviewer critique is recorded and major findings
   are fixed or explicitly justified.
 - Final local and remote git status are clean and synchronized.

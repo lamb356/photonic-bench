@@ -87,7 +87,7 @@
       Created private repo `lamb356/photonic-bench`, configured `origin`, and
       pushed `master`.
 
-## Active Goal: GitHub Actions CI And Repository Hygiene
+## Completed Goal: GitHub Actions CI And Repository Hygiene
 
 - [x] Task 0: Roll state files forward and create prioritized checklist.
 - [x] Task 1: Add a GitHub Actions workflow for pushes to `master` and pull
@@ -98,6 +98,18 @@
 - [x] Task 5: Commit, push, and verify the GitHub Actions run passes.
 - [x] Task 6: Run hostile senior reviewer critique and fix significant issues.
 - [x] Task 7: Close final state files and inspect clean synced git status.
+
+## Active Goal: Branch Protection, Dependabot, CI Badge, And Packaging Check
+
+- [x] Task 0: Roll state files forward and create prioritized checklist.
+- [x] Task 1: Add a packaging build check to CI and verify locally.
+- [x] Task 2: Add and verify a README CI status badge.
+- [x] Task 3: Add and verify Dependabot configuration for GitHub Actions and
+      Python dependencies.
+- [ ] Task 4: Commit, push, and verify the updated GitHub Actions run passes.
+- [ ] Task 5: Enable and verify `master` branch protection requiring CI.
+- [ ] Task 6: Run hostile senior reviewer critique and fix significant issues.
+- [ ] Task 7: Close final state files and inspect clean synced git status.
 
 ## Explicitly Not Active In This Goal
 
