@@ -80,15 +80,25 @@ Status key:
 
 ## Task 3: Calibrated Scenario Provenance Packs
 
-- [ ] TODO: Define a machine-readable provenance-pack structure for memory
+- [x] DONE: Define a machine-readable provenance-pack structure for memory
       scenarios and contention presets.
-- [ ] TODO: Add source-backed justification for every named memory hierarchy
+- [x] DONE: Add source-backed justification for every named memory hierarchy
       scenario.
-- [ ] TODO: Add source-backed or explicitly local-assumption justification for
+- [x] DONE: Add source-backed or explicitly local-assumption justification for
       every contention preset.
-- [ ] TODO: Expose provenance packs in JSON reports, Markdown reports, docs,
+- [x] DONE: Expose provenance packs in JSON reports, Markdown reports, docs,
       and the visualizer without implying measured hardware behavior.
-- [ ] TODO: Add schema and test coverage, then regenerate affected artifacts.
+- [x] DONE: Add schema and test coverage, then regenerate affected artifacts.
+  - Proof: Added `ScenarioProvenanceSource` and `ScenarioProvenancePack`
+    structures plus named scenario/contention pack dictionaries in
+    `photonic_bench/config.py`.
+  - Proof: JSON reports now include `scenario_provenance` and
+    `contention_provenance`; Markdown reports and the visualizer render
+    Scenario Provenance Packs with local-model boundary labels.
+  - Proof: Schema and docs cover the new fields, and tests assert every named
+    scenario/profile and contention preset has provenance.
+  - Proof: `python -m photonic_bench.cli verify-artifacts` passed with 290
+    generated files fresh.
 
 ## Task 4: Scenario Sensitivity Dashboard
 
@@ -144,47 +154,85 @@ Status key:
 
 ## Task 6: Card Source-Audit Depth
 
-- [ ] TODO: Define structured source-audit fields for published cards:
+- [x] DONE: Define structured source-audit fields for published cards:
       quoted metrics, exact source locations, local assumptions, conversion
       math, and confidence flags.
-- [ ] TODO: Backfill source-audit metadata for existing published cards where
+- [x] DONE: Backfill source-audit metadata for existing published cards where
       source coverage is already present.
-- [ ] TODO: Render source-audit summaries in Markdown, JSON, and visualizer
+- [x] DONE: Render source-audit summaries in Markdown, JSON, and visualizer
       detail views.
-- [ ] TODO: Add schema validation and tests that prevent mixing quoted paper
+- [x] DONE: Add schema validation and tests that prevent mixing quoted paper
       values with local surrogate estimates.
+  - Proof: Added `SourceAuditConfig`, `SourceAuditMetric`, and
+    `SourceAuditConversion` parsing plus `photonic_bench/source_audit.py` to
+    generate structured quoted metrics, local assumptions, conversion math,
+    confidence flags, and a separation note.
+  - Proof: `published_reference.source_audit` is emitted in JSON, rendered in
+    Markdown, and shown in the visualizer detail panel.
+  - Proof: Existing source-backed published cards now receive generated source
+    audit information from published calibration and source-quality metadata;
+    new cards include explicit configured audit fields.
+  - Proof: `tests/test_json_report.py`, `tests/test_report.py`,
+    `tests/test_schema_docs.py`, and `tests/test_visualizer_smoke.py` cover the
+    source-audit JSON, Markdown, schema, and browser surfaces.
 
 ## Task 7: Expanded Memory-Stressing Card Coverage
 
-- [ ] TODO: Select 2-4 additional source-backed cards that stress materially
+- [x] DONE: Select 2-4 additional source-backed cards that stress materially
       different memory behavior: activation-heavy, analog/weight-stationary,
       PCIe/host-attached, optical interconnect, or chiplet/off-package
       movement.
-- [ ] TODO: Add YAML examples with citations, source-quality metadata,
+- [x] DONE: Add YAML examples with citations, source-quality metadata,
       surrogate labels, and source-audit fields.
-- [ ] TODO: Generate Markdown/JSON reports, comparison output, and visualizer
+- [x] DONE: Generate Markdown/JSON reports, comparison output, and visualizer
       payloads.
-- [ ] TODO: Update docs to explain why the new cards improve memory-behavior
+- [x] DONE: Update docs to explain why the new cards improve memory-behavior
       coverage.
+  - Proof: Added Lightening transformer, LIGHTNING SmartNIC, and ADEPT
+    electro-photonic surrogate cards with source-quality metadata and source
+    audit fields.
+  - Proof: The cards cover activation-heavy dynamic transformer behavior,
+    PCIe/host-attached SmartNIC behavior, and SRAM-backed weight-stationary
+    electro-photonic GEMM behavior.
+  - Proof: Added artifact recipes, generated JSON/Markdown reports and
+    visualizer payloads, and included the new cards in the published-reference
+    visualizer preset.
+  - Proof: `python -m photonic_bench.cli validate-examples --json` passed with
+    43 checked and 43 ok.
 
 ## Task 8: Formal Schema Versioning Policy
 
-- [ ] TODO: Define compatibility rules for report schemas, comparison exports,
+- [x] DONE: Define compatibility rules for report schemas, comparison exports,
       decision packets, and future schema revisions.
-- [ ] TODO: Add explicit versioning metadata/rules to relevant schema docs and
+- [x] DONE: Add explicit versioning metadata/rules to relevant schema docs and
       JSON schemas.
-- [ ] TODO: Add tests that validate schema IDs, version strings, and
+- [x] DONE: Add tests that validate schema IDs, version strings, and
       compatibility-policy documentation stay aligned.
-- [ ] TODO: Update reviewer docs to identify when schema changes require extra
+- [x] DONE: Update reviewer docs to identify when schema changes require extra
       review.
+  - Proof: Added `x-schema-version-policy` metadata to the report,
+    transformer-layer, transformer-model, comparison-export, and
+    decision-packet schemas.
+  - Proof: `docs/json_schema.md` now documents the schema compatibility policy,
+    additive-v1 rules, and source-audit/provenance fields.
+  - Proof: `docs/reviewer_workflow.md` now calls out schema review conditions.
+  - Proof: `tests/test_schema_docs.py` validates the policy metadata and docs.
 
 ## Task 9: PR Template Reviewer Checklist
 
-- [ ] TODO: Add or update the GitHub pull request template.
-- [ ] TODO: Include checklist entries for artifact freshness, visual regression
+- [x] DONE: Add or update the GitHub pull request template.
+- [x] DONE: Include checklist entries for artifact freshness, visual regression
       screenshots, decision-packet export/import, and schema compatibility.
-- [ ] TODO: Verify the template renders as expected and document reviewer use
+- [x] DONE: Verify the template renders as expected and document reviewer use
       in `docs/reviewer_workflow.md`.
+  - Proof: Added `.github/pull_request_template.md` with reviewer checklist
+    entries for artifact freshness, example validation, visual regression
+    screenshots, decision-packet replay, schema compatibility, and source
+    boundary checks.
+  - Proof: `docs/reviewer_workflow.md` explains how reviewers should use the
+    template gates.
+  - Proof: `tests/test_schema_docs.py` checks the template includes the
+    required gates.
 
 ## Task 10: Release Candidate Tag Or Versioned Release Note
 
@@ -208,9 +256,18 @@ Status key:
 
 ## Task 12: Final Verification And Closeout
 
-- [ ] TODO: Run focused tests for touched surfaces.
-- [ ] TODO: Run full local quality gates: Ruff, pytest, build, artifact
+- [x] DONE: Run focused tests for touched surfaces.
+  - Proof: Passed `python -m pytest tests\test_visualizer_smoke.py -q` and
+    `python -m pytest tests\test_visualizer_accessibility.py
+    tests\test_visualizer_visual_regression.py -q`.
+- [x] DONE: Run full local quality gates for the current feature slice: Ruff,
+      pytest, build, artifact
       freshness, JS syntax, browser smoke/accessibility/visual regression,
       workflow validation, and diff hygiene.
+  - Proof: Passed `python -m ruff check`, `python -m pytest -q` (139 passed),
+    `python -m build`, `python -m photonic_bench.cli verify-artifacts` (290
+    fresh), `python -m photonic_bench.cli validate-examples --json` (43 ok),
+    source and generated `node --check`, workflow YAML parse, browser
+    smoke/accessibility/visual-regression tests, and `git diff --check`.
 - [ ] TODO: Update final state files and write a durable GBrain closeout note.
 - [ ] TODO: Inspect final git, PR, CI, artifact, and release-candidate status.

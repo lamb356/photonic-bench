@@ -664,7 +664,7 @@
       regression passes. Follow-up run `28717165055` passed both required
       jobs; green-run Linux/macOS screenshot artifacts were downloaded and
       inspected.
-- [ ] Task 3: Add calibrated scenario provenance packs with source-backed
+- [x] Task 3: Add calibrated scenario provenance packs with source-backed
       justification for memory hierarchy scenarios and contention presets.
 - [x] Task 4: Add a scenario sensitivity dashboard in the visualizer for
       sweeping one card across memory scenarios.
@@ -675,13 +675,13 @@
       Added rail file-picker/drop replay, schema validation, stale-ID warnings,
       restored review state, replay provenance, docs, generated assets, and
       browser-smoke proof.
-- [ ] Task 6: Add card source-audit depth with quoted metrics, local
+- [x] Task 6: Add card source-audit depth with quoted metrics, local
       assumptions, conversion math, and confidence flags.
-- [ ] Task 7: Expand memory-stressing card coverage with 2-4 more
+- [x] Task 7: Expand memory-stressing card coverage with 2-4 more
       source-backed cards chosen for distinct memory behavior.
-- [ ] Task 8: Version report schemas more formally with compatibility policy
+- [x] Task 8: Version report schemas more formally with compatibility policy
       and clear versioning rules.
-- [ ] Task 9: Add PR-template checklist entries for artifact freshness, visual
+- [x] Task 9: Add PR-template checklist entries for artifact freshness, visual
       regression, decision packets, and schema changes.
 - [ ] Task 10: Add a small release candidate tag or versioned release note
       after the work is merged.

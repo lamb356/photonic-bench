@@ -229,3 +229,100 @@
 - Task 4 is DONE with focused browser and visual-regression proof.
 - Task 5 is DONE with focused browser proof for restored state and stale-ID
   handling.
+
+## 2026-07-04 Cycle 5: Provenance, Source Audits, Cards, Schemas, PR Template
+
+### Scenario Provenance Packs
+
+- Added machine-readable scenario provenance pack structures for memory
+  hierarchy scenarios and contention presets.
+- Added named provenance packs for every built-in memory scenario/profile and
+  contention preset.
+- Each pack separates source-backed anchors from local PhotonicBench modeling
+  assumptions.
+- JSON reports now expose `memoryScenario.scenario_provenance` and
+  `memoryScenario.contention_provenance`.
+- Markdown reports and the visualizer render Scenario Provenance Packs with
+  local-model boundary wording.
+
+### Card Source Audits
+
+- Added structured source-audit config parsing for:
+  - quoted metrics;
+  - source URLs/DOIs/sections;
+  - local assumptions;
+  - conversion math;
+  - confidence flags.
+- Added `photonic_bench/source_audit.py` to derive generated audit entries from
+  published calibration and source-quality metadata without mixing paper values
+  and local surrogate estimates.
+- JSON reports now include `published_reference.source_audit`.
+- Markdown and the visualizer render Source Audit sections for published-card
+  detail review.
+
+### Expanded Memory-Stressing Cards
+
+- Added `lightening_transformer_2024_surrogate`:
+  - activation-heavy dynamic transformer/broadcast behavior;
+  - profile: `optical_interconnect`.
+- Added `lightning_2023_smartnic_surrogate`:
+  - host/network-attached SmartNIC behavior;
+  - profile: `pcie_attached`.
+- Added `adept_2023_electro_photonic_surrogate`:
+  - SRAM-backed weight-stationary electro-photonic GEMM behavior;
+  - profile: `on_chip_sram`.
+- Added artifact recipes, generated JSON/Markdown reports, generated
+  visualizer payloads, and included the new cards in the published-reference
+  visualizer preset.
+
+### Schema Policy And Reviewer Checklist
+
+- Added `x-schema-version-policy` to the report, transformer-layer,
+  transformer-model, comparison-export, and decision-packet schemas.
+- Documented the v1 compatibility policy in `docs/json_schema.md`.
+- Added source-audit and scenario-provenance schema definitions while keeping
+  new fields optional for additive v1 compatibility.
+- Added `.github/pull_request_template.md` with checklist gates for:
+  - artifact freshness;
+  - example validation;
+  - visual regression screenshots;
+  - decision-packet export/import replay;
+  - schema compatibility;
+  - source-boundary review.
+- Updated reviewer docs for schema review and PR-template use.
+
+### Verification
+
+- `python -m pytest tests\test_visualizer_smoke.py -q`: passed.
+- `python -m pytest tests\test_visualizer_accessibility.py tests\test_visualizer_visual_regression.py -q`:
+  passed.
+- `python -m ruff check`: passed.
+- `python -m pytest -q`: passed, 139 tests.
+- `python -m build`: passed.
+- `python -m photonic_bench.cli verify-artifacts`: passed, 290 generated files
+  fresh.
+- `python -m photonic_bench.cli validate-examples --json`: passed, 43 checked
+  and 43 ok.
+- `node --check photonic_bench\visualizer_assets\app.js`: passed.
+- `node --check reports\visualizer\assets\app.js`: passed.
+- `.github/workflows/*.yml` parsed with PyYAML.
+- `git diff --check`: passed with only line-ending normalization warnings.
+
+### Task Status
+
+- Task 3 is DONE with JSON, Markdown, visualizer, schema, docs, tests, and
+  regenerated-artifact proof.
+- Task 6 is DONE with structured source-audit fields rendered across JSON,
+  Markdown, and visualizer surfaces.
+- Task 7 is DONE with three additional source-backed memory-stressing cards and
+  generated artifacts.
+- Task 8 is DONE with schema policy metadata, docs, and tests.
+- Task 9 is DONE with a PR template and reviewer workflow documentation.
+
+### Pending
+
+- Commit and push this feature slice to PR #11.
+- Re-run remote CI and inspect fresh screenshot artifacts for the new PR head.
+- Run the mandatory Hostile Senior Reviewer critique and fix important issues.
+- Merge PR #11 when ready, then add the release-candidate tag or versioned
+  release note.
