@@ -56,6 +56,10 @@ Status key:
   - Proof: PR #11 triggered CI run `28717081779`; Linux and macOS jobs were
     monitored to completion. Follow-up run `28717165055` was monitored to
     completion after the baseline fix.
+  - Proof: After the provenance/source-audit/schema slice was pushed, PR #11
+    triggered run `28718212388` at head
+    `b372eec22b04aed0e3f8f4a03d59343ba58ad3c3`; both jobs were monitored to
+    completion.
 - [x] DONE: Confirm required checks pass or fix failures.
   - Proof: Run `28717081779` failed only
     `mobile-comparison.png` visual regression on Linux and macOS. The rendered
@@ -64,6 +68,8 @@ Status key:
     screenshot artifacts.
   - Proof: Follow-up run `28717165055` passed both `Ruff, package, and pytest`
     and `macOS visual regression`.
+  - Proof: Current-head run `28718212388` passed both `Ruff, package, and
+    pytest` and `macOS visual regression`.
 - [x] DONE: Download or inspect generated screenshot artifacts, including
       visual regression screenshots, and record what was reviewed.
   - Proof: Downloaded `visual-regression-screenshots` and
@@ -73,10 +79,21 @@ Status key:
     `desktop-comparison.png`, `detail-published-reference.png`,
     `external-report-error.png`, `mobile-comparison.png`, and
     `wide-transformer-comparison.png`.
+  - Proof: Downloaded `visual-regression-screenshots` and
+    `macos-visual-regression-screenshots` from current-head run `28718212388`
+    to
+    `C:\Users\burba\AppData\Local\Temp\photonicbench-pr11-artifacts-28718212388`.
+  - Proof: Inspected fresh Linux and macOS contact sheets for
+    `desktop-comparison.png`, `detail-published-reference.png`,
+    `external-report-error.png`, `mobile-comparison.png`, and
+    `wide-transformer-comparison.png`; rendered states were coherent with no
+    blank panels, missing assets, or mobile overflow.
 - [x] DONE: Record PR URL, CI run ID, screenshot artifact names, and inspection
       results in `PROGRESS.md`.
   - Proof: Recorded PR #11, runs `28717081779` and `28717165055`, artifact
     names, promoted-baseline hashes, and inspection results.
+  - Proof: Recorded current-head run `28718212388` and screenshot inspection
+    results.
 
 ## Task 3: Calibrated Scenario Provenance Packs
 
@@ -246,13 +263,27 @@ Status key:
 
 ## Task 11: Mandatory Hostile Senior Reviewer Critique
 
-- [ ] TODO: Run the critique after substantial implementation across the
+- [x] DONE: Run the critique after substantial implementation across the
       feature tasks.
-- [ ] TODO: Focus on usability, modeling clarity, maintainability, source
+- [x] DONE: Focus on usability, modeling clarity, maintainability, source
       boundaries, schema compatibility, CI artifact usability, and reviewer
       experience.
-- [ ] TODO: Fix important findings and re-run affected verification before
+- [x] DONE: Fix important findings and re-run affected verification before
       final DONE.
+  - Proof: Attempted to invoke the local `review` skill; it could not run as
+    written because `.Codex/skills/review/checklist.md` is absent in this repo.
+    Continued with the project rubric's Hostile Senior Reviewer focus.
+  - Proof: Reviewed the diff against `origin/master` for source-boundary
+    mixing, decision-packet replay degradation, scenario-sensitivity overclaim,
+    schema-policy ambiguity, generated artifact drift, browser coverage gaps,
+    CI artifact usability, and reviewer experience.
+  - Proof: Ran a generated-data audit confirming no published-reference report
+    is missing `source_audit` and no generated memory scenario is missing
+    scenario/contention provenance.
+  - Finding fixed: PR #11 body was stale after the production-readiness slice;
+    it still described completed tasks as future work and listed old local gate
+    counts. Updated the PR body with current features, validation, remote run
+    `28718212388`, and screenshot inspection results.
 
 ## Task 12: Final Verification And Closeout
 

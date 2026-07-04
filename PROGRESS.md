@@ -326,3 +326,101 @@
 - Run the mandatory Hostile Senior Reviewer critique and fix important issues.
 - Merge PR #11 when ready, then add the release-candidate tag or versioned
   release note.
+
+## 2026-07-04 Cycle 6: Current-Head Remote CI And Screenshot Inspection
+
+### Commits Pushed
+
+- `b94f33d Add provenance packs and source audits`
+  - Implements scenario provenance packs, source audit depth, three additional
+    memory-stressing cards, schema policy metadata, PR template gates, docs,
+    tests, and regenerated artifacts.
+- `b372eec Record production review progress`
+  - Records task 3, 6, 7, 8, and 9 proof in state files.
+- Pushed `codex/decision-grade-analysis-tool` to PR #11.
+
+### Remote CI Run `28718212388`
+
+- Run URL:
+  `https://github.com/lamb356/photonic-bench/actions/runs/28718212388`.
+- Head commit:
+  `b372eec22b04aed0e3f8f4a03d59343ba58ad3c3`.
+- `Ruff, package, and pytest`: passed.
+- `macOS visual regression`: passed.
+
+### Screenshot Artifacts Downloaded And Inspected
+
+- Downloaded `visual-regression-screenshots` to:
+  `C:\Users\burba\AppData\Local\Temp\photonicbench-pr11-artifacts-28718212388\linux`.
+- Downloaded `macos-visual-regression-screenshots` to:
+  `C:\Users\burba\AppData\Local\Temp\photonicbench-pr11-artifacts-28718212388\macos`.
+- Generated and inspected local contact sheets:
+  - `C:\Users\burba\AppData\Local\Temp\photonicbench-pr11-artifacts-28718212388\linux-contact-sheet.png`;
+  - `C:\Users\burba\AppData\Local\Temp\photonicbench-pr11-artifacts-28718212388\macos-contact-sheet.png`.
+- Reviewed screenshot states:
+  - `desktop-comparison.png`;
+  - `detail-published-reference.png`;
+  - `external-report-error.png`;
+  - `mobile-comparison.png`;
+  - `wide-transformer-comparison.png`.
+- Inspection result:
+  - Linux and macOS screenshots render coherent comparison/detail/error/mobile/
+    wide-transformer states;
+  - no screenshot artifact showed a blank panel, missing asset, broken local
+    file path, or mobile overflow.
+
+### Pending
+
+- Update PR #11 body so it reflects the now-completed production-readiness
+  feature slice and current local/remote validation.
+- Run the mandatory Hostile Senior Reviewer critique and fix important issues.
+- Merge PR #11 when ready, then add the release-candidate tag or versioned
+  release note.
+
+## 2026-07-04 Cycle 7: Hostile Senior Reviewer Critique
+
+### Review Method
+
+- Attempted to use the local `review` skill as the pre-landing review workflow.
+- The skill could not run as written because this repo does not contain
+  `.Codex/skills/review/checklist.md`.
+- Continued with the project-specific Hostile Senior Reviewer rubric in
+  `RUBRIC.md`.
+- Reviewed the branch diff against `origin/master` with focus on:
+  - usability and reviewer experience;
+  - modeling-boundary clarity;
+  - source-audit and scenario-provenance separation;
+  - decision-packet replay failure modes;
+  - schema compatibility policy;
+  - generated artifact freshness and browser coverage;
+  - CI screenshot artifact usability.
+
+### Additional Audit
+
+- Ran a generated report audit across `reports/*.json`.
+- Result:
+  - no `published_reference` report is missing `source_audit`;
+  - no generated `memory_scenario` object is missing `scenario_provenance` or
+    `contention_provenance`.
+
+### Finding Fixed
+
+- Finding: PR #11 body was stale after the production-readiness feature slice.
+  It still described scenario provenance, source audit, schema policy, replay,
+  and related work as future work and listed old validation counts.
+- Fix: Updated PR #11 body with the completed feature list, current local
+  validation, remote CI run `28718212388`, screenshot artifact inspection, and
+  reviewer boundary notes.
+
+### Review Result
+
+- No code-level critical findings remained after the data audit and PR-body
+  update.
+- Mandatory Hostile Senior Reviewer critique is complete for the current PR
+  head.
+
+### Pending
+
+- Push state-file updates after this critique.
+- Mark PR #11 ready when the final state commit is pushed and CI remains green.
+- Merge PR #11, then add the release-candidate tag or versioned release note.
