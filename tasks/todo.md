@@ -646,11 +646,23 @@
       memory; confirmed the branch has the prior locally verified
       decision-grade work as dirty changes; and created the new 10-task
       checklist.
-- [ ] Task 1: Commit the current work on branch
+- [x] Task 1: Commit the current work on branch
       `codex/decision-grade-analysis-tool` and open a pull request to
       `master`.
+      Local publish gates passed: Ruff, full pytest with 134 tests, build,
+      artifact freshness, example validation, JS syntax, workflow parse, and
+      diff hygiene. Created commits `192a630` and `ebcee8c`, pushed the branch,
+      and opened draft PR #11:
+      `https://github.com/lamb356/photonic-bench/pull/11`.
 - [ ] Task 2: Run remote CI on the PR and inspect generated screenshot
       artifacts.
+      First PR run `28717081779` failed only the Linux/macOS
+      `mobile-comparison.png` visual baselines. Downloaded and inspected
+      `visual-regression-screenshots` and
+      `macos-visual-regression-screenshots`, promoted the valid platform
+      baselines from the CI artifacts, and verified local default visual
+      regression passes. Follow-up green CI and final artifact inspection are
+      pending.
 - [ ] Task 3: Add calibrated scenario provenance packs with source-backed
       justification for memory hierarchy scenarios and contention presets.
 - [ ] Task 4: Add a scenario sensitivity dashboard in the visualizer for

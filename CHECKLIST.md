@@ -30,21 +30,43 @@ Status key:
 
 ## Task 1: Commit Current Work And Open PR
 
-- [ ] TODO: Review the existing dirty branch and separate current state updates
+- [x] DONE: Review the existing dirty branch and separate current state updates
       from implementation commits where practical.
-- [ ] TODO: Run pre-commit local gates for the current branch state.
-- [ ] TODO: Create clean logical commits on
+  - Proof: Reviewed diff/status; implementation/docs/tests/artifacts were
+    committed separately from active state-file rollforward.
+- [x] DONE: Run pre-commit local gates for the current branch state.
+  - Proof: Passed `python -m ruff check`, `python -m pytest -q` (134 passed),
+    `python -m build`, `python -m photonic_bench.cli verify-artifacts` (278
+    files fresh), `python -m photonic_bench.cli validate-examples --json` (40
+    ok), source/generated JS syntax checks, workflow YAML parse, and
+    `git diff --check`.
+- [x] DONE: Create clean logical commits on
       `codex/decision-grade-analysis-tool`.
-- [ ] TODO: Push the branch and open a pull request to `master` with a clear
+  - Proof: Created `192a630 Add decision-grade analysis workflow` and
+    `ebcee8c Roll production review state`.
+- [x] DONE: Push the branch and open a pull request to `master` with a clear
       description of the prior decision-grade implementation and this follow-up
       plan.
+  - Proof: Pushed branch and opened draft PR #11:
+    `https://github.com/lamb356/photonic-bench/pull/11`.
 
 ## Task 2: Remote CI And Screenshot Artifact Inspection
 
-- [ ] TODO: Trigger and monitor remote CI on the PR.
+- [x] DONE: Trigger and monitor remote CI on the PR.
+  - Proof: PR #11 triggered CI run `28717081779`; Linux and macOS jobs were
+    monitored to completion.
 - [ ] TODO: Confirm required checks pass or fix failures.
+  - Current finding: Run `28717081779` failed only
+    `mobile-comparison.png` visual regression on Linux and macOS. The rendered
+    screenshots were valid and reflected the new mobile recommendation content.
+    Platform-specific mobile baselines were promoted from the generated CI
+    artifacts; follow-up CI is pending after push.
 - [ ] TODO: Download or inspect generated screenshot artifacts, including
       visual regression screenshots, and record what was reviewed.
+  - Partial proof: Downloaded `visual-regression-screenshots` and
+    `macos-visual-regression-screenshots` from run `28717081779`; inspected
+    Linux and macOS `mobile-comparison.png`; promoted only those
+    platform-specific baselines.
 - [ ] TODO: Record PR URL, CI run ID, screenshot artifact names, and inspection
       results in `PROGRESS.md`.
 
