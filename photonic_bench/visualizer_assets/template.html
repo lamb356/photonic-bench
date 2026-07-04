@@ -45,6 +45,13 @@
           <input id="preset-name" type="text" placeholder="Preset name" aria-label="Preset name">
           <button id="save-preset" class="action-button primary" type="button">Save</button>
         </div>
+        <div class="preset-actions">
+          <button id="export-presets" class="action-button" type="button">Export local</button>
+          <label class="action-button import-preset-button" for="import-preset-file">
+            Import local
+            <input id="import-preset-file" type="file" accept="application/json,.json" aria-label="Import browser-local presets">
+          </label>
+        </div>
         <div id="preset-message" class="preset-message" aria-live="polite"></div>
       </div>
 

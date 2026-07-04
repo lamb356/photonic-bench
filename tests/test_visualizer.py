@@ -231,6 +231,14 @@ def test_static_app_contains_comparison_and_boundary_labels() -> None:
     assert "Download Markdown" in app_js
     assert "Download CSV" in app_js
     assert "Copy Markdown" in app_js
+    assert "Copy state link" in app_js
+    assert "Explain score" in app_js
+    assert "Score weights" in app_js
+    assert "Selection Drawer" in app_js
+    assert "Compare top N visible" in app_js
+    assert "Invert visible selection" in app_js
+    assert "score_explanation" in app_js
+    assert "url_state" in app_js
     assert "analysis_focus" in app_js
     assert "Source confidence" in app_js
     assert "comparison_presets" in app_js
@@ -284,10 +292,16 @@ def test_static_app_contains_comparison_and_boundary_labels() -> None:
     assert "Group artifact list" in template
     assert "Compare visible" in template
     assert "Reset filters" in template
+    assert "Export local" in template
+    assert "Import local" in template
     assert ".comparison-table" in styles
     assert ".insight-grid" in styles
     assert ".recommendation-grid" in styles
     assert ".comparison-toolbar" in styles
+    assert ".weight-panel" in styles
+    assert ".selection-drawer" in styles
+    assert "prefers-reduced-motion" in styles
+    assert "focus-visible" in styles
     assert ".filter-summary" in styles
     assert ".preset-panel" in styles
     assert ".external-panel" in styles

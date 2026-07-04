@@ -154,6 +154,43 @@ def test_transformer_model_json_schema_file_documents_aggregate_contract() -> No
     )
 
 
+def test_comparison_export_json_schema_file_documents_browser_contract() -> None:
+    schema = json.loads(
+        Path("docs/photonic-bench-comparison-export-v1.schema.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    assert schema["title"] == "PhotonicBench visualizer comparison export v1"
+    assert (
+        schema["properties"]["schema_version"]["const"]
+        == "photonic-bench-comparison-export-v1"
+    )
+    assert set(schema["required"]) == {
+        "schema_version",
+        "generated_at",
+        "reports_dir",
+        "pinned_id",
+        "selected_artifact_ids",
+        "analysis_focus",
+        "filters",
+        "url_state",
+        "visible_artifact_ids",
+        "recommendations",
+        "modeling_boundaries",
+        "boundary_notes",
+        "artifacts",
+        "grouped_metrics",
+    }
+    assert "score_weights" in schema["properties"]["analysis_focus"]["required"]
+    assert "scoreExplanation" in schema["$defs"]
+    assert "scoreComponent" in schema["$defs"]
+    assert (
+        schema["$defs"]["recommendation"]["properties"]["score_explanation"]["$ref"]
+        == "#/$defs/scoreExplanation"
+    )
+
+
 def test_json_schema_docs_describe_units_nullability_and_examples() -> None:
     docs = Path("docs/json_schema.md").read_text(encoding="utf-8")
 
@@ -192,6 +229,9 @@ def test_json_schema_docs_describe_units_nullability_and_examples() -> None:
     assert "Load external JSON reports" in docs
     assert "Unsupported schemas" in docs
     assert "per-file diagnostics" in docs
+    assert "Machine-readable comparison export schema" in docs
+    assert "`url_state`" in docs
+    assert "`score_explanation`" in docs
     assert "python examples/load_report_json.py" in docs
     assert "python -m photonic_bench.cli compare" in docs
 

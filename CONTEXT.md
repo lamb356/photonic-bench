@@ -65,3 +65,24 @@
 - Hosted backend web service.
 - Formal MLCommons submission.
 - Release publishing automation.
+
+## Final Closeout State
+
+- Implementation status: complete.
+- Draft PR #5 is open against `master`:
+  `https://github.com/lamb356/photonic-bench/pull/5`.
+- Completed visualizer improvements:
+  - shareable URL state;
+  - desktop/mobile visual regression tests and baselines;
+  - explain-score drilldowns;
+  - custom score weights;
+  - selection drawer controls;
+  - sticky comparison headers and first columns;
+  - formal comparison export JSON schema;
+  - browser-local preset import/export;
+  - accessibility pass.
+- Mandatory Hostile Senior Reviewer critique completed with two non-critical
+  findings, both fixed.
+- Final gates passed: focused visualizer tests, browser smoke, visual
+  regression, JavaScript syntax, Ruff, full pytest, artifact freshness, and
+  `git diff --check`.

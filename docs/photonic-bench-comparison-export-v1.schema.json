@@ -1,0 +1,348 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://photonicbench.local/schemas/photonic-bench-comparison-export-v1.schema.json",
+  "title": "PhotonicBench visualizer comparison export v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "reports_dir",
+    "pinned_id",
+    "selected_artifact_ids",
+    "analysis_focus",
+    "filters",
+    "url_state",
+    "visible_artifact_ids",
+    "recommendations",
+    "modeling_boundaries",
+    "boundary_notes",
+    "artifacts",
+    "grouped_metrics"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "photonic-bench-comparison-export-v1"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reports_dir": {
+      "type": "string"
+    },
+    "pinned_id": {
+      "type": ["string", "null"]
+    },
+    "selected_artifact_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "analysis_focus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "label",
+        "description",
+        "metric_labels",
+        "score_weights"
+      ],
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "metric_labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "score_weights": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/scoreWeight"
+          }
+        }
+      }
+    },
+    "filters": {
+      "$ref": "#/$defs/filterState"
+    },
+    "url_state": {
+      "type": "string"
+    },
+    "visible_artifact_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "recommendations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/recommendation"
+      }
+    },
+    "modeling_boundaries": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "boundary_notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/artifactSummary"
+      }
+    },
+    "grouped_metrics": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/groupedMetrics"
+      }
+    }
+  },
+  "$defs": {
+    "nullableNumber": {
+      "type": ["number", "null"]
+    },
+    "scoreWeight": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["metric", "weight"],
+      "properties": {
+        "metric": {
+          "type": "string"
+        },
+        "weight": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "filterState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "search",
+        "schema",
+        "boundary",
+        "source_quality",
+        "sort",
+        "grouping"
+      ],
+      "properties": {
+        "search": {
+          "type": "string"
+        },
+        "schema": {
+          "type": "string"
+        },
+        "boundary": {
+          "type": "string"
+        },
+        "source_quality": {
+          "type": "string"
+        },
+        "sort": {
+          "type": "string"
+        },
+        "grouping": {
+          "type": "string"
+        }
+      }
+    },
+    "recommendation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "group",
+        "artifact_id",
+        "benchmark_name",
+        "score",
+        "best_use",
+        "score_explanation"
+      ],
+      "properties": {
+        "group": {
+          "type": "string"
+        },
+        "artifact_id": {
+          "type": "string"
+        },
+        "benchmark_name": {
+          "type": "string"
+        },
+        "score": {
+          "type": "number"
+        },
+        "best_use": {
+          "type": "string"
+        },
+        "score_explanation": {
+          "$ref": "#/$defs/scoreExplanation"
+        }
+      }
+    },
+    "scoreExplanation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["score", "total_weight", "components"],
+      "properties": {
+        "score": {
+          "type": "number"
+        },
+        "total_weight": {
+          "type": "number",
+          "minimum": 0
+        },
+        "components": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/scoreComponent"
+          }
+        }
+      }
+    },
+    "scoreComponent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "metric",
+        "direction",
+        "raw_value",
+        "formatted_value",
+        "normalized_score",
+        "weight",
+        "contribution",
+        "included"
+      ],
+      "properties": {
+        "metric": {
+          "type": "string"
+        },
+        "direction": {
+          "type": "string"
+        },
+        "raw_value": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "formatted_value": {
+          "type": "string"
+        },
+        "normalized_score": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "weight": {
+          "type": "number",
+          "minimum": 0
+        },
+        "contribution": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "included": {
+          "type": "boolean"
+        }
+      }
+    },
+    "artifactSummary": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["id", "kind", "benchmark_name", "source_path"],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "benchmark_name": {
+          "type": "string"
+        },
+        "source_path": {
+          "type": "string"
+        }
+      }
+    },
+    "groupedMetrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["group", "artifacts", "decision_scorecard", "best"],
+      "properties": {
+        "group": {
+          "type": "string"
+        },
+        "artifacts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "decision_scorecard": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "artifact_id",
+              "score_explanation",
+              "best_use",
+              "score"
+            ],
+            "properties": {
+              "artifact_id": {
+                "type": "string"
+              },
+              "score_explanation": {
+                "$ref": "#/$defs/scoreExplanation"
+              },
+              "best_use": {
+                "type": "string"
+              },
+              "score": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "best": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["metric", "direction", "artifact_id", "value"],
+            "properties": {
+              "metric": {
+                "type": "string"
+              },
+              "direction": {
+                "type": "string"
+              },
+              "artifact_id": {
+                "type": ["string", "null"]
+              },
+              "value": {
+                "$ref": "#/$defs/nullableNumber"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -555,24 +555,38 @@ references, aggregate semantics, assumptions, exclusions, and provenance.
 The Compare view lets you select multiple artifacts from the rail, pin one as
 the reference, and inspect a side-by-side matrix, comparison brief, comparison
 insights, recommendation cards, Pareto trade-off chart, schema compatibility,
-and grouped same-schema analytics. The rail includes search, schema, boundary,
-source-quality, sort, and group controls. `Compare visible` replaces the
-comparison set with the current filtered slice, and `Reset filters` returns the
-rail to the default all-artifact/schema-grouped view. Grouping can organize the
-rail by schema, source grade, system profile, boundary tag, or a flat ungrouped
-list.
+selection drawer, and grouped same-schema analytics. The rail includes search,
+schema, boundary, source-quality, sort, and group controls. `Compare visible`
+replaces the comparison set with the current filtered slice, and `Reset
+filters` returns the rail to the default all-artifact/schema-grouped view.
+Grouping can organize the rail by schema, source grade, system profile,
+boundary tag, or a flat ungrouped list. The current filters, focus mode,
+selected artifacts, pinned artifact, Pareto mode, and custom score weights are
+kept in the URL with `replaceState`, so a copied link restores the same
+comparison context without filling browser history with every keystroke.
 
 The comparison dashboard has an `Analysis focus` selector. `Balanced`,
 `Efficiency`, `Throughput`, `Contention`, and `Provenance` focus modes change
 the recommendation cards, insights, and decision scorecards without changing
-the underlying reports. Scores are same-schema local UI heuristics for triage;
-they are not benchmark claims. Compatible rows show the value, absolute delta,
-percent delta, and ratio against the pinned reference. Mixed per-matmul,
-transformer-layer, and transformer-model comparison is allowed, but labeled as
-mixed-schema comparison; incompatible cross-schema deltas stay `n/a` so serial
-timing, non-additive aggregate noise, exclusions, local estimates, system
-movement estimates, interface traffic estimates, contention assumptions, and
-published references are not flattened into one false hardware model.
+the underlying reports. The `Score weights` controls let you tune the active
+focus mode, reset weights back to defaults, and preserve tuned weights in local
+storage and shareable URLs. Recommendation cards include an `Explain score`
+drilldown showing raw metric values, normalized scores, weights, weighted
+contributions, and the final score. Scores are same-schema local UI heuristics
+for triage; they are not benchmark claims. Compatible rows show the value,
+absolute delta, percent delta, and ratio against the pinned reference. Mixed
+per-matmul, transformer-layer, and transformer-model comparison is allowed, but
+labeled as mixed-schema comparison; incompatible cross-schema deltas stay `n/a`
+so serial timing, non-additive aggregate noise, exclusions, local estimates,
+system movement estimates, interface traffic estimates, contention assumptions,
+and published references are not flattened into one false hardware model.
+
+The selection drawer provides dense comparison management for larger artifact
+sets. It can remove one selected artifact, clear a schema group, invert the
+current visible selection, or compare the top N artifacts from the current
+filtered rail. Wide comparison tables keep the header row and first column
+sticky inside the scroll container so metric labels stay visible during
+horizontal and vertical review.
 
 The Pareto chart has three modes:
 
@@ -596,7 +610,9 @@ stable artifact IDs, and an optional `pinned_id`; the next `visualize` run
 validates the sidecar and embeds it into `data/index.json`. The browser UI can
 also save local presets into local storage for ad hoc daily comparisons. Stale
 sidecar artifact IDs are reported as index warnings and valid artifacts still
-load.
+load. Browser-local presets can also be exported as
+`photonic-bench-comparison-presets-v1` JSON and imported back with validation;
+generated sidecar presets remain read-only.
 
 The comparison dashboard also includes a contention insight panel that highlights
 the best adjusted throughput, lowest adjusted latency, largest shared-client
@@ -606,13 +622,22 @@ guardband assumptions, not paper-reported hardware claims.
 
 Comparison results are exportable from the browser. `Download JSON` writes a
 `photonic-bench-comparison-export-v1` object with selected artifact summaries,
-analysis focus, active filter/grouping state, visible artifact IDs,
-schema-grouped recommendations, grouped best-metric analysis, provenance status,
-and modeling-boundary notes. `Download Markdown` and `Copy Markdown` produce a
-human-readable table suitable for reviews or notes. `Download CSV` writes a
-spreadsheet-friendly selected-artifact table with focus, energy, timing,
-throughput, movement, provenance, source-quality, system-profile, and boundary
-tag columns plus comparison-level boundary notes.
+analysis focus, score weights, active filter/grouping state, shareable
+`url_state`, visible artifact IDs, schema-grouped recommendations with score
+explanations, grouped best-metric analysis, provenance status, and
+modeling-boundary notes. Its formal schema is checked in at
+`docs/photonic-bench-comparison-export-v1.schema.json`. `Download Markdown` and
+`Copy Markdown` produce a human-readable table suitable for reviews or notes.
+`Download CSV` writes a spreadsheet-friendly selected-artifact table with
+focus, score weights, energy, timing, throughput, movement, provenance,
+source-quality, system-profile, and boundary tag columns plus comparison-level
+boundary notes.
+
+The visualizer accessibility pass keeps controls keyboard-reachable, adds
+specific ARIA labels to comparison and pin controls, exposes mode button
+pressed state, preserves visible focus outlines, and honors reduced-motion
+preferences. Dense table and drawer layouts use stable dimensions so text and
+controls do not overlap on desktop or mobile.
 
 The visualizer can load external local JSON reports. Use
 `Load external JSON reports` to select one or more PhotonicBench JSON files in
@@ -633,20 +658,31 @@ Source layout for the visualizer:
 - `photonic_bench/visualizer_assets/app.js`: browser navigation, lazy payload
   loading, detail views, and comparison mode.
 
-Browser smoke coverage is checked in with the tests. Install the development
-extras and run:
+Browser smoke and visual regression coverage are checked in with the tests.
+Install the development extras and run:
 
 ```powershell
 python -m pip install -e ".[dev]"
 python -m playwright install chromium
 python -m pytest tests/test_visualizer_smoke.py
+python -m pytest tests/test_visualizer_visual_regression.py
 ```
 
 The smoke test launches Chromium with Playwright, opens a generated visualizer,
-loads a generated preset, verifies comparison analytics, downloads JSON and
-Markdown exports, checks representative transformer and per-matmul detail flows,
-pins a comparison reference, and verifies delta/ratio comparison labels while
-failing on page or console errors.
+loads generated and browser-local presets, verifies URL-state restoration,
+custom score weights, score explanations, selection-drawer controls, comparison
+analytics, JSON/Markdown/CSV exports, representative transformer and
+per-matmul detail flows, comparison pinning, reduced-motion behavior, and
+delta/ratio labels while failing on page or console errors. The visual
+regression test captures deterministic desktop and mobile comparison
+screenshots against checked baselines. To intentionally refresh baselines after
+a reviewed UI change, run:
+
+```powershell
+$env:UPDATE_VISUAL_BASELINES='1'
+python -m pytest tests/test_visualizer_visual_regression.py
+Remove-Item Env:\UPDATE_VISUAL_BASELINES
+```
 
 ## Config Inspection
 

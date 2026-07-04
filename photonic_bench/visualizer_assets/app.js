@@ -15,6 +15,8 @@
     pinnedId: null,
     paretoMode: "energy-throughput",
     analysisFocus: "balanced",
+    customScoreWeights: {},
+    topVisibleCount: 5,
     payloadCache: new Map(),
     payloadPromises: new Map(),
     userPresets: [],
@@ -24,9 +26,37 @@
     externalMessage: "",
     externalMessageIsWarning: false,
     externalDiagnostics: [],
+    urlStateReady: false,
+    urlStateTimer: null,
   };
   const USER_PRESETS_KEY = "photonic-bench-comparison-presets:v1";
+  const SCORE_WEIGHTS_KEY = "photonic-bench-score-weights:v1";
   const COMPARISON_EXPORT_SCHEMA = "photonic-bench-comparison-export-v1";
+  const PRESET_EXPORT_SCHEMA = "photonic-bench-comparison-presets-v1";
+  const URL_STATE_VERSION = "1";
+  const DEFAULT_STATE = {
+    search: "",
+    kind: "all",
+    boundary: "all",
+    quality: "all",
+    sort: "name",
+    group: "schema",
+    view: "detail",
+    paretoMode: "energy-throughput",
+    analysisFocus: "balanced",
+  };
+  const VALID_KINDS = ["all", "transformer_model", "transformer_layer", "matmul_card"];
+  const VALID_BOUNDARIES = [
+    "all",
+    "published",
+    "local-only",
+    "provenance",
+    "transformer-boundaries",
+  ];
+  const VALID_SOURCE_QUALITIES = ["all", "A", "B", "C", "D", "unrated"];
+  const VALID_SORTS = ["name", "energy", "intensity", "latency", "ops"];
+  const VALID_GROUPS = ["schema", "source-quality", "system-profile", "boundary", "none"];
+  const VALID_VIEWS = ["detail", "compare"];
   const SOURCE_CONFIDENCE_BY_GRADE = { A: 100, B: 75, C: 50, D: 25 };
   const PUBLISHED_UNRATED_SOURCE_CONFIDENCE = 40;
   const REPORT_SCHEMA_VERSION = "photonic-bench-report-v1";
@@ -51,6 +81,9 @@
     firstLayer ||
     state.data.artifacts[0] || { summary: { id: null } }
   ).summary.id;
+  state.userPresets = readUserPresets();
+  state.customScoreWeights = readScoreWeights();
+  applyUrlState();
 
   updateCounts();
 
@@ -94,8 +127,6 @@
     resetFilters();
   });
 
-  state.userPresets = readUserPresets();
-
   document.getElementById("preset-select").addEventListener("change", () => {
     renderPresetControls();
   });
@@ -116,6 +147,17 @@
   document.getElementById("delete-preset").addEventListener("click", () => {
     deleteSelectedUserPreset();
   });
+
+  document.getElementById("export-presets").addEventListener("click", () => {
+    exportUserPresets();
+  });
+
+  document
+    .getElementById("import-preset-file")
+    .addEventListener("change", (event) => {
+      importPresetFile((event.target.files || [])[0]);
+      event.target.value = "";
+    });
 
   document
     .getElementById("external-report-file")
@@ -363,6 +405,157 @@
     render();
   }
 
+  function safeOption(value, allowed, fallback) {
+    return allowed.includes(value) ? value : fallback;
+  }
+
+  function parseSelectedIds(value) {
+    return String(value || "")
+      .split(",")
+      .map((id) => id.trim())
+      .filter((id) => id && byId.has(id));
+  }
+
+  function applyUrlState() {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.size) {
+      state.urlStateReady = true;
+      return;
+    }
+    state.search = String(params.get("q") || DEFAULT_STATE.search).toLowerCase();
+    state.kind = safeOption(params.get("schema"), VALID_KINDS, DEFAULT_STATE.kind);
+    state.boundary = safeOption(
+      params.get("boundary"),
+      VALID_BOUNDARIES,
+      DEFAULT_STATE.boundary
+    );
+    state.quality = safeOption(
+      params.get("quality"),
+      VALID_SOURCE_QUALITIES,
+      DEFAULT_STATE.quality
+    );
+    state.sort = safeOption(params.get("sort"), VALID_SORTS, DEFAULT_STATE.sort);
+    state.group = safeOption(params.get("group"), VALID_GROUPS, DEFAULT_STATE.group);
+    state.view = safeOption(params.get("view"), VALID_VIEWS, DEFAULT_STATE.view);
+    state.analysisFocus = safeOption(
+      params.get("focus"),
+      Object.keys(comparisonFocusOptions()),
+      DEFAULT_STATE.analysisFocus
+    );
+    state.paretoMode = safeOption(
+      params.get("pareto"),
+      Object.keys(paretoSpecs()),
+      DEFAULT_STATE.paretoMode
+    );
+
+    const selectedIds = parseSelectedIds(params.get("selected"));
+    state.compareIds = new Set(selectedIds);
+    const pinnedId = params.get("pinned");
+    state.pinnedId =
+      pinnedId && state.compareIds.has(pinnedId) && byId.has(pinnedId)
+        ? pinnedId
+        : null;
+    const selectedId = params.get("artifact");
+    if (selectedId && byId.has(selectedId)) {
+      state.selectedId = selectedId;
+    } else if (selectedIds.length) {
+      state.selectedId = selectedIds[0];
+    }
+    const urlWeights = parseScoreWeightsParam(params.get("weights"));
+    if (Object.keys(urlWeights).length) {
+      state.customScoreWeights = {
+        ...state.customScoreWeights,
+        ...urlWeights,
+      };
+      writeScoreWeights();
+    }
+    if (state.view === "compare" && !state.compareIds.size) {
+      state.view = "detail";
+    }
+    state.urlStateReady = true;
+  }
+
+  function syncStaticControls() {
+    setControlValue("search", state.search);
+    setControlValue("kind-filter", state.kind);
+    setControlValue("boundary-filter", state.boundary);
+    setControlValue("quality-filter", state.quality);
+    setControlValue("sort-filter", state.sort);
+    setControlValue("group-filter", state.group);
+  }
+
+  function setControlValue(id, value) {
+    const control = document.getElementById(id);
+    if (control && control.value !== value) {
+      control.value = value;
+    }
+  }
+
+  function scheduleUrlStateUpdate() {
+    if (!state.urlStateReady || !window.history || !window.history.replaceState) {
+      return;
+    }
+    window.clearTimeout(state.urlStateTimer);
+    state.urlStateTimer = window.setTimeout(updateUrlState, 120);
+  }
+
+  function stateUrlParams() {
+    const params = new URLSearchParams();
+    params.set("v", URL_STATE_VERSION);
+    if (state.search !== DEFAULT_STATE.search) params.set("q", state.search);
+    if (state.kind !== DEFAULT_STATE.kind) params.set("schema", state.kind);
+    if (state.boundary !== DEFAULT_STATE.boundary) {
+      params.set("boundary", state.boundary);
+    }
+    if (state.quality !== DEFAULT_STATE.quality) {
+      params.set("quality", state.quality);
+    }
+    if (state.sort !== DEFAULT_STATE.sort) params.set("sort", state.sort);
+    if (state.group !== DEFAULT_STATE.group) params.set("group", state.group);
+    if (state.view !== DEFAULT_STATE.view) params.set("view", state.view);
+    if (state.selectedId) params.set("artifact", state.selectedId);
+    if (state.compareIds.size) {
+      params.set("selected", Array.from(state.compareIds).join(","));
+    }
+    if (state.pinnedId) params.set("pinned", state.pinnedId);
+    if (state.analysisFocus !== DEFAULT_STATE.analysisFocus) {
+      params.set("focus", state.analysisFocus);
+    }
+    if (state.paretoMode !== DEFAULT_STATE.paretoMode) {
+      params.set("pareto", state.paretoMode);
+    }
+    const weights = encodeScoreWeightsParam(state.customScoreWeights);
+    if (weights) params.set("weights", weights);
+    return params;
+  }
+
+  function stateUrlString(absolute = false) {
+    const url = new URL(window.location.href);
+    url.search = stateUrlParams().toString();
+    return absolute ? url.href : `${url.pathname}${url.search}${url.hash}`;
+  }
+
+  function updateUrlState() {
+    const nextUrl = stateUrlString(false);
+    if (nextUrl !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
+      window.history.replaceState(null, "", nextUrl);
+    }
+  }
+
+  function copyShareableLink() {
+    updateUrlState();
+    const link = window.location.href;
+    setPresetMessage("Shareable link ready.");
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(link).then(
+        () => setPresetMessage("Copied shareable comparison link."),
+        () => setPresetMessage(`Shareable link: ${link}`)
+      );
+      return;
+    }
+    setPresetMessage(`Shareable link: ${link}`);
+  }
+
   function filterSummaryLabel() {
     const labels = [];
     if (state.search) labels.push(`search: ${state.search}`);
@@ -430,6 +623,83 @@
       .filter(Boolean);
   }
 
+  function removeComparisonArtifact(id) {
+    state.compareIds.delete(id);
+    if (state.pinnedId === id) {
+      state.pinnedId = null;
+    }
+    const remaining = selectedArtifacts();
+    if (!remaining.length) {
+      state.view = "detail";
+    } else {
+      ensurePinnedReference(remaining);
+      state.selectedId = remaining[0].summary.id;
+    }
+    render();
+  }
+
+  function clearSelectionGroup(kind) {
+    selectedArtifacts()
+      .filter((artifact) => artifact.summary.kind === kind)
+      .forEach((artifact) => state.compareIds.delete(artifact.summary.id));
+    if (state.pinnedId && !state.compareIds.has(state.pinnedId)) {
+      state.pinnedId = null;
+    }
+    const remaining = selectedArtifacts();
+    if (!remaining.length) {
+      state.view = "detail";
+    } else {
+      ensurePinnedReference(remaining);
+    }
+    render();
+  }
+
+  function invertVisibleSelection() {
+    const visible = filteredArtifacts();
+    if (!visible.length) {
+      setPresetMessage("No visible artifacts to invert.", true);
+      return;
+    }
+    visible.forEach((artifact) => {
+      const id = artifact.summary.id;
+      if (state.compareIds.has(id)) {
+        state.compareIds.delete(id);
+      } else {
+        state.compareIds.add(id);
+      }
+    });
+    if (state.pinnedId && !state.compareIds.has(state.pinnedId)) {
+      state.pinnedId = null;
+    }
+    const selected = selectedArtifacts();
+    if (selected.length) {
+      ensurePinnedReference(selected);
+      state.selectedId = selected[0].summary.id;
+      state.view = "compare";
+      setPresetMessage(`Selection inverted across ${visible.length} visible artifact(s).`);
+    } else {
+      state.view = "detail";
+      setPresetMessage("Visible artifacts were removed from the comparison.");
+    }
+    render();
+  }
+
+  function compareTopVisible(count) {
+    const limit = Math.max(1, Math.min(50, Number.parseInt(count, 10) || 1));
+    state.topVisibleCount = limit;
+    const artifacts = filteredArtifacts().slice(0, limit);
+    if (!artifacts.length) {
+      setPresetMessage("No visible artifacts to compare.", true);
+      return;
+    }
+    state.compareIds = new Set(artifacts.map((artifact) => artifact.summary.id));
+    state.pinnedId = artifacts[0].summary.id;
+    state.selectedId = artifacts[0].summary.id;
+    state.view = "compare";
+    setPresetMessage(`Comparing top ${artifacts.length} visible artifact(s).`);
+    render();
+  }
+
   function ensurePinnedReference(artifacts = selectedArtifacts()) {
     if (state.pinnedId && state.compareIds.has(state.pinnedId)) {
       return byId.get(state.pinnedId) || null;
@@ -467,30 +737,108 @@
   function readUserPresets() {
     try {
       const parsed = JSON.parse(localStorage.getItem(USER_PRESETS_KEY) || "[]");
-      if (!Array.isArray(parsed)) {
-        return [];
-      }
-      return parsed
-        .filter(
-          (preset) =>
-            preset &&
-            typeof preset.name === "string" &&
-            Array.isArray(preset.artifact_ids)
-        )
-        .map((preset) => ({
-          name: preset.name,
-          description: preset.description || "",
-          artifact_ids: preset.artifact_ids.filter((id) => typeof id === "string"),
-          pinned_id:
-            typeof preset.pinned_id === "string" ? preset.pinned_id : null,
-        }));
+      return sanitizeUserPresets(parsed);
     } catch {
       return [];
     }
   }
 
+  function sanitizeUserPresets(value) {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+    return value
+      .filter(
+        (preset) =>
+          preset &&
+          typeof preset.name === "string" &&
+          preset.name.trim() &&
+          Array.isArray(preset.artifact_ids)
+      )
+      .map((preset) => ({
+        name: preset.name.trim(),
+        description:
+          typeof preset.description === "string" ? preset.description : "",
+        artifact_ids: Array.from(
+          new Set(preset.artifact_ids.filter((id) => typeof id === "string"))
+        ),
+        pinned_id: typeof preset.pinned_id === "string" ? preset.pinned_id : null,
+      }));
+  }
+
   function writeUserPresets() {
     localStorage.setItem(USER_PRESETS_KEY, JSON.stringify(state.userPresets));
+  }
+
+  function exportUserPresets() {
+    if (!state.userPresets.length) {
+      setPresetMessage("No browser-local presets to export.", true);
+      return;
+    }
+    const payload = {
+      schema_version: PRESET_EXPORT_SCHEMA,
+      exported_at: new Date().toISOString(),
+      presets: state.userPresets.map((preset) => ({
+        name: preset.name,
+        description: preset.description || "",
+        artifact_ids: preset.artifact_ids,
+        pinned_id: preset.pinned_id || null,
+      })),
+    };
+    downloadText(
+      "photonic-bench-local-presets.json",
+      `${JSON.stringify(payload, null, 2)}\n`,
+      "application/json"
+    );
+    setPresetMessage(`Exported ${state.userPresets.length} browser-local preset(s).`);
+  }
+
+  function importPresetFile(file) {
+    if (!file) {
+      return;
+    }
+    file
+      .text()
+      .then((text) => {
+        const imported = validatePresetImport(JSON.parse(text));
+        const byName = new Map(
+          state.userPresets.map((preset) => [preset.name.toLowerCase(), preset])
+        );
+        imported.forEach((preset) => byName.set(preset.name.toLowerCase(), preset));
+        state.userPresets = Array.from(byName.values()).sort((left, right) =>
+          left.name.localeCompare(right.name)
+        );
+        writeUserPresets();
+        setPresetMessage(`Imported ${imported.length} browser-local preset(s).`);
+        render();
+      })
+      .catch((error) => {
+        setPresetMessage(`Preset import failed: ${error.message}`, true);
+      });
+  }
+
+  function validatePresetImport(payload) {
+    if (!payload || typeof payload !== "object") {
+      throw new Error("expected a JSON object");
+    }
+    if (payload.schema_version !== PRESET_EXPORT_SCHEMA) {
+      throw new Error(`expected schema_version ${PRESET_EXPORT_SCHEMA}`);
+    }
+    const presets = sanitizeUserPresets(payload.presets);
+    if (!presets.length) {
+      throw new Error("no valid presets found");
+    }
+    return presets.map((preset) => {
+      const validIds = preset.artifact_ids.filter((id) => byId.has(id));
+      if (!validIds.length) {
+        throw new Error(`preset ${preset.name} has no artifact IDs in this index`);
+      }
+      return {
+        ...preset,
+        artifact_ids: validIds,
+        pinned_id: validIds.includes(preset.pinned_id) ? preset.pinned_id : null,
+      };
+    });
   }
 
   function setPresetMessage(message, isWarning = false) {
@@ -1564,15 +1912,15 @@
             ${tags}
           </div>
         </button>
-        <div class="compare-controls">
-          <label class="compare-pick">
-            <input type="checkbox" data-compare-id="${escapeHtml(summary.id)}"${checked}>
-            Compare
-          </label>
-          <button class="pin-button${pinActive}" type="button" data-pin-id="${escapeHtml(summary.id)}"${pinDisabled}>Pin</button>
-        </div>
-      </div>
-    `;
+            <div class="compare-controls">
+              <label class="compare-pick">
+                <input type="checkbox" data-compare-id="${escapeHtml(summary.id)}"${checked} aria-label="Compare ${escapeHtml(summary.benchmark_name)}">
+                Compare
+              </label>
+              <button class="pin-button${pinActive}" type="button" data-pin-id="${escapeHtml(summary.id)}" aria-label="Pin ${escapeHtml(summary.benchmark_name)} as comparison reference"${pinDisabled}>Pin</button>
+            </div>
+          </div>
+        `;
   }
 
   function renderIssues() {
@@ -2533,6 +2881,91 @@
     return `${formatNumber(value)} / 100`;
   }
 
+  function readScoreWeights() {
+    try {
+      return sanitizeScoreWeights(
+        JSON.parse(localStorage.getItem(SCORE_WEIGHTS_KEY) || "{}")
+      );
+    } catch {
+      return {};
+    }
+  }
+
+  function writeScoreWeights() {
+    const weights = sanitizeScoreWeights(state.customScoreWeights);
+    state.customScoreWeights = weights;
+    localStorage.setItem(SCORE_WEIGHTS_KEY, JSON.stringify(weights));
+  }
+
+  function parseScoreWeightsParam(value) {
+    if (!value) {
+      return {};
+    }
+    try {
+      return sanitizeScoreWeights(JSON.parse(value));
+    } catch {
+      return {};
+    }
+  }
+
+  function encodeScoreWeightsParam(weights) {
+    const sanitized = sanitizeScoreWeights(weights);
+    return Object.keys(sanitized).length ? JSON.stringify(sanitized) : "";
+  }
+
+  function sanitizeScoreWeights(value) {
+    if (!value || typeof value !== "object") {
+      return {};
+    }
+    const knownLabels = new Set(comparisonMetricSpecs().map((spec) => spec.label));
+    return Object.fromEntries(
+      Object.entries(value)
+        .map(([label, weight]) => [label, Number(weight)])
+        .filter(
+          ([label, weight]) =>
+            knownLabels.has(label) && Number.isFinite(weight) && weight >= 0
+        )
+        .map(([label, weight]) => [label, Number(weight.toFixed(3))])
+        .filter(([, weight]) => weight !== 1)
+    );
+  }
+
+  function scoreWeightForMetric(label) {
+    const weight = Number(state.customScoreWeights[label]);
+    return Number.isFinite(weight) && weight >= 0 ? weight : 1;
+  }
+
+  function setScoreWeight(label, value) {
+    const number = Number(value);
+    if (!Number.isFinite(number) || number < 0) {
+      return;
+    }
+    if (Math.abs(number - 1) < 0.001) {
+      delete state.customScoreWeights[label];
+    } else {
+      state.customScoreWeights[label] = Number(number.toFixed(3));
+    }
+    writeScoreWeights();
+    render();
+  }
+
+  function resetFocusWeights(focus) {
+    specsForFocus(focus).forEach((spec) => {
+      delete state.customScoreWeights[spec.label];
+    });
+    writeScoreWeights();
+    render();
+  }
+
+  function activeScoreWeightSummary(focus) {
+    return specsForFocus(focus)
+      .filter((spec) => ["lower", "higher"].includes(spec.direction))
+      .map((spec) => ({
+        metric: spec.label,
+        weight: scoreWeightForMetric(spec.label),
+      }));
+  }
+
   function comparisonFocusOptions() {
     return {
       balanced: {
@@ -2875,13 +3308,13 @@
         const scored = group
           .map((artifact) => ({
             artifact,
-            score: decisionScore(artifact, group, scoreSpecs),
+            explanation: decisionScoreExplanation(artifact, group, scoreSpecs),
           }))
-          .sort((left, right) => right.score - left.score);
+          .sort((left, right) => right.explanation.score - left.explanation.score);
         const rows = scored.map((entry, index) => [
           escapeHtml(formatNumber(index + 1)),
           escapeHtml(entry.artifact.summary.benchmark_name),
-          escapeHtml(formatNumber(entry.score)),
+          escapeHtml(formatNumber(entry.explanation.score)),
           escapeHtml(bestUseLabel(entry.artifact.summary, group, scoreSpecs)),
           escapeHtml(entry.artifact.summary.memory_timing_mode || "n/a"),
           escapeHtml(formatPj(entry.artifact.summary.system_energy_per_op_pj)),
@@ -2895,7 +3328,7 @@
         return `
           <section class="panel">
             <h3>${escapeHtml(label)} Decision Scorecard</h3>
-            <div class="notes"><p>${escapeHtml(focus.label)} focus normalizes selected same-schema artifacts across: ${escapeHtml(scoreSpecs.map((spec) => spec.label).join(", "))}. The score is a local UI triage aid, not a benchmark claim.</p></div>
+            <div class="notes"><p>${escapeHtml(focus.label)} focus normalizes selected same-schema artifacts across: ${escapeHtml(scoreSpecs.map((spec) => `${spec.label} x${formatNumber(scoreWeightForMetric(spec.label))}`).join(", "))}. The score is a weighted local UI triage aid, not a benchmark claim.</p></div>
             ${simpleTable(
               [
                 { label: "Rank", num: true },
@@ -2925,10 +3358,10 @@
         const ranked = group
           .map((artifact) => ({
             artifact,
-            score: decisionScore(artifact, group, scoreSpecs),
+            explanation: decisionScoreExplanation(artifact, group, scoreSpecs),
           }))
-          .filter((entry) => Number.isFinite(entry.score))
-          .sort((left, right) => right.score - left.score);
+          .filter((entry) => Number.isFinite(entry.explanation.score))
+          .sort((left, right) => right.explanation.score - left.explanation.score);
         const winner = ranked[0];
         if (!winner) {
           return null;
@@ -2936,7 +3369,8 @@
         return {
           group: label,
           artifact: winner.artifact,
-          score: winner.score,
+          score: winner.explanation.score,
+          scoreExplanation: winner.explanation,
           bestUse: bestUseLabel(winner.artifact.summary, group, scoreSpecs),
         };
       })
@@ -2961,6 +3395,81 @@
                   <strong>${escapeHtml(entry.artifact.summary.benchmark_name)}</strong>
                   <span>${escapeHtml(entry.bestUse)}</span>
                   <code>${escapeHtml(formatNumber(entry.score))} focus score</code>
+                  ${renderScoreExplanation(entry.scoreExplanation)}
+                </div>
+              `
+            )
+            .join("")}
+        </div>
+      </section>
+    `;
+  }
+
+  function renderScoreWeightControls(focus) {
+    const specs = specsForFocus(focus).filter((spec) =>
+      ["lower", "higher"].includes(spec.direction)
+    );
+    if (!specs.length) {
+      return "";
+    }
+    return `
+      <div class="weight-panel" aria-label="Custom score weights">
+        <div>
+          <strong>Score weights</strong>
+          <span>Local same-schema triage weights for this focus mode.</span>
+        </div>
+        <div class="weight-grid">
+          ${specs
+            .map(
+              (spec) => `
+                <label>
+                  <span>${escapeHtml(spec.label)}</span>
+                  <input type="number" min="0" step="0.25" value="${escapeHtml(scoreWeightForMetric(spec.label))}" data-score-weight="${escapeHtml(spec.label)}" aria-label="${escapeHtml(spec.label)} score weight">
+                </label>
+              `
+            )
+            .join("")}
+        </div>
+        <button class="action-button" type="button" data-action="reset-score-weights">Reset weights</button>
+      </div>
+    `;
+  }
+
+  function renderSelectionDrawer(artifacts) {
+    const groups = groupArtifactsByKind(artifacts);
+    return `
+      <section class="panel selection-drawer" aria-label="Selection drawer">
+        <div class="panel-heading">
+          <h3>Selection Drawer</h3>
+          <div class="selection-actions">
+            <label>
+              <span>Top N visible</span>
+              <input id="top-visible-count" type="number" min="1" max="50" step="1" value="${escapeHtml(state.topVisibleCount)}" aria-label="Top visible artifact count">
+            </label>
+            <button class="action-button" type="button" data-action="compare-top-visible">Compare top N visible</button>
+            <button class="action-button" type="button" data-action="invert-visible">Invert visible selection</button>
+          </div>
+        </div>
+        <div class="notes"><p>Selection actions operate on the current rail filters. Clear group removes selected artifacts in one schema group; invert toggles only visible artifacts and keeps hidden selections unchanged.</p></div>
+        <div class="selection-grid">
+          ${groups
+            .map(
+              ([label, group]) => `
+                <div class="selection-group">
+                  <div class="selection-group-heading">
+                    <strong>${escapeHtml(label)}</strong>
+                    <button class="action-button" type="button" data-clear-selection-group="${escapeHtml(group[0].summary.kind)}" aria-label="Clear ${escapeHtml(label)} selection group">Clear group</button>
+                  </div>
+                  ${group
+                    .map(
+                      (artifact) => `
+                        <div class="selection-row">
+                          <span>${escapeHtml(artifact.summary.benchmark_name)}</span>
+                          <button class="action-button" type="button" data-remove-selection="${escapeHtml(artifact.summary.id)}" aria-label="Remove ${escapeHtml(artifact.summary.benchmark_name)} from comparison">Remove</button>
+                        </div>
+                      `
+                    )
+                    .join("")}
                 </div>
               `
             )
@@ -2971,11 +3480,79 @@
   }
 
   function decisionScore(artifact, group, specs) {
-    const scores = specs
-      .map((spec) => normalizedMetricScore(spec, spec.get(artifact.summary), group))
-      .filter((score) => Number.isFinite(score));
-    if (!scores.length) return 0;
-    return scores.reduce((total, score) => total + score, 0) / scores.length;
+    return decisionScoreExplanation(artifact, group, specs).score;
+  }
+
+  function decisionScoreExplanation(artifact, group, specs) {
+    const components = specs.map((spec) => {
+      const rawValue = spec.get(artifact.summary);
+      const normalizedScore = normalizedMetricScore(spec, rawValue, group);
+      const weight = scoreWeightForMetric(spec.label);
+      const included = Number.isFinite(normalizedScore) && weight > 0;
+      return {
+        metric: spec.label,
+        direction: spec.direction,
+        raw_value: Number.isFinite(Number(rawValue)) ? Number(rawValue) : null,
+        formatted_value: spec.format(rawValue),
+        normalized_score: Number.isFinite(normalizedScore)
+          ? Number(normalizedScore.toFixed(6))
+          : null,
+        weight,
+        contribution: included
+          ? Number((normalizedScore * weight).toFixed(6))
+          : null,
+        included,
+      };
+    });
+    const included = components.filter((component) => component.included);
+    const totalWeight = included.reduce(
+      (total, component) => total + component.weight,
+      0
+    );
+    const weightedTotal = included.reduce(
+      (total, component) => total + component.contribution,
+      0
+    );
+    return {
+      score: totalWeight ? weightedTotal / totalWeight : 0,
+      total_weight: totalWeight,
+      components,
+    };
+  }
+
+  function renderScoreExplanation(explanation) {
+    const rows = explanation.components.map((component) => [
+      escapeHtml(component.metric),
+      escapeHtml(component.formatted_value),
+      escapeHtml(
+        component.normalized_score === null
+          ? "n/a"
+          : formatNumber(component.normalized_score)
+      ),
+      escapeHtml(formatNumber(component.weight)),
+      escapeHtml(
+        component.contribution === null
+          ? "n/a"
+          : formatNumber(component.contribution)
+      ),
+    ]);
+    return `
+      <details class="score-explanation">
+        <summary>Explain score</summary>
+        <div class="notes"><p>Final score ${escapeHtml(formatNumber(explanation.score))} = weighted contribution sum divided by total included weight ${escapeHtml(formatNumber(explanation.total_weight))}. Missing metrics and zero-weight metrics are excluded.</p></div>
+        ${simpleTable(
+          [
+            { label: "Metric" },
+            { label: "Raw value", num: true },
+            { label: "Normalized", num: true },
+            { label: "Weight", num: true },
+            { label: "Contribution", num: true },
+          ],
+          rows,
+          "comparison-table score-table"
+        )}
+      </details>
+    `;
   }
 
   function normalizedMetricScore(spec, value, group) {
@@ -3336,8 +3913,10 @@
         label: focus.label,
         description: focus.description,
         metric_labels: focus.metricLabels,
+        score_weights: activeScoreWeightSummary(focus),
       },
       filters: currentFilterState(),
+      url_state: stateUrlString(true),
       visible_artifact_ids: filteredArtifacts().map((artifact) => artifact.summary.id),
       recommendations: comparisonRecommendations(artifacts, focus).map((entry) => ({
         group: entry.group,
@@ -3345,6 +3924,7 @@
         benchmark_name: entry.artifact.summary.benchmark_name,
         score: entry.score,
         best_use: entry.bestUse,
+        score_explanation: entry.scoreExplanation,
       })),
       modeling_boundaries: state.data.modeling_boundaries || [],
       boundary_notes: boundaryNotes,
@@ -3398,7 +3978,7 @@
         decision_scorecard: group
           .map((artifact) => ({
             artifact_id: artifact.summary.id,
-            score: decisionScore(
+            score_explanation: decisionScoreExplanation(
               artifact,
               group,
               specsForFocus(focus).filter((spec) =>
@@ -3410,6 +3990,10 @@
               group,
               specsForFocus(focus)
             ),
+          }))
+          .map((entry) => ({
+            ...entry,
+            score: entry.score_explanation.score,
           }))
           .sort((left, right) => right.score - left.score),
         best: comparisonMetricSpecs()
@@ -3471,6 +4055,9 @@
           `- ${entry.group}: ${entry.artifact.summary.benchmark_name} (${formatNumber(entry.score)} focus score; ${entry.bestUse})`
       )
       .join("\n");
+    const weightSummary = activeScoreWeightSummary(focus)
+      .map((entry) => `${entry.metric}=${formatNumber(entry.weight)}`)
+      .join(", ");
     return `# PhotonicBench Comparison Export
 
 Pinned reference: ${
@@ -3480,6 +4067,8 @@ Pinned reference: ${
 Analysis focus: ${focus.label}
 
 Focus description: ${focus.description}
+
+Score weights: ${weightSummary || "n/a"}
 
 | Benchmark | Kind | Source | Local pJ/op | System pJ/op | System profile | Profile overrides | Memory timing | Effective transfer | Shared clients | Arbitration eff. | Calibration overhead | Latency | Throughput | BW-limited throughput | Contention latency | Contention throughput | Interface traffic | Eq ops/byte | Movement share | Published reference | Source grade | Surrogate type | Provenance |
 | --- | --- | --- | ---: | ---: | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- |
@@ -3498,6 +4087,7 @@ ${notes}
   function comparisonCsv(artifacts, focus, boundaryNotes) {
     const headers = [
       "analysis_focus",
+      "score_weights",
       "artifact_id",
       "benchmark",
       "kind",
@@ -3525,6 +4115,9 @@ ${notes}
       const summary = artifact.summary;
       return [
         focus.key,
+        activeScoreWeightSummary(focus)
+          .map((entry) => `${entry.metric}=${entry.weight}`)
+          .join("; "),
         summary.id,
         summary.benchmark_name,
         kindLabel(summary.kind),
@@ -3664,6 +4257,7 @@ ${notes}
               </label>
               <div class="focus-description">${escapeHtml(focus.description)}</div>
             </div>
+            ${renderScoreWeightControls(focus)}
             ${
               pinnedArtifact
                 ? `<div class="description"><strong>Reference:</strong> ${escapeHtml(pinnedArtifact.summary.benchmark_name)} (${escapeHtml(pinnedArtifact.summary.source_path)})</div>`
@@ -3675,11 +4269,13 @@ ${notes}
             <button class="action-button" type="button" data-action="download-markdown">Download Markdown</button>
             <button class="action-button" type="button" data-action="download-csv">Download CSV</button>
             <button class="action-button" type="button" data-action="copy-markdown">Copy Markdown</button>
+            <button class="action-button" type="button" data-action="copy-link">Copy state link</button>
             <button class="action-button" type="button" data-action="clear-compare">Clear comparison</button>
           </div>
         </div>
       </section>
       ${renderComparisonWorkspace(artifacts, pinnedArtifact, focus)}
+      ${renderSelectionDrawer(artifacts)}
       ${renderComparisonBrief(artifacts)}
       ${renderContentionInsight(artifacts)}
       ${renderComparisonRecommendations(artifacts, focus)}
@@ -3714,6 +4310,43 @@ ${notes}
         state.analysisFocus = event.target.value;
         render();
       });
+    }
+
+    detail.querySelectorAll("[data-score-weight]").forEach((input) => {
+      input.addEventListener("change", () => {
+        setScoreWeight(input.dataset.scoreWeight, input.value);
+      });
+    });
+
+    const resetWeights = detail.querySelector("[data-action='reset-score-weights']");
+    if (resetWeights) {
+      resetWeights.addEventListener("click", () => resetFocusWeights(focus));
+    }
+
+    detail.querySelectorAll("[data-remove-selection]").forEach((button) => {
+      button.addEventListener("click", () => {
+        removeComparisonArtifact(button.dataset.removeSelection);
+      });
+    });
+
+    detail.querySelectorAll("[data-clear-selection-group]").forEach((button) => {
+      button.addEventListener("click", () => {
+        clearSelectionGroup(button.dataset.clearSelectionGroup);
+      });
+    });
+
+    const compareTopVisibleButton = detail.querySelector(
+      "[data-action='compare-top-visible']"
+    );
+    if (compareTopVisibleButton) {
+      compareTopVisibleButton.addEventListener("click", () => {
+        compareTopVisible(detail.querySelector("#top-visible-count").value);
+      });
+    }
+
+    const invertVisible = detail.querySelector("[data-action='invert-visible']");
+    if (invertVisible) {
+      invertVisible.addEventListener("click", () => invertVisibleSelection());
     }
 
     const paretoMode = detail.querySelector("#pareto-mode");
@@ -3769,6 +4402,13 @@ ${notes}
       }
     );
 
+    detail.querySelector("[data-action='copy-link']").addEventListener(
+      "click",
+      () => {
+        copyShareableLink();
+      }
+    );
+
     detail.querySelector("[data-action='clear-compare']").addEventListener(
       "click",
       () => {
@@ -3781,16 +4421,20 @@ ${notes}
   }
 
   function renderModeTabs() {
-    document
-      .getElementById("detail-mode")
-      .classList.toggle("active", state.view === "detail");
-    document
-      .getElementById("compare-mode")
-      .classList.toggle("active", state.view === "compare");
+    const detailMode = document.getElementById("detail-mode");
+    const compareMode = document.getElementById("compare-mode");
+    detailMode.classList.toggle("active", state.view === "detail");
+    compareMode.classList.toggle("active", state.view === "compare");
+    detailMode.setAttribute("aria-pressed", state.view === "detail" ? "true" : "false");
+    compareMode.setAttribute(
+      "aria-pressed",
+      state.view === "compare" ? "true" : "false"
+    );
     document.getElementById("compare-count").textContent = state.compareIds.size;
   }
 
   function render() {
+    syncStaticControls();
     if (!byId.has(state.selectedId)) {
       const first = filteredArtifacts()[0];
       state.selectedId = first ? first.summary.id : null;
@@ -3806,6 +4450,7 @@ ${notes}
     } else {
       renderDetail();
     }
+    scheduleUrlStateUpdate();
   }
 
   render();

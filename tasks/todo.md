@@ -254,27 +254,27 @@
 
 - [x] Task 0: Roll state files forward and create the initial checklist for
       tasks 1-10.
-- [ ] Task 1: Commit the current work on branch
+- [x] Task 1: Commit the current work on branch
       `codex/pr4-followup-improvements` and open a pull request to `master`.
-- [ ] Task 2: Add shareable URL state for filters, focus mode, selected
+- [x] Task 2: Add shareable URL state for filters, focus mode, selected
       artifacts, pinned artifact, and Pareto mode.
-- [ ] Task 3: Add visual regression screenshot testing for desktop and mobile
+- [x] Task 3: Add visual regression screenshot testing for desktop and mobile
       views.
-- [ ] Task 4: Add an explain-score drilldown showing how each recommendation
+- [x] Task 4: Add an explain-score drilldown showing how each recommendation
       score is calculated.
-- [ ] Task 5: Add custom score weights for comparison focus modes.
-- [ ] Task 6: Add selection drawer controls: remove one, clear group, invert
+- [x] Task 5: Add custom score weights for comparison focus modes.
+- [x] Task 6: Add selection drawer controls: remove one, clear group, invert
       selection, and compare top N visible.
-- [ ] Task 7: Improve sticky comparison header and first-column behavior for
+- [x] Task 7: Improve sticky comparison header and first-column behavior for
       wide comparison tables.
-- [ ] Task 8: Add a formal JSON schema for
+- [x] Task 8: Add a formal JSON schema for
       `photonic-bench-comparison-export-v1`.
-- [ ] Task 9: Add import/export functionality for browser-local presets.
-- [ ] Task 10: Perform an accessibility pass covering keyboard navigation,
+- [x] Task 9: Add import/export functionality for browser-local presets.
+- [x] Task 10: Perform an accessibility pass covering keyboard navigation,
       ARIA labels, reduced motion, and contrast.
-- [ ] Task 11: Run mandatory Hostile Senior Reviewer critique and fix important
+- [x] Task 11: Run mandatory Hostile Senior Reviewer critique and fix important
       findings.
-- [ ] Task 12: Run final verification, close state files, commit/push final
+- [x] Task 12: Run final verification, close state files, commit/push final
       work, and inspect final repository status.
 
 ## Explicitly Not Active In This Goal
