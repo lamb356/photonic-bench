@@ -306,6 +306,65 @@
 - [x] Task 7: Close state files only after all stop conditions are proven,
       commit/push final work, and inspect final repository status.
 
+## Completed Goal: Post-PR #5 Visual Regression, Accessibility, And Release Hygiene
+
+- [x] Task 0: Roll state files forward and create the prioritized checklist.
+      Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
+      `RUBRIC.md`, and `tasks/todo.md`; exposed GBrain; queried GBrain;
+      read the durable GBrain operating-instructions page; searched local
+      memory; read frontend-design guidance; confirmed a clean `master`
+      starting branch.
+- [x] Task 1: Live-verify PR #5 is merged into `master`, verify post-merge
+      `master` CI is green, and confirm local `master` is current.
+- [x] Task 2: Add PR screenshot artifacts on every visual regression run, not
+      only on failure.
+- [x] Task 3: Add more visual regression screenshot coverage for detail views,
+      external-report loading errors, and wide transformer comparisons.
+- [x] Task 4: Add automated accessibility tests using axe-style checks beyond
+      current keyboard/ARIA smoke coverage.
+- [x] Task 5: Verify and preserve the visualizer preset gallery with named
+      score-weight profiles for Balanced, Efficiency, Throughput, Contention,
+      and Provenance.
+- [x] Task 6: Add macOS visual regression baselines if feasible, or record a
+      non-weakening infeasibility decision.
+- [x] Task 7: Add a small changelog or release note summarizing recent
+      visualizer upgrades.
+- [x] Task 8: Perform branch cleanup and post-merge artifact verification on
+      `master`.
+- [x] Task 9: Run mandatory Hostile Senior Reviewer critique focused on code
+      quality, test reliability, visual regression portability, accessibility,
+      CI artifact usability, and UX; fix important findings.
+- [x] Task 10: Run final quality gates, close state files, and inspect final
+      repository status.
+
+## Active Goal: Commit PR, macOS Visual Baselines, Visualizer, Modeling, Cards, CLI
+
+- [x] Task 0: Roll state files forward and create the prioritized checklist.
+      Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
+      `RUBRIC.md`, and `tasks/todo.md`; exposed GBrain; read the prior
+      post-PR5 GBrain note; searched local memory; read commit/GitHub
+      publish/frontend/review guidance; confirmed branch
+      `codex/post-pr5-visual-a11y`.
+- [ ] Task 1: Run quick validation, commit the current branch work, push
+      `codex/post-pr5-visual-a11y`, and open a pull request to `master`.
+- [ ] Task 2: Fix macOS visual baseline workflow issues without fabricating
+      macOS screenshots or weakening Linux/Windows checks.
+- [ ] Task 3: Improve visualizer interaction polish, dashboard clarity,
+      analytical features, and daily usability while preserving boundary
+      labels.
+- [ ] Task 4: Deepen system modeling around contention calibration, realistic
+      memory hierarchy behavior, and related metrics.
+- [ ] Task 5: Add 3-5 high-quality source-backed published photonic
+      accelerator cards with clear surrogate labeling.
+- [ ] Task 6: Improve CLI and workflow usability, especially validation and
+      full transformer-model analysis workflows.
+- [ ] Task 7: Update documentation, regenerate checked artifacts, and run
+      focused plus full verification.
+- [ ] Task 8: Run mandatory Hostile Senior Reviewer critique and fix important
+      findings.
+- [ ] Task 9: Close final state files, update durable notes, verify PR/CI/git
+      status, and report remaining risks.
+
 ## Explicitly Not Active In This Goal
 
 - [ ] Hosted backend web service.

@@ -1,100 +1,73 @@
-# PhotonicBench Merge And Preset Gallery Context
+# PhotonicBench Five-Objective Outer Loop Context
 
-## Current Repository State
+## Repository State
 
 - Workspace: `C:\Users\burba\OneDrive\Documents\Photonic Acceleration`
 - Package: `photonic_bench`
-- Starting branch for this cycle: `codex/pr4-followup-improvements`
+- Current branch: `codex/post-pr5-visual-a11y`
 - Base branch: `master`
-- Remote:
-  - `origin` is `https://github.com/lamb356/photonic-bench.git`
-  - `master` tracks `origin/master`
-- PR #5:
-  - URL: `https://github.com/lamb356/photonic-bench/pull/5`
-  - Title: `[codex] Add advanced visualizer shareability and tests`
-  - Head: `codex/pr4-followup-improvements`
-  - Base: `master`
-  - Current head at setup: `61daa63719c73a8e6e1fee8d4e42c2ea00ab9167`
-  - Status at setup: open, non-draft, mergeable, CI-green.
-  - Merged into `master` at `2026-07-04T12:31:51Z`.
-  - Merge commit: `14cf2afd75eb873852675585de89f6b04eb752a2`.
-  - Post-merge `master` CI run `28706296529` passed.
-  - Remote branch `origin/codex/pr4-followup-improvements` was pruned after
-    merge.
+- Remote: `https://github.com/lamb356/photonic-bench.git`
+- Current branch contains the completed post-PR5 visual regression,
+  accessibility, release-note, and baseline work, but it is not yet committed
+  or pushed at the start of this loop.
 
-## Visualizer Baseline After PR #5
+## Carry-Forward Post-PR5 Work To Protect
 
-- `photonic_bench/visualizer.py` discovers schema-aware JSON artifacts, writes
-  a lightweight index, emits lazy payloads, and renders the static HTML shell.
-- `photonic_bench/visualizer_assets/template.html` defines the rail, filters,
-  generated/browser-local preset controls, external JSON loader, mode tabs,
-  and detail mount.
-- `photonic_bench/visualizer_assets/app.js` implements:
-  - detail and comparison modes;
-  - generated and browser-local comparison presets;
-  - shareable URL state for filters, selected comparison set, pinned artifact,
-    focus mode, Pareto mode, and custom score weights;
-  - score explanations and custom score weights;
-  - selection drawer controls;
-  - side-by-side comparison matrix;
-  - comparison workspace panel, recommendations, scorecards, Pareto chart,
-    contention insight, schema compatibility, grouped same-schema analytics,
-    and JSON/Markdown/CSV exports.
-- `photonic_bench/visualizer_assets/styles.css` implements the dense workbench
-  styling and existing responsive behavior.
-- Checked static output lives under `reports/visualizer/`.
-- Generated comparison preset sidecar: `reports/visualizer_presets.json`.
+From GBrain page `photonicbench-post-pr5-visual-a11y-2026-07-04` and local
+state files:
 
-## Active Improvement Direction
-
-- Merge PR #5 into `master` first and verify the required branch-protection CI.
-- Add a first-class preset gallery for named score-weight profiles:
-  Balanced, Efficiency, Throughput, Contention, and Provenance.
-- Make the gallery useful for daily analysis, not only decorative:
-  - visible profile intent;
-  - readable weight summary;
-  - one-click apply;
-  - obvious active/custom state;
-  - exported/reproducible context when relevant.
-- Preserve the existing dense analytical workbench style and conservative
-  boundary language.
-
-## Final Closeout State
-
-- PR #5 was merged into `master` at
+- PR #5 was live-verified merged into `master` at
   `14cf2afd75eb873852675585de89f6b04eb752a2`.
-- Post-merge `master` CI run `28706296529` passed.
-- Follow-up visualizer work landed on protected branch
-  `codex/score-profile-gallery` and PR #6:
-  `https://github.com/lamb356/photonic-bench/pull/6`.
-- PR #6 CI run `28706649939` passed before closeout.
-- Implemented visualizer improvements:
-  - Score Profile Gallery;
-  - built-in Balanced, Efficiency, Throughput, Contention, and Provenance
-    score-weight profiles;
-  - current-set same-schema profile previews;
-  - profile-aware shareable URL state;
-  - profile-aware JSON, Markdown, and CSV exports;
-  - updated schema, docs, browser smoke, static tests, and visual regression
-    profile-application coverage.
-- Mandatory Hostile Senior Reviewer critique completed with one
-  non-blocking test-coverage finding, fixed.
-- Local gates passed: focused visualizer tests, browser smoke, visual
-  regression, JavaScript syntax, artifact freshness, Ruff, full pytest,
-  package build, and `git diff --check`.
+- Post-merge `master` CI run `28706296529` concluded `success`.
+- CI visual regression screenshots changed from `if: failure()` to
+  `if: always()`.
+- Visual regression coverage expanded to desktop comparison, mobile
+  comparison, published-reference detail, external-report error diagnostics,
+  and wide transformer comparison.
+- `axe-playwright-python>=0.1.7` and accessibility tests were added.
+- Axe findings were fixed in source UI: focusable scrollable table regions,
+  visible focus rings, unique table region labels, and labeled export preview.
+- Root and `github-linux` baselines were generated.
+- macOS platform aliases normalize to `macos`, but real macOS PNGs were not
+  fabricated.
+- `CHANGELOG.md` summarizes the visualizer test and analysis upgrade.
 
-## Required State Discipline
+## Relevant Code Surfaces
 
-- Re-read `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`, and
-  `RUBRIC.md` at the start of every cycle.
-- Keep `tasks/todo.md` aligned with the active goal.
-- Before marking an item DONE, verify the change in source, generated
-  visualizer output, tests, and docs as appropriate.
-- Run the mandatory Hostile Senior Reviewer critique after substantial
-  implementation and fix important findings.
+- CI and PR flow:
+  - `.github/workflows/ci.yml`
+- Visualizer:
+  - `photonic_bench/visualizer_assets/app.js`
+  - `photonic_bench/visualizer_assets/styles.css`
+  - `photonic_bench/visualizer_assets/template.html`
+  - `photonic_bench/visualizer.py`
+- Model/report/JSON:
+  - `photonic_bench/model.py`
+  - `photonic_bench/report.py`
+  - `photonic_bench/json_report.py`
+  - `photonic_bench/comparison.py`
+  - `photonic_bench/transformer.py`
+- CLI/artifacts:
+  - `photonic_bench/cli.py`
+  - `photonic_bench/artifacts.py`
+- Examples and reports:
+  - `examples/*.yaml`
+  - `reports/*.json`
+  - `reports/*.md`
+- Tests:
+  - `tests/test_visualizer*.py`
+  - `tests/test_model.py`
+  - `tests/test_report.py`
+  - `tests/test_json_report.py`
+  - `tests/test_config.py`
+  - `tests/test_cli.py`
+  - `tests/test_artifacts.py`
 
-## Out Of Scope
+## Constraints
 
-- Hosted backend web service.
-- Formal MLCommons submission.
-- Release publishing automation.
+- Do not push with failing known tests or lint.
+- Do not fabricate published values or macOS screenshots.
+- Source-backed card additions must cite primary sources and label surrogate
+  local workloads clearly.
+- Keep local estimates and paper-reported values visibly separate.
+- Generated artifacts must be refreshed after source/model/example changes.

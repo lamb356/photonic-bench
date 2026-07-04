@@ -64,6 +64,7 @@
     "photonic-bench-transformer-layer-report-v1";
   const TRANSFORMER_MODEL_SCHEMA_VERSION =
     "photonic-bench-transformer-model-report-v1";
+  let tableSequence = 0;
 
   if (!state.data) {
     document.getElementById("detail").innerHTML =
@@ -1994,8 +1995,9 @@
   }
 
   function simpleTable(headers, rows, className = "") {
+    const tableLabel = `Scrollable data table ${++tableSequence}`;
     return `
-      <div class="table-wrap">
+      <div class="table-wrap" tabindex="0" role="region" aria-label="${escapeHtml(tableLabel)}">
         <table class="${className}">
           <thead><tr>${headers
             .map(
@@ -4547,7 +4549,7 @@ ${notes}
       </section>
       <section class="panel">
         <h3>Export Preview</h3>
-        <textarea id="export-preview" class="export-preview" readonly>${escapeHtml(exportMarkdown)}</textarea>
+        <textarea id="export-preview" class="export-preview" aria-label="Markdown export preview" readonly>${escapeHtml(exportMarkdown)}</textarea>
       </section>
     `;
 

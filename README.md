@@ -674,6 +674,7 @@ python -m pip install -e ".[dev]"
 python -m playwright install chromium
 python -m pytest tests/test_visualizer_smoke.py
 python -m pytest tests/test_visualizer_visual_regression.py
+python -m pytest tests/test_visualizer_accessibility.py
 ```
 
 The smoke test launches Chromium with Playwright, opens a generated visualizer,
@@ -681,22 +682,34 @@ loads generated and browser-local presets, verifies URL-state restoration,
 custom score weights, score explanations, selection-drawer controls, comparison
 analytics, JSON/Markdown/CSV exports, representative transformer and
 per-matmul detail flows, comparison pinning, reduced-motion behavior, and
-delta/ratio labels while failing on page or console errors. The visual
-regression test captures desktop and mobile comparison screenshots against
-checked baselines. It uses exact pixel matching when the renderer is identical
-and a perceptual fallback so CI font rasterization differences do not mask real
-layout regressions. When a renderer-specific baseline exists, for example under
+delta/ratio labels while failing on page or console errors. The accessibility
+test uses axe-core through `axe-playwright-python` against representative
+detail and comparison states; any automatically detectable axe violation fails
+the test with affected targets listed in the assertion message.
+
+The visual regression test captures desktop and mobile comparison screenshots,
+a published-reference detail view, external-report rejection diagnostics, and a
+wide BERT transformer comparison against checked baselines. It uses exact pixel
+matching when the renderer is identical and a perceptual fallback so CI font
+rasterization differences do not mask real layout regressions. When a
+renderer-specific baseline exists, for example under
 `tests/visual_baselines/github-linux/`, that baseline is preferred when
-`VISUAL_REGRESSION_BASELINE_PLATFORM` names it. CI writes actual screenshots to
-`test-results/visual-regression/` and uploads them as a failure artifact when
-the comparison fails. To
+`VISUAL_REGRESSION_BASELINE_PLATFORM` names it. `darwin`, `mac`, and
+`macos-latest` normalize to a `macos` baseline folder, but macOS PNG baselines
+should only be checked in after capture on a real macOS runner. CI writes actual
+screenshots to `test-results/visual-regression/` and uploads them as a visual
+regression artifact on every run, including passing pull request runs. To
 intentionally refresh baselines after a reviewed UI change, run:
 
 ```powershell
 $env:UPDATE_VISUAL_BASELINES='1'
+$env:VISUAL_REGRESSION_BASELINE_PLATFORM='root'
 python -m pytest tests/test_visualizer_visual_regression.py
 Remove-Item Env:\UPDATE_VISUAL_BASELINES
+Remove-Item Env:\VISUAL_REGRESSION_BASELINE_PLATFORM
 ```
+
+Recent visualizer changes are summarized in `CHANGELOG.md`.
 
 ## Config Inspection
 

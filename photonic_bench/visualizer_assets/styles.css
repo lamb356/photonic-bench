@@ -791,6 +791,11 @@ th.num {
   scrollbar-gutter: stable both-edges;
 }
 
+.table-wrap:focus-visible {
+  outline: 3px solid rgba(0, 120, 120, 0.32);
+  outline-offset: 3px;
+}
+
 .comparison-table {
   min-width: 760px;
 }
