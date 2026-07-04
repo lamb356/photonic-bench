@@ -1,8 +1,8 @@
 # PhotonicBench Goal
 
 Date started: 2026-07-04
-Implementation status: complete pending commit/push closeout for branch
-`codex/pr7-followup-improvements`.
+Implementation status: complete; follow-up PR #8 is open, mergeable, and green
+on branch `codex/pr7-followup-improvements`.
 
 ## Objective
 

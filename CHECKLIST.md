@@ -227,5 +227,8 @@ Status key:
       and remaining risks.
   - Proof:
     - PR merge, CI, artifact, test, source, and review evidence are recorded
-      here and in `PROGRESS.md`; final git/PR status is reported after commit
-      and push.
+      here and in `PROGRESS.md`.
+    - Durable GBrain note:
+      `photonicbench-pr7-merge-followup-2026-07-04`.
+    - Follow-up PR #8 is open and green:
+      `https://github.com/lamb356/photonic-bench/pull/8`.

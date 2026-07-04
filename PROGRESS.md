@@ -212,9 +212,22 @@
 
 - Updated `GOAL.md`, `CHECKLIST.md`, `CONTEXT.md`, `PROGRESS.md`,
   `RUBRIC.md`, and `tasks/todo.md` to match the completed loop.
-- Remaining closeout actions:
-  - commit and push `codex/pr7-followup-improvements`;
-  - open/verify the follow-up PR if created;
-  - report final git/CI/artifact status.
 - Durable GBrain note written:
   - `photonicbench-pr7-merge-followup-2026-07-04`.
+
+## 2026-07-04 Cycle 6: PR #8 Publish And Remote CI
+
+- Committed the implementation package:
+  - `fd70f5d0f9172bfbb2d1145b28d7aec6bc06cb09`;
+  - message: `Extend PhotonicBench follow-up analysis`.
+- Pushed branch `codex/pr7-followup-improvements`.
+- Opened PR #8:
+  - `https://github.com/lamb356/photonic-bench/pull/8`;
+  - base: `master`;
+  - head: `codex/pr7-followup-improvements`;
+  - state: open, non-draft, mergeable.
+- PR #8 CI run `28711667848` passed:
+  - `Ruff, package, and pytest`: pass;
+  - `macOS visual regression`: pass.
+- Added this state-only closeout update so committed state files record the
+  actual PR #8 URL and green CI result.

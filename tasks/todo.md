@@ -436,8 +436,9 @@
 - [x] Task 8: Close final state files, update durable notes, verify final
       git/CI/artifact status, and report remaining risks.
       State files are closed here and durable GBrain note
-      `photonicbench-pr7-merge-followup-2026-07-04` is written; final commit,
-      push, PR/CI, and git status are reported in the final response.
+      `photonicbench-pr7-merge-followup-2026-07-04` is written. Follow-up
+      PR #8 is open and green:
+      `https://github.com/lamb356/photonic-bench/pull/8`.
 
 ## Explicitly Not Active In This Goal
 
