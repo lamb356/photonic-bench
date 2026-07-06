@@ -46,7 +46,7 @@ jobs:
 
       - name: Upload visual regression screenshots
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: visual-regression-screenshots
           path: test-results/visual-regression/*.png
@@ -85,7 +85,7 @@ jobs:
 
       - name: Upload macOS visual regression screenshots
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: macos-visual-regression-screenshots
           path: |
